@@ -33,7 +33,7 @@ collections:
       - { label: "Descripción", name: "description", widget: "text", required: false, hint: "Texto breve opcional para explicar el plato." }
       - { label: "Precio", name: "price", widget: "number", min: 0, value_type: "int", hint: "Ingresar el valor en pesos, sin símbolos." }
       - { label: "Disponible", name: "available", widget: "boolean", default: true, hint: "Desactivar si hoy no debe aparecer como disponible." }
-
+      - { label: "Imagen", name: "image", widget: "image", required: false, hint: "Opcional. Se guarda en /public/uploads para uso futuro en la tarjeta del menu." }
   - name: "fixed-dishes"
     label: "Platos fijos"
     label_singular: "Plato fijo"
@@ -51,7 +51,7 @@ collections:
       - { label: "Descripción", name: "description", widget: "text", required: false, hint: "Texto breve opcional para explicar el plato." }
       - { label: "Precio", name: "price", widget: "number", min: 0, value_type: "int", hint: "Ingresar el valor en pesos, sin símbolos." }
       - { label: "Disponible", name: "available", widget: "boolean", default: true, hint: "Desactivar si hoy no debe aparecer como disponible." }
-
+      - { label: "Imagen", name: "image", widget: "image", required: false, hint: "Opcional. Se guarda en /public/uploads para uso futuro en la tarjeta del menu." }
   - name: "side-dishes"
     label: "Guarniciones"
     label_singular: "Guarnición"
@@ -69,7 +69,7 @@ collections:
       - { label: "Descripción", name: "description", widget: "text", required: false, hint: "Texto breve opcional para explicar la guarnición." }
       - { label: "Precio", name: "price", widget: "number", min: 0, value_type: "int", hint: "Ingresar el valor en pesos, sin símbolos." }
       - { label: "Disponible", name: "available", widget: "boolean", default: true, hint: "Desactivar si hoy no debe aparecer como disponible." }
-
+      - { label: "Imagen", name: "image", widget: "image", required: false, hint: "Opcional. Se guarda en /public/uploads para uso futuro en la tarjeta del menu." }
   - name: "drinks"
     label: "Bebidas"
     label_singular: "Bebida"
@@ -87,3 +87,4 @@ collections:
       - { label: "Descripción", name: "description", widget: "text", required: false, hint: "Texto breve opcional para explicar la bebida." }
       - { label: "Precio", name: "price", widget: "number", min: 0, value_type: "int", hint: "Ingresar el valor en pesos, sin símbolos." }
       - { label: "Disponible", name: "available", widget: "boolean", default: true, hint: "Desactivar si hoy no debe aparecer como disponible." }
+      - { label: "Imagen", name: "image", widget: "image", required: false, hint: "Opcional. Se guarda en /public/uploads para uso futuro en la tarjeta del menu." }

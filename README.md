@@ -57,6 +57,7 @@ Todavia no incluye:
 src/
   components/
     DishCard.astro
+    MenuInfoPanel.astro
     MenuSection.astro
   content/
     daily-dishes/
@@ -153,6 +154,7 @@ La integracion de Decap CMS ya esta operativa en el repo con:
 - `backend: git-gateway`
 - rama `main`
 - edicion directa de las cuatro colecciones YAML
+- campos editoriales simples: `name`, `description`, `price`, `available`, `image` (opcional)
 
 La configuracion de Netlify tambien ya esta versionada en:
 
