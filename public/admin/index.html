@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Administración | El Faraon Catering</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #f6efe5;
+        color: #2d2419;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      }
+
+      .admin-loading {
+        display: grid;
+        min-height: 100vh;
+        place-items: center;
+        padding: 1.5rem;
+        text-align: center;
+      }
+
+      .admin-loading p {
+        margin: 0;
+        max-width: 28rem;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="nc-root">
+      <div class="admin-loading">
+        <p>Cargando el panel de administración de El Faraon Catering...</p>
+      </div>
+    </div>
+
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script src="https://unpkg.com/decap-cms@3.10.1/dist/decap-cms.js"></script>
+    <script>
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on("init", function (user) {
+          if (!user) {
+            window.netlifyIdentity.on("login", function () {
+              window.location.href = "/admin/";
+            });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

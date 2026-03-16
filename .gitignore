@@ -4,11 +4,17 @@ dist/
 .netlify/
 
 # Logs
+*.log
 npm-debug.log*
 
 # Environment files
 .env
 .env.*
+!.env.example
+
+# Editor settings
+.vscode/
+.idea/
 
 # OS files
 Thumbs.db

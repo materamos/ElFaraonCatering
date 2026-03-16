@@ -1,0 +1,89 @@
+backend:
+  name: git-gateway
+  branch: main
+
+publish_mode: simple
+media_folder: "public/uploads"
+public_folder: "/uploads"
+show_preview_links: false
+
+slug:
+  encoding: ascii
+  clean_accents: true
+  sanitize_replacement: "-"
+
+editor:
+  preview: false
+
+collections:
+  - name: "daily-dishes"
+    label: "Platos del día"
+    label_singular: "Plato del día"
+    description: "Opciones rotativas de la jornada actual."
+    folder: "src/content/daily-dishes"
+    create: true
+    delete: true
+    identifier_field: "name"
+    extension: "yaml"
+    format: "yaml"
+    summary: "{{name}}"
+    slug: "{{slug}}"
+    fields:
+      - { label: "Nombre", name: "name", widget: "string", hint: "Nombre visible para el cliente." }
+      - { label: "Descripción", name: "description", widget: "text", required: false, hint: "Texto breve opcional para explicar el plato." }
+      - { label: "Precio", name: "price", widget: "number", min: 0, value_type: "int", hint: "Ingresar el valor en pesos, sin símbolos." }
+      - { label: "Disponible", name: "available", widget: "boolean", default: true, hint: "Desactivar si hoy no debe aparecer como disponible." }
+
+  - name: "fixed-dishes"
+    label: "Platos fijos"
+    label_singular: "Plato fijo"
+    description: "Platos principales que forman parte del menú estable."
+    folder: "src/content/fixed-dishes"
+    create: true
+    delete: true
+    identifier_field: "name"
+    extension: "yaml"
+    format: "yaml"
+    summary: "{{name}}"
+    slug: "{{slug}}"
+    fields:
+      - { label: "Nombre", name: "name", widget: "string", hint: "Nombre visible para el cliente." }
+      - { label: "Descripción", name: "description", widget: "text", required: false, hint: "Texto breve opcional para explicar el plato." }
+      - { label: "Precio", name: "price", widget: "number", min: 0, value_type: "int", hint: "Ingresar el valor en pesos, sin símbolos." }
+      - { label: "Disponible", name: "available", widget: "boolean", default: true, hint: "Desactivar si hoy no debe aparecer como disponible." }
+
+  - name: "side-dishes"
+    label: "Guarniciones"
+    label_singular: "Guarnición"
+    description: "Acompañamientos disponibles para los platos principales."
+    folder: "src/content/side-dishes"
+    create: true
+    delete: true
+    identifier_field: "name"
+    extension: "yaml"
+    format: "yaml"
+    summary: "{{name}}"
+    slug: "{{slug}}"
+    fields:
+      - { label: "Nombre", name: "name", widget: "string", hint: "Nombre visible para el cliente." }
+      - { label: "Descripción", name: "description", widget: "text", required: false, hint: "Texto breve opcional para explicar la guarnición." }
+      - { label: "Precio", name: "price", widget: "number", min: 0, value_type: "int", hint: "Ingresar el valor en pesos, sin símbolos." }
+      - { label: "Disponible", name: "available", widget: "boolean", default: true, hint: "Desactivar si hoy no debe aparecer como disponible." }
+
+  - name: "drinks"
+    label: "Bebidas"
+    label_singular: "Bebida"
+    description: "Bebidas informativas disponibles para el buffet."
+    folder: "src/content/drinks"
+    create: true
+    delete: true
+    identifier_field: "name"
+    extension: "yaml"
+    format: "yaml"
+    summary: "{{name}}"
+    slug: "{{slug}}"
+    fields:
+      - { label: "Nombre", name: "name", widget: "string", hint: "Nombre visible para el cliente." }
+      - { label: "Descripción", name: "description", widget: "text", required: false, hint: "Texto breve opcional para explicar la bebida." }
+      - { label: "Precio", name: "price", widget: "number", min: 0, value_type: "int", hint: "Ingresar el valor en pesos, sin símbolos." }
+      - { label: "Disponible", name: "available", widget: "boolean", default: true, hint: "Desactivar si hoy no debe aparecer como disponible." }

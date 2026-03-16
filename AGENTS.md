@@ -23,6 +23,8 @@ The repository already contains a working technical base with:
 - **TypeScript**
 - **Tailwind CSS 4**
 - **Astro Content Collections**
+- **Decap CMS static admin**
+- **Netlify repo-managed config**
 - **YAML content files**
 - **Node 20 LTS**
 - **npm**
@@ -31,7 +33,7 @@ Implemented routes:
 
 - `/` -> future institutional placeholder
 - `/menu` -> operational QR menu
-- `/admin` -> reserved placeholder for Decap CMS
+- `/admin` -> Decap CMS admin app served from `public/admin/`
 
 Implemented content collections:
 
@@ -53,6 +55,13 @@ Important compatibility note:
 - Keep the project compatible with **Node 20**
 - Prefer staying on **Astro 5** unless the runtime requirement is intentionally upgraded
 - Do not switch to tooling that requires Node 22+ unless explicitly requested
+- Keep `/admin` served from static files under `public/admin/`; do not reintroduce an Astro page at the same route
+
+Implemented deployment baseline:
+
+- `netlify.toml` defines `npm run build` and `dist`
+- `.nvmrc` and `package.json` engines pin Node 20
+- Decap CMS is configured for `git-gateway` on branch `main`
 
 ---
 
@@ -125,6 +134,7 @@ The project must support the following route structure:
 - `/menu` is the current product priority
 - `/` must be treated as a future-facing institutional surface
 - `/admin` is only for CMS access
+- `/admin` should stay implemented via `public/admin/index.html`
 - Do not couple `/menu` to the institutional site unnecessarily
 - Do not assume the institutional landing page must link directly to `/menu`
 - Do not design the buffet menu as if it were a public restaurant website
