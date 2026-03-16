@@ -1,7 +1,57 @@
----
+﻿---
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import MenuInfoPanel from "../../components/MenuInfoPanel.astro";
 import MenuSection from "../../components/MenuSection.astro";
+
+type MenuCollectionName = "daily-dishes" | "fixed-dishes" | "side-dishes" | "drinks";
+
+interface MenuSectionDefinition {
+  collection: MenuCollectionName;
+  title: string;
+  description: string;
+}
+
+interface SupportInfoRow {
+  label: string;
+  value: string;
+}
+
+const menuHeroContent = {
+  eyebrow: "Menú operativo",
+  title: "Menú digital del buffet",
+  description:
+    "Base funcional para la experiencia QR de El Faraon Catering dentro del edificio corporativo de Paramount+.",
+};
+
+const supportInfoRows: SupportInfoRow[] = [
+  { label: "Horario", value: "8:00 a 20:00 h" },
+  { label: "Medios de pago", value: "Efectivo / Mercado Pago" },
+  { label: "Tarjetas", value: "Tarjeta de crédito / Tarjeta de débito" },
+];
+
+const menuSectionDefinitions: MenuSectionDefinition[] = [
+  {
+    collection: "daily-dishes",
+    title: "Platos del día",
+    description: "Opciones de rotación alta para la jornada actual del buffet.",
+  },
+  {
+    collection: "fixed-dishes",
+    title: "Platos fijos",
+    description: "Base estable del menú para quienes buscan una elección conocida.",
+  },
+  {
+    collection: "side-dishes",
+    title: "Guarniciones",
+    description: "Complementos disponibles para acompañar los platos principales.",
+  },
+  {
+    collection: "drinks",
+    title: "Bebidas",
+    description: "Selección rápida de bebidas informativas y disponibilidad actual.",
+  },
+];
 
 const sortItems = <T extends { data: { available: boolean; name: string } }>(items: T[]) =>
   [...items].sort((left, right) => {
@@ -12,35 +62,15 @@ const sortItems = <T extends { data: { available: boolean; name: string } }>(ite
     return left.data.name.localeCompare(right.data.name, "es");
   });
 
-const [dailyDishes, fixedDishes, sideDishes, drinks] = await Promise.all([
-  getCollection("daily-dishes"),
-  getCollection("fixed-dishes"),
-  getCollection("side-dishes"),
-  getCollection("drinks"),
-]);
+const collections = await Promise.all(
+  menuSectionDefinitions.map((section) => getCollection(section.collection)),
+);
 
-const sections = [
-  {
-    title: "Platos del día",
-    description: "Opciones de rotación alta para la jornada actual del buffet.",
-    items: sortItems(dailyDishes),
-  },
-  {
-    title: "Platos fijos",
-    description: "Base estable del menú para quienes buscan una elección conocida.",
-    items: sortItems(fixedDishes),
-  },
-  {
-    title: "Guarniciones",
-    description: "Complementos disponibles para acompañar los platos principales.",
-    items: sortItems(sideDishes),
-  },
-  {
-    title: "Bebidas",
-    description: "Selección rápida de bebidas informativas y disponibilidad actual.",
-    items: sortItems(drinks),
-  },
-];
+const sections = menuSectionDefinitions.map((section, index) => ({
+  title: section.title,
+  description: section.description,
+  items: sortItems(collections[index]),
+}));
 ---
 
 <BaseLayout
@@ -51,32 +81,14 @@ const sections = [
     <section class="surface-card overflow-hidden">
       <div class="grid gap-6 p-5 sm:p-6 lg:grid-cols-[1.1fr_0.9fr] lg:p-8">
         <div class="space-y-4">
-          <p class="eyebrow">Menú operativo</p>
-          <h1 class="max-w-xl text-5xl sm:text-6xl">Menú digital del buffet</h1>
+          <p class="eyebrow">{menuHeroContent.eyebrow}</p>
+          <h1 class="max-w-xl text-5xl sm:text-6xl">{menuHeroContent.title}</h1>
           <p class="max-w-2xl text-base leading-7 text-[var(--color-muted)]">
-            Base funcional para la experiencia QR de El Faraon Catering dentro del edificio corporativo
-            de Paramount+. El contenido todavía es de ejemplo, pero ahora ya puede administrarse desde
-            la ruta interna de edición.
+            {menuHeroContent.description}
           </p>
         </div>
 
-        <div class="rounded-[var(--radius-panel)] bg-[var(--color-surface-strong)] p-5">
-          <p class="eyebrow">Información útil</p>
-          <dl class="mt-4 grid gap-3 text-sm">
-            <div class="flex items-center justify-between gap-4 border-b border-[var(--color-line)] pb-3">
-              <dt class="text-[var(--color-muted)]">Horarios</dt>
-              <dd class="font-semibold text-[var(--color-ink)]">8 a 20hs.</dd>
-            </div>
-            <div class="flex items-center justify-between gap-4 border-b border-[var(--color-line)] pb-3">
-              <dt class="text-[var(--color-muted)]">Medios de Pago</dt>
-              <dd class="font-semibold text-[var(--color-ink)]">Efectivo/Mercado Pago/T. Credito/T. Debito</dd>
-            </div>
-            <div class="flex items-center justify-between gap-4">
-              <dt class="text-[var(--color-muted)]">CMS</dt>
-              <dd class="font-semibold text-[var(--color-ink)]">Decap CMS</dd>
-            </div>
-          </dl>
-        </div>
+        <MenuInfoPanel title="Información útil" rows={supportInfoRows} />
       </div>
     </section>
 

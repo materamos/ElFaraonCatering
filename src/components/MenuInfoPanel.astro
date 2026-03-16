@@ -1,0 +1,30 @@
+---
+interface MenuInfoRow {
+  label: string;
+  value: string;
+}
+
+interface Props {
+  title: string;
+  rows: MenuInfoRow[];
+}
+
+const { title, rows } = Astro.props;
+---
+
+<div class="rounded-[var(--radius-panel)] bg-[var(--color-surface-strong)] p-5">
+  <p class="eyebrow">{title}</p>
+  <dl class="mt-4 grid gap-3 text-sm">
+    {rows.map((row, index) => (
+      <div
+        class:list={[
+          "grid gap-1 sm:grid-cols-[auto,1fr] sm:items-center sm:gap-4",
+          index < rows.length - 1 && "border-b border-[var(--color-line)] pb-3",
+        ]}
+      >
+        <dt class="text-[var(--color-muted)]">{row.label}</dt>
+        <dd class="font-semibold text-[var(--color-ink)] sm:text-right">{row.value}</dd>
+      </div>
+    ))}
+  </dl>
+</div>
