@@ -19,7 +19,11 @@ const formattedPrice = new Intl.NumberFormat("es-AR", {
   <div class="flex items-start justify-between gap-3">
     <div class="space-y-2">
       <h3 class="text-xl text-[var(--color-ink)]">{name}</h3>
-      {description && <p class="text-sm leading-6 text-[var(--color-muted)]">{description}</p>}
+      {description && (
+        <p class="whitespace-pre-line text-sm leading-6 text-[var(--color-muted)]">
+          {description}
+        </p>
+      )}
     </div>
     <span class="status-pill shrink-0" data-state={available ? "available" : "unavailable"}>
       {available ? "Disponible" : "No disponible"}
