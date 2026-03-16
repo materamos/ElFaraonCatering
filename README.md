@@ -1,248 +1,137 @@
-# Sistema de Menú Digital  
-## El Faraon Catering
+# El Faraon Catering
 
-Sistema de menú digital accesible mediante código QR desarrollado para los buffets operados por **El Faraon Catering** dentro de estudios audiovisuales y edificios corporativos.
+Base tecnica inicial para el sistema de menu digital de **El Faraon Catering**.
 
-La primera implementación del sistema estará orientada al buffet ubicado en el **edificio corporativo de Paramount+**, funcionando como una prueba inicial antes de extender el sistema a otras locaciones donde opera la empresa.
+El foco actual del proyecto es la experiencia de menu QR para el buffet dentro del edificio corporativo de **Paramount+**. Esta primera version es **informativa**: no incluye pedidos, pagos, reservas, cuentas ni flujos de compra.
 
----
+## Estado actual
 
-# Overview
+La base del proyecto ya esta creada con:
 
-El Faraon Catering es una empresa que desde 2018 brinda servicios de alimentación para producciones audiovisuales y administra buffets en distintos espacios del sector.
+- **Astro 5**
+- **TypeScript**
+- **Tailwind CSS 4**
+- **Astro Content Collections**
+- **YAML** para contenido
+- **Node 20 LTS**
+- **npm**
 
-Actualmente opera en locaciones como:
+En este hito ya existen:
 
-- Estudios Cuyo  
-- Estudios Ronda  
-- Edificio Corporativo Paramount+  
-- Star TV Producciones  
+- la ruta `/` como placeholder institucional
+- la ruta `/menu` como superficie operativa principal
+- la ruta `/admin` como espacio reservado para Decap CMS
+- colecciones tipadas para `daily-dishes`, `fixed-dishes`, `side-dishes` y `drinks`
+- contenido YAML de ejemplo para validar render y tipado
+- una UI minima mobile-first sin JavaScript del lado cliente
 
-Estos buffets atienden principalmente a técnicos, personal de producción audiovisual y trabajadores de oficinas durante horarios laborales.
+## Objetivo del proyecto
 
-El objetivo de este proyecto es digitalizar el menú del buffet y facilitar su consulta mediante teléfonos móviles utilizando **códigos QR colocados dentro de cada establecimiento**.
+Construir un menu digital rapido, simple y de bajo mantenimiento que pueda ser actualizado por personal no tecnico a traves de un CMS en una etapa posterior.
 
----
+## Alcance de esta etapa
 
-# Objetivos del proyecto
+La etapa actual cubre solo la base tecnica del sitio:
 
-El sistema busca ofrecer una solución simple, rápida y de bajo mantenimiento para visualizar el menú del buffet.
+- estructura del proyecto
+- rutas principales
+- sistema visual inicial
+- modelado tipado del contenido
+- render estatico del menu
 
-Objetivos principales:
+Todavia no incluye:
 
-- Facilitar la consulta del menú desde teléfonos móviles mediante QR
-- Permitir actualizar el menú del día de forma sencilla
-- Ofrecer una experiencia clara y rápida en dispositivos móviles
-- Mantener costos de mantenimiento mínimos
-- Sentar las bases para una futura web institucional del catering
-- Permitir reutilizar el sistema en múltiples locaciones
+- Decap CMS operativo
+- Netlify configurado
+- autenticacion
+- imagenes reales de platos
+- multiples locaciones
 
----
+## Estructura principal
 
-# Alcance del sistema
+```text
+src/
+  components/
+    DishCard.astro
+    MenuSection.astro
+  content/
+    daily-dishes/
+    fixed-dishes/
+    side-dishes/
+    drinks/
+  layouts/
+    BaseLayout.astro
+  pages/
+    index.astro
+    menu/index.astro
+    admin/index.astro
+  styles/
+    global.css
+  content.config.ts
+```
 
-La primera etapa del proyecto se centra exclusivamente en el **menú digital del buffet**.
+## Rutas disponibles
 
-El sistema permitirá visualizar:
+- `/` -> placeholder para la futura web institucional
+- `/menu` -> menu operativo del buffet
+- `/admin` -> placeholder reservado para Decap CMS
 
-- platos fijos
-- guarniciones
-- bebidas
-- menú del día
-- precios
-- disponibilidad de platos
-- horarios de atención
+## Modelo de contenido actual
 
-El menú será **principalmente informativo**, sin integrar por el momento sistemas de pedidos, pagos o reservas.
+Cada item de menu usa un esquema simple y estricto:
 
----
+```yaml
+name: string
+description: string # opcional
+price: number
+available: boolean
+image: string # opcional
+```
 
-# Estructura del menú
+Colecciones activas:
 
-El menú se organiza en cuatro categorías principales.
+- `src/content/daily-dishes/`
+- `src/content/fixed-dishes/`
+- `src/content/side-dishes/`
+- `src/content/drinks/`
 
-## Platos fijos
+## Desarrollo local
 
-El buffet ofrece aproximadamente **6 a 7 platos principales fijos**, que pueden variar ocasionalmente.
+### Requisitos
 
-Cada plato incluirá:
+- Node `20.x`
+- npm
 
-- nombre
-- descripción opcional
-- precio
-- disponibilidad
-- opción de guarnición
+Si acabas de instalar Node en Windows, conviene cerrar y volver a abrir la terminal antes de ejecutar comandos para que `node` y `npm` queden disponibles en el `PATH`.
 
----
+### Instalacion
 
-## Guarniciones
+```bash
+npm install
+```
 
-Las guarniciones son comunes a todos los platos principales.
+### Desarrollo
 
-Ejemplos posibles:
+```bash
+npm run dev
+```
 
-- papas fritas
-- ensalada
-- puré
-- arroz
+### Validacion
 
----
+```bash
+npm run build
+npm run check
+```
 
-## Bebidas
+## Decisiones tecnicas actuales
 
-Lista fija de bebidas disponibles:
+- Se uso **Astro 5** para mantener compatibilidad con **Node 20**.
+- El proyecto se creo manualmente en lugar de usar `create-astro@latest`, porque las versiones mas nuevas del generador ya exigen Node 22 o superior.
+- El sitio esta planteado como **static-first**.
+- No hay hidratacion de componentes en esta etapa.
+- Los nombres tecnicos, archivos y componentes estan en **ingles**.
+- El contenido visible para usuarios esta en **espanol**.
 
-- gaseosas
-- agua
-- bebidas sin alcohol
-- café
+## Proximo paso sugerido
 
----
-
-## Menú del día
-
-Además del menú fijo, el buffet ofrece **1 o 2 platos del día** que rotan regularmente.
-
-Cada plato incluirá:
-
-- nombre
-- descripción opcional
-- precio
-- disponibilidad
-
----
-
-# Uso de imágenes
-
-Se prevé incorporar fotografías de los platos mediante una futura producción fotográfica profesional o semiprofesional.
-
-Dado que el menú total no supera aproximadamente **20 platos**, la carga de imágenes será moderada.
-
-Las imágenes podrán integrarse de distintas maneras según el diseño final:
-
-- tarjetas con imagen
-- fichas de plato
-- carruseles de platos
-- galerías
-
-La implementación visual será definida durante la etapa de diseño.
-
----
-
-# Arquitectura técnica
-
-El sistema se desarrollará utilizando una arquitectura de **sitio estático con CMS desacoplado**, priorizando rendimiento, simplicidad y bajo costo de mantenimiento.
-
-## Tech Stack
-
-### Astro
-Framework moderno para generación de sitios estáticos.
-
-Se utiliza para:
-
-- estructura del sitio
-- componentes visuales
-- renderizado de contenido
-- generación de páginas optimizadas
-
----
-
-### GitHub
-Repositorio central del proyecto.
-
-Funciones:
-
-- control de versiones
-- almacenamiento del código
-- gestión de cambios
-
----
-
-### Netlify
-Plataforma de hosting y despliegue.
-
-Funciones:
-
-- publicación del sitio
-- despliegue automático desde GitHub
-- distribución mediante CDN
-- autenticación del CMS
-
----
-
-### Decap CMS
-Sistema de gestión de contenido basado en Git.
-
-Permite editar el menú desde una interfaz web.
-
-Funciones principales:
-
-- editar platos del día
-- modificar platos del menú fijo
-- actualizar precios
-- marcar platos como disponibles o no disponibles
-
-Cada cambio realizado desde el CMS genera automáticamente un redeploy del sitio.
-
----
-
-# Sistema editorial
-
-El sistema de administración permite que el personal del buffet actualice el contenido sin conocimientos técnicos.
-
-Las acciones disponibles incluyen:
-
-### Gestión del menú del día
-
-- agregar platos
-- editar platos
-- modificar precios
-- marcar disponibilidad
-
-### Gestión del menú fijo
-
-- editar platos existentes
-- modificar precios
-- activar o desactivar platos
-
----
-
-# Flujo de uso
-
-El funcionamiento del sistema será simple:
-
-1. El cliente escanea un código QR ubicado en el buffet.
-2. El QR abre la página del menú en el teléfono.
-3. El usuario visualiza los platos disponibles.
-4. El menú siempre refleja la información actualizada.
-
----
-
-# Roadmap
-
-Posibles mejoras futuras:
-
-- incorporación de la web institucional del catering
-- soporte para múltiples locaciones
-- reutilización del sistema en otros buffets
-- traducción del menú a otros idiomas
-- integración con pedidos digitales
-- galerías de platos o eventos gastronómicos
-
----
-
-# Costos operativos
-
-La arquitectura elegida permite operar el sistema con **costos mínimos o nulos** en su etapa inicial utilizando los planes gratuitos de:
-
-- GitHub
-- Netlify
-- Decap CMS
-
-En el futuro podría incorporarse un dominio propio cuando se desarrolle la página institucional del catering.
-
----
-
-# Licencia
-
-Proyecto desarrollado para uso interno de **El Faraon Catering**.
+El siguiente hito natural es integrar **Decap CMS** sobre esta base para que el contenido YAML pueda editarse desde `/admin` sin tocar codigo.

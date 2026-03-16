@@ -15,6 +15,47 @@ The current development focus is the **QR menu experience**, not the institution
 
 ---
 
+## Current Baseline
+
+The repository already contains a working technical base with:
+
+- **Astro 5**
+- **TypeScript**
+- **Tailwind CSS 4**
+- **Astro Content Collections**
+- **YAML content files**
+- **Node 20 LTS**
+- **npm**
+
+Implemented routes:
+
+- `/` -> future institutional placeholder
+- `/menu` -> operational QR menu
+- `/admin` -> reserved placeholder for Decap CMS
+
+Implemented content collections:
+
+- `daily-dishes`
+- `fixed-dishes`
+- `side-dishes`
+- `drinks`
+
+Current menu item schema:
+
+- `name: string`
+- `description?: string`
+- `price: number`
+- `available: boolean`
+- `image?: string`
+
+Important compatibility note:
+
+- Keep the project compatible with **Node 20**
+- Prefer staying on **Astro 5** unless the runtime requirement is intentionally upgraded
+- Do not switch to tooling that requires Node 22+ unless explicitly requested
+
+---
+
 ## Core Product Intent
 
 The system must provide a **fast, mobile-first, low-maintenance digital menu** that can be updated by non-technical staff through a CMS.
@@ -75,9 +116,9 @@ Do not mix Spanish and English in code structure.
 
 The project must support the following route structure:
 
-- `/` → future institutional landing page
-- `/menu` → operational QR menu
-- `/admin` → Decap CMS admin
+- `/` -> future institutional landing page
+- `/menu` -> operational QR menu
+- `/admin` -> Decap CMS admin
 
 ### Routing constraints
 
@@ -94,8 +135,8 @@ The project must support the following route structure:
 
 The menu system must support these content groups:
 
-- **Daily dishes** (`daily dishes`) — highest rotation
-- **Fixed dishes** (`fixed dishes`) — lower rotation
+- **Daily dishes** (`daily dishes`) - highest rotation
+- **Fixed dishes** (`fixed dishes`) - lower rotation
 - **Side dishes** (`side dishes`)
 - **Drinks** (`drinks`)
 - **Availability state**
@@ -329,3 +370,4 @@ Before considering a task complete, always run:
 ```bash
 npm run build
 npm run check
+```
