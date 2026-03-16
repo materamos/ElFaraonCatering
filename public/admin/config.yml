@@ -23,7 +23,6 @@ collections:
     folder: "src/content/daily-dishes"
     create: true
     delete: true
-    identifier_field: "name"
     extension: "yaml"
     format: "yaml"
     summary: "{{name}}"
@@ -41,7 +40,6 @@ collections:
     folder: "src/content/fixed-dishes"
     create: true
     delete: true
-    identifier_field: "name"
     extension: "yaml"
     format: "yaml"
     summary: "{{name}}"
@@ -59,7 +57,6 @@ collections:
     folder: "src/content/side-dishes"
     create: true
     delete: true
-    identifier_field: "name"
     extension: "yaml"
     format: "yaml"
     summary: "{{name}}"
@@ -77,7 +74,6 @@ collections:
     folder: "src/content/drinks"
     create: true
     delete: true
-    identifier_field: "name"
     extension: "yaml"
     format: "yaml"
     summary: "{{name}}"
