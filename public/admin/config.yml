@@ -26,6 +26,7 @@ collections:
     extension: "yaml"
     format: "yaml"
     summary: "{{name}}"
+    sortable_fields: ["commit_date", "name", "description", "price", "available"]
     slug: "{{slug}}"
     fields:
       - { label: "Nombre", name: "name", widget: "string", hint: "Nombre visible para el cliente." }
@@ -43,6 +44,7 @@ collections:
     extension: "yaml"
     format: "yaml"
     summary: "{{name}}"
+    sortable_fields: ["commit_date", "name", "description", "price", "available"]
     slug: "{{slug}}"
     fields:
       - { label: "Nombre", name: "name", widget: "string", hint: "Nombre visible para el cliente." }
@@ -60,6 +62,7 @@ collections:
     extension: "yaml"
     format: "yaml"
     summary: "{{name}}"
+    sortable_fields: ["commit_date", "name", "description", "price", "available"]
     slug: "{{slug}}"
     fields:
       - { label: "Nombre", name: "name", widget: "string", hint: "Nombre visible para el cliente." }
@@ -77,6 +80,7 @@ collections:
     extension: "yaml"
     format: "yaml"
     summary: "{{name}}"
+    sortable_fields: ["commit_date", "name", "description", "price", "available"]
     slug: "{{slug}}"
     fields:
       - { label: "Nombre", name: "name", widget: "string", hint: "Nombre visible para el cliente." }
