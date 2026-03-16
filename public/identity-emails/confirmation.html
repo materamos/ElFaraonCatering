@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Confirmacion | El Faraon Catering</title>
+  </head>
+  <body style="margin:0;background:#f6efe5;color:#2d2419;font-family:'Trebuchet MS','Segoe UI',sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:24px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#fffdf9;border:1px solid #e2d1bb;border-radius:20px;padding:32px;">
+            <tr>
+              <td>
+                <p style="margin:0 0 12px;font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:#8d5b20;font-weight:700;">
+                  El Faraon Catering
+                </p>
+                <h1 style="margin:0 0 16px;font-size:32px;line-height:1.1;">
+                  Confirmacion de cuenta
+                </h1>
+                <p style="margin:0 0 16px;font-size:16px;line-height:1.7;color:#6f604f;">
+                  Usa el siguiente enlace para confirmar tu cuenta y continuar con el acceso al panel administrativo.
+                </p>
+                <p style="margin:24px 0;">
+                  <a
+                    href="{{ .SiteURL }}/admin/#confirmation_token={{ .Token }}"
+                    style="display:inline-block;background:#8d5b20;color:#fffdf9;text-decoration:none;padding:14px 20px;border-radius:999px;font-weight:700;"
+                  >
+                    Confirmar cuenta
+                  </a>
+                </p>
+                <p style="margin:0;font-size:14px;line-height:1.7;color:#6f604f;">
+                  Si el boton no funciona, copia y pega este enlace en tu navegador:
+                </p>
+                <p style="margin:12px 0 0;font-size:14px;line-height:1.7;word-break:break-word;">
+                  <a href="{{ .SiteURL }}/admin/#confirmation_token={{ .Token }}" style="color:#6e4518;">
+                    {{ .SiteURL }}/admin/#confirmation_token={{ .Token }}
+                  </a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

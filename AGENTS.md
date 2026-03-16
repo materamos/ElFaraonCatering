@@ -28,6 +28,7 @@ The repository already contains a working technical base with:
 - **YAML content files**
 - **Node 20 LTS**
 - **npm**
+- **Validated Netlify production deployment**
 
 Implemented routes:
 
@@ -62,6 +63,21 @@ Implemented deployment baseline:
 - `netlify.toml` defines `npm run build` and `dist`
 - `.nvmrc` and `package.json` engines pin Node 20
 - Decap CMS is configured for `git-gateway` on branch `main`
+- The Decap -> `main` -> Netlify redeploy -> `/menu` flow has already been validated in production
+- Netlify Identity email templates are published under `public/identity-emails/` and should route users to `/admin/#...`
+
+Live production URLs:
+
+- `https://elfaraoncatering.netlify.app`
+- `https://elfaraoncatering.netlify.app/menu/`
+- `https://elfaraoncatering.netlify.app/admin/`
+
+Identity email template paths:
+
+- `/identity-emails/invitation.html`
+- `/identity-emails/confirmation.html`
+- `/identity-emails/recovery.html`
+- `/identity-emails/email-change.html`
 
 ---
 

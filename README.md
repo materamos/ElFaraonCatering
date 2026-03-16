@@ -27,6 +27,8 @@ En este hito ya existen:
 - contenido YAML de ejemplo para validar render y tipado
 - una UI minima mobile-first sin JavaScript del lado cliente
 - configuracion repo-managed para deploy en Netlify
+- despliegue productivo validado en Netlify
+- flujo CMS validado de punta a punta
 
 ## Objetivo del proyecto
 
@@ -48,7 +50,6 @@ Todavia no incluye:
 
 - imagenes reales de platos
 - multiples locaciones
-- configuracion final en el panel de Netlify
 
 ## Estructura principal
 
@@ -74,6 +75,11 @@ public/
   admin/
     config.yml
     index.html
+  identity-emails/
+    invitation.html
+    confirmation.html
+    recovery.html
+    email-change.html
   uploads/
 .nvmrc
 netlify.toml
@@ -84,6 +90,12 @@ netlify.toml
 - `/` -> placeholder para la futura web institucional
 - `/menu` -> menu operativo del buffet
 - `/admin` -> panel de administracion de Decap CMS
+
+## URLs publicas
+
+- Sitio: `https://elfaraoncatering.netlify.app`
+- Menu: `https://elfaraoncatering.netlify.app/menu/`
+- Admin: `https://elfaraoncatering.netlify.app/admin/`
 
 ## Modelo de contenido actual
 
@@ -134,7 +146,7 @@ npm run check
 
 ## CMS y despliegue
 
-La integracion de Decap CMS ya esta preparada en el repo con:
+La integracion de Decap CMS ya esta operativa en el repo con:
 
 - `public/admin/index.html`
 - `public/admin/config.yml`
@@ -142,25 +154,16 @@ La integracion de Decap CMS ya esta preparada en el repo con:
 - rama `main`
 - edicion directa de las cuatro colecciones YAML
 
-La configuracion de Netlify tambien ya esta preparada en:
+La configuracion de Netlify tambien ya esta versionada en:
 
 - `netlify.toml`
 - `.nvmrc`
 - `package.json` con `engines.node = 20.x`
+- templates de Identity en `public/identity-emails/`
 
-### Pasos manuales pendientes en Netlify
+### Estado validado en produccion
 
-Para que `/admin` funcione en produccion, todavia falta completar estas acciones en el panel de Netlify:
-
-1. Conectar el repositorio y desplegar desde `main`.
-2. Verificar que use `npm run build` y publique `dist`.
-3. Activar **Identity**.
-4. Dejar el registro en modo invitacion.
-5. Activar el proveedor externo **GitHub** dentro de Identity.
-6. Activar **Git Gateway**.
-7. Invitar a los editores que van a administrar el menu.
-
-Una vez hecho eso, el flujo esperado es:
+El flujo actual ya fue probado con exito:
 
 1. Entrar en `/admin`.
 2. Iniciar sesion.
@@ -169,6 +172,35 @@ Una vez hecho eso, el flujo esperado es:
 5. Esperar el redeploy automatico.
 6. Ver el cambio reflejado en `/menu`.
 
+Validaciones confirmadas:
+
+- Decap CMS escribe commits en `main`
+- Netlify redepliega automaticamente
+- Astro sigue leyendo bien los YAML
+- `/menu` no se rompe con los cambios editoriales
+
+### Invitaciones y recuperacion de acceso
+
+Para evitar que los enlaces de Netlify Identity abran la raiz del sitio en lugar de `/admin`, el repo ahora incluye templates HTML para:
+
+- invitacion
+- confirmacion
+- recuperacion de contraseña
+- cambio de email
+
+Cada template envia al usuario a `/admin/#...` con el token correcto.
+
+En Netlify hay que asociarlos en:
+
+`Project configuration -> Identity -> Emails`
+
+Paths recomendados:
+
+- `/identity-emails/invitation.html`
+- `/identity-emails/confirmation.html`
+- `/identity-emails/recovery.html`
+- `/identity-emails/email-change.html`
+
 ## Decisiones tecnicas actuales
 
 - Se uso **Astro 5** para mantener compatibilidad con **Node 20**.
@@ -176,9 +208,6 @@ Una vez hecho eso, el flujo esperado es:
 - El sitio esta planteado como **static-first**.
 - No hay hidratacion de componentes en esta etapa.
 - `/admin` se sirve desde `public/admin/` para seguir la integracion estandar de Decap CMS y evitar conflictos de rutas con Astro.
+- Los correos de Netlify Identity deben apuntar a `/admin/#...` usando los templates publicados en `public/identity-emails/`.
 - Los nombres tecnicos, archivos y componentes estan en **ingles**.
 - El contenido visible para usuarios esta en **espanol**.
-
-## Proximo paso sugerido
-
-El siguiente hito natural es validar el flujo completo en Netlify y despues reemplazar el contenido de ejemplo por el menu real del buffet.
