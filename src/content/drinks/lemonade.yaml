@@ -1,4 +1,4 @@
-name: Limonada fresca
-description: Bebida sin alcohol con limón y menta.
-price: 2800
-available: false
+name: Agua KO
+description: Agua mineral en caja marca KO.
+price: 2000
+available: true
