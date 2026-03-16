@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.astro/
+.netlify/
+
+# Logs
+npm-debug.log*
+
+# Environment files
+.env
+.env.*
+
+# OS files
+Thumbs.db
+.DS_Store

@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+:root {
+  --color-page: #f6efe5;
+  --color-surface: #fffdf9;
+  --color-surface-strong: #f3e5d2;
+  --color-line: #e2d1bb;
+  --color-ink: #2d2419;
+  --color-muted: #6f604f;
+  --color-brand: #8d5b20;
+  --color-brand-strong: #6e4518;
+  --color-success: #2f694a;
+  --color-danger: #9b3d35;
+  --radius-panel: 1.25rem;
+  --radius-pill: 999px;
+  --shadow-soft: 0 18px 40px rgba(56, 37, 18, 0.08);
+  --font-body: "Trebuchet MS", "Segoe UI", sans-serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", serif;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(circle at top, rgba(141, 91, 32, 0.09), transparent 40%),
+      linear-gradient(180deg, #fbf6ef 0%, var(--color-page) 100%);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    line-height: 1.05;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8;
+  }
+
+  .surface-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.24em];
+    color: var(--color-brand);
+  }
+
+  .status-pill {
+    border-radius: var(--radius-pill);
+    @apply inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold;
+  }
+
+  .status-pill[data-state="available"] {
+    background-color: rgba(47, 105, 74, 0.12);
+    color: var(--color-success);
+  }
+
+  .status-pill[data-state="unavailable"] {
+    background-color: rgba(155, 61, 53, 0.12);
+    color: var(--color-danger);
+  }
+}

@@ -1,0 +1,32 @@
+---
+interface Props {
+  name: string;
+  description?: string;
+  price: number;
+  available: boolean;
+}
+
+const { name, description, price, available } = Astro.props;
+
+const formattedPrice = new Intl.NumberFormat("es-AR", {
+  style: "currency",
+  currency: "ARS",
+  maximumFractionDigits: 0,
+}).format(price);
+---
+
+<article class="surface-card flex h-full flex-col gap-4 p-4">
+  <div class="flex items-start justify-between gap-3">
+    <div class="space-y-2">
+      <h3 class="text-xl text-[var(--color-ink)]">{name}</h3>
+      {description && <p class="text-sm leading-6 text-[var(--color-muted)]">{description}</p>}
+    </div>
+    <span class="status-pill shrink-0" data-state={available ? "available" : "unavailable"}>
+      {available ? "Disponible" : "No disponible"}
+    </span>
+  </div>
+  <div class="mt-auto flex items-center justify-between border-t border-[var(--color-line)] pt-4">
+    <span class="text-sm font-medium text-[var(--color-muted)]">Precio</span>
+    <strong class="text-lg text-[var(--color-brand-strong)]">{formattedPrice}</strong>
+  </div>
+</article>

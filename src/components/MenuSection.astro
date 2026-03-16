@@ -1,0 +1,39 @@
+---
+import DishCard from "./DishCard.astro";
+
+interface MenuItem {
+  id: string;
+  data: {
+    name: string;
+    description?: string;
+    price: number;
+    available: boolean;
+  };
+}
+
+interface Props {
+  title: string;
+  description: string;
+  items: MenuItem[];
+}
+
+const { title, description, items } = Astro.props;
+---
+
+<section class="space-y-4">
+  <div class="space-y-2">
+    <h2 class="text-3xl text-[var(--color-ink)]">{title}</h2>
+    <p class="max-w-2xl text-sm leading-6 text-[var(--color-muted)]">{description}</p>
+  </div>
+
+  <div class="grid gap-4">
+    {items.map((item) => (
+      <DishCard
+        name={item.data.name}
+        description={item.data.description}
+        price={item.data.price}
+        available={item.data.available}
+      />
+    ))}
+  </div>
+</section>
