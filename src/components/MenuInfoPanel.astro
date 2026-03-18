@@ -1,30 +1,45 @@
 ---
-interface MenuInfoRow {
+interface MenuInfoFact {
   label: string;
   value: string;
 }
 
-interface Props {
-  title: string;
-  rows: MenuInfoRow[];
+interface MenuInfoPayment {
+  label: string;
+  methods: string[];
 }
 
-const { title, rows } = Astro.props;
+interface Props {
+  title: string;
+  facts: MenuInfoFact[];
+  payment: MenuInfoPayment;
+}
+
+const { title, facts, payment } = Astro.props;
 ---
 
-<div class="rounded-[var(--radius-panel)] bg-[var(--color-surface-strong)] p-5">
+<aside class="menu-info-panel">
   <p class="eyebrow">{title}</p>
-  <dl class="mt-4 grid gap-3 text-sm">
-    {rows.map((row, index) => (
-      <div
-        class:list={[
-          "grid gap-1 sm:grid-cols-[auto,1fr] sm:items-center sm:gap-4",
-          index < rows.length - 1 && "border-b border-[var(--color-line)] pb-3",
-        ]}
-      >
-        <dt class="text-[var(--color-muted)]">{row.label}</dt>
-        <dd class="font-semibold text-[var(--color-ink)] sm:text-right">{row.value}</dd>
+  <dl class="menu-info-panel__facts">
+    {facts.map((fact) => (
+      <div class="menu-info-panel__fact">
+        <dt class="menu-info-panel__label">{fact.label}</dt>
+        <dd class="menu-info-panel__value">{fact.value}</dd>
       </div>
     ))}
   </dl>
-</div>
+
+  <section class="menu-info-panel__payment" aria-labelledby="menu-payment-title">
+    <h2 class="menu-info-panel__label menu-info-panel__label--strong" id="menu-payment-title">
+      {payment.label}
+    </h2>
+
+    <div class="menu-info-panel__chips" role="list" aria-label={payment.label}>
+      {payment.methods.map((method) => (
+        <span class="menu-info-chip" role="listitem">
+          {method}
+        </span>
+      ))}
+    </div>
+  </section>
+</aside>

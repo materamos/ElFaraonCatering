@@ -100,7 +100,7 @@ netlify.toml
 
 ## Modelo de contenido actual
 
-Cada item de menu usa un esquema simple y estricto:
+Los platos y bebidas con precio usan un esquema simple y estricto:
 
 ```yaml
 name: string
@@ -109,6 +109,10 @@ price: number
 available: boolean
 image: string # opcional
 ```
+
+Las minutas tambien requieren `price`, igual que los platos del dia y las bebidas.
+
+Las guarniciones usan un esquema mas simple, sin `price`, porque se muestran como opciones de acompanamiento.
 
 Colecciones activas:
 

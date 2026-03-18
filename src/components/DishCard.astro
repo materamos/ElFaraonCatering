@@ -2,17 +2,21 @@
 interface Props {
   name: string;
   description?: string;
-  price: number;
+  price?: number;
   available: boolean;
+  image?: string;
 }
 
-const { name, description, price, available } = Astro.props;
+const { name, description, price, available, image } = Astro.props;
 
-const formattedPrice = new Intl.NumberFormat("es-AR", {
-  style: "currency",
-  currency: "ARS",
-  maximumFractionDigits: 0,
-}).format(price);
+const formattedPrice =
+  typeof price === "number"
+    ? new Intl.NumberFormat("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        maximumFractionDigits: 0,
+      }).format(price)
+    : null;
 ---
 
 <article class="surface-card flex h-full flex-col gap-4 p-4">
@@ -29,8 +33,27 @@ const formattedPrice = new Intl.NumberFormat("es-AR", {
       {available ? "Disponible" : "No disponible"}
     </span>
   </div>
-  <div class="mt-auto flex items-center justify-between border-t border-[var(--color-line)] pt-4">
-    <span class="text-sm font-medium text-[var(--color-muted)]">Precio</span>
-    <strong class="text-lg text-[var(--color-brand-strong)]">{formattedPrice}</strong>
+  <div class="mt-auto space-y-3">
+    {image && (
+      <a
+        class="photo-button"
+        href={image}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-haspopup="dialog"
+        data-photo-trigger
+        data-photo-name={name}
+        data-photo-src={image}
+      >
+        Ver foto
+      </a>
+    )}
+
+    {formattedPrice && (
+      <div class="flex items-center justify-between border-t border-[var(--color-line)] pt-4">
+        <span class="text-sm font-medium text-[var(--color-muted)]">Precio</span>
+        <strong class="text-lg text-[var(--color-brand-strong)]">{formattedPrice}</strong>
+      </div>
+    )}
   </div>
 </article>

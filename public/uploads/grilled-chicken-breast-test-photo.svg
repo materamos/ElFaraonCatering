@@ -1,0 +1,27 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="900" fill="#F6EFE5"/>
+  <rect width="1200" height="900" fill="url(#backgroundGlow)"/>
+  <ellipse cx="600" cy="490" rx="360" ry="250" fill="#E9D6BF"/>
+  <ellipse cx="600" cy="470" rx="302" ry="202" fill="#FFF8EF"/>
+  <ellipse cx="600" cy="470" rx="248" ry="160" fill="#F1DFC6"/>
+  <ellipse cx="520" cy="454" rx="92" ry="68" fill="#C97B3C"/>
+  <ellipse cx="665" cy="504" rx="96" ry="70" fill="#AD6234"/>
+  <ellipse cx="610" cy="404" rx="84" ry="60" fill="#D28C48"/>
+  <ellipse cx="500" cy="548" rx="86" ry="58" fill="#7D9F5A"/>
+  <ellipse cx="696" cy="404" rx="84" ry="58" fill="#91B36A"/>
+  <ellipse cx="640" cy="560" rx="88" ry="60" fill="#B7D48F"/>
+  <ellipse cx="452" cy="408" rx="54" ry="40" fill="#719151"/>
+  <rect x="132" y="92" width="936" height="132" rx="32" fill="#FFFDF9" fill-opacity="0.94"/>
+  <text x="600" y="146" text-anchor="middle" fill="#6E4518" font-family="'Trebuchet MS', 'Segoe UI', sans-serif" font-size="44" font-weight="700">
+    Foto de prueba
+  </text>
+  <text x="600" y="190" text-anchor="middle" fill="#8D5B20" font-family="'Trebuchet MS', 'Segoe UI', sans-serif" font-size="24">
+    Pechuga grillada con guarnicion
+  </text>
+  <defs>
+    <radialGradient id="backgroundGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(600 138) rotate(90) scale(420 720)">
+      <stop stop-color="#E7C99F" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#F6EFE5" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

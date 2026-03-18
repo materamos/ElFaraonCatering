@@ -1,0 +1,27 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="900" fill="#F6EFE5"/>
+  <rect width="1200" height="900" fill="url(#backgroundGlow)"/>
+  <ellipse cx="600" cy="490" rx="360" ry="248" fill="#E8D6C0"/>
+  <ellipse cx="600" cy="470" rx="304" ry="202" fill="#FFF8EF"/>
+  <ellipse cx="600" cy="470" rx="248" ry="160" fill="#F4E2CA"/>
+  <path d="M476 458C520 392 624 372 704 406C772 434 792 520 744 580C696 640 578 654 500 610C420 566 422 506 476 458Z" fill="#C67C3F"/>
+  <path d="M516 456C552 412 624 404 680 428C734 452 742 516 706 558C668 602 590 612 534 588C470 560 470 502 516 456Z" fill="#D79A57"/>
+  <ellipse cx="456" cy="406" rx="54" ry="38" fill="#6E8E4F"/>
+  <ellipse cx="746" cy="438" rx="58" ry="42" fill="#8DAF67"/>
+  <ellipse cx="470" cy="576" rx="74" ry="50" fill="#99B873"/>
+  <ellipse cx="678" cy="594" rx="82" ry="58" fill="#D5AB63"/>
+  <ellipse cx="580" cy="612" rx="84" ry="58" fill="#C49353"/>
+  <rect x="126" y="92" width="948" height="134" rx="32" fill="#FFFDF9" fill-opacity="0.94"/>
+  <text x="600" y="148" text-anchor="middle" fill="#6E4518" font-family="'Trebuchet MS', 'Segoe UI', sans-serif" font-size="44" font-weight="700">
+    Foto de prueba
+  </text>
+  <text x="600" y="192" text-anchor="middle" fill="#8D5B20" font-family="'Trebuchet MS', 'Segoe UI', sans-serif" font-size="24">
+    Suprema de pollo con guarnicion
+  </text>
+  <defs>
+    <radialGradient id="backgroundGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(600 140) rotate(90) scale(428 724)">
+      <stop stop-color="#E6C79F" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#F6EFE5" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

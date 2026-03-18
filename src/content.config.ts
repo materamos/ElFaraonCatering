@@ -2,7 +2,7 @@ import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 
-const menuItemSchema = z.object({
+const pricedMenuItemSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   price: z.number(),
@@ -10,24 +10,31 @@ const menuItemSchema = z.object({
   image: z.string().optional(),
 });
 
+const sideDishSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  available: z.boolean(),
+  image: z.string().optional(),
+});
+
 const dailyDishes = defineCollection({
   loader: glob({ pattern: "**/*.yaml", base: "./src/content/daily-dishes" }),
-  schema: menuItemSchema,
+  schema: pricedMenuItemSchema,
 });
 
 const fixedDishes = defineCollection({
   loader: glob({ pattern: "**/*.yaml", base: "./src/content/fixed-dishes" }),
-  schema: menuItemSchema,
+  schema: pricedMenuItemSchema,
 });
 
 const sideDishes = defineCollection({
   loader: glob({ pattern: "**/*.yaml", base: "./src/content/side-dishes" }),
-  schema: menuItemSchema,
+  schema: sideDishSchema,
 });
 
 const drinks = defineCollection({
   loader: glob({ pattern: "**/*.yaml", base: "./src/content/drinks" }),
-  schema: menuItemSchema,
+  schema: pricedMenuItemSchema,
 });
 
 export const collections = {

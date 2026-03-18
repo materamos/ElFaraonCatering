@@ -6,8 +6,9 @@ interface MenuItem {
   data: {
     name: string;
     description?: string;
-    price: number;
+    price?: number;
     available: boolean;
+    image?: string;
   };
 }
 
@@ -33,6 +34,7 @@ const { title, description, items } = Astro.props;
         description={item.data.description}
         price={item.data.price}
         available={item.data.available}
+        image={item.data.image}
       />
     ))}
   </div>
