@@ -25,7 +25,7 @@ En esta fase ya existen:
 - contenido YAML de ejemplo para validar render y tipado
 - una UI minima mobile-first con JavaScript acotado y servido desde origen propio
 
-En esta fase ya no existe un CMS operativo dentro del repo. El reemplazo previsto es una futura migracion a **Keystatic + Vercel**, todavia no incorporada en esta etapa.
+En esta fase ya no existe un CMS operativo dentro del repo. El hosting objetivo de esta etapa es **Vercel** con despliegue estatico, mientras que **Keystatic** queda para una fase posterior.
 
 ## Objetivo del proyecto
 
@@ -41,13 +41,15 @@ La etapa actual cubre:
 - modelado tipado del contenido
 - render estatico del menu
 - reserva de la ruta `/admin` para la futura herramienta editorial
+- preparacion para despliegue estatico en Vercel
 
 Todavia no incluye:
 
 - un CMS operativo
 - imagenes reales de platos
 - multiples locaciones
-- migracion a Vercel
+- integracion de Keystatic
+- conexion de dominio propio
 
 ## Estructura principal
 
@@ -77,6 +79,7 @@ public/
     index.html
   uploads/
 .nvmrc
+vercel.json
 ```
 
 ## Rutas disponibles
@@ -84,6 +87,17 @@ public/
 - `/` -> placeholder para la futura web institucional
 - `/menu` -> menu operativo del buffet
 - `/admin` -> placeholder temporal del futuro panel administrativo
+
+## Hosting actual
+
+La fase actual queda preparada para **Vercel** como host del sitio estatico.
+
+En esta etapa:
+
+- el despliegue esperado usa URLs generadas `*.vercel.app`
+- `/admin` sigue siendo solo un placeholder
+- no hay SSR
+- no hay CMS activo
 
 ## Modelo de contenido actual
 
@@ -162,7 +176,10 @@ La edicion de contenido queda temporalmente fuera del repo hasta la siguiente fa
 
 - Se usa **Astro 5** para mantener compatibilidad con **Node 20**.
 - El sitio sigue planteado como **static-first** para la superficie publica.
+- El host objetivo de esta fase es **Vercel** con despliegue estatico.
 - No hay hidratacion de componentes en esta etapa.
 - `/admin` se mantiene servido desde `public/admin/` para reservar el acceso futuro del CMS sin reintroducir una pagina Astro en esa ruta.
+- `vercel.json` solo conserva la canonicalizacion de `/admin` -> `/admin/`.
+- **Keystatic** sigue fuera de alcance en esta etapa.
 - Los nombres tecnicos, archivos y componentes estan en **ingles**.
 - El contenido visible para usuarios esta en **espanol**.

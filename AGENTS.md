@@ -60,7 +60,8 @@ Important migration note:
 
 - The previous CMS and admin stack were intentionally removed
 - There is currently **no active CMS** inside the repo
-- The next editorial phase is expected to move toward **Keystatic + Vercel**
+- The current hosting phase targets **Vercel** static deployment
+- **Keystatic** remains pending for a later editorial phase
 - Do not reintroduce the previous CMS, auth, or repo-writing admin flow unless explicitly requested
 
 ---
@@ -99,9 +100,9 @@ Use the following stack unless explicitly instructed otherwise:
 
 Current direction notes:
 
-- The repo is between CMS/hosting phases
-- A future migration to **Keystatic + Vercel** is expected
-- Do not assume those tools are already installed or configured
+- The repo is in a static-only Vercel migration phase
+- Do not add SSR, server output, adapters, functions, or CMS code in this phase unless explicitly requested
+- A future editorial migration to **Keystatic** is expected after Vercel hosting is stable
 
 Do not introduce alternative frameworks, runtimes, or package managers unless explicitly requested.
 
@@ -139,6 +140,7 @@ The project must support the following route structure:
 - `/` must be treated as a future-facing institutional surface
 - `/admin` is reserved for CMS access, even while the CMS is temporarily absent
 - `/admin` should stay implemented via `public/admin/index.html`
+- `/admin` should keep the canonical redirect to `/admin/` in host configuration
 - Do not couple `/menu` to the institutional site unnecessarily
 - Do not assume the institutional landing page must link directly to `/menu`
 - Do not design the buffet menu as if it were a public restaurant website
@@ -304,6 +306,7 @@ Prioritize:
 - Prefer Astro-first rendering patterns
 - Avoid unnecessary animations, sliders, carousels, or runtime effects
 - Treat image handling carefully, especially once food photography is added
+- Keep the site statically deployable on Vercel in this phase
 
 If an implementation choice increases complexity or runtime cost, prefer the simpler and faster solution unless there is a clear functional gain.
 
