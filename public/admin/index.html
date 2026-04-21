@@ -36,18 +36,8 @@
       </div>
     </div>
 
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <script src="https://unpkg.com/decap-cms@3.10.1/dist/decap-cms.js"></script>
-    <script>
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", function (user) {
-          if (!user) {
-            window.netlifyIdentity.on("login", function () {
-              window.location.href = "/admin/";
-            });
-          }
-        });
-      }
-    </script>
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js" defer></script>
+    <script src="/admin/decap-cms-3.10.1.js" defer></script>
+    <script src="/admin/admin-identity.js" defer></script>
   </body>
 </html>

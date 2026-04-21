@@ -1,20 +1,21 @@
 import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
+import { menuImageSchema } from "./utils/menuImage";
 
 const pricedMenuItemSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   price: z.number(),
   available: z.boolean(),
-  image: z.string().optional(),
+  image: menuImageSchema,
 });
 
 const sideDishSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   available: z.boolean(),
-  image: z.string().optional(),
+  image: menuImageSchema,
 });
 
 const dailyDishes = defineCollection({

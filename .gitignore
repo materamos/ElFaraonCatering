@@ -2,6 +2,9 @@ node_modules/
 dist/
 .astro/
 .netlify/
+public/admin/decap-cms-*.js
+public/admin/decap-cms-*.js.LICENSE.txt
+public/admin/decap-cms-*.js.map
 
 # Logs
 *.log

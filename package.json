@@ -8,10 +8,17 @@
     "npm": ">=10"
   },
   "scripts": {
+    "admin:bundle": "node ./scripts/sync-admin-bundle.mjs",
+    "admin:bundle:clean": "node ./scripts/clean-admin-bundle.mjs",
+    "predev": "npm run admin:bundle",
     "dev": "astro dev",
+    "cms:proxy": "decap-server",
+    "prebuild": "npm run admin:bundle",
     "build": "astro build",
+    "prepreview": "npm run admin:bundle",
     "preview": "astro preview",
-    "check": "astro check"
+    "precheck": "npm run admin:bundle:clean",
+    "check": "node --max-old-space-size=8192 ./node_modules/astro/astro.js check"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",
@@ -19,7 +26,8 @@
     "tailwindcss": "^4.1.13"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.4",
+    "@astrojs/check": "^0.9.8",
+    "decap-server": "^3.5.2",
     "typescript": "^5.9.2"
   }
 }

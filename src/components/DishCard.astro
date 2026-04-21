@@ -1,4 +1,6 @@
 ---
+import { getSafeMenuImagePath } from "../utils/menuImage";
+
 interface Props {
   name: string;
   description?: string;
@@ -8,6 +10,7 @@ interface Props {
 }
 
 const { name, description, price, available, image } = Astro.props;
+const safeImage = getSafeMenuImagePath(image);
 
 const formattedPrice =
   typeof price === "number"
@@ -34,16 +37,16 @@ const formattedPrice =
     </span>
   </div>
   <div class="mt-auto space-y-3">
-    {image && (
+    {safeImage && (
       <a
         class="photo-button"
-        href={image}
+        href={safeImage}
         target="_blank"
         rel="noopener noreferrer"
         aria-haspopup="dialog"
         data-photo-trigger
         data-photo-name={name}
-        data-photo-src={image}
+        data-photo-src={safeImage}
       >
         Ver foto
       </a>

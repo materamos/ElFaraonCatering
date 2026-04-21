@@ -2,6 +2,8 @@ backend:
   name: git-gateway
   branch: main
 
+local_backend: true
+
 publish_mode: simple
 locale: "es"
 media_folder: "public/uploads"
@@ -34,7 +36,7 @@ collections:
       - { label: "Descripción", name: "description", widget: "text", required: false, hint: "Texto breve opcional para explicar el plato." }
       - { label: "Precio", name: "price", widget: "number", min: 0, value_type: "int", hint: "Ingresar el valor en pesos, sin símbolos." }
       - { label: "Disponible", name: "available", widget: "boolean", default: true, hint: "Desactivar si hoy no debe aparecer como disponible." }
-      - { label: "Imagen", name: "image", widget: "image", required: false, hint: "Opcional. Ideal: imagen horizontal 4:3 en 1200 x 900 px. Se guarda en /public/uploads para uso futuro en la tarjeta del menú." }
+      - { label: "Imagen", name: "image", widget: "image", required: false, hint: "Opcional. Solo archivos JPG, PNG, WebP o AVIF guardados en /public/uploads. No se permiten SVG ni URLs externas." }
   - name: "fixed-dishes"
     label: "Minutas"
     label_singular: "Minuta"
@@ -52,7 +54,7 @@ collections:
       - { label: "Descripción", name: "description", widget: "text", required: false, hint: "Texto breve opcional para explicar el plato." }
       - { label: "Precio", name: "price", widget: "number", min: 0, value_type: "int", hint: "Ingresar el valor en pesos, sin símbolos." }
       - { label: "Disponible", name: "available", widget: "boolean", default: true, hint: "Desactivar si hoy no debe aparecer como disponible." }
-      - { label: "Imagen", name: "image", widget: "image", required: false, hint: "Opcional. Ideal: imagen horizontal 4:3 en 1200 x 900 px. Se guarda en /public/uploads para uso futuro en la tarjeta del menú." }
+      - { label: "Imagen", name: "image", widget: "image", required: false, hint: "Opcional. Solo archivos JPG, PNG, WebP o AVIF guardados en /public/uploads. No se permiten SVG ni URLs externas." }
   - name: "side-dishes"
     label: "Guarniciones"
     label_singular: "Guarnición"
@@ -69,7 +71,7 @@ collections:
       - { label: "Nombre", name: "name", widget: "string", hint: "Nombre visible para el cliente." }
       - { label: "Descripción", name: "description", widget: "text", required: false, hint: "Texto breve opcional para aclarar cómo se sirve la guarnición." }
       - { label: "Disponible", name: "available", widget: "boolean", default: true, hint: "Desactivar si hoy no debe aparecer como disponible." }
-      - { label: "Imagen", name: "image", widget: "image", required: false, hint: "Opcional. Ideal: imagen horizontal 4:3 en 1200 x 900 px. Se guarda en /public/uploads para uso futuro en la tarjeta del menú." }
+      - { label: "Imagen", name: "image", widget: "image", required: false, hint: "Opcional. Solo archivos JPG, PNG, WebP o AVIF guardados en /public/uploads. No se permiten SVG ni URLs externas." }
   - name: "drinks"
     label: "Bebidas"
     label_singular: "Bebida"
@@ -87,4 +89,4 @@ collections:
       - { label: "Descripción", name: "description", widget: "text", required: false, hint: "Texto breve opcional para explicar la bebida." }
       - { label: "Precio", name: "price", widget: "number", min: 0, value_type: "int", hint: "Ingresar el valor en pesos, sin símbolos." }
       - { label: "Disponible", name: "available", widget: "boolean", default: true, hint: "Desactivar si hoy no debe aparecer como disponible." }
-      - { label: "Imagen", name: "image", widget: "image", required: false, hint: "Opcional. Ideal: imagen horizontal 4:3 en 1200 x 900 px. Se guarda en /public/uploads para uso futuro en la tarjeta del menú." }
+      - { label: "Imagen", name: "image", widget: "image", required: false, hint: "Opcional. Solo archivos JPG, PNG, WebP o AVIF guardados en /public/uploads. No se permiten SVG ni URLs externas." }
