@@ -4,40 +4,104 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
-    <title>Administración | El Faraon Catering</title>
+    <title>Panel en migracion | El Faraon Catering</title>
     <style>
+      :root {
+        color-scheme: light;
+      }
+
       body {
         margin: 0;
         min-height: 100vh;
-        background: #f6efe5;
+        background: linear-gradient(180deg, #f6efe5 0%, #efe2d2 100%);
         color: #2d2419;
         font-family: "Trebuchet MS", "Segoe UI", sans-serif;
       }
 
-      .admin-loading {
+      .admin-placeholder {
         display: grid;
         min-height: 100vh;
         place-items: center;
         padding: 1.5rem;
-        text-align: center;
       }
 
-      .admin-loading p {
+      .admin-card {
+        width: min(100%, 36rem);
+        box-sizing: border-box;
+        border: 1px solid rgba(110, 69, 24, 0.16);
+        border-radius: 1.5rem;
+        background: rgba(255, 252, 247, 0.96);
+        box-shadow: 0 20px 45px rgba(45, 36, 25, 0.12);
+        padding: 2rem;
+      }
+
+      .eyebrow {
+        margin: 0 0 0.75rem;
+        color: #6e4518;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1 {
         margin: 0;
-        max-width: 28rem;
-        line-height: 1.6;
+        font-size: clamp(2rem, 5vw, 2.6rem);
+        line-height: 1.1;
+      }
+
+      p {
+        margin: 1rem 0 0;
+        line-height: 1.65;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 0.85rem 1.2rem;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .button-primary {
+        background: #6e4518;
+        color: #fff8ef;
+      }
+
+      .button-secondary {
+        border: 1px solid rgba(110, 69, 24, 0.2);
+        color: #6e4518;
+        background: transparent;
       }
     </style>
   </head>
   <body>
-    <div id="nc-root">
-      <div class="admin-loading">
-        <p>Cargando el panel de administración de El Faraon Catering...</p>
-      </div>
+    <div class="admin-placeholder">
+      <main class="admin-card">
+        <p class="eyebrow">Panel administrativo</p>
+        <h1>Panel en migracion</h1>
+        <p>
+          El acceso editorial de El Faraon Catering esta siendo reemplazado por una nueva
+          herramienta. Durante esta etapa, el panel administrativo no esta disponible.
+        </p>
+        <p>
+          El menu publico sigue operativo en la ruta principal de menu. Cuando la nueva
+          plataforma este lista, este mismo acceso volvera a utilizarse.
+        </p>
+        <div class="actions">
+          <a class="button button-primary" href="/menu/">Ver menu</a>
+          <a class="button button-secondary" href="/">Ir al inicio</a>
+        </div>
+      </main>
     </div>
-
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js" defer></script>
-    <script src="/admin/decap-cms-3.10.1.js" defer></script>
-    <script src="/admin/admin-identity.js" defer></script>
   </body>
 </html>
