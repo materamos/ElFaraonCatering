@@ -17,24 +17,22 @@ The current development focus is the **QR menu experience**, not the institution
 
 ## Current Baseline
 
-The repository already contains a working technical base with:
+The repository currently contains a working technical base with:
 
 - **Astro 5**
 - **TypeScript**
 - **Tailwind CSS 4**
 - **Astro Content Collections**
-- **Decap CMS static admin**
-- **Netlify repo-managed config**
 - **YAML content files**
 - **Node 20 LTS**
 - **npm**
-- **Validated Netlify production deployment**
+- **Static `/admin` placeholder**
 
 Implemented routes:
 
 - `/` -> future institutional placeholder
 - `/menu` -> operational QR menu
-- `/admin` -> Decap CMS admin app served from `public/admin/`
+- `/admin` -> reserved placeholder served from `public/admin/`
 
 Implemented content collections:
 
@@ -58,26 +56,12 @@ Important compatibility note:
 - Do not switch to tooling that requires Node 22+ unless explicitly requested
 - Keep `/admin` served from static files under `public/admin/`; do not reintroduce an Astro page at the same route
 
-Implemented deployment baseline:
+Important migration note:
 
-- `netlify.toml` defines `npm run build` and `dist`
-- `.nvmrc` and `package.json` engines pin Node 20
-- Decap CMS is configured for `git-gateway` on branch `main`
-- The Decap -> `main` -> Netlify redeploy -> `/menu` flow has already been validated in production
-- Netlify Identity email templates are published under `public/identity-emails/` and should route users to `/admin/#...`
-
-Live production URLs:
-
-- `https://elfaraoncatering.netlify.app`
-- `https://elfaraoncatering.netlify.app/menu/`
-- `https://elfaraoncatering.netlify.app/admin/`
-
-Identity email template paths:
-
-- `/identity-emails/invitation.html`
-- `/identity-emails/confirmation.html`
-- `/identity-emails/recovery.html`
-- `/identity-emails/email-change.html`
+- The previous CMS and admin stack were intentionally removed
+- There is currently **no active CMS** inside the repo
+- The next editorial phase is expected to move toward **Keystatic + Vercel**
+- Do not reintroduce the previous CMS, auth, or repo-writing admin flow unless explicitly requested
 
 ---
 
@@ -109,11 +93,15 @@ Use the following stack unless explicitly instructed otherwise:
 - **Tailwind CSS**
 - **Astro Content Collections**
 - **YAML content files**
-- **Decap CMS**
-- **Netlify**
 - **GitHub**
 - **Node 20 LTS**
 - **npm**
+
+Current direction notes:
+
+- The repo is between CMS/hosting phases
+- A future migration to **Keystatic + Vercel** is expected
+- Do not assume those tools are already installed or configured
 
 Do not introduce alternative frameworks, runtimes, or package managers unless explicitly requested.
 
@@ -143,13 +131,13 @@ The project must support the following route structure:
 
 - `/` -> future institutional landing page
 - `/menu` -> operational QR menu
-- `/admin` -> Decap CMS admin
+- `/admin` -> future editorial entrypoint placeholder
 
 ### Routing constraints
 
 - `/menu` is the current product priority
 - `/` must be treated as a future-facing institutional surface
-- `/admin` is only for CMS access
+- `/admin` is reserved for CMS access, even while the CMS is temporarily absent
 - `/admin` should stay implemented via `public/admin/index.html`
 - Do not couple `/menu` to the institutional site unnecessarily
 - Do not assume the institutional landing page must link directly to `/menu`
@@ -193,7 +181,7 @@ You may refine naming if needed, but keep it explicit, predictable, and fully in
 - Keep schemas strict and typed
 - Prefer clear fields over flexible but ambiguous structures
 - Avoid overly nested data unless it provides real value
-- Keep content editor experience simple
+- Keep the future editor experience simple
 - Model availability explicitly
 - Model prices explicitly
 - Prepare the schema so images can be added later without breaking existing content
@@ -202,9 +190,9 @@ You may refine naming if needed, but keep it explicit, predictable, and fully in
 
 ## CMS Rules
 
-The CMS is a critical part of the project.
+The CMS remains a critical part of the project, even though it is temporarily absent from the repo.
 
-Decap CMS must be able to manage:
+The future CMS must be able to manage:
 
 - daily dishes
 - fixed dishes
@@ -254,7 +242,7 @@ That means:
 - keep the buffet menu functional and operational
 - allow the institutional site to evolve later with a different content emphasis
 
-Shared design tokens are fine. Shared visual identity is fine. But the two surfaces must remain clearly differentiated in purpose and UX.
+Shared design tokens are fine. Shared branding is fine. But the two surfaces must remain clearly differentiated in purpose and UX.
 
 ### Component system
 
@@ -302,7 +290,7 @@ Performance is a core requirement.
 
 Prioritize:
 
-- static output
+- static output for the public menu whenever practical
 - minimal client-side JavaScript
 - fast page load
 - optimized images

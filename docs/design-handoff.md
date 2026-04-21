@@ -55,7 +55,7 @@ El diseno para `/menu` debe respetar estas reglas:
 
 - priorizar uso en celular antes que desktop
 - mantener jerarquia visual clara y escaneable
-- soportar contenido variable proveniente del CMS
+- soportar contenido variable proveniente del sistema de contenido
 - evitar efectos visuales que ralenticen carga o compliquen mantenimiento
 - separar visualmente la superficie operativa del futuro sitio institucional
 - no depender de contenido perfecto o de longitud fija
@@ -131,7 +131,7 @@ Estas son las piezas minimas que Figma debe definir y que desarrollo debe poder 
 - Composicion general de pagina: `src/pages/menu/index.astro`
 - UI reusable por pieza: `src/components/*.astro`
 - Contenido variable del menu: `src/content/*`
-- Configuracion editorial del CMS: `public/admin/config.yml`
+- Entrada administrativa reservada: `public/admin/index.html`
 
 Regla practica:
 
@@ -271,7 +271,7 @@ Al bajar el handoff a Astro/Tailwind, validar:
 - el layout general de `/menu` se resuelve en `src/pages/menu/index.astro`
 - cada pieza reusable vive en un componente claro
 - no se agregan dependencias innecesarias
-- no se rompe el flujo actual del CMS
+- no se acopla la UI a un CMS especifico
 - no se mezcla la logica editorial con decisiones visuales
 - la UI sigue siendo legible en celular
 - el render sigue siendo mayormente estatico y liviano
@@ -282,9 +282,8 @@ Este handoff no cubre por ahora:
 
 - `/`
 - `/admin`
-- emails de Netlify Identity
 - una design system completa para todas las superficies futuras
-- cambios de schema o nuevos campos del CMS
+- cambios de schema o nuevos campos editoriales
 
 ## Nota de mantenimiento
 
