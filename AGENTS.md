@@ -137,6 +137,7 @@ The project must support the following route structure:
 ### Routing constraints
 
 - `/menu` is the current product priority
+- `/menu` should keep the canonical redirect to `/menu/` in host configuration
 - `/` must be treated as a future-facing institutional surface
 - `/admin` is reserved for CMS access, even while the CMS is temporarily absent
 - `/admin` should stay implemented via `public/admin/index.html`

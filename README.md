@@ -145,7 +145,7 @@ npm install
 npm run dev
 ```
 
-La ruta canonica de admin sigue siendo `/admin/`. Si entras a `/admin`, se redirige automaticamente a `/admin/` en desarrollo.
+Las rutas canonicas publicas quedan en `/menu/` y `/admin/`.
 
 Para ver el placeholder editorial en local:
 
@@ -179,7 +179,7 @@ La edicion de contenido queda temporalmente fuera del repo hasta la siguiente fa
 - El host objetivo de esta fase es **Vercel** con despliegue estatico.
 - No hay hidratacion de componentes en esta etapa.
 - `/admin` se mantiene servido desde `public/admin/` para reservar el acceso futuro del CMS sin reintroducir una pagina Astro en esa ruta.
-- `vercel.json` solo conserva la canonicalizacion de `/admin` -> `/admin/`.
+- `vercel.json` conserva la canonicalizacion de `/menu` -> `/menu/` y `/admin` -> `/admin/`.
 - **Keystatic** sigue fuera de alcance en esta etapa.
 - Los nombres tecnicos, archivos y componentes estan en **ingles**.
 - El contenido visible para usuarios esta en **espanol**.
