@@ -108,14 +108,14 @@ name: string
 description: string # opcional
 price: number
 available: boolean
-image: string # opcional, solo path local raster en /uploads
+image: string # opcional, solo path local en /uploads
 ```
 
 Las minutas tambien requieren `price`, igual que los platos del dia y las bebidas.
 
 Las guarniciones usan un esquema mas simple, sin `price`, porque se muestran como opciones de acompanamiento.
 
-Si se usa `image`, el valor debe apuntar a un archivo local bajo `/uploads/` con extension `.jpg`, `.jpeg`, `.png`, `.webp` o `.avif`. No se aceptan SVG, URLs externas ni data URLs.
+Si se usa `image`, el valor debe apuntar a un archivo local bajo `/uploads/` con extension `.jpg`, `.jpeg`, `.png`, `.webp`, `.avif` o `.svg`. Los SVG quedan reservados para placeholders locales controlados por el repo. No se aceptan URLs externas ni data URLs.
 
 Colecciones activas:
 
