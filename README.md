@@ -1,12 +1,23 @@
 # El Faraon Catering
 
-Base tecnica actual para el sistema de menu digital de **El Faraon Catering**.
+Base tecnica para el sistema de menu digital de **El Faraon Catering**.
 
-El foco del proyecto sigue siendo la experiencia de menu QR para el buffet dentro del edificio corporativo de **Paramount+**. Esta version sigue siendo **informativa**: no incluye pedidos, pagos, reservas, cuentas ni flujos de compra.
+El foco actual del proyecto es la experiencia de menu QR para el buffet dentro del edificio corporativo de **Paramount+**. Esta etapa es informativa: no incluye pedidos, pagos online, reservas, cuentas de usuario, carrito ni flujos de compra.
+
+## Proposito
+
+Construir un menu digital rapido, mobile-first y de bajo mantenimiento para la operacion diaria del buffet.
+
+El proyecto tiene dos superficies separadas:
+
+- `/menu/`: menu operativo QR, prioridad actual.
+- `/`: placeholder de la futura presencia institucional.
+
+La superficie institucional no debe mezclarse con la experiencia operativa del menu.
 
 ## Estado actual
 
-La base del proyecto hoy incluye:
+La base actual incluye:
 
 - **Astro 5**
 - **TypeScript**
@@ -15,41 +26,34 @@ La base del proyecto hoy incluye:
 - **YAML** para contenido
 - **Node 20 LTS**
 - **npm**
+- despliegue estatico preparado para **Vercel**
 
-En esta fase ya existen:
+Tambien incluye:
 
-- la ruta `/` como placeholder institucional
-- la ruta `/menu` como superficie operativa principal
-- la ruta `/admin` reservada como placeholder de panel en migracion
-- colecciones tipadas para `daily-dishes`, `fixed-dishes`, `side-dishes` y `drinks`
-- contenido YAML de ejemplo para validar render y tipado
-- una UI minima mobile-first con JavaScript acotado y servido desde origen propio
+- rutas principales para `/`, `/menu/` y `/admin/`
+- colecciones tipadas para platos, guarniciones y bebidas
+- contenido YAML inicial para validar render y tipado
+- soporte opcional para imagenes locales de items del menu
+- un dialog liviano para ver fotos desde `/menu/`
+- placeholder estatico para `/admin/`
+- handoff de diseno para la superficie `/menu/`
 
-En esta fase ya no existe un CMS operativo dentro del repo. El hosting objetivo de esta etapa es **Vercel** con despliegue estatico, mientras que **Keystatic** queda para una fase posterior.
+En esta fase no hay CMS activo dentro del repo. **Keystatic** queda pendiente para una fase editorial posterior.
 
-## Objetivo del proyecto
+## Rutas
 
-Construir un menu digital rapido, simple y de bajo mantenimiento para la operacion del buffet.
+| Ruta | Estado | Proposito |
+| --- | --- | --- |
+| `/` | Placeholder | Futura web institucional |
+| `/menu/` | Activa | Menu operativo del buffet |
+| `/admin/` | Placeholder estatico | Futuro entrypoint editorial |
 
-## Alcance de esta etapa
+`vercel.json` mantiene redirects canonicos:
 
-La etapa actual cubre:
+- `/menu` -> `/menu/`
+- `/admin` -> `/admin/`
 
-- estructura del proyecto
-- rutas principales
-- sistema visual inicial
-- modelado tipado del contenido
-- render estatico del menu
-- reserva de la ruta `/admin` para la futura herramienta editorial
-- preparacion para despliegue estatico en Vercel
-
-Todavia no incluye:
-
-- un CMS operativo
-- imagenes reales de platos
-- multiples locaciones
-- integracion de Keystatic
-- conexion de dominio propio
+`/admin/` se sirve desde `public/admin/index.html`. No debe reintroducirse como pagina Astro mientras siga siendo un placeholder estatico.
 
 ## Estructura principal
 
@@ -77,45 +81,22 @@ src/
 public/
   admin/
     index.html
+  scripts/
+    menu-photo-sheet.js
   uploads/
+docs/
+  design-handoff.md
 .nvmrc
+astro.config.mjs
+package.json
 vercel.json
 ```
 
-## Rutas disponibles
+Directorios generados como `dist/`, `.astro/` y `node_modules/` no forman parte de la estructura fuente documentada.
 
-- `/` -> placeholder para la futura web institucional
-- `/menu` -> menu operativo del buffet
-- `/admin` -> placeholder temporal del futuro panel administrativo
+## Modelo de contenido
 
-## Hosting actual
-
-La fase actual queda preparada para **Vercel** como host del sitio estatico.
-
-En esta etapa:
-
-- el despliegue esperado usa URLs generadas `*.vercel.app`
-- `/admin` sigue siendo solo un placeholder
-- no hay SSR
-- no hay CMS activo
-
-## Modelo de contenido actual
-
-Los platos y bebidas con precio usan un esquema simple y estricto:
-
-```yaml
-name: string
-description: string # opcional
-price: number
-available: boolean
-image: string # opcional, solo path local en /uploads
-```
-
-Las minutas tambien requieren `price`, igual que los platos del dia y las bebidas.
-
-Las guarniciones usan un esquema mas simple, sin `price`, porque se muestran como opciones de acompanamiento.
-
-Si se usa `image`, el valor debe apuntar a un archivo local bajo `/uploads/` con extension `.jpg`, `.jpeg`, `.png`, `.webp`, `.avif` o `.svg`. Los SVG quedan reservados para placeholders locales controlados por el repo. No se aceptan URLs externas ni data URLs.
+El contenido vive en `src/content/` y usa archivos `.yaml`.
 
 Colecciones activas:
 
@@ -124,12 +105,68 @@ Colecciones activas:
 - `src/content/side-dishes/`
 - `src/content/drinks/`
 
+Los items con precio (`daily-dishes`, `fixed-dishes` y `drinks`) usan este esquema:
+
+```yaml
+name: string
+description: string # optional
+price: number
+available: boolean
+image: string # optional
+```
+
+Las guarniciones (`side-dishes`) usan este esquema:
+
+```yaml
+name: string
+description: string # optional
+available: boolean
+image: string # optional
+```
+
+Reglas actuales:
+
+- `available` controla si el item se muestra como disponible o no disponible.
+- `price` es obligatorio para platos del dia, minutas y bebidas.
+- `price` no existe en guarniciones.
+- `image` es opcional y debe apuntar a un archivo local bajo `/uploads/`.
+- No se aceptan URLs externas, data URLs, query strings ni fragments en `image`.
+- Las extensiones permitidas son `.avif`, `.jpeg`, `.jpg`, `.png`, `.svg` y `.webp`.
+
+Los SVG quedan reservados para placeholders o assets locales controlados por el repo.
+
+## Imagenes del menu
+
+El menu ya soporta imagenes opcionales por item.
+
+Cuando un item tiene `image`, `DishCard.astro` muestra la accion `Ver foto`. Esa accion usa `public/scripts/menu-photo-sheet.js` para abrir un `dialog` liviano en `/menu/`. El enlace conserva `href` al archivo local como fallback.
+
+Las imagenes deben colocarse en `public/uploads/` y referenciarse desde YAML con path publico:
+
+```yaml
+image: /uploads/example-photo.webp
+```
+
+## Diseno
+
+El handoff de diseno para `/menu/` vive en `docs/design-handoff.md`.
+
+Ese documento define como trasladar decisiones desde Figma a la implementacion actual sin convertir el menu QR en una landing institucional ni en una experiencia de ecommerce.
+
+Regla practica:
+
+- decisiones visuales repetibles -> `src/styles/global.css`
+- estructura reusable -> `src/components/`
+- contenido variable -> `src/content/`
+
 ## Desarrollo local
 
 ### Requisitos
 
 - Node `20.x`
-- npm
+- npm `>=10`
+
+La version esperada de Node tambien esta declarada en `.nvmrc` y en `package.json`.
 
 Si acabas de instalar Node en Windows, conviene cerrar y volver a abrir la terminal antes de ejecutar comandos para que `node` y `npm` queden disponibles en el `PATH`.
 
@@ -139,26 +176,48 @@ Si acabas de instalar Node en Windows, conviene cerrar y volver a abrir la termi
 npm install
 ```
 
-### Desarrollo
+### Servidor de desarrollo
 
 ```bash
 npm run dev
 ```
 
-Las rutas canonicas publicas quedan en `/menu/` y `/admin/`.
+Rutas utiles en local:
 
-Para ver el placeholder editorial en local:
+- `http://localhost:4321/`
+- `http://localhost:4321/menu/`
+- `http://localhost:4321/admin/`
 
-```text
-http://localhost:4321/admin/
+### Preview de build
+
+```bash
+npm run preview
 ```
 
-### Validacion
+## Validacion
+
+Antes de considerar completa una modificacion, ejecutar:
 
 ```bash
 npm run build
 npm run check
 ```
+
+Estos comandos son la validacion minima del proyecto.
+
+## Despliegue
+
+La fase actual esta preparada para despliegue estatico en **Vercel**.
+
+Restricciones de esta etapa:
+
+- no hay SSR
+- no hay adapter de servidor
+- no hay funciones server-side
+- no hay CMS activo
+- no hay escritura editorial desde el repo
+
+El despliegue esperado puede usar URLs `*.vercel.app` hasta conectar un dominio propio.
 
 ## Estado editorial
 
@@ -170,16 +229,30 @@ El repo ya no incluye:
 - templates de correo del stack anterior
 - configuracion de deploy repo-managed del stack anterior
 
-La edicion de contenido queda temporalmente fuera del repo hasta la siguiente fase de migracion.
+La edicion de contenido queda temporalmente fuera del repo hasta la siguiente fase de migracion editorial.
+
+## Fuera de alcance actual
+
+No agregar estas capacidades salvo pedido explicito:
+
+- online ordering
+- checkout o pagos online
+- WhatsApp ordering
+- reservas
+- cuentas de usuario
+- carrito
+- SSR
+- serverless functions
+- CMS, auth o flujos de escritura editorial
 
 ## Decisiones tecnicas actuales
 
 - Se usa **Astro 5** para mantener compatibilidad con **Node 20**.
-- El sitio sigue planteado como **static-first** para la superficie publica.
-- El host objetivo de esta fase es **Vercel** con despliegue estatico.
-- No hay hidratacion de componentes en esta etapa.
-- `/admin` se mantiene servido desde `public/admin/` para reservar el acceso futuro del CMS sin reintroducir una pagina Astro en esa ruta.
-- `vercel.json` conserva la canonicalizacion de `/menu` -> `/menu/` y `/admin` -> `/admin/`.
+- Se usa **Tailwind CSS 4** mediante el plugin de Vite.
+- El sitio sigue siendo **static-first**.
+- La superficie publica prioritaria es `/menu/`.
+- `/admin/` se mantiene como placeholder estatico en `public/admin/`.
+- `vercel.json` conserva la canonicalizacion de `/menu` y `/admin`.
 - **Keystatic** sigue fuera de alcance en esta etapa.
 - Los nombres tecnicos, archivos y componentes estan en **ingles**.
 - El contenido visible para usuarios esta en **espanol**.
