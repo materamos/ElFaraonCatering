@@ -27,6 +27,9 @@ The repository currently contains a working technical base with:
 - **Node 20 LTS**
 - **npm**
 - **Static `/admin` placeholder**
+- **Optional local menu images under `/uploads/`**
+- **Lightweight menu photo dialog served by `public/scripts/menu-photo-sheet.js`**
+- **Design handoff guidance in `docs/design-handoff.md`**
 
 Implemented routes:
 
@@ -41,13 +44,27 @@ Implemented content collections:
 - `side-dishes`
 - `drinks`
 
-Current menu item schema:
+Current priced menu item schema for `daily-dishes`, `fixed-dishes`, and `drinks`:
 
 - `name: string`
 - `description?: string`
 - `price: number`
 - `available: boolean`
 - `image?: string`
+
+Current side dish schema for `side-dishes`:
+
+- `name: string`
+- `description?: string`
+- `available: boolean`
+- `image?: string`
+
+Current image support:
+
+- Images are optional and must be local public paths under `/uploads/`
+- Allowed extensions are `.avif`, `.jpeg`, `.jpg`, `.png`, `.svg`, and `.webp`
+- External URLs, data URLs, query strings, and fragments are not allowed
+- SVG files should remain limited to controlled local placeholders or assets
 
 Important compatibility note:
 
@@ -68,9 +85,11 @@ Important migration note:
 
 ## Core Product Intent
 
-The system must provide a **fast, mobile-first, low-maintenance digital menu** that can be updated by non-technical staff through a CMS.
+The system must provide a **fast, mobile-first, low-maintenance digital menu**. The future editorial goal is that non-technical staff can update it through a CMS.
 
 The menu is **informational only** in the current phase.
+
+In the current phase there is no active CMS in the repo. Content is edited directly through YAML files until the future Keystatic phase.
 
 Do **not** add features such as:
 
@@ -158,7 +177,7 @@ The menu system must support these content groups:
 - **Drinks** (`drinks`)
 - **Availability state**
 - **Prices**
-- **Images** (future support)
+- **Images** (optional local support under `/uploads/`)
 
 The system is for a buffet menu with a limited catalog. Avoid solutions designed for large restaurant platforms or e-commerce catalogs.
 
@@ -187,13 +206,31 @@ You may refine naming if needed, but keep it explicit, predictable, and fully in
 - Keep the future editor experience simple
 - Model availability explicitly
 - Model prices explicitly
-- Prepare the schema so images can be added later without breaking existing content
+- Keep optional images safe, local, and compatible with future CMS editing
+
+---
+
+### Image content rules
+
+Menu images are already supported as optional local public assets.
+
+- Store menu images under `public/uploads/`
+- Reference them from YAML with `/uploads/...`
+- Keep image paths local and safe; do not use external URLs or data URLs
+- Do not add query strings, fragments, backslashes, empty path segments, `.` segments, or `..` segments
+- Keep SVG usage limited to repo-controlled placeholders or assets
 
 ---
 
 ## CMS Rules
 
 The CMS remains a critical part of the project, even though it is temporarily absent from the repo.
+
+Current phase rule:
+
+- Do not add CMS code, auth, or repo-writing admin flows unless explicitly requested
+- Keep editing content through YAML files in `src/content/`
+- Keep `/admin/` as a static placeholder served from `public/admin/index.html`
 
 The future CMS must be able to manage:
 
@@ -246,6 +283,12 @@ That means:
 - allow the institutional site to evolve later with a different content emphasis
 
 Shared design tokens are fine. Shared branding is fine. But the two surfaces must remain clearly differentiated in purpose and UX.
+
+### Design handoff
+
+Use `docs/design-handoff.md` as the practical handoff guide for `/menu/` design work.
+
+That handoff should guide Figma-to-code decisions without turning the QR menu into an institutional landing page, public restaurant marketing site, or e-commerce experience.
 
 ### Component system
 
