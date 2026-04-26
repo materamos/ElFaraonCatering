@@ -36,7 +36,6 @@ Tambien incluye:
 - soporte opcional para imagenes locales de items del menu
 - un dialog liviano para ver fotos desde `/menu/`
 - placeholder estatico para `/admin/`
-- handoff de diseno para la superficie `/menu/`
 
 En esta fase no hay CMS activo dentro del repo. **Keystatic** queda pendiente para una fase editorial posterior.
 
@@ -84,8 +83,6 @@ public/
   scripts/
     menu-photo-sheet.js
   uploads/
-docs/
-  design-handoff.md
 .nvmrc
 astro.config.mjs
 package.json
@@ -146,18 +143,6 @@ Las imagenes deben colocarse en `public/uploads/` y referenciarse desde YAML con
 ```yaml
 image: /uploads/example-photo.webp
 ```
-
-## Diseno
-
-El handoff de diseno para `/menu/` vive en `docs/design-handoff.md`.
-
-Ese documento define como trasladar decisiones desde Figma a la implementacion actual sin convertir el menu QR en una landing institucional ni en una experiencia de ecommerce.
-
-Regla practica:
-
-- decisiones visuales repetibles -> `src/styles/global.css`
-- estructura reusable -> `src/components/`
-- contenido variable -> `src/content/`
 
 ## Desarrollo local
 

@@ -29,7 +29,6 @@ The repository currently contains a working technical base with:
 - **Static `/admin` placeholder**
 - **Optional local menu images under `/uploads/`**
 - **Lightweight menu photo dialog served by `public/scripts/menu-photo-sheet.js`**
-- **Design handoff guidance in `docs/design-handoff.md`**
 
 Implemented routes:
 
@@ -283,12 +282,6 @@ That means:
 - allow the institutional site to evolve later with a different content emphasis
 
 Shared design tokens are fine. Shared branding is fine. But the two surfaces must remain clearly differentiated in purpose and UX.
-
-### Design handoff
-
-Use `docs/design-handoff.md` as the practical handoff guide for `/menu/` design work.
-
-That handoff should guide Figma-to-code decisions without turning the QR menu into an institutional landing page, public restaurant marketing site, or e-commerce experience.
 
 ### Component system
 
