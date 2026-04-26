@@ -15,6 +15,10 @@ interface MenuSectionDefinition {
 interface SupportInfoFact {
   label: string;
   value: string;
+  link?: {
+    text: string;
+    href: string;
+  };
 }
 
 interface SupportInfoPayment {
@@ -32,7 +36,14 @@ const menuHeroContent = {
 const supportInfo = {
   facts: [
     { label: "Horario", value: "08:30 a 18:00 hs" },
-    { label: "Guarniciones", value: "Hasta 3 opciones por plato" },
+    {
+      label: "Contacto",
+      value: "Contactanos por",
+      link: {
+        text: "WhatsApp",
+        href: "https://wa.me/541133454545?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%3A%20",
+      },
+    },
   ] satisfies SupportInfoFact[],
   payment: {
     label: "Pagos",

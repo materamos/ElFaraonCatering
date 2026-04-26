@@ -2,6 +2,10 @@
 interface MenuInfoFact {
   label: string;
   value: string;
+  link?: {
+    text: string;
+    href: string;
+  };
 }
 
 interface MenuInfoPayment {
@@ -24,7 +28,22 @@ const { title, facts, payment } = Astro.props;
     {facts.map((fact) => (
       <div class="menu-info-panel__fact">
         <dt class="menu-info-panel__label">{fact.label}</dt>
-        <dd class="menu-info-panel__value">{fact.value}</dd>
+        <dd class="menu-info-panel__value">
+          {fact.value}
+          {fact.link && (
+            <>
+              {" "}
+              <a
+                class="menu-info-panel__link"
+                href={fact.link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {fact.link.text}
+              </a>
+            </>
+          )}
+        </dd>
       </div>
     ))}
   </dl>
