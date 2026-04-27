@@ -1,0 +1,99 @@
+title: Bebidas
+description: Bebidas agrupadas por línea.
+order: 90
+groups:
+  - title: Línea Coca-Cola
+    pricing:
+      kind: fixed
+      amount: 2400
+    items:
+      - name: Coca-Cola
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+      - name: Coca-Cola Zero
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+      - name: Fanta
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+      - name: Sprite
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+      - name: Sprite Zero
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+  - title: Línea Pepsi
+    pricing:
+      kind: fixed
+      amount: 2300
+    items:
+      - name: Pepsi
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+      - name: Pepsi Black
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+      - name: 7Up
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+      - name: 7Up Free
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+      - name: Paso de los Toros Pomelo
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+  - title: Línea Cunnington
+    pricing:
+      kind: fixed
+      amount: 2300
+    items:
+      - name: Cunnington Pomelo
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+      - name: Cunnington Tónica
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+      - name: Cunnington Tónica Zero
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+  - title: Línea Levité
+    pricing:
+      kind: fixed
+      amount: 2300
+    items:
+      - name: Levité Pomelo
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+      - name: Levité Manzana
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+      - name: Levité Naranja
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+      - name: Levité Pera
+        available: true
+        image: /uploads/menu-placeholders/bebida-gaseosa.svg
+  - title: Aguas
+    pricing:
+      kind: fixed
+      amount: 2300
+    items:
+      - name: Agua sin gas Villavicencio
+        available: true
+        image: /uploads/menu-placeholders/bebida-agua.svg
+      - name: Agua con gas Villavicencio
+        available: true
+        image: /uploads/menu-placeholders/bebida-agua.svg
+  - title: Gatorade
+    note: Precio pendiente por producto.
+    items:
+      - name: Gatorade Manzana
+        available: true
+        image: /uploads/menu-placeholders/gatorade.svg
+        pricing:
+          kind: pending
+      - name: Gatorade Frutos Rojos
+        available: true
+        image: /uploads/menu-placeholders/gatorade.svg
+        pricing:
+          kind: pending

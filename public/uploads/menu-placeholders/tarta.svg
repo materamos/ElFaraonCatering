@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Tarta placeholder</title>
+  <desc id="desc">Imagen de prueba para tartas.</desc>
+  <rect width="1200" height="900" fill="#fff8ef"/>
+  <rect x="80" y="80" width="1040" height="740" rx="48" fill="#f4eadf" stroke="#d9bd98" stroke-width="8"/>
+  <circle cx="600" cy="420" r="210" fill="#dca856" stroke="#8d5b20" stroke-width="16"/>
+  <path d="M600 420 735 265a210 210 0 0 1 72 155z" fill="#fff1cf"/>
+  <path d="M600 420h210M600 420 465 258M600 420 462 580M600 420l138 158" stroke="#8d5b20" stroke-width="10"/>
+  <text x="600" y="695" text-anchor="middle" fill="#2d2419" font-family="Trebuchet MS, Arial, sans-serif" font-size="58" font-weight="700">Tartas</text>
+  <text x="600" y="755" text-anchor="middle" fill="#6f604f" font-family="Trebuchet MS, Arial, sans-serif" font-size="34">Imagen de prueba</text>
+</svg>

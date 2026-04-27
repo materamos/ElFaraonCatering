@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Desayuno y snack placeholder</title>
+  <desc id="desc">Imagen de prueba para desayuno y snack.</desc>
+  <rect width="1200" height="900" fill="#fff8ef"/>
+  <rect x="80" y="80" width="1040" height="740" rx="48" fill="#efe2d2" stroke="#d9bd98" stroke-width="8"/>
+  <path d="M430 440h250v110H430z" fill="#fffdf9" stroke="#8d5b20" stroke-width="16"/>
+  <path d="M680 460c95-5 95 90 0 84" fill="none" stroke="#8d5b20" stroke-width="16"/>
+  <path d="M470 380c-35-65 65-90 105-40 44-55 150-20 120 50-35 82-180 78-225-10z" fill="#dca856" stroke="#8d5b20" stroke-width="14"/>
+  <text x="600" y="695" text-anchor="middle" fill="#2d2419" font-family="Trebuchet MS, Arial, sans-serif" font-size="58" font-weight="700">Desayuno y snack</text>
+  <text x="600" y="755" text-anchor="middle" fill="#6f604f" font-family="Trebuchet MS, Arial, sans-serif" font-size="34">Imagen de prueba</text>
+</svg>

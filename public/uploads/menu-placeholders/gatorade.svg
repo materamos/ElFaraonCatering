@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Gatorade placeholder</title>
+  <desc id="desc">Imagen de prueba para Gatorade.</desc>
+  <rect width="1200" height="900" fill="#fff8ef"/>
+  <rect x="80" y="80" width="1040" height="740" rx="48" fill="#efe2d2" stroke="#d9bd98" stroke-width="8"/>
+  <path d="M500 240h200l-35 120v245H535V360z" fill="#fffdf9" stroke="#8d5b20" stroke-width="18"/>
+  <path d="M535 440h130v105H535z" fill="#cf5f45"/>
+  <path d="M600 300l-50 95h62l-35 95 90-125h-66l42-65z" fill="#f1c35b"/>
+  <text x="600" y="695" text-anchor="middle" fill="#2d2419" font-family="Trebuchet MS, Arial, sans-serif" font-size="58" font-weight="700">Gatorade</text>
+  <text x="600" y="755" text-anchor="middle" fill="#6f604f" font-family="Trebuchet MS, Arial, sans-serif" font-size="34">Imagen de prueba</text>
+</svg>

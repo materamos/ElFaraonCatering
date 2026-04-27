@@ -1,0 +1,44 @@
+title: Minutas, tartas y omelettes
+description: Opciones rapidas con modalidades de guarnición cuando aplica.
+order: 30
+items:
+  - name: Tartas
+    available: true
+    note: Elegí el sabor y la modalidad.
+    image: /uploads/menu-placeholders/tarta.svg
+    pricing:
+      kind: variants
+      variants:
+        - name: Con guarnición
+          amount: 9000
+        - name: Sin guarnición
+          amount: 7000
+    options:
+      - name: Tarta de jamón y verdeo
+      - name: Tarta de pollo y puerro
+      - name: Tarta de jamón y queso
+      - name: Tarta de calabaza y muzarella
+      - name: Tarta de verdura
+      - name: Tarta de brócoli
+  - name: Tortilla
+    available: true
+    image: /uploads/menu-placeholders/tortilla.svg
+    pricing:
+      kind: variants
+      variants:
+        - name: Sin cebolla con guarnición
+          amount: 9000
+        - name: Con cebolla con guarnición
+          amount: 9000
+        - name: Sin guarnición
+          amount: 7000
+  - name: Omelette
+    available: true
+    image: /uploads/menu-placeholders/omelette.svg
+    pricing:
+      kind: variants
+      variants:
+        - name: Con guarnición
+          amount: 9000
+        - name: Sin guarnición
+          amount: 7000

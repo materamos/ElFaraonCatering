@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Ensalada placeholder</title>
+  <desc id="desc">Imagen de prueba para ensaladas.</desc>
+  <rect width="1200" height="900" fill="#fff8ef"/>
+  <rect x="80" y="80" width="1040" height="740" rx="48" fill="#f4eadf" stroke="#d9bd98" stroke-width="8"/>
+  <path d="M360 390h480l-65 190H425z" fill="#fffdf9" stroke="#8d5b20" stroke-width="18"/>
+  <circle cx="485" cy="405" r="48" fill="#6f9f55"/>
+  <circle cx="590" cy="382" r="54" fill="#9cc66f"/>
+  <circle cx="705" cy="410" r="44" fill="#cf5f45"/>
+  <path d="M470 500c80 45 180 48 275 0" stroke="#6f9f55" stroke-width="24" stroke-linecap="round"/>
+  <text x="600" y="695" text-anchor="middle" fill="#2d2419" font-family="Trebuchet MS, Arial, sans-serif" font-size="58" font-weight="700">Ensaladas</text>
+  <text x="600" y="755" text-anchor="middle" fill="#6f604f" font-family="Trebuchet MS, Arial, sans-serif" font-size="34">Imagen de prueba</text>
+</svg>

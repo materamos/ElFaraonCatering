@@ -31,13 +31,13 @@ La base actual incluye:
 Tambien incluye:
 
 - rutas principales para `/`, `/menu/` y `/admin/`
-- colecciones tipadas para platos, guarniciones y bebidas
-- contenido YAML inicial para validar render y tipado
+- una coleccion tipada `menu-sections` para el menu operativo
+- contenido YAML real contrastado con el local
 - soporte opcional para imagenes locales de items del menu
 - un dialog liviano para ver fotos desde `/menu/`
 - placeholder estatico para `/admin/`
 
-En esta fase no hay CMS activo dentro del repo. **Keystatic** queda pendiente para una fase editorial posterior.
+En esta fase no hay CMS activo dentro del repo. **Keystatic** queda como candidato preliminar para una fase editorial posterior, pero la decision final queda pendiente de validarlo contra el modelo YAML definitivo.
 
 ## Rutas
 
@@ -63,10 +63,7 @@ src/
     MenuInfoPanel.astro
     MenuSection.astro
   content/
-    daily-dishes/
-    fixed-dishes/
-    side-dishes/
-    drinks/
+    menu-sections/
   layouts/
     BaseLayout.astro
   pages/
@@ -95,38 +92,67 @@ Directorios generados como `dist/`, `.astro/` y `node_modules/` no forman parte 
 
 El contenido vive en `src/content/` y usa archivos `.yaml`.
 
-Colecciones activas:
+Coleccion activa:
 
-- `src/content/daily-dishes/`
-- `src/content/fixed-dishes/`
-- `src/content/side-dishes/`
-- `src/content/drinks/`
+- `src/content/menu-sections/`
 
-Los items con precio (`daily-dishes`, `fixed-dishes` y `drinks`) usan este esquema:
+Cada archivo representa una seccion visible del menu y se ordena con `order`.
 
-```yaml
-name: string
-description: string # optional
-price: number
-available: boolean
-image: string # optional
-```
-
-Las guarniciones (`side-dishes`) usan este esquema:
+Estructura general:
 
 ```yaml
-name: string
+title: string
 description: string # optional
-available: boolean
-image: string # optional
+note: string # optional
+order: number
+items: array # para secciones simples
+groups: array # para secciones agrupadas
 ```
 
-Reglas actuales:
+Reglas principales:
 
-- `available` controla si el item se muestra como disponible o no disponible.
-- `price` es obligatorio para platos del dia, minutas y bebidas.
-- `price` no existe en guarniciones.
-- `image` es opcional y debe apuntar a un archivo local bajo `/uploads/`.
+- Una seccion debe usar `items` o `groups`, pero no ambos.
+- Si una seccion usa `items`, cada item debe definir `pricing`.
+- Si una seccion usa `groups`, un grupo puede definir `pricing` compartido.
+- Si el grupo tiene `pricing`, sus items pueden omitirlo y heredan ese precio.
+- Si un item dentro de un grupo define `pricing`, ese valor funciona como override.
+- Si un grupo no tiene `pricing`, cada item del grupo debe definir el suyo.
+- `available` es obligatorio en productos vendibles.
+- `available` en variantes y opciones es opcional y por defecto se considera disponible.
+- `note` sirve para aclaraciones visibles, no para reemplazar precios.
+
+Tipos de precio soportados:
+
+```yaml
+pricing:
+  kind: fixed
+  amount: 7500
+```
+
+```yaml
+pricing:
+  kind: pending
+```
+
+```yaml
+pricing:
+  kind: included
+  label: Incluida como opción
+```
+
+```yaml
+pricing:
+  kind: variants
+  variants:
+    - name: Con guarnición
+      amount: 9000
+    - name: Sin guarnición
+      amount: 7000
+```
+
+- Las variantes son planas: no pueden contener otro `pricing` ni variantes anidadas.
+- Para variantes con precio pendiente se usa `pending: true`.
+- `image` es opcional en items y debe apuntar a un archivo local bajo `/uploads/`.
 - No se aceptan URLs externas, data URLs, query strings ni fragments en `image`.
 - Las extensiones permitidas son `.avif`, `.jpeg`, `.jpg`, `.png`, `.svg` y `.webp`.
 
@@ -200,7 +226,7 @@ Restricciones de esta etapa:
 - no hay adapter de servidor
 - no hay funciones server-side
 - no hay CMS activo
-- no hay escritura editorial desde el repo
+- no hay escritura editorial desde `/admin/` ni desde el sitio publico
 
 El despliegue esperado puede usar URLs `*.vercel.app` hasta conectar un dominio propio.
 
@@ -214,7 +240,7 @@ El repo ya no incluye:
 - templates de correo del stack anterior
 - configuracion de deploy repo-managed del stack anterior
 
-La edicion de contenido queda temporalmente fuera del repo hasta la siguiente fase de migracion editorial.
+No hay CMS activo en esta etapa. El contenido se edita actualmente como YAML versionado en `src/content/menu-sections/`, con GitHub como fuente de verdad y Vercel como destino de deploy estatico.
 
 ## Fuera de alcance actual
 
@@ -238,6 +264,6 @@ No agregar estas capacidades salvo pedido explicito:
 - La superficie publica prioritaria es `/menu/`.
 - `/admin/` se mantiene como placeholder estatico en `public/admin/`.
 - `vercel.json` conserva la canonicalizacion de `/menu` y `/admin`.
-- **Keystatic** sigue fuera de alcance en esta etapa.
+- **Keystatic** sigue fuera de alcance en esta etapa y queda como candidato preliminar, no como decision cerrada.
 - Los nombres tecnicos, archivos y componentes estan en **ingles**.
 - El contenido visible para usuarios esta en **espanol**.

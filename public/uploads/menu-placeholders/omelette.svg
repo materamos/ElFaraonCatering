@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Omelette placeholder</title>
+  <desc id="desc">Imagen de prueba para omelettes.</desc>
+  <rect width="1200" height="900" fill="#fff8ef"/>
+  <rect x="80" y="80" width="1040" height="740" rx="48" fill="#f4eadf" stroke="#d9bd98" stroke-width="8"/>
+  <path d="M355 470c70-160 420-210 500-20 24 58-55 125-220 130-172 6-318-42-280-110z" fill="#f0c75d" stroke="#8d5b20" stroke-width="18"/>
+  <path d="M485 438c70 35 190 35 270 0" stroke="#fff1cf" stroke-width="22" stroke-linecap="round"/>
+  <circle cx="675" cy="390" r="25" fill="#6f9f55"/>
+  <text x="600" y="695" text-anchor="middle" fill="#2d2419" font-family="Trebuchet MS, Arial, sans-serif" font-size="58" font-weight="700">Omelette</text>
+  <text x="600" y="755" text-anchor="middle" fill="#6f604f" font-family="Trebuchet MS, Arial, sans-serif" font-size="34">Imagen de prueba</text>
+</svg>

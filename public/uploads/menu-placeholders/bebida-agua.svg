@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Agua placeholder</title>
+  <desc id="desc">Imagen de prueba para aguas.</desc>
+  <rect width="1200" height="900" fill="#fff8ef"/>
+  <rect x="80" y="80" width="1040" height="740" rx="48" fill="#f4eadf" stroke="#d9bd98" stroke-width="8"/>
+  <path d="M535 250h130l-25 100v250H560V350z" fill="#e9f5ff" stroke="#6e4518" stroke-width="18"/>
+  <path d="M560 430c35-35 55-35 80 0v95h-80z" fill="#9fd1ec"/>
+  <path d="M760 360c80 120-15 200-70 150-48-44 15-105 70-150z" fill="#9fd1ec" stroke="#6e4518" stroke-width="14"/>
+  <text x="600" y="695" text-anchor="middle" fill="#2d2419" font-family="Trebuchet MS, Arial, sans-serif" font-size="58" font-weight="700">Agua</text>
+  <text x="600" y="755" text-anchor="middle" fill="#6f604f" font-family="Trebuchet MS, Arial, sans-serif" font-size="34">Imagen de prueba</text>
+</svg>

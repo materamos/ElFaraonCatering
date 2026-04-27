@@ -1,0 +1,22 @@
+title: Menús del día
+description: Opciones principales de rotación diaria del buffet.
+order: 10
+items:
+  - name: Menú del día
+    available: true
+    image: /uploads/menu-placeholders/menu-del-dia.svg
+    pricing:
+      kind: fixed
+      amount: 7500
+  - name: Menú del día con bebida
+    available: true
+    image: /uploads/menu-placeholders/menu-del-dia.svg
+    pricing:
+      kind: fixed
+      amount: 9900
+  - name: Menú vegetariano
+    available: true
+    image: /uploads/menu-placeholders/menu-del-dia.svg
+    pricing:
+      kind: fixed
+      amount: 7500

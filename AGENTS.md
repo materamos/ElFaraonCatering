@@ -38,25 +38,47 @@ Implemented routes:
 
 Implemented content collections:
 
-- `daily-dishes`
-- `fixed-dishes`
-- `side-dishes`
-- `drinks`
+- `menu-sections`
 
-Current priced menu item schema for `daily-dishes`, `fixed-dishes`, and `drinks`:
+Current menu section schema:
+
+- `title: string`
+- `description?: string`
+- `note?: string`
+- `order: number`
+- `items?: MenuItem[]`
+- `groups?: MenuGroup[]`
+
+Each section must define exactly one of:
+
+- `items`
+- `groups`
+
+Current menu item schema:
 
 - `name: string`
 - `description?: string`
-- `price: number`
+- `note?: string`
 - `available: boolean`
+- `pricing?: Pricing`
+- `options?: MenuOption[]`
 - `image?: string`
 
-Current side dish schema for `side-dishes`:
+Current pricing model:
 
-- `name: string`
-- `description?: string`
-- `available: boolean`
-- `image?: string`
+- `fixed` with `amount`
+- `pending`
+- `included` with optional `label`
+- `variants` with flat variants only
+
+Pricing rules:
+
+- Direct section items must define `pricing`
+- Groups may define shared `pricing`
+- Items inside a priced group may omit `pricing` and inherit the group price
+- Items inside a group may define `pricing` as an override
+- If a group has no shared `pricing`, each item in the group must define `pricing`
+- Variants must not contain nested `pricing` or nested variants
 
 Current image support:
 
@@ -77,7 +99,7 @@ Important migration note:
 - The previous CMS and admin stack were intentionally removed
 - There is currently **no active CMS** inside the repo
 - The current hosting phase targets **Vercel** static deployment
-- **Keystatic** remains pending for a later editorial phase
+- **Keystatic** is a preliminary candidate for a later editorial phase, not a final decision
 - Do not reintroduce the previous CMS, auth, or repo-writing admin flow unless explicitly requested
 
 ---
@@ -88,7 +110,7 @@ The system must provide a **fast, mobile-first, low-maintenance digital menu**. 
 
 The menu is **informational only** in the current phase.
 
-In the current phase there is no active CMS in the repo. Content is edited directly through YAML files until the future Keystatic phase.
+In the current phase there is no active CMS in the repo. Content is edited directly through YAML files in `src/content/menu-sections/`. Keystatic is a preliminary future CMS candidate, not a final decision.
 
 Do **not** add features such as:
 
@@ -120,7 +142,7 @@ Current direction notes:
 
 - The repo is in a static-only Vercel migration phase
 - Do not add SSR, server output, adapters, functions, or CMS code in this phase unless explicitly requested
-- A future editorial migration to **Keystatic** is expected after Vercel hosting is stable
+- A future editorial migration may evaluate **Keystatic** after Vercel hosting is stable
 
 Do not introduce alternative frameworks, runtimes, or package managers unless explicitly requested.
 
@@ -170,12 +192,17 @@ The project must support the following route structure:
 
 The menu system must support these content groups:
 
-- **Daily dishes** (`daily dishes`) - highest rotation
-- **Fixed dishes** (`fixed dishes`) - lower rotation
-- **Side dishes** (`side dishes`)
-- **Drinks** (`drinks`)
+- **Day menus**
+- **Main dishes with side dish**
+- **Minutas, pies, and omelettes**
+- **Empanadas**
+- **Salads**
+- **Side dishes**
+- **Breakfast and snack**
+- **Promotions**
+- **Beverages grouped by line**
 - **Availability state**
-- **Prices**
+- **Fixed, pending, included, and variant prices**
 - **Images** (optional local support under `/uploads/`)
 
 The system is for a buffet menu with a limited catalog. Avoid solutions designed for large restaurant platforms or e-commerce catalogs.
@@ -188,14 +215,11 @@ Use **Astro Content Collections** under `src/content/`.
 
 Use **YAML** as the content format.
 
-Expected content organization should remain simple and scalable. Prefer structures similar to:
+Expected content organization should remain simple and scalable. Keep the active content collection under:
 
-- `src/content/fixed-dishes/`
-- `src/content/daily-dishes/`
-- `src/content/side-dishes/`
-- `src/content/drinks/`
+- `src/content/menu-sections/`
 
-You may refine naming if needed, but keep it explicit, predictable, and fully in English.
+Each YAML file should represent one visible menu section. Use numeric prefixes to preserve display order, for example `10-menus-del-dia.yaml` and `90-bebidas.yaml`.
 
 ### Content modeling principles
 
@@ -233,12 +257,12 @@ Current phase rule:
 
 The future CMS must be able to manage:
 
-- daily dishes
-- fixed dishes
-- side dishes
-- drinks
+- menu sections
+- direct menu items
+- grouped menu items
+- options and variants
 - availability
-- prices
+- fixed, pending, included, and variant prices
 - images (future-ready)
 
 ### CMS design constraints
@@ -402,8 +426,8 @@ Examples:
 - `MenuSection.astro`
 - `DishCard.astro`
 - `content.config.ts`
-- `daily-dishes`
-- `fixed-dishes`
+- `menu-sections`
+- `menu-placeholders`
 
 Avoid vague names like:
 

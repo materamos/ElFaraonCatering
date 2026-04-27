@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Plato principal placeholder</title>
+  <desc id="desc">Imagen de prueba para platos principales.</desc>
+  <rect width="1200" height="900" fill="#fff8ef"/>
+  <rect x="80" y="80" width="1040" height="740" rx="48" fill="#efe2d2" stroke="#d9bd98" stroke-width="8"/>
+  <ellipse cx="600" cy="420" rx="290" ry="205" fill="#fffdf9" stroke="#8d5b20" stroke-width="18"/>
+  <path d="M470 410c60-88 210-88 270 0 28 40 10 112-60 135-100 32-245-24-210-135z" fill="#9b5a35"/>
+  <circle cx="760" cy="360" r="42" fill="#6f9f55"/>
+  <path d="M405 510c70 46 150 56 240 28" stroke="#e3b04b" stroke-width="28" stroke-linecap="round"/>
+  <text x="600" y="695" text-anchor="middle" fill="#2d2419" font-family="Trebuchet MS, Arial, sans-serif" font-size="58" font-weight="700">Plato principal</text>
+  <text x="600" y="755" text-anchor="middle" fill="#6f604f" font-family="Trebuchet MS, Arial, sans-serif" font-size="34">Imagen de prueba</text>
+</svg>

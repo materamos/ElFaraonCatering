@@ -1,0 +1,28 @@
+title: Ensaladas
+description: Ensaladas preparadas del buffet.
+order: 50
+items:
+  - name: Ensalada Caesar
+    available: true
+    image: /uploads/menu-placeholders/ensalada.svg
+    pricing:
+      kind: fixed
+      amount: 9500
+  - name: Ensalada completa
+    available: true
+    image: /uploads/menu-placeholders/ensalada.svg
+    pricing:
+      kind: fixed
+      amount: 9500
+  - name: Ensalada completa con pollo
+    available: true
+    image: /uploads/menu-placeholders/ensalada.svg
+    pricing:
+      kind: fixed
+      amount: 10500
+  - name: Ensalada “El Faraón”
+    available: true
+    image: /uploads/menu-placeholders/ensalada.svg
+    pricing:
+      kind: fixed
+      amount: 9500

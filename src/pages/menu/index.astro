@@ -1,16 +1,11 @@
 ﻿---
 import { getCollection } from "astro:content";
+import type { CollectionEntry } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import MenuInfoPanel from "../../components/MenuInfoPanel.astro";
 import MenuSection from "../../components/MenuSection.astro";
 
-type MenuCollectionName = "daily-dishes" | "fixed-dishes" | "side-dishes" | "drinks";
-
-interface MenuSectionDefinition {
-  collection: MenuCollectionName;
-  title: string;
-  description: string;
-}
+type MenuSectionData = CollectionEntry<"menu-sections">["data"];
 
 interface SupportInfoFact {
   label: string;
@@ -30,7 +25,7 @@ const menuHeroContent = {
   eyebrow: "Menú operativo",
   title: "Menú del buffet",
   description:
-    "Opciones del día, minutas y bebidas para la operación del buffet de El Faraon Catering dentro del edificio corporativo de Paramount+.",
+    "Opciones del día, platos, minutas, promociones y bebidas para la operación del buffet de El Faraon Catering dentro del edificio corporativo de Paramount+.",
 };
 
 const supportInfo = {
@@ -52,48 +47,10 @@ const supportInfo = {
   } satisfies SupportInfoPayment,
 };
 
-const menuSectionDefinitions: MenuSectionDefinition[] = [
-  {
-    collection: "daily-dishes",
-    title: "Menú del día",
-    description: "Opciones de rotación alta que cambian según la jornada del buffet.",
-  },
-  {
-    collection: "fixed-dishes",
-    title: "Minutas",
-    description: "Base estable del menú para quienes buscan una opción disponible todos los días. Incluye guarniciones.",
-  },
-  {
-    collection: "side-dishes",
-    title: "Guarniciones",
-    description:
-      "Las guarniciones pueden variar durante el día. Cada plato con guarnición permite elegir hasta 3 opciones disponibles.",
-  },
-  {
-    collection: "drinks",
-    title: "Bebidas",
-    description: "Selección de bebidas y cafeteria.",
-  },
-];
-
-const sortItems = <T extends { data: { available: boolean; name: string } }>(items: T[]) =>
-  [...items].sort((left, right) => {
-    if (left.data.available !== right.data.available) {
-      return left.data.available ? -1 : 1;
-    }
-
-    return left.data.name.localeCompare(right.data.name, "es");
-  });
-
-const collections = await Promise.all(
-  menuSectionDefinitions.map((section) => getCollection(section.collection)),
-);
-
-const sections = menuSectionDefinitions.map((section, index) => ({
-  title: section.title,
-  description: section.description,
-  items: sortItems(collections[index]),
-}));
+const sectionEntries = await getCollection("menu-sections");
+const sections: MenuSectionData[] = sectionEntries
+  .map((section: CollectionEntry<"menu-sections">) => section.data)
+  .sort((left: MenuSectionData, right: MenuSectionData) => left.order - right.order);
 ---
 
 <BaseLayout
@@ -124,7 +81,9 @@ const sections = menuSectionDefinitions.map((section, index) => ({
         <MenuSection
           title={section.title}
           description={section.description}
+          note={section.note}
           items={section.items}
+          groups={section.groups}
         />
       ))}
     </div>

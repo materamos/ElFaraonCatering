@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Tortilla placeholder</title>
+  <desc id="desc">Imagen de prueba para tortilla.</desc>
+  <rect width="1200" height="900" fill="#fff8ef"/>
+  <rect x="80" y="80" width="1040" height="740" rx="48" fill="#f3e5d2" stroke="#d9bd98" stroke-width="8"/>
+  <ellipse cx="600" cy="430" rx="260" ry="175" fill="#f1c35b" stroke="#8d5b20" stroke-width="18"/>
+  <circle cx="510" cy="390" r="32" fill="#fff1cf"/>
+  <circle cx="645" cy="465" r="34" fill="#fff1cf"/>
+  <circle cx="700" cy="365" r="24" fill="#d99a3d"/>
+  <text x="600" y="695" text-anchor="middle" fill="#2d2419" font-family="Trebuchet MS, Arial, sans-serif" font-size="58" font-weight="700">Tortilla</text>
+  <text x="600" y="755" text-anchor="middle" fill="#6f604f" font-family="Trebuchet MS, Arial, sans-serif" font-size="34">Imagen de prueba</text>
+</svg>

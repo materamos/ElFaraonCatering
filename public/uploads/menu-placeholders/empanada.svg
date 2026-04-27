@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Empanada placeholder</title>
+  <desc id="desc">Imagen de prueba para empanadas.</desc>
+  <rect width="1200" height="900" fill="#fff8ef"/>
+  <rect x="80" y="80" width="1040" height="740" rx="48" fill="#efe2d2" stroke="#d9bd98" stroke-width="8"/>
+  <path d="M360 500c70-200 410-260 500 0-120 90-370 90-500 0z" fill="#dfa34b" stroke="#8d5b20" stroke-width="18"/>
+  <path d="M420 485c95 35 230 42 360 0" stroke="#fff1cf" stroke-width="18" stroke-linecap="round" stroke-dasharray="22 22"/>
+  <text x="600" y="695" text-anchor="middle" fill="#2d2419" font-family="Trebuchet MS, Arial, sans-serif" font-size="58" font-weight="700">Empanadas</text>
+  <text x="600" y="755" text-anchor="middle" fill="#6f604f" font-family="Trebuchet MS, Arial, sans-serif" font-size="34">Imagen de prueba</text>
+</svg>

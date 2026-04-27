@@ -1,40 +1,166 @@
 ---
 import DishCard from "./DishCard.astro";
 
+interface FixedPricing {
+  kind: "fixed";
+  amount: number;
+}
+
+interface PendingPricing {
+  kind: "pending";
+}
+
+interface IncludedPricing {
+  kind: "included";
+  label?: string;
+}
+
+interface PricingVariant {
+  name: string;
+  amount?: number;
+  pending?: true;
+  available?: boolean;
+  note?: string;
+}
+
+interface VariantsPricing {
+  kind: "variants";
+  variants: PricingVariant[];
+}
+
+type Pricing = FixedPricing | PendingPricing | IncludedPricing | VariantsPricing;
+
+interface MenuOption {
+  name: string;
+  description?: string;
+  note?: string;
+  available?: boolean;
+}
+
 interface MenuItem {
-  data: {
-    name: string;
-    description?: string;
-    price?: number;
-    available: boolean;
-    image?: string;
-  };
+  name: string;
+  description?: string;
+  note?: string;
+  available: boolean;
+  pricing?: Pricing;
+  options?: MenuOption[];
+  image?: string;
+}
+
+interface MenuGroup {
+  title: string;
+  description?: string;
+  note?: string;
+  pricing?: Pricing;
+  items: MenuItem[];
 }
 
 interface Props {
   title: string;
-  description: string;
-  items: MenuItem[];
+  description?: string;
+  note?: string;
+  items?: MenuItem[];
+  groups?: MenuGroup[];
 }
 
-const { title, description, items } = Astro.props;
+const { title, description, note, items, groups } = Astro.props;
+
+const formatAmount = (amount: number) =>
+  new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 0,
+  }).format(amount);
+
+const getPricingSummary = (pricing?: Pricing) => {
+  if (!pricing) {
+    return null;
+  }
+
+  if (pricing.kind === "fixed") {
+    return formatAmount(pricing.amount);
+  }
+
+  if (pricing.kind === "pending") {
+    return "Precio pendiente";
+  }
+
+  if (pricing.kind === "included") {
+    return pricing.label ?? "Incluida como opción";
+  }
+
+  return "Según modalidad";
+};
 ---
 
 <section class="space-y-4">
   <div class="space-y-2">
     <h2 class="text-3xl text-[var(--color-ink)]">{title}</h2>
-    <p class="max-w-2xl text-sm leading-6 text-[var(--color-muted)]">{description}</p>
+    {description && (
+      <p class="max-w-2xl text-sm leading-6 text-[var(--color-muted)]">{description}</p>
+    )}
+    {note && (
+      <p class="max-w-2xl text-sm font-semibold leading-6 text-[var(--color-brand-strong)]">
+        {note}
+      </p>
+    )}
   </div>
 
-  <div class="grid gap-4">
-    {items.map((item) => (
+  {items && (
+    <div class="grid gap-4">
+      {items.map((item) => (
       <DishCard
-        name={item.data.name}
-        description={item.data.description}
-        price={item.data.price}
-        available={item.data.available}
-        image={item.data.image}
+        name={item.name}
+        description={item.description}
+        note={item.note}
+        available={item.available}
+        pricing={item.pricing}
+        options={item.options}
+        image={item.image}
       />
-    ))}
-  </div>
+      ))}
+    </div>
+  )}
+
+  {groups && (
+    <div class="space-y-5">
+      {groups.map((group) => (
+        <section class="space-y-3 rounded-[var(--radius-panel)] border border-[var(--color-line)] bg-[rgba(255,253,249,0.52)] p-3 sm:p-4">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="space-y-1">
+              <h3 class="text-2xl text-[var(--color-ink)]">{group.title}</h3>
+              {group.description && (
+                <p class="text-sm leading-6 text-[var(--color-muted)]">{group.description}</p>
+              )}
+              {group.note && (
+                <p class="text-sm font-semibold leading-6 text-[var(--color-brand-strong)]">
+                  {group.note}
+                </p>
+              )}
+            </div>
+            {getPricingSummary(group.pricing) && (
+              <span class="rounded-full border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-1 text-sm font-bold text-[var(--color-brand-strong)]">
+                {getPricingSummary(group.pricing)}
+              </span>
+            )}
+          </div>
+
+          <div class="grid gap-3">
+            {group.items.map((item) => (
+              <DishCard
+                name={item.name}
+                description={item.description}
+                note={item.note}
+                available={item.available}
+                pricing={item.pricing}
+                inheritedPricing={group.pricing}
+                options={item.options}
+                image={item.image}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  )}
 </section>

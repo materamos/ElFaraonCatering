@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Guarnicion placeholder</title>
+  <desc id="desc">Imagen de prueba para guarniciones.</desc>
+  <rect width="1200" height="900" fill="#fff8ef"/>
+  <rect x="80" y="80" width="1040" height="740" rx="48" fill="#f3e5d2" stroke="#d9bd98" stroke-width="8"/>
+  <ellipse cx="600" cy="450" rx="280" ry="175" fill="#fffdf9" stroke="#8d5b20" stroke-width="18"/>
+  <path d="M445 420h310M470 485h260M520 550h165" stroke="#dca856" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="750" cy="455" r="48" fill="#6f9f55"/>
+  <text x="600" y="695" text-anchor="middle" fill="#2d2419" font-family="Trebuchet MS, Arial, sans-serif" font-size="58" font-weight="700">Guarnicion</text>
+  <text x="600" y="755" text-anchor="middle" fill="#6f604f" font-family="Trebuchet MS, Arial, sans-serif" font-size="34">Imagen de prueba</text>
+</svg>
