@@ -1,32 +1,38 @@
 title: Platos principales con guarnición
-description: Platos principales servidos con guarnición.
-note: Los productos marcados como precio pendiente estan en confirmacion con el local.
 order: 20
 items:
   - name: Milanesa de peceto
     available: true
     image: /uploads/menu-placeholders/plato-principal.svg
     pricing:
-      kind: pending
+      kind: fixed
+      price:
+        amount: 11000
   - name: Suprema de pollo
     available: true
     image: /uploads/menu-placeholders/plato-principal.svg
     pricing:
-      kind: pending
+      kind: fixed
+      price:
+        amount: 9500
   - name: 1/4 pollo
     available: true
     image: /uploads/menu-placeholders/plato-principal.svg
     pricing:
       kind: fixed
-      amount: 9500
+      price:
+        amount: 9500
   - name: Pechuga al grill
     available: true
     image: /uploads/menu-placeholders/plato-principal.svg
     pricing:
       kind: fixed
-      amount: 10500
+      price:
+        amount: 10500
   - name: Milanesa napolitana
     available: true
     image: /uploads/menu-placeholders/plato-principal.svg
     pricing:
-      kind: pending
+      kind: fixed
+      price:
+        amount: 11500

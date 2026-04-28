@@ -1,50 +1,66 @@
 title: Desayuno y snack
-description: Opciones de desayuno y snack con precios a confirmar.
-note: Los precios de esta seccion estan pendientes de confirmacion.
 order: 70
 items:
   - name: Yogur con cereal
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
-      kind: pending
+      kind: fixed
+      price:
+        amount: 3200
   - name: Yogur descremado
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
-      kind: pending
+      kind: fixed
+      price:
+        amount: 2500
   - name: Ensalada de fruta
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
-      kind: pending
+      kind: fixed
+      price:
+        amount: 3500
   - name: Fruta fresca
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
-      kind: pending
+      kind: fixed
+      price:
+        amount: 1800
   - name: Exprimido de naranja
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
-      kind: pending
+      kind: fixed
+      price:
+        amount: 3500
   - name: Licuado de frutas
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
-      kind: pending
+      kind: fixed
+      price:
+        amount: 4200
   - name: Licuado de banana
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
-      kind: pending
+      kind: fixed
+      price:
+        amount: 3900
   - name: Medialunas de manteca
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
-      kind: pending
+      kind: fixed
+      price:
+        amount: 1200
   - name: Medialuna con jamón y queso
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
-      kind: pending
+      kind: fixed
+      price:
+        amount: 2800

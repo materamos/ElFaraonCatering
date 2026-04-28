@@ -12,6 +12,9 @@ interface Props {
 }
 
 const { title, description, note, items, groups } = Astro.props;
+const normalizeHeadingText = (value: string) => value.trim().toLowerCase();
+const hasSingleItemMatchingSection =
+  items?.length === 1 && normalizeHeadingText(items[0].name) === normalizeHeadingText(title);
 ---
 
 <section class="space-y-4">
@@ -30,15 +33,16 @@ const { title, description, note, items, groups } = Astro.props;
   {items && (
     <div class="grid gap-4">
       {items.map((item) => (
-      <DishCard
-        name={item.name}
-        description={item.description}
-        note={item.note}
-        available={item.available}
-        pricing={item.pricing}
-        options={item.options}
-        image={item.image}
-      />
+        <DishCard
+          name={item.name}
+          description={item.description}
+          note={item.note}
+          available={item.available}
+          pricing={item.pricing}
+          options={item.options}
+          image={item.image}
+          hideHeading={hasSingleItemMatchingSection}
+        />
       ))}
     </div>
   )}

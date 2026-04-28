@@ -1,11 +1,11 @@
 title: Bebidas
-description: Bebidas agrupadas por línea.
 order: 90
 groups:
   - title: Línea Coca-Cola
     pricing:
       kind: fixed
-      amount: 2400
+      price:
+        amount: 2400
     items:
       - name: Coca-Cola
         available: true
@@ -25,7 +25,8 @@ groups:
   - title: Línea Pepsi
     pricing:
       kind: fixed
-      amount: 2300
+      price:
+        amount: 2300
     items:
       - name: Pepsi
         available: true
@@ -45,7 +46,8 @@ groups:
   - title: Línea Cunnington
     pricing:
       kind: fixed
-      amount: 2300
+      price:
+        amount: 2300
     items:
       - name: Cunnington Pomelo
         available: true
@@ -59,7 +61,8 @@ groups:
   - title: Línea Levité
     pricing:
       kind: fixed
-      amount: 2300
+      price:
+        amount: 2300
     items:
       - name: Levité Pomelo
         available: true
@@ -76,7 +79,8 @@ groups:
   - title: Aguas
     pricing:
       kind: fixed
-      amount: 2300
+      price:
+        amount: 2300
     items:
       - name: Agua sin gas Villavicencio
         available: true
@@ -85,15 +89,14 @@ groups:
         available: true
         image: /uploads/menu-placeholders/bebida-agua.svg
   - title: Gatorade
-    note: Precio pendiente por producto.
+    pricing:
+      kind: fixed
+      price:
+        amount: 3300
     items:
       - name: Gatorade Manzana
         available: true
         image: /uploads/menu-placeholders/gatorade.svg
-        pricing:
-          kind: pending
       - name: Gatorade Frutos Rojos
         available: true
         image: /uploads/menu-placeholders/gatorade.svg
-        pricing:
-          kind: pending

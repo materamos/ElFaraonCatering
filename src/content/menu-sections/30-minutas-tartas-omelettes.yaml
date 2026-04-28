@@ -10,16 +10,18 @@ items:
       kind: variants
       variants:
         - name: Con guarnición
-          amount: 9000
+          price:
+            amount: 9000
         - name: Sin guarnición
-          amount: 7000
+          price:
+            amount: 7000
     options:
-      - name: Tarta de jamón y verdeo
-      - name: Tarta de pollo y puerro
-      - name: Tarta de jamón y queso
-      - name: Tarta de calabaza y muzarella
-      - name: Tarta de verdura
-      - name: Tarta de brócoli
+      - name: Jamon y verdeo
+      - name: Pollo y puerro
+      - name: Jamon y queso
+      - name: Calabaza y muzarella
+      - name: Verdura
+      - name: Brocoli
   - name: Tortilla
     available: true
     image: /uploads/menu-placeholders/tortilla.svg
@@ -27,11 +29,14 @@ items:
       kind: variants
       variants:
         - name: Sin cebolla con guarnición
-          amount: 9000
+          price:
+            amount: 9000
         - name: Con cebolla con guarnición
-          amount: 9000
+          price:
+            amount: 9000
         - name: Sin guarnición
-          amount: 7000
+          price:
+            amount: 7000
   - name: Omelette
     available: true
     image: /uploads/menu-placeholders/omelette.svg
@@ -39,6 +44,8 @@ items:
       kind: variants
       variants:
         - name: Con guarnición
-          amount: 9000
+          price:
+            amount: 9000
         - name: Sin guarnición
-          amount: 7000
+          price:
+            amount: 7000

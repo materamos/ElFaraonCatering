@@ -9,15 +9,11 @@ export const formatMenuAmount = (amount: number) =>
 
 export const getPricingText = (value: MenuPricing) => {
   if (value.kind === "fixed") {
-    return formatMenuAmount(value.amount);
-  }
-
-  if (value.kind === "pending") {
-    return "Precio pendiente";
+    return formatMenuAmount(value.price.amount);
   }
 
   if (value.kind === "included") {
-    return value.label ?? "Incluida como opci\u00f3n";
+    return "Incluida como opci\u00f3n";
   }
 
   return null;
@@ -36,4 +32,4 @@ export const getPricingSummary = (pricing?: MenuPricing) => {
 };
 
 export const getVariantPricingText = (variant: MenuPricingVariant) =>
-  typeof variant.amount === "number" ? formatMenuAmount(variant.amount) : "Precio pendiente";
+  formatMenuAmount(variant.price.amount);

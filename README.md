@@ -126,18 +126,13 @@ Tipos de precio soportados:
 ```yaml
 pricing:
   kind: fixed
-  amount: 7500
-```
-
-```yaml
-pricing:
-  kind: pending
+  price:
+    amount: 7500
 ```
 
 ```yaml
 pricing:
   kind: included
-  label: Incluida como opción
 ```
 
 ```yaml
@@ -145,13 +140,15 @@ pricing:
   kind: variants
   variants:
     - name: Con guarnición
-      amount: 9000
+      price:
+        amount: 9000
     - name: Sin guarnición
-      amount: 7000
+      price:
+        amount: 7000
 ```
 
+- Los montos se declaran siempre como numeros en `price.amount`.
 - Las variantes son planas: no pueden contener otro `pricing` ni variantes anidadas.
-- Para variantes con precio pendiente se usa `pending: true`.
 - `image` es opcional en items y debe apuntar a un archivo local bajo `/uploads/`.
 - No se aceptan URLs externas, data URLs, query strings ni fragments en `image`.
 - Las extensiones permitidas son `.avif`, `.jpeg`, `.jpg`, `.png`, `.svg` y `.webp`.

@@ -66,10 +66,9 @@ Current menu item schema:
 
 Current pricing model:
 
-- `fixed` with `amount`
-- `pending`
-- `included` with optional `label`
-- `variants` with flat variants only
+- `fixed` with numeric `price.amount`
+- `included`
+- `variants` with flat variants and numeric `price.amount`
 
 Pricing rules:
 
@@ -79,6 +78,7 @@ Pricing rules:
 - Items inside a group may define `pricing` as an override
 - If a group has no shared `pricing`, each item in the group must define `pricing`
 - Variants must not contain nested `pricing` or nested variants
+- Pricing amounts must be numeric and must not use free-text labels or pending states
 
 Current image support:
 
@@ -202,7 +202,7 @@ The menu system must support these content groups:
 - **Promotions**
 - **Beverages grouped by line**
 - **Availability state**
-- **Fixed, pending, included, and variant prices**
+- **Fixed, included, and variant prices**
 - **Images** (optional local support under `/uploads/`)
 
 The system is for a buffet menu with a limited catalog. Avoid solutions designed for large restaurant platforms or e-commerce catalogs.
@@ -262,7 +262,7 @@ The future CMS must be able to manage:
 - grouped menu items
 - options and variants
 - availability
-- fixed, pending, included, and variant prices
+- fixed, included, and variant prices
 - images (future-ready)
 
 ### CMS design constraints

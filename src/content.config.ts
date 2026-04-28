@@ -5,49 +5,36 @@ import { menuImageSchema } from "./utils/menuImage";
 
 const textSchema = z.string().trim().min(1);
 
+const priceSchema = z
+  .object({
+    amount: z.number().int().nonnegative(),
+  })
+  .strict();
+
 const fixedPricingSchema = z.object({
   kind: z.literal("fixed"),
-  amount: z.number().int().nonnegative(),
-});
-
-const pendingPricingSchema = z.object({
-  kind: z.literal("pending"),
-});
+  price: priceSchema,
+}).strict();
 
 const includedPricingSchema = z.object({
   kind: z.literal("included"),
-  label: textSchema.optional(),
-});
+}).strict();
 
 const pricingVariantSchema = z
   .object({
     name: textSchema,
-    amount: z.number().int().nonnegative().optional(),
-    pending: z.literal(true).optional(),
+    price: priceSchema,
     available: z.boolean().default(true),
-    note: textSchema.optional(),
   })
-  .superRefine((variant, context) => {
-    const hasAmount = typeof variant.amount === "number";
-    const isPending = variant.pending === true;
-
-    if (hasAmount === isPending) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Each pricing variant must define either amount or pending: true.",
-        path: ["amount"],
-      });
-    }
-  });
+  .strict();
 
 const variantsPricingSchema = z.object({
   kind: z.literal("variants"),
   variants: z.array(pricingVariantSchema).min(1),
-});
+}).strict();
 
 const pricingSchema = z.discriminatedUnion("kind", [
   fixedPricingSchema,
-  pendingPricingSchema,
   includedPricingSchema,
   variantsPricingSchema,
 ]);

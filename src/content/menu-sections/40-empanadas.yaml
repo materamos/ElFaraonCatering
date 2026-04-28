@@ -1,35 +1,18 @@
 title: Empanadas
-description: Variedades disponibles con precio a confirmar.
-note: Los precios de empanadas estan pendientes de confirmacion.
 order: 40
 items:
-  - name: Empanada de carne
+  - name: Empanadas
     available: true
+    note: Elegí el sabor.
     image: /uploads/menu-placeholders/empanada.svg
     pricing:
-      kind: pending
-  - name: Empanada de pollo a la barbacoa
-    available: true
-    image: /uploads/menu-placeholders/empanada.svg
-    pricing:
-      kind: pending
-  - name: Empanada de bondiola a la mostaza
-    available: true
-    image: /uploads/menu-placeholders/empanada.svg
-    pricing:
-      kind: pending
-  - name: Empanada de verdura
-    available: true
-    image: /uploads/menu-placeholders/empanada.svg
-    pricing:
-      kind: pending
-  - name: Empanada caprese
-    available: true
-    image: /uploads/menu-placeholders/empanada.svg
-    pricing:
-      kind: pending
-  - name: Empanada de jamón y queso
-    available: true
-    image: /uploads/menu-placeholders/empanada.svg
-    pricing:
-      kind: pending
+      kind: fixed
+      price:
+        amount: 1900
+    options:
+      - name: Carne
+      - name: Pollo a la barbacoa
+      - name: Bondiola a la mostaza
+      - name: Verdura
+      - name: Caprese
+      - name: Jamon y queso
