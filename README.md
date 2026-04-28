@@ -10,7 +10,9 @@ Construir un menu digital rapido, mobile-first y de bajo mantenimiento para la o
 
 El proyecto tiene dos superficies separadas:
 
-- `/menu/`: menu operativo QR, prioridad actual.
+- `/menu/`: placeholder de entrada general para menus.
+- `/menu/corpo/`: menu operativo QR, prioridad actual.
+- `/menu/teleinde/`: placeholder de futuro menu operativo.
 - `/`: placeholder de la futura presencia institucional.
 
 La superficie institucional no debe mezclarse con la experiencia operativa del menu.
@@ -30,11 +32,11 @@ La base actual incluye:
 
 Tambien incluye:
 
-- rutas principales para `/`, `/menu/` y `/admin/`
+- rutas principales para `/`, `/menu/`, `/menu/corpo/`, `/menu/teleinde/` y `/admin/`
 - una coleccion tipada `menu-sections` para el menu operativo
 - contenido YAML real contrastado con el local
 - soporte opcional para imagenes locales de items del menu
-- un dialog liviano para ver fotos desde `/menu/`
+- un dialog liviano para ver fotos desde `/menu/corpo/`
 - placeholder estatico para `/admin/`
 
 En esta fase no hay CMS activo dentro del repo. **Keystatic** queda como candidato preliminar para una fase editorial posterior, pero la decision final queda pendiente de validarlo contra el modelo YAML definitivo.
@@ -44,12 +46,16 @@ En esta fase no hay CMS activo dentro del repo. **Keystatic** queda como candida
 | Ruta | Estado | Proposito |
 | --- | --- | --- |
 | `/` | Placeholder | Futura web institucional |
-| `/menu/` | Activa | Menu operativo del buffet |
+| `/menu/` | Placeholder | Entrada general futura para menus |
+| `/menu/corpo/` | Activa | Menu operativo Corpo |
+| `/menu/teleinde/` | Placeholder | Futuro menu operativo Teleinde |
 | `/admin/` | Placeholder estatico | Futuro entrypoint editorial |
 
 `vercel.json` mantiene redirects canonicos:
 
 - `/menu` -> `/menu/`
+- `/menu/corpo` -> `/menu/corpo/`
+- `/menu/teleinde` -> `/menu/teleinde/`
 - `/admin` -> `/admin/`
 
 `/admin/` se sirve desde `public/admin/index.html`. No debe reintroducirse como pagina Astro mientras siga siendo un placeholder estatico.
@@ -68,7 +74,10 @@ src/
     BaseLayout.astro
   pages/
     index.astro
-    menu/index.astro
+    menu/
+      index.astro
+      corpo/index.astro
+      teleinde/index.astro
   styles/
     global.css
   utils/
@@ -159,7 +168,7 @@ Los SVG quedan reservados para placeholders o assets locales controlados por el 
 
 El menu ya soporta imagenes opcionales por item.
 
-Cuando un item tiene `image`, `DishCard.astro` muestra la accion `Ver foto`. Esa accion usa `public/scripts/menu-photo-sheet.js` para abrir un `dialog` liviano en `/menu/`. El enlace conserva `href` al archivo local como fallback.
+Cuando un item tiene `image`, `DishCard.astro` muestra la accion `Ver foto`. Esa accion usa `public/scripts/menu-photo-sheet.js` para abrir un `dialog` liviano en `/menu/corpo/`. El enlace conserva `href` al archivo local como fallback.
 
 Las imagenes deben colocarse en `public/uploads/` y referenciarse desde YAML con path publico:
 
@@ -194,6 +203,8 @@ Rutas utiles en local:
 
 - `http://localhost:4321/`
 - `http://localhost:4321/menu/`
+- `http://localhost:4321/menu/corpo/`
+- `http://localhost:4321/menu/teleinde/`
 - `http://localhost:4321/admin/`
 
 ### Preview de build
@@ -258,9 +269,10 @@ No agregar estas capacidades salvo pedido explicito:
 - Se usa **Astro 5** para mantener compatibilidad con **Node 20**.
 - Se usa **Tailwind CSS 4** mediante el plugin de Vite.
 - El sitio sigue siendo **static-first**.
-- La superficie publica prioritaria es `/menu/`.
+- La superficie publica prioritaria es `/menu/corpo/`.
+- `/menu/` queda como placeholder de entrada general para menus.
 - `/admin/` se mantiene como placeholder estatico en `public/admin/`.
-- `vercel.json` conserva la canonicalizacion de `/menu` y `/admin`.
+- `vercel.json` conserva la canonicalizacion de `/menu`, `/menu/corpo`, `/menu/teleinde` y `/admin`.
 - **Keystatic** sigue fuera de alcance en esta etapa y queda como candidato preliminar, no como decision cerrada.
 - Los nombres tecnicos, archivos y componentes estan en **ingles**.
 - El contenido visible para usuarios esta en **espanol**.

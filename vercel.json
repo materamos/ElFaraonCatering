@@ -7,6 +7,16 @@
       "permanent": true
     },
     {
+      "source": "/menu/corpo",
+      "destination": "/menu/corpo/",
+      "permanent": true
+    },
+    {
+      "source": "/menu/teleinde",
+      "destination": "/menu/teleinde/",
+      "permanent": true
+    },
+    {
       "source": "/admin",
       "destination": "/admin/",
       "permanent": true
