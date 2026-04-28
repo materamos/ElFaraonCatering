@@ -3,7 +3,7 @@ import { z } from "astro/zod";
 const uploadsBasePath = "/uploads/";
 const allowedMenuImageExtensions = [".avif", ".jpeg", ".jpg", ".png", ".svg", ".webp"] as const;
 
-export const isSafeMenuImagePath = (value: string): boolean => {
+const isSafeMenuImagePath = (value: string): boolean => {
   const trimmedValue = value.trim();
 
   if (

@@ -1,59 +1,7 @@
 ---
+import type { MenuGroup, MenuItem } from "../types/menu";
+import { getPricingSummary } from "../utils/menuPricing";
 import DishCard from "./DishCard.astro";
-
-interface FixedPricing {
-  kind: "fixed";
-  amount: number;
-}
-
-interface PendingPricing {
-  kind: "pending";
-}
-
-interface IncludedPricing {
-  kind: "included";
-  label?: string;
-}
-
-interface PricingVariant {
-  name: string;
-  amount?: number;
-  pending?: true;
-  available?: boolean;
-  note?: string;
-}
-
-interface VariantsPricing {
-  kind: "variants";
-  variants: PricingVariant[];
-}
-
-type Pricing = FixedPricing | PendingPricing | IncludedPricing | VariantsPricing;
-
-interface MenuOption {
-  name: string;
-  description?: string;
-  note?: string;
-  available?: boolean;
-}
-
-interface MenuItem {
-  name: string;
-  description?: string;
-  note?: string;
-  available: boolean;
-  pricing?: Pricing;
-  options?: MenuOption[];
-  image?: string;
-}
-
-interface MenuGroup {
-  title: string;
-  description?: string;
-  note?: string;
-  pricing?: Pricing;
-  items: MenuItem[];
-}
 
 interface Props {
   title: string;
@@ -64,33 +12,6 @@ interface Props {
 }
 
 const { title, description, note, items, groups } = Astro.props;
-
-const formatAmount = (amount: number) =>
-  new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    maximumFractionDigits: 0,
-  }).format(amount);
-
-const getPricingSummary = (pricing?: Pricing) => {
-  if (!pricing) {
-    return null;
-  }
-
-  if (pricing.kind === "fixed") {
-    return formatAmount(pricing.amount);
-  }
-
-  if (pricing.kind === "pending") {
-    return "Precio pendiente";
-  }
-
-  if (pricing.kind === "included") {
-    return pricing.label ?? "Incluida como opción";
-  }
-
-  return "Según modalidad";
-};
 ---
 
 <section class="space-y-4">
@@ -146,7 +67,7 @@ const getPricingSummary = (pricing?: Pricing) => {
           </div>
 
           <div class="grid gap-3">
-            {group.items.map((item) => (
+            {group.items.map((item: MenuItem) => (
               <DishCard
                 name={item.name}
                 description={item.description}

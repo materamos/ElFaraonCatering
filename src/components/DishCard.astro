@@ -1,51 +1,17 @@
 ---
+import type { MenuItem, MenuOption, MenuPricing, MenuPricingVariant } from "../types/menu";
 import { getSafeMenuImagePath } from "../utils/menuImage";
-
-interface FixedPricing {
-  kind: "fixed";
-  amount: number;
-}
-
-interface PendingPricing {
-  kind: "pending";
-}
-
-interface IncludedPricing {
-  kind: "included";
-  label?: string;
-}
-
-interface PricingVariant {
-  name: string;
-  amount?: number;
-  pending?: true;
-  available?: boolean;
-  note?: string;
-}
-
-interface VariantsPricing {
-  kind: "variants";
-  variants: PricingVariant[];
-}
-
-type Pricing = FixedPricing | PendingPricing | IncludedPricing | VariantsPricing;
-
-interface MenuOption {
-  name: string;
-  description?: string;
-  note?: string;
-  available?: boolean;
-}
+import { getPricingText, getVariantPricingText } from "../utils/menuPricing";
 
 interface Props {
-  name: string;
-  description?: string;
-  note?: string;
+  name: MenuItem["name"];
+  description?: MenuItem["description"];
+  note?: MenuItem["note"];
   available: boolean;
-  pricing?: Pricing;
-  inheritedPricing?: Pricing;
+  pricing?: MenuPricing;
+  inheritedPricing?: MenuPricing;
   options?: MenuOption[];
-  image?: string;
+  image?: MenuItem["image"];
 }
 
 const {
@@ -61,32 +27,6 @@ const {
 const safeImage = getSafeMenuImagePath(image);
 const effectivePricing = pricing ?? inheritedPricing;
 const pricingLabel = pricing ? "Precio" : "Precio de línea";
-
-const formatAmount = (amount: number) =>
-  new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    maximumFractionDigits: 0,
-  }).format(amount);
-
-const getPricingText = (value: Pricing) => {
-  if (value.kind === "fixed") {
-    return formatAmount(value.amount);
-  }
-
-  if (value.kind === "pending") {
-    return "Precio pendiente";
-  }
-
-  if (value.kind === "included") {
-    return value.label ?? "Incluida como opción";
-  }
-
-  return null;
-};
-
-const getVariantPricingText = (variant: PricingVariant) =>
-  typeof variant.amount === "number" ? formatAmount(variant.amount) : "Precio pendiente";
 
 const directPricingText =
   effectivePricing && effectivePricing.kind !== "variants"
@@ -171,7 +111,7 @@ const directPricingText =
       <section class="border-t border-[var(--color-line)] pt-4">
         <p class="text-sm font-medium text-[var(--color-muted)]">Modalidades</p>
         <ul class="mt-3 grid gap-2">
-          {effectivePricing.variants.map((variant) => (
+          {effectivePricing.variants.map((variant: MenuPricingVariant) => (
             <li class="flex items-start justify-between gap-3 text-sm leading-5">
               <span class="text-[var(--color-ink)]">
                 {variant.name}
