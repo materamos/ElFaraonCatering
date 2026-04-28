@@ -1,7 +1,7 @@
 id: corpo
 eyebrow: Menu operativo
-title: Menu del buffet
-description: Opciones del dia, platos, minutas, promociones y bebidas para la operacion del buffet de El Faraon Catering dentro del edificio corporativo de Paramount+.
+title: Menu corpo
+description: Opciones del dia, platos, minutas, promociones y bebidas para la operacion del buffet de El Faraon Catering dentro del edificio corporativo de Teleinde.
 infoTitle: Informacion util
 facts:
   - id: horario
