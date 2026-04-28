@@ -4,21 +4,18 @@ order: 10
 items:
   - name: Menú del día
     available: true
-    image: /uploads/menu-placeholders/menu-del-dia.svg
     pricing:
       kind: fixed
       price:
         amount: 7500
   - name: Menú del día con bebida
     available: true
-    image: /uploads/menu-placeholders/menu-del-dia.svg
     pricing:
       kind: fixed
       price:
         amount: 9900
-  - name: Menú vegetariano
+  - name: Menú vegetariano del día
     available: true
-    image: /uploads/menu-placeholders/menu-del-dia.svg
     pricing:
       kind: fixed
       price:

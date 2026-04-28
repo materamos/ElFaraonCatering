@@ -29,7 +29,6 @@ items:
       kind: included
   - name: Guarnición sola
     available: true
-    image: /uploads/menu-placeholders/guarnicion.svg
     pricing:
       kind: fixed
       price:
