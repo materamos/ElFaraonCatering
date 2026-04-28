@@ -3,7 +3,8 @@ title: Ensaladas
 order: 50
 items:
   - id: ensalada-caesar
-    name: Ensalada Caesar
+    name: Caesar
+    description: Lechuga, croutones, queso parmesano y aderezo Caesar.
     available: true
     image: /uploads/menu-placeholders/ensalada.svg
     pricing:
@@ -11,7 +12,8 @@ items:
       price:
         amount: 9500
   - id: ensalada-completa
-    name: Ensalada completa
+    name: Completa
+    description: Lechuga, tomate, zanahoria, huevo y choclo.
     available: true
     image: /uploads/menu-placeholders/ensalada.svg
     pricing:
@@ -19,7 +21,8 @@ items:
       price:
         amount: 9500
   - id: ensalada-completa-pollo
-    name: Ensalada completa con pollo
+    name: Completa con pollo
+    description: Lechuga, tomate, zanahoria, huevo, choclo y pollo.
     available: true
     image: /uploads/menu-placeholders/ensalada.svg
     pricing:
@@ -27,7 +30,8 @@ items:
       price:
         amount: 10500
   - id: ensalada-el-faraon
-    name: Ensalada El Faraon
+    name: El Faraon
+    description: Lechuga, tomate, zanahoria, jamon, queso y huevo.
     available: true
     image: /uploads/menu-placeholders/ensalada.svg
     pricing:

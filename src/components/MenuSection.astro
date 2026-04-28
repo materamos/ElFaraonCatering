@@ -1,6 +1,5 @@
 ---
 import type { MenuGroup, MenuItem } from "../types/menu";
-import { getPricingSummary } from "../utils/menuPricing";
 import DishCard from "./DishCard.astro";
 
 interface Props {
@@ -63,11 +62,6 @@ const hasSingleItemMatchingSection =
                 </p>
               )}
             </div>
-            {getPricingSummary(group.pricing) && (
-              <span class="rounded-full border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-1 text-sm font-bold text-[var(--color-brand-strong)]">
-                {getPricingSummary(group.pricing)}
-              </span>
-            )}
           </div>
 
           <div class="grid gap-3">

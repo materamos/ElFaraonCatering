@@ -9,10 +9,7 @@ facts:
     value: 08:30 a 18:00 hs
   - id: contacto
     label: Contacto
-    value: Contactanos por
-    link:
-      text: WhatsApp
-      href: https://wa.me/541133454545?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%3A%20
+    value: Contactanos por WhatsApp
   - id: disponibilidad
     label: Disponibilidad
     value: Puede variar durante el dia.

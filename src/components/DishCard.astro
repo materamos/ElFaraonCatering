@@ -28,7 +28,7 @@ const {
 } = Astro.props;
 const safeImage = getSafeMenuImagePath(image);
 const effectivePricing = pricing ?? inheritedPricing;
-const pricingLabel = pricing ? "Precio" : "Precio de línea";
+const pricingLabel = "Precio";
 
 const directPricingText =
   effectivePricing && effectivePricing.kind !== "variants"
