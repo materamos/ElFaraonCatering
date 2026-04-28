@@ -120,12 +120,15 @@ const loadAvailabilityOverlays = async () => {
     return;
   }
 
-  const response = await fetch(getSupabaseRestUrl(supabaseUrl, menuId), {
-    headers: {
-      Accept: "application/json",
-      apikey: supabaseAnonKey,
-      Authorization: `Bearer ${supabaseAnonKey}`,
-    },
+  const restUrl = getSupabaseRestUrl(supabaseUrl, menuId);
+  const requestHeaders = {
+    Accept: "application/json",
+    apikey: supabaseAnonKey,
+    Authorization: `Bearer ${supabaseAnonKey}`,
+  };
+
+  const response = await fetch(restUrl, {
+    headers: requestHeaders,
     credentials: "omit",
   });
 
@@ -158,4 +161,12 @@ const loadAvailabilityOverlays = async () => {
   }
 };
 
-void loadAvailabilityOverlays().catch(() => undefined);
+const startAvailabilityOverlay = () => {
+  void loadAvailabilityOverlays().catch(() => undefined);
+};
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", startAvailabilityOverlay, { once: true });
+} else {
+  startAvailabilityOverlay();
+}
