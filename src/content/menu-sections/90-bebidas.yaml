@@ -82,10 +82,10 @@ groups:
       price:
         amount: 2300
     items:
-      - name: Agua sin gas Villavicencio
+      - name: Villavicencio sin gas
         available: true
         image: /uploads/menu-placeholders/bebida-agua.svg
-      - name: Agua con gas Villavicencio
+      - name: Villavicencio con gas
         available: true
         image: /uploads/menu-placeholders/bebida-agua.svg
   - title: Gatorade
