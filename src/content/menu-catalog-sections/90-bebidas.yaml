@@ -1,102 +1,130 @@
+id: bebidas
 title: Bebidas
 order: 90
 groups:
-  - title: Línea Coca-Cola
+  - id: linea-coca-cola
+    title: Linea Coca-Cola
     pricing:
       kind: fixed
       price:
         amount: 2400
     items:
-      - name: Coca-Cola
+      - id: coca-cola
+        name: Coca-Cola
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-      - name: Coca-Cola Zero
+      - id: coca-cola-zero
+        name: Coca-Cola Zero
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-      - name: Fanta
+      - id: fanta
+        name: Fanta
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-      - name: Sprite
+      - id: sprite
+        name: Sprite
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-      - name: Sprite Zero
+      - id: sprite-zero
+        name: Sprite Zero
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-  - title: Línea Pepsi
+  - id: linea-pepsi
+    title: Linea Pepsi
     pricing:
       kind: fixed
       price:
         amount: 2300
     items:
-      - name: Pepsi
+      - id: pepsi
+        name: Pepsi
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-      - name: Pepsi Black
+      - id: pepsi-black
+        name: Pepsi Black
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-      - name: 7Up
+      - id: seven-up
+        name: 7Up
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-      - name: 7Up Free
+      - id: seven-up-free
+        name: 7Up Free
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-      - name: Paso de los Toros Pomelo
+      - id: paso-toros-pomelo
+        name: Paso de los Toros Pomelo
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-  - title: Línea Cunnington
+  - id: linea-cunnington
+    title: Linea Cunnington
     pricing:
       kind: fixed
       price:
         amount: 2300
     items:
-      - name: Cunnington Pomelo
+      - id: cunnington-pomelo
+        name: Cunnington Pomelo
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-      - name: Cunnington Tónica
+      - id: cunnington-tonica
+        name: Cunnington Tonica
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-      - name: Cunnington Tónica Zero
+      - id: cunnington-tonica-zero
+        name: Cunnington Tonica Zero
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-  - title: Línea Levité
+  - id: linea-levite
+    title: Linea Levite
     pricing:
       kind: fixed
       price:
         amount: 2300
     items:
-      - name: Levité Pomelo
+      - id: levite-pomelo
+        name: Levite Pomelo
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-      - name: Levité Manzana
+      - id: levite-manzana
+        name: Levite Manzana
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-      - name: Levité Naranja
+      - id: levite-naranja
+        name: Levite Naranja
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-      - name: Levité Pera
+      - id: levite-pera
+        name: Levite Pera
         available: true
         image: /uploads/menu-placeholders/bebida-gaseosa.svg
-  - title: Aguas
+  - id: aguas
+    title: Aguas
     pricing:
       kind: fixed
       price:
         amount: 2300
     items:
-      - name: Villavicencio sin gas
+      - id: villavicencio-sin-gas
+        name: Villavicencio sin gas
         available: true
         image: /uploads/menu-placeholders/bebida-agua.svg
-      - name: Villavicencio con gas
+      - id: villavicencio-con-gas
+        name: Villavicencio con gas
         available: true
         image: /uploads/menu-placeholders/bebida-agua.svg
-  - title: Gatorade
+  - id: gatorade
+    title: Gatorade
     pricing:
       kind: fixed
       price:
         amount: 3300
     items:
-      - name: Gatorade Manzana
+      - id: gatorade-manzana
+        name: Gatorade Manzana
         available: true
         image: /uploads/menu-placeholders/gatorade.svg
-      - name: Gatorade Frutos Rojos
+      - id: gatorade-frutos-rojos
+        name: Gatorade Frutos Rojos
         available: true
         image: /uploads/menu-placeholders/gatorade.svg

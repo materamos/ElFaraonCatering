@@ -1,28 +1,33 @@
+id: ensaladas
 title: Ensaladas
 order: 50
 items:
-  - name: Ensalada Caesar
+  - id: ensalada-caesar
+    name: Ensalada Caesar
     available: true
     image: /uploads/menu-placeholders/ensalada.svg
     pricing:
       kind: fixed
       price:
         amount: 9500
-  - name: Ensalada completa
+  - id: ensalada-completa
+    name: Ensalada completa
     available: true
     image: /uploads/menu-placeholders/ensalada.svg
     pricing:
       kind: fixed
       price:
         amount: 9500
-  - name: Ensalada completa con pollo
+  - id: ensalada-completa-pollo
+    name: Ensalada completa con pollo
     available: true
     image: /uploads/menu-placeholders/ensalada.svg
     pricing:
       kind: fixed
       price:
         amount: 10500
-  - name: Ensalada “El Faraón”
+  - id: ensalada-el-faraon
+    name: Ensalada El Faraon
     available: true
     image: /uploads/menu-placeholders/ensalada.svg
     pricing:

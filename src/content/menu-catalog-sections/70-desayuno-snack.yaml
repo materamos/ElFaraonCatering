@@ -1,63 +1,73 @@
+id: desayuno-snack
 title: Desayuno y snack
 order: 70
 items:
-  - name: Yogur con cereal
+  - id: yogur-cereal
+    name: Yogur con cereal
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
       kind: fixed
       price:
         amount: 3200
-  - name: Yogur descremado
+  - id: yogur-descremado
+    name: Yogur descremado
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
       kind: fixed
       price:
         amount: 2500
-  - name: Ensalada de fruta
+  - id: ensalada-fruta
+    name: Ensalada de fruta
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
       kind: fixed
       price:
         amount: 3500
-  - name: Fruta fresca
+  - id: fruta-fresca
+    name: Fruta fresca
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
       kind: fixed
       price:
         amount: 1800
-  - name: Exprimido de naranja
+  - id: exprimido-naranja
+    name: Exprimido de naranja
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
       kind: fixed
       price:
         amount: 3500
-  - name: Licuado de frutas
+  - id: licuado-frutas
+    name: Licuado de frutas
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
       kind: fixed
       price:
         amount: 4200
-  - name: Licuado de banana
+  - id: licuado-banana
+    name: Licuado de banana
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
       kind: fixed
       price:
         amount: 3900
-  - name: Medialunas de manteca
+  - id: medialunas-manteca
+    name: Medialunas de manteca
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:
       kind: fixed
       price:
         amount: 1200
-  - name: Medialuna con jamón y queso
+  - id: medialuna-jamon-queso
+    name: Medialuna con jamon y queso
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
     pricing:

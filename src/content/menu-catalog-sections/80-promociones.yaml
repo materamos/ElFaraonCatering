@@ -1,43 +1,50 @@
+id: promociones
 title: Promociones
 description: Combos vigentes del buffet.
 order: 80
 items:
-  - name: Café con leche mediano + dos medialunas
+  - id: cafe-leche-mediano-dos-medialunas
+    name: Cafe con leche mediano + dos medialunas
     available: true
     image: /uploads/menu-placeholders/promocion.svg
     pricing:
       kind: fixed
       price:
         amount: 6900
-  - name: Café con leche + tostado clásico
+  - id: cafe-leche-tostado-clasico
+    name: Cafe con leche + tostado clasico
     available: true
     image: /uploads/menu-placeholders/promocion.svg
     pricing:
       kind: fixed
       price:
         amount: 9100
-  - name: Café con leche + tostadas con queso crema y mermelada
+  - id: cafe-leche-tostadas
+    name: Cafe con leche + tostadas con queso crema y mermelada
     available: true
     image: /uploads/menu-placeholders/promocion.svg
     pricing:
       kind: fixed
       price:
         amount: 9100
-  - name: Yogur con cereales + barrita de cereal
+  - id: yogur-cereales-barrita
+    name: Yogur con cereales + barrita de cereal
     available: true
     image: /uploads/menu-placeholders/promocion.svg
     pricing:
       kind: fixed
       price:
         amount: 3900
-  - name: Jarrito + exprimido de naranja + dos medialunas
+  - id: jarrito-exprimido-dos-medialunas
+    name: Jarrito + exprimido de naranja + dos medialunas
     available: true
     image: /uploads/menu-placeholders/promocion.svg
     pricing:
       kind: fixed
       price:
         amount: 11400
-  - name: Licuado + tostado clásico
+  - id: licuado-tostado-clasico
+    name: Licuado + tostado clasico
     available: true
     image: /uploads/menu-placeholders/promocion.svg
     pricing:

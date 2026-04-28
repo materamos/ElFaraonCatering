@@ -1,33 +1,40 @@
+id: guarniciones
 title: Guarniciones
-description: Opciones de guarnición para platos y minutas.
+description: Opciones de guarnicion para platos y minutas.
 order: 35
 items:
-  - name: Puré de papa
+  - id: pure-papa
+    name: Pure de papa
     available: true
     image: /uploads/menu-placeholders/guarnicion.svg
     pricing:
       kind: included
-  - name: Puré de calabaza
+  - id: pure-calabaza
+    name: Pure de calabaza
     available: true
     image: /uploads/menu-placeholders/guarnicion.svg
     pricing:
       kind: included
-  - name: Chips de papa
+  - id: chips-papa
+    name: Chips de papa
     available: true
     image: /uploads/menu-placeholders/guarnicion.svg
     pricing:
       kind: included
-  - name: Chips de batata
+  - id: chips-batata
+    name: Chips de batata
     available: true
     image: /uploads/menu-placeholders/guarnicion.svg
     pricing:
       kind: included
-  - name: Ensalada tres sabores
+  - id: ensalada-tres-sabores
+    name: Ensalada tres sabores
     available: true
     image: /uploads/menu-placeholders/guarnicion.svg
     pricing:
       kind: included
-  - name: Guarnición sola
+  - id: guarnicion-sola
+    name: Guarnicion sola
     available: true
     pricing:
       kind: fixed

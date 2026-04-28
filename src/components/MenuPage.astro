@@ -1,0 +1,77 @@
+---
+import type { MenuProfileData, MenuSectionData } from "../types/menu";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import MenuInfoPanel from "./MenuInfoPanel.astro";
+import MenuSection from "./MenuSection.astro";
+
+interface Props {
+  profile: MenuProfileData;
+  sections: MenuSectionData[];
+}
+
+const { profile, sections } = Astro.props;
+---
+
+<BaseLayout
+  title={`${profile.title} | El Faraon Catering`}
+  description={profile.description}
+>
+  <main class="page-shell space-y-6 sm:space-y-8">
+    <section class="surface-card overflow-hidden">
+      <div class="grid gap-6 p-5 sm:gap-8 sm:p-6 lg:grid-cols-[minmax(0,1.02fr)_minmax(19rem,0.98fr)] lg:items-center lg:p-8 xl:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)]">
+        <div class="space-y-4 lg:space-y-5 lg:py-4">
+          <p class="eyebrow">{profile.eyebrow}</p>
+          <h1 class="max-w-xl text-5xl sm:text-6xl xl:max-w-2xl">{profile.title}</h1>
+          <p class="max-w-2xl text-base leading-7 text-[var(--color-muted)] sm:text-lg sm:leading-8">
+            {profile.description}
+          </p>
+        </div>
+
+        <MenuInfoPanel
+          title={profile.infoTitle}
+          facts={profile.facts}
+          payment={profile.payment}
+        />
+      </div>
+    </section>
+
+    <div class="space-y-6 sm:space-y-8">
+      {sections.map((section) => (
+        <MenuSection
+          title={section.title}
+          description={section.description}
+          note={section.note}
+          items={section.items}
+          groups={section.groups}
+        />
+      ))}
+    </div>
+  </main>
+
+  <dialog class="photo-sheet" data-photo-sheet aria-labelledby="photo-sheet-title">
+    <div class="photo-sheet__panel">
+      <div class="photo-sheet__header">
+        <p class="eyebrow">Foto</p>
+        <button class="photo-sheet__close" type="button" data-photo-close>
+          Cerrar
+        </button>
+      </div>
+
+      <h2 class="photo-sheet__title" id="photo-sheet-title" data-photo-title>
+        Foto del plato
+      </h2>
+
+      <div class="photo-frame">
+        <img
+          class="photo-frame__image"
+          data-photo-image
+          alt=""
+          decoding="async"
+          hidden
+        />
+        <p class="photo-sheet__error" data-photo-error hidden>No se pudo cargar la foto.</p>
+      </div>
+    </div>
+  </dialog>
+  <script is:inline src="/scripts/menu-photo-sheet.js" defer></script>
+</BaseLayout>

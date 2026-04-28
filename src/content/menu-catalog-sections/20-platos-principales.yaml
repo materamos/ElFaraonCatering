@@ -1,35 +1,41 @@
-title: Platos principales con guarnición
+id: platos-principales
+title: Platos principales con guarnicion
 order: 20
 items:
-  - name: Milanesa de peceto
+  - id: milanesa-peceto
+    name: Milanesa de peceto
     available: true
     image: /uploads/menu-placeholders/plato-principal.svg
     pricing:
       kind: fixed
       price:
         amount: 11000
-  - name: Suprema de pollo
+  - id: suprema-pollo
+    name: Suprema de pollo
     available: true
     image: /uploads/menu-placeholders/plato-principal.svg
     pricing:
       kind: fixed
       price:
         amount: 9500
-  - name: 1/4 pollo
+  - id: cuarto-pollo
+    name: 1/4 pollo
     available: true
     image: /uploads/menu-placeholders/plato-principal.svg
     pricing:
       kind: fixed
       price:
         amount: 9500
-  - name: Pechuga al grill
+  - id: pechuga-grill
+    name: Pechuga al grill
     available: true
     image: /uploads/menu-placeholders/plato-principal.svg
     pricing:
       kind: fixed
       price:
         amount: 10500
-  - name: Milanesa napolitana
+  - id: milanesa-napolitana
+    name: Milanesa napolitana
     available: true
     image: /uploads/menu-placeholders/plato-principal.svg
     pricing:

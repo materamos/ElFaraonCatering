@@ -4,6 +4,10 @@ import { z } from "astro/zod";
 import { menuImageSchema } from "./utils/menuImage";
 
 const textSchema = z.string().trim().min(1);
+const technicalIdSchema = z
+  .string()
+  .trim()
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 
 const priceSchema = z
   .object({
@@ -22,6 +26,7 @@ const includedPricingSchema = z.object({
 
 const pricingVariantSchema = z
   .object({
+    id: technicalIdSchema,
     name: textSchema,
     price: priceSchema,
     available: z.boolean().default(true),
@@ -39,31 +44,39 @@ const pricingSchema = z.discriminatedUnion("kind", [
   variantsPricingSchema,
 ]);
 
-const menuOptionSchema = z.object({
-  name: textSchema,
-  description: textSchema.optional(),
-  note: textSchema.optional(),
-  available: z.boolean().default(true),
-});
+const menuOptionSchema = z
+  .object({
+    id: technicalIdSchema,
+    name: textSchema,
+    description: textSchema.optional(),
+    note: textSchema.optional(),
+    available: z.boolean().default(true),
+  })
+  .strict();
 
-const menuItemSchema = z.object({
-  name: textSchema,
-  description: textSchema.optional(),
-  note: textSchema.optional(),
-  available: z.boolean(),
-  pricing: pricingSchema.optional(),
-  options: z.array(menuOptionSchema).optional(),
-  image: menuImageSchema,
-});
+const menuItemSchema = z
+  .object({
+    id: technicalIdSchema,
+    name: textSchema,
+    description: textSchema.optional(),
+    note: textSchema.optional(),
+    available: z.boolean(),
+    pricing: pricingSchema.optional(),
+    options: z.array(menuOptionSchema).optional(),
+    image: menuImageSchema,
+  })
+  .strict();
 
 const menuGroupSchema = z
   .object({
+    id: technicalIdSchema,
     title: textSchema,
     description: textSchema.optional(),
     note: textSchema.optional(),
     pricing: pricingSchema.optional(),
     items: z.array(menuItemSchema).min(1),
   })
+  .strict()
   .superRefine((group, context) => {
     if (group.pricing) {
       return;
@@ -82,6 +95,7 @@ const menuGroupSchema = z
 
 const menuSectionSchema = z
   .object({
+    id: technicalIdSchema,
     title: textSchema,
     description: textSchema.optional(),
     note: textSchema.optional(),
@@ -89,6 +103,7 @@ const menuSectionSchema = z
     items: z.array(menuItemSchema).min(1).optional(),
     groups: z.array(menuGroupSchema).min(1).optional(),
   })
+  .strict()
   .superRefine((section, context) => {
     const hasItems = Array.isArray(section.items) && section.items.length > 0;
     const hasGroups = Array.isArray(section.groups) && section.groups.length > 0;
@@ -116,11 +131,97 @@ const menuSectionSchema = z
     });
   });
 
-const menuSections = defineCollection({
-  loader: glob({ pattern: "**/*.yaml", base: "./src/content/menu-sections" }),
+const menuProfileFactSchema = z
+  .object({
+    id: technicalIdSchema,
+    label: textSchema,
+    value: textSchema,
+    link: z
+      .object({
+        text: textSchema,
+        href: textSchema,
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+const menuProfilePaymentSchema = z
+  .object({
+    id: technicalIdSchema,
+    label: textSchema,
+    methods: z.array(textSchema).min(1),
+  })
+  .strict();
+
+const menuProfileSchema = z
+  .object({
+    id: technicalIdSchema,
+    eyebrow: textSchema,
+    title: textSchema,
+    description: textSchema,
+    infoTitle: textSchema,
+    facts: z.array(menuProfileFactSchema).min(1),
+    payment: menuProfilePaymentSchema,
+  })
+  .strict();
+
+const menuItemOverrideSchema = z
+  .object({
+    id: technicalIdSchema,
+    available: z.boolean().optional(),
+    pricing: pricingSchema.optional(),
+    note: textSchema.optional(),
+  })
+  .strict();
+
+const menuGroupOverrideSchema = z
+  .object({
+    id: technicalIdSchema,
+    pricing: pricingSchema.optional(),
+    note: textSchema.optional(),
+    items: z.array(menuItemOverrideSchema).optional(),
+  })
+  .strict();
+
+const menuSectionOverrideSchema = z
+  .object({
+    id: technicalIdSchema,
+    items: z.array(menuItemOverrideSchema).optional(),
+    groups: z.array(menuGroupOverrideSchema).optional(),
+  })
+  .strict();
+
+const menuOverrideSchema = z
+  .object({
+    menuId: technicalIdSchema,
+    sections: z.array(menuSectionOverrideSchema).default([]),
+  })
+  .strict();
+
+const menuProfiles = defineCollection({
+  loader: glob({ pattern: "**/*.yaml", base: "./src/content/menu-profiles" }),
+  schema: menuProfileSchema,
+});
+
+const menuOverrides = defineCollection({
+  loader: glob({ pattern: "**/*.yaml", base: "./src/content/menu-overrides" }),
+  schema: menuOverrideSchema,
+});
+
+const menuCatalogSections = defineCollection({
+  loader: glob({ pattern: "**/*.yaml", base: "./src/content/menu-catalog-sections" }),
+  schema: menuSectionSchema,
+});
+
+const menuDailySections = defineCollection({
+  loader: glob({ pattern: "**/*.yaml", base: "./src/content/menu-daily-sections" }),
   schema: menuSectionSchema,
 });
 
 export const collections = {
-  "menu-sections": menuSections,
+  "menu-profiles": menuProfiles,
+  "menu-overrides": menuOverrides,
+  "menu-catalog-sections": menuCatalogSections,
+  "menu-daily-sections": menuDailySections,
 };
