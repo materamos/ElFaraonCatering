@@ -1,23 +1,23 @@
-id: menus-del-dia
+sectionId: menus-del-dia
 title: Menus del dia
 description: Opciones principales de rotacion diaria del buffet.
 order: 10
 items:
-  - id: menu-del-dia
+  - itemId: menu-del-dia
     name: Menu del dia
     available: true
     pricing:
       kind: fixed
       price:
         amount: 7500
-  - id: menu-del-dia-con-bebida
+  - itemId: menu-del-dia-con-bebida
     name: Menu del dia con bebida
     available: true
     pricing:
       kind: fixed
       price:
         amount: 9900
-  - id: menu-vegetariano-del-dia
+  - itemId: menu-vegetariano-del-dia
     name: Menu vegetariano del dia
     available: true
     pricing:

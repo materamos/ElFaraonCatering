@@ -12,21 +12,21 @@ type MenuSectionData =
 type MenuCatalogSectionData = MenuCatalogSectionEntry["data"];
 
 interface MenuItemOverride {
-  id: string;
+  itemId: string;
   available?: boolean;
   pricing?: MenuPricing;
   note?: string;
 }
 
 interface MenuGroupOverride {
-  id: string;
+  groupId: string;
   pricing?: MenuPricing;
   note?: string;
   items?: MenuItemOverride[];
 }
 
 interface MenuSectionOverride {
-  id: string;
+  sectionId: string;
   items?: MenuItemOverride[];
   groups?: MenuGroupOverride[];
 }
@@ -37,7 +37,7 @@ interface MenuOverrideData {
 }
 
 interface MenuCatalogItem {
-  id: string;
+  itemId: string;
   available: boolean;
   note?: string;
   pricing?: MenuPricing;
@@ -45,7 +45,7 @@ interface MenuCatalogItem {
 }
 
 interface MenuCatalogGroup {
-  id: string;
+  groupId: string;
   note?: string;
   pricing?: MenuPricing;
   items: MenuCatalogItem[];
@@ -136,11 +136,11 @@ const applyMenuOverrides = (
   }
 
   const sectionOverrides = new Map<string, MenuSectionOverride>(
-    override.sections.map((section: MenuSectionOverride) => [section.id, section]),
+    override.sections.map((section: MenuSectionOverride) => [section.sectionId, section]),
   );
 
   return sections.map((section: MenuCatalogSectionData): MenuCatalogSectionData => {
-    const sectionOverride = sectionOverrides.get(section.id);
+    const sectionOverride = sectionOverrides.get(section.sectionId);
 
     if (!sectionOverride) {
       return section;
@@ -148,26 +148,26 @@ const applyMenuOverrides = (
 
     if (section.items) {
       const itemOverrides = new Map(
-        sectionOverride.items?.map((item: MenuItemOverride) => [item.id, item]) ?? [],
+        sectionOverride.items?.map((item: MenuItemOverride) => [item.itemId, item]) ?? [],
       );
 
       return {
         ...section,
         items: section.items.map((item: MenuCatalogItem) =>
-          applyItemOverride(item, itemOverrides.get(item.id)),
+          applyItemOverride(item, itemOverrides.get(item.itemId)),
         ),
       } as MenuCatalogSectionData;
     }
 
     if (section.groups) {
       const groupOverrides = new Map(
-        sectionOverride.groups?.map((group: MenuGroupOverride) => [group.id, group]) ?? [],
+        sectionOverride.groups?.map((group: MenuGroupOverride) => [group.groupId, group]) ?? [],
       );
 
       return {
         ...section,
         groups: section.groups.map((group: MenuCatalogGroup) =>
-          applyGroupOverride(group, groupOverrides.get(group.id)),
+          applyGroupOverride(group, groupOverrides.get(group.groupId)),
         ),
       } as MenuCatalogSectionData;
     }
@@ -185,7 +185,7 @@ const applyGroupOverride = (
   }
 
   const itemOverrides = new Map(
-    override.items?.map((item: MenuItemOverride) => [item.id, item]) ?? [],
+    override.items?.map((item: MenuItemOverride) => [item.itemId, item]) ?? [],
   );
 
   return {
@@ -193,7 +193,7 @@ const applyGroupOverride = (
     note: override.note ?? group.note,
     pricing: override.pricing ?? group.pricing,
     items: group.items.map((item: MenuCatalogItem) =>
-      applyItemOverride(item, itemOverrides.get(item.id)),
+      applyItemOverride(item, itemOverrides.get(item.itemId)),
     ),
   };
 };
@@ -225,7 +225,7 @@ const validateMenuContentIntegrity = ({
 
   assertUniqueIds(profileIds, "menu profile id");
   assertUniqueIds(
-    catalogSections.map((section: MenuCatalogSectionData) => section.id),
+    catalogSections.map((section: MenuCatalogSectionData) => section.sectionId),
     "catalog section id",
   );
   assertUniqueIds(
@@ -244,7 +244,7 @@ const validateMenuContentIntegrity = ({
   }
 
   for (const section of catalogSections) {
-    validateSectionIds(`catalog section ${section.id}`, section);
+    validateSectionIds(`catalog section ${section.sectionId}`, section);
   }
 
   for (const override of overrides) {
@@ -260,27 +260,27 @@ const validateMenuContentIntegrity = ({
 const validateSectionIds = (scope: string, section: MenuSectionData) => {
   if (section.items) {
     assertUniqueIds(
-      section.items.map((item: MenuCatalogItem) => item.id),
+      section.items.map((item: MenuCatalogItem) => item.itemId),
       `${scope} item id`,
     );
     section.items.forEach((item: MenuCatalogItem) =>
-      validateItemChildIds(`${scope} item ${item.id}`, item),
+      validateItemChildIds(`${scope} item ${item.itemId}`, item),
     );
   }
 
   if (section.groups) {
     assertUniqueIds(
-      section.groups.map((group: MenuCatalogGroup) => group.id),
+      section.groups.map((group: MenuCatalogGroup) => group.groupId),
       `${scope} group id`,
     );
 
     section.groups.forEach((group: MenuCatalogGroup) => {
       assertUniqueIds(
-        group.items.map((item: MenuCatalogItem) => item.id),
-        `${scope} group ${group.id} item id`,
+        group.items.map((item: MenuCatalogItem) => item.itemId),
+        `${scope} group ${group.groupId} item id`,
       );
       group.items.forEach((item: MenuCatalogItem) =>
-        validateItemChildIds(`${scope} group ${group.id} item ${item.id}`, item),
+        validateItemChildIds(`${scope} group ${group.groupId} item ${item.itemId}`, item),
       );
     });
   }
@@ -304,28 +304,28 @@ const validateItemChildIds = (scope: string, item: MenuCatalogItem) => {
 
 const validateOverrideIds = (override: MenuOverrideData) => {
   assertUniqueIds(
-    override.sections.map((section: MenuSectionOverride) => section.id),
+    override.sections.map((section: MenuSectionOverride) => section.sectionId),
     `menu override ${override.menuId} section id`,
   );
 
   for (const section of override.sections) {
     if (section.items) {
       assertUniqueIds(
-        section.items.map((item: MenuItemOverride) => item.id),
-        `menu override ${override.menuId} section ${section.id} item id`,
+        section.items.map((item: MenuItemOverride) => item.itemId),
+        `menu override ${override.menuId} section ${section.sectionId} item id`,
       );
     }
 
     if (section.groups) {
       assertUniqueIds(
-        section.groups.map((group: MenuGroupOverride) => group.id),
-        `menu override ${override.menuId} section ${section.id} group id`,
+        section.groups.map((group: MenuGroupOverride) => group.groupId),
+        `menu override ${override.menuId} section ${section.sectionId} group id`,
       );
 
       for (const group of section.groups) {
         assertUniqueIds(
-          group.items?.map((item: MenuItemOverride) => item.id) ?? [],
-          `menu override ${override.menuId} section ${section.id} group ${group.id} item id`,
+          group.items?.map((item: MenuItemOverride) => item.itemId) ?? [],
+          `menu override ${override.menuId} section ${section.sectionId} group ${group.groupId} item id`,
         );
       }
     }
@@ -339,11 +339,13 @@ const validateMenuOverrides = (
 ) => {
   for (const sectionOverride of override.sections) {
     const section = sections.find(
-      (candidate: MenuCatalogSectionData) => candidate.id === sectionOverride.id,
+      (candidate: MenuCatalogSectionData) => candidate.sectionId === sectionOverride.sectionId,
     );
 
     if (!section) {
-      throw new Error(`Menu override ${menuId} references unknown section: ${sectionOverride.id}`);
+      throw new Error(
+        `Menu override ${menuId} references unknown section: ${sectionOverride.sectionId}`,
+      );
     }
 
     if (sectionOverride.items) {
@@ -363,14 +365,14 @@ const validateSectionItemOverrides = (
 ) => {
   if (!section.items) {
     throw new Error(
-      `Menu override ${menuId} cannot override direct items in grouped section: ${section.id}`,
+      `Menu override ${menuId} cannot override direct items in grouped section: ${section.sectionId}`,
     );
   }
 
   for (const itemOverride of itemOverrides) {
-    if (!section.items.some((item: MenuCatalogItem) => item.id === itemOverride.id)) {
+    if (!section.items.some((item: MenuCatalogItem) => item.itemId === itemOverride.itemId)) {
       throw new Error(
-        `Menu override ${menuId} references unknown item ${itemOverride.id} in section ${section.id}`,
+        `Menu override ${menuId} references unknown item ${itemOverride.itemId} in section ${section.sectionId}`,
       );
     }
   }
@@ -382,24 +384,26 @@ const validateGroupOverrides = (
   groupOverrides: MenuGroupOverride[],
 ) => {
   if (!section.groups) {
-    throw new Error(`Menu override ${menuId} cannot override groups in item section: ${section.id}`);
+    throw new Error(
+      `Menu override ${menuId} cannot override groups in item section: ${section.sectionId}`,
+    );
   }
 
   for (const groupOverride of groupOverrides) {
     const group = section.groups.find(
-      (candidate: MenuCatalogGroup) => candidate.id === groupOverride.id,
+      (candidate: MenuCatalogGroup) => candidate.groupId === groupOverride.groupId,
     );
 
     if (!group) {
       throw new Error(
-        `Menu override ${menuId} references unknown group ${groupOverride.id} in section ${section.id}`,
+        `Menu override ${menuId} references unknown group ${groupOverride.groupId} in section ${section.sectionId}`,
       );
     }
 
     for (const itemOverride of groupOverride.items ?? []) {
-      if (!group.items.some((item: MenuCatalogItem) => item.id === itemOverride.id)) {
+      if (!group.items.some((item: MenuCatalogItem) => item.itemId === itemOverride.itemId)) {
         throw new Error(
-          `Menu override ${menuId} references unknown item ${itemOverride.id} in group ${group.id}`,
+          `Menu override ${menuId} references unknown item ${itemOverride.itemId} in group ${group.groupId}`,
         );
       }
     }

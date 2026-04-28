@@ -4,6 +4,10 @@ import { getSafeMenuImagePath } from "../utils/menuImage";
 import { getPricingText, getVariantPricingText } from "../utils/menuPricing";
 
 interface Props {
+  menuId: string;
+  sectionId: string;
+  groupId?: string;
+  itemId: string;
   name: MenuItem["name"];
   description?: MenuItem["description"];
   note?: MenuItem["note"];
@@ -16,6 +20,10 @@ interface Props {
 }
 
 const {
+  menuId,
+  sectionId,
+  groupId,
+  itemId,
   name,
   description,
   note,
@@ -36,7 +44,14 @@ const directPricingText =
     : null;
 ---
 
-<article class="surface-card flex h-full flex-col gap-4 p-4">
+<article
+  class="surface-card flex h-full flex-col gap-4 p-4"
+  data-menu-id={menuId}
+  data-section-id={sectionId}
+  data-group-id={groupId}
+  data-item-id={itemId}
+  data-available={available ? "true" : "false"}
+>
   <div class="flex items-start justify-between gap-3">
     <div class="min-w-0 space-y-2">
       {!hideHeading && <h3 class="break-words text-xl text-[var(--color-ink)]">{name}</h3>}
@@ -51,7 +66,11 @@ const directPricingText =
         </p>
       )}
     </div>
-    <span class="status-pill shrink-0" data-state={available ? "available" : "unavailable"}>
+    <span
+      class="status-pill shrink-0"
+      data-availability-status
+      data-state={available ? "available" : "unavailable"}
+    >
       {available ? "Disponible" : "No disponible"}
     </span>
   </div>

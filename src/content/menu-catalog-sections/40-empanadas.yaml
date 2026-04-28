@@ -1,8 +1,8 @@
-id: empanadas
+sectionId: empanadas
 title: Empanadas
 order: 40
 items:
-  - id: empanadas
+  - itemId: empanadas
     name: Empanadas
     available: true
     note: Elegi el sabor.

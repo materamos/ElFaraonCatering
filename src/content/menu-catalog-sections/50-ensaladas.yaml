@@ -1,8 +1,8 @@
-id: ensaladas
+sectionId: ensaladas
 title: Ensaladas
 order: 50
 items:
-  - id: ensalada-caesar
+  - itemId: ensalada-caesar
     name: Caesar
     description: Lechuga, croutones, queso parmesano y aderezo Caesar.
     available: true
@@ -11,7 +11,7 @@ items:
       kind: fixed
       price:
         amount: 9500
-  - id: ensalada-completa
+  - itemId: ensalada-completa
     name: Completa
     description: Lechuga, tomate, zanahoria, huevo y choclo.
     available: true
@@ -20,7 +20,7 @@ items:
       kind: fixed
       price:
         amount: 9500
-  - id: ensalada-completa-pollo
+  - itemId: ensalada-completa-pollo
     name: Completa con pollo
     description: Lechuga, tomate, zanahoria, huevo, choclo y pollo.
     available: true
@@ -29,7 +29,7 @@ items:
       kind: fixed
       price:
         amount: 10500
-  - id: ensalada-el-faraon
+  - itemId: ensalada-el-faraon
     name: El Faraon
     description: Lechuga, tomate, zanahoria, jamon, queso y huevo.
     available: true

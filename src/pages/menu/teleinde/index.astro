@@ -2,8 +2,9 @@
 import MenuPage from "../../../components/MenuPage.astro";
 import { getMenuProfile, getMenuSections } from "../../../utils/menuContent";
 
-const profile = await getMenuProfile("teleinde");
-const sections = await getMenuSections("teleinde");
+const menuId = "teleinde";
+const profile = await getMenuProfile(menuId);
+const sections = await getMenuSections(menuId);
 ---
 
-<MenuPage profile={profile} sections={sections} />
+<MenuPage menuId={menuId} profile={profile} sections={sections} />

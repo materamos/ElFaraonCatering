@@ -39,6 +39,7 @@ Tambien incluye:
 - overrides acotados por menu
 - soporte opcional para imagenes locales de items del menu
 - un dialog liviano para ver fotos desde los menus publicos
+- overlay opcional de disponibilidad con Supabase
 - placeholder estatico para `/admin/`
 
 En esta fase no hay CMS activo dentro del repo. **Keystatic** queda como candidato preliminar para una fase editorial posterior, pero no es una decision cerrada.
@@ -121,13 +122,13 @@ El render final muestra primero el menu del dia del perfil y despues el catalogo
 Estructura general de seccion:
 
 ```yaml
-id: platos-principales
+sectionId: platos-principales
 title: Platos principales con guarnicion
 description: Texto opcional
 note: Texto opcional
 order: 20
 items:
-  - id: milanesa-peceto
+  - itemId: milanesa-peceto
     name: Milanesa de peceto
     available: true
     pricing:
@@ -138,7 +139,10 @@ items:
 
 Reglas principales:
 
-- `id` es obligatorio en secciones, grupos, items, opciones y variantes.
+- `sectionId` es obligatorio en secciones.
+- `groupId` es obligatorio en grupos.
+- `itemId` es obligatorio en items vendibles.
+- `id` se mantiene en perfiles, datos auxiliares, opciones y variantes.
 - Los IDs son tecnicos, ASCII/kebab-case, y no se derivan de `name` o `title`.
 - Una seccion debe usar `items` o `groups`, pero no ambos.
 - Si una seccion usa `items`, cada item debe definir `pricing`.
@@ -199,15 +203,15 @@ Ejemplo:
 ```yaml
 menuId: teleinde
 sections:
-  - id: bebidas
+  - sectionId: bebidas
     groups:
-      - id: linea-coca-cola
+      - groupId: linea-coca-cola
         pricing:
           kind: fixed
           price:
             amount: 2600
         items:
-          - id: coca-cola
+          - itemId: coca-cola
             available: false
             note: Sin stock temporal
 ```
@@ -225,6 +229,28 @@ Las imagenes deben colocarse en `public/uploads/` y referenciarse desde YAML con
 ```yaml
 image: /uploads/example-photo.webp
 ```
+
+## Supabase availability overlay
+
+Supabase puede usarse como overlay opcional de disponibilidad live.
+
+Reglas de esta fase:
+
+- YAML sigue siendo la fuente estructural principal.
+- Supabase solo puede cambiar disponibilidad visual mediante `available_override`.
+- Si no hay fila en Supabase para un item, se usa el valor `available` del YAML.
+- Si faltan variables, Supabase falla o devuelve datos invalidos, el menu queda como vino del YAML.
+- El cliente usa `fetch` directo contra la REST API publica; no usa `@supabase/supabase-js`.
+- No hay Storage, imagenes live, precios live, menu del dia live ni `/admin/` propio.
+
+Variables publicas esperadas:
+
+```bash
+PUBLIC_SUPABASE_URL=
+PUBLIC_SUPABASE_ANON_KEY=
+```
+
+El SQL inicial para crear tablas y politicas esta en `docs/supabase-availability-overlay.sql`.
 
 ## Desarrollo local
 

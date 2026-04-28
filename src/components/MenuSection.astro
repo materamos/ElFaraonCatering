@@ -3,6 +3,8 @@ import type { MenuGroup, MenuItem } from "../types/menu";
 import DishCard from "./DishCard.astro";
 
 interface Props {
+  menuId: string;
+  sectionId: string;
   title: string;
   description?: string;
   note?: string;
@@ -10,7 +12,7 @@ interface Props {
   groups?: MenuGroup[];
 }
 
-const { title, description, note, items, groups } = Astro.props;
+const { menuId, sectionId, title, description, note, items, groups } = Astro.props;
 const normalizeHeadingText = (value: string) => value.trim().toLowerCase();
 const hasSingleItemMatchingSection =
   items?.length === 1 && normalizeHeadingText(items[0].name) === normalizeHeadingText(title);
@@ -33,6 +35,9 @@ const hasSingleItemMatchingSection =
     <div class="grid gap-4">
       {items.map((item) => (
         <DishCard
+          menuId={menuId}
+          sectionId={sectionId}
+          itemId={item.itemId}
           name={item.name}
           description={item.description}
           note={item.note}
@@ -67,6 +72,10 @@ const hasSingleItemMatchingSection =
           <div class="grid gap-3">
             {group.items.map((item: MenuItem) => (
               <DishCard
+                menuId={menuId}
+                sectionId={sectionId}
+                groupId={group.groupId}
+                itemId={item.itemId}
                 name={item.name}
                 description={item.description}
                 note={item.note}

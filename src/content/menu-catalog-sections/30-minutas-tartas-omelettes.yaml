@@ -1,9 +1,9 @@
-id: minutas-tartas-omelettes
+sectionId: minutas-tartas-omelettes
 title: Minutas, tartas y omelettes
 description: Opciones rapidas con modalidades de guarnicion cuando aplica.
 order: 30
 items:
-  - id: tartas
+  - itemId: tartas
     name: Tartas
     available: true
     note: Elegi el sabor y la modalidad.
@@ -32,7 +32,7 @@ items:
         name: Verdura
       - id: brocoli
         name: Brocoli
-  - id: tortilla
+  - itemId: tortilla
     name: Tortilla
     available: true
     image: /uploads/menu-placeholders/tortilla.svg
@@ -51,7 +51,7 @@ items:
           name: Sin guarnicion
           price:
             amount: 7000
-  - id: omelette
+  - itemId: omelette
     name: Omelette
     available: true
     image: /uploads/menu-placeholders/omelette.svg

@@ -56,7 +56,7 @@ const menuOptionSchema = z
 
 const menuItemSchema = z
   .object({
-    id: technicalIdSchema,
+    itemId: technicalIdSchema,
     name: textSchema,
     description: textSchema.optional(),
     note: textSchema.optional(),
@@ -69,7 +69,7 @@ const menuItemSchema = z
 
 const menuGroupSchema = z
   .object({
-    id: technicalIdSchema,
+    groupId: technicalIdSchema,
     title: textSchema,
     description: textSchema.optional(),
     note: textSchema.optional(),
@@ -95,7 +95,7 @@ const menuGroupSchema = z
 
 const menuSectionSchema = z
   .object({
-    id: technicalIdSchema,
+    sectionId: technicalIdSchema,
     title: textSchema,
     description: textSchema.optional(),
     note: textSchema.optional(),
@@ -168,7 +168,7 @@ const menuProfileSchema = z
 
 const menuItemOverrideSchema = z
   .object({
-    id: technicalIdSchema,
+    itemId: technicalIdSchema,
     available: z.boolean().optional(),
     pricing: pricingSchema.optional(),
     note: textSchema.optional(),
@@ -177,7 +177,7 @@ const menuItemOverrideSchema = z
 
 const menuGroupOverrideSchema = z
   .object({
-    id: technicalIdSchema,
+    groupId: technicalIdSchema,
     pricing: pricingSchema.optional(),
     note: textSchema.optional(),
     items: z.array(menuItemOverrideSchema).optional(),
@@ -186,7 +186,7 @@ const menuGroupOverrideSchema = z
 
 const menuSectionOverrideSchema = z
   .object({
-    id: technicalIdSchema,
+    sectionId: technicalIdSchema,
     items: z.array(menuItemOverrideSchema).optional(),
     groups: z.array(menuGroupOverrideSchema).optional(),
   })

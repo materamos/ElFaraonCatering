@@ -1,8 +1,8 @@
-id: desayuno-snack
+sectionId: desayuno-snack
 title: Desayuno y snack
 order: 70
 items:
-  - id: yogur-cereal
+  - itemId: yogur-cereal
     name: Yogur con cereal
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
@@ -10,7 +10,7 @@ items:
       kind: fixed
       price:
         amount: 3200
-  - id: yogur-descremado
+  - itemId: yogur-descremado
     name: Yogur descremado
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
@@ -18,7 +18,7 @@ items:
       kind: fixed
       price:
         amount: 2500
-  - id: ensalada-fruta
+  - itemId: ensalada-fruta
     name: Ensalada de fruta
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
@@ -26,7 +26,7 @@ items:
       kind: fixed
       price:
         amount: 3500
-  - id: fruta-fresca
+  - itemId: fruta-fresca
     name: Fruta fresca
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
@@ -34,7 +34,7 @@ items:
       kind: fixed
       price:
         amount: 1800
-  - id: exprimido-naranja
+  - itemId: exprimido-naranja
     name: Exprimido de naranja
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
@@ -42,7 +42,7 @@ items:
       kind: fixed
       price:
         amount: 3500
-  - id: licuado-frutas
+  - itemId: licuado-frutas
     name: Licuado de frutas
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
@@ -50,7 +50,7 @@ items:
       kind: fixed
       price:
         amount: 4200
-  - id: licuado-banana
+  - itemId: licuado-banana
     name: Licuado de banana
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
@@ -58,7 +58,7 @@ items:
       kind: fixed
       price:
         amount: 3900
-  - id: medialunas-manteca
+  - itemId: medialunas-manteca
     name: Medialunas de manteca
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
@@ -66,7 +66,7 @@ items:
       kind: fixed
       price:
         amount: 1200
-  - id: medialuna-jamon-queso
+  - itemId: medialuna-jamon-queso
     name: Medialuna con jamon y queso
     available: true
     image: /uploads/menu-placeholders/desayuno-snack.svg
