@@ -109,6 +109,7 @@ Important migration note:
 - **Keystatic** is a preliminary candidate for a later editorial phase, not a final decision
 - Do not reintroduce the previous CMS, auth, or repo-writing admin flow unless explicitly requested
 - Supabase is only the availability overlay. It is not the CMS, not the primary backend, and not the structural source of truth.
+- If a future YAML-to-Supabase migration is explicitly requested, preserve the static-first model by separating stable shared menu data read at build time from frequent operational data applied as a non-blocking runtime overlay.
 
 ---
 
@@ -128,6 +129,7 @@ Canonical project definitions:
 - Supabase es solo overlay de disponibilidad.
 - El sistema funciona completamente sin Supabase.
 - Static-first permite extensiones cliente no bloqueantes.
+- Una futura migracion YAML -> Supabase debe separar datos estables de build time y overlays operativos runtime.
 
 Do **not** add features such as:
 
@@ -241,6 +243,8 @@ Use **YAML** as the content format.
 
 YAML is the source of truth for the menu: profiles, catalog, daily menus, prices, visible text, options, structural overrides, and local image paths.
 
+In the current phase, YAML remains the source of truth. In a future phase, Supabase may feed the stable shared catalog at build time: sections, groups, items, base prices, variants, options, images, and display order. Availability, daily menus, operational notes, and temporary per-location changes should remain runtime overlays.
+
 Active content collections:
 
 - `src/content/menu-profiles/`
@@ -284,6 +288,7 @@ Current phase rule:
 - Keep editing content through YAML files in `src/content/`
 - Keep `/admin/` as a static placeholder served from `public/admin/index.html`
 - Supabase is only an availability overlay consumed by the client. It does not replace YAML, does not manage prices, text, images, or menu structure, and is not an active CMS.
+- A real migration from YAML to Supabase as the source of truth would require an explicit editorial/admin layer; this note does not authorize adding CMS, auth, or writing flows in the current phase.
 - `docs/supabase-availability-overlay.sql` may contain preparatory auth/write pieces for future administration of the overlay. That does not mean there is an active CMS or functional `/admin/`.
 
 The future CMS must be able to manage:
@@ -400,6 +405,7 @@ Prioritize:
 - Avoid unnecessary animations, sliders, carousels, or runtime effects
 - Treat image handling carefully, especially once food photography is added
 - Keep the site statically deployable on Vercel in this phase
+- If a future YAML-to-Supabase migration is implemented, preserve Astro-generated static pages and avoid SSR unless explicitly requested.
 
 If an implementation choice increases complexity or runtime cost, prefer the simpler and faster solution unless there is a clear functional gain.
 
