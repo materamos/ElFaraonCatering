@@ -73,7 +73,7 @@ Tambien incluye:
 - overrides acotados por menu
 - soporte opcional para imagenes locales de items del menu
 - dialog liviano para ver fotos desde los menus publicos
-- overlay progresivo de disponibilidad con Supabase
+- Supabase como overlay operativo actual y posible fuente de datos en build time en una fase posterior
 - placeholder estatico para `/admin/`
 
 ## Desarrollo local
@@ -323,11 +323,21 @@ PUBLIC_SUPABASE_ANON_KEY=
 
 El SQL inicial para crear tablas y politicas esta en `docs/supabase-availability-overlay.sql`. Ese archivo puede contener piezas preparatorias de auth/escritura para una futura administracion del overlay de disponibilidad, pero eso no significa que exista CMS activo ni `/admin/` funcional.
 
+### Evolucion prevista
+
+Supabase podria usarse en build time para alimentar el catalogo fijo compartido entre buffets: secciones, grupos, items, precios base, variantes, opciones, imagenes y orden de visualizacion.
+
+Supabase seguiria usandose en runtime como overlay para datos operativos variables, como disponibilidad, menu del dia, notas operativas y cambios temporales por sede.
+
+Astro generaria paginas estaticas desde datos de Supabase durante el build, sin SSR. Si el overlay runtime falla, el menu fijo generado en build time seguiria disponible.
+
 ## Estado editorial
 
 No hay CMS activo en esta etapa. El contenido se edita actualmente como YAML versionado en `src/content/`, con YAML como fuente de verdad del menu, GitHub como fuente versionada y Vercel como destino de deploy estatico.
 
 Supabase queda limitado al estado operativo de disponibilidad consumido por el overlay cliente. No administra perfiles, catalogo, menu diario, precios, textos, imagenes ni contenido editorial.
+
+Una futura migracion de Supabase a fuente de verdad requeriria una capa editorial o administrativa, pero esa capa no existe en la etapa actual.
 
 El repo ya no incluye:
 
@@ -377,6 +387,7 @@ No agregar estas capacidades salvo pedido explicito:
 - YAML es la fuente de verdad del menu.
 - Supabase es solo overlay de disponibilidad.
 - El sistema funciona completamente sin Supabase.
+- La migracion de YAML a Supabase, si se implementa, debe preservar el enfoque static-first separando datos de build time y overlays runtime.
 - `/admin/` se mantiene como placeholder estatico en `public/admin/`.
 - `vercel.json` conserva la canonicalizacion de `/menu`, `/menu/corpo`, `/menu/teleinde` y `/admin`.
 - **Keystatic** sigue fuera de alcance en esta etapa y queda como candidato preliminar, no como decision cerrada.
