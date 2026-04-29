@@ -4,7 +4,7 @@
 
 This repository contains the source code for the **El Faraon Catering digital menu system**.
 
-The project is built primarily for the buffet operated by **El Faraon Catering** inside the **Paramount+ corporate building**. This is the first implementation and acts as the initial deployment before potentially extending the same system to other buffet locations operated by the company.
+The project supports operational buffet menus for multiple locations operated by **El Faraon Catering**. `/menu/corpo/` is the primary operational menu, and `/menu/teleinde/` is active as part of the multi-location migration.
 
 This project has two clearly separated business surfaces:
 
@@ -29,19 +29,26 @@ The repository currently contains a working technical base with:
 - **Static `/admin` placeholder**
 - **Optional local menu images under `/uploads/`**
 - **Lightweight menu photo dialog served by `public/scripts/menu-photo-sheet.js`**
+- **Supabase availability overlay consumed by client-side JavaScript**
 
 Implemented routes:
 
 - `/` -> future institutional placeholder
-- `/menu` -> operational QR menu
+- `/menu/` -> future operational menu index placeholder
+- `/menu/corpo/` -> primary operational QR menu
+- `/menu/teleinde/` -> active operational QR menu in the multi-location migration
 - `/admin` -> reserved placeholder served from `public/admin/`
 
 Implemented content collections:
 
-- `menu-sections`
+- `menu-profiles`
+- `menu-daily-sections`
+- `menu-catalog-sections`
+- `menu-overrides`
 
-Current menu section schema:
+Current menu section schema for daily and catalog sections:
 
+- `sectionId: string`
 - `title: string`
 - `description?: string`
 - `note?: string`
@@ -98,9 +105,10 @@ Important migration note:
 
 - The previous CMS and admin stack were intentionally removed
 - There is currently **no active CMS** inside the repo
-- The current hosting phase targets **Vercel** static deployment
+- The current hosting phase targets **Vercel** static deployment with static-first progressive client extensions
 - **Keystatic** is a preliminary candidate for a later editorial phase, not a final decision
 - Do not reintroduce the previous CMS, auth, or repo-writing admin flow unless explicitly requested
+- Supabase is only the availability overlay. It is not the CMS, not the primary backend, and not the structural source of truth.
 
 ---
 
@@ -110,7 +118,16 @@ The system must provide a **fast, mobile-first, low-maintenance digital menu**. 
 
 The menu is **informational only** in the current phase.
 
-In the current phase there is no active CMS in the repo. Content is edited directly through YAML files in `src/content/menu-sections/`. Keystatic is a preliminary future CMS candidate, not a final decision.
+In the current phase there is no active CMS in the repo. YAML is the source of truth for the menu. Content is edited directly through YAML files in `src/content/` using the active collections `menu-profiles`, `menu-daily-sections`, `menu-catalog-sections`, and `menu-overrides`. Keystatic is a preliminary future CMS candidate, not a final decision.
+
+Supabase is only an availability overlay. The system works completely without Supabase; if the client overlay cannot load, the menu keeps the availability state from YAML.
+
+Canonical project definitions:
+
+- YAML es la fuente de verdad del menu.
+- Supabase es solo overlay de disponibilidad.
+- El sistema funciona completamente sin Supabase.
+- Static-first permite extensiones cliente no bloqueantes.
 
 Do **not** add features such as:
 
@@ -140,8 +157,9 @@ Use the following stack unless explicitly instructed otherwise:
 
 Current direction notes:
 
-- The repo is in a static-only Vercel migration phase
-- Do not add SSR, server output, adapters, functions, or CMS code in this phase unless explicitly requested
+- The repo is static-first with progressive client extensions
+- Static-first allows non-blocking client extensions
+- Do not add SSR, server output, adapters, Vercel functions, or CMS code in this phase unless explicitly requested
 - A future editorial migration may evaluate **Keystatic** after Vercel hosting is stable
 
 Do not introduce alternative frameworks, runtimes, or package managers unless explicitly requested.
@@ -171,13 +189,19 @@ Do not mix Spanish and English in code structure.
 The project must support the following route structure:
 
 - `/` -> future institutional landing page
-- `/menu` -> operational QR menu
+- `/menu` -> future operational menu index placeholder
+- `/menu/corpo/` -> primary operational QR menu
+- `/menu/teleinde/` -> active operational QR menu in the multi-location migration
 - `/admin` -> future editorial entrypoint placeholder
 
 ### Routing constraints
 
-- `/menu` is the current product priority
+- `/menu/corpo/` is the current primary product surface
+- `/menu/teleinde/` is active and should remain supported as part of the multi-location model
+- `/menu` should remain a placeholder/index surface unless explicitly changed
 - `/menu` should keep the canonical redirect to `/menu/` in host configuration
+- `/menu/corpo` should keep the canonical redirect to `/menu/corpo/` in host configuration
+- `/menu/teleinde` should keep the canonical redirect to `/menu/teleinde/` in host configuration
 - `/` must be treated as a future-facing institutional surface
 - `/admin` is reserved for CMS access, even while the CMS is temporarily absent
 - `/admin` should stay implemented via `public/admin/index.html`
@@ -215,11 +239,16 @@ Use **Astro Content Collections** under `src/content/`.
 
 Use **YAML** as the content format.
 
-Expected content organization should remain simple and scalable. Keep the active content collection under:
+YAML is the source of truth for the menu: profiles, catalog, daily menus, prices, visible text, options, structural overrides, and local image paths.
 
-- `src/content/menu-sections/`
+Active content collections:
 
-Each YAML file should represent one visible menu section. Use numeric prefixes to preserve display order, for example `10-menus-del-dia.yaml` and `90-bebidas.yaml`.
+- `src/content/menu-profiles/`
+- `src/content/menu-daily-sections/`
+- `src/content/menu-catalog-sections/`
+- `src/content/menu-overrides/`
+
+Catalog section YAML files should represent visible menu sections and use numeric prefixes to preserve display order, for example `20-platos-principales.yaml` and `90-bebidas.yaml`.
 
 ### Content modeling principles
 
@@ -254,6 +283,8 @@ Current phase rule:
 - Do not add CMS code, auth, or repo-writing admin flows unless explicitly requested
 - Keep editing content through YAML files in `src/content/`
 - Keep `/admin/` as a static placeholder served from `public/admin/index.html`
+- Supabase is only an availability overlay consumed by the client. It does not replace YAML, does not manage prices, text, images, or menu structure, and is not an active CMS.
+- `docs/supabase-availability-overlay.sql` may contain preparatory auth/write pieces for future administration of the overlay. That does not mean there is an active CMS or functional `/admin/`.
 
 The future CMS must be able to manage:
 
@@ -355,6 +386,7 @@ Prioritize:
 
 - static output for the public menu whenever practical
 - minimal client-side JavaScript
+- non-blocking progressive client extensions, such as the photo dialog and Supabase availability overlay
 - fast page load
 - optimized images
 - simple DOM structures
@@ -383,7 +415,7 @@ Be strict about simplicity.
 - explicit naming
 - typed schemas
 - reusable components where repetition exists
-- static-first implementation
+- static-first implementation with non-blocking client extensions only when they serve the operational menu
 - low-maintenance decisions
 
 ### Avoid
@@ -426,7 +458,7 @@ Examples:
 - `MenuSection.astro`
 - `DishCard.astro`
 - `content.config.ts`
-- `menu-sections`
+- `menu-catalog-sections`
 - `menu-placeholders`
 
 Avoid vague names like:

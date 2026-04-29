@@ -2,7 +2,22 @@
 
 Base tecnica para el sistema de menu digital de **El Faraon Catering**.
 
-El foco actual del proyecto es la experiencia de menu QR para buffets operados por El Faraon Catering. Esta etapa es informativa: no incluye pedidos, pagos online, reservas, cuentas de usuario, carrito ni flujos de compra.
+El foco actual del proyecto es la experiencia de menu QR para buffets operados por El Faraon Catering en multiples locaciones. Esta etapa es informativa: no incluye pedidos, pagos online, reservas, cuentas de usuario, carrito ni flujos de compra.
+
+## Estado actual del sistema
+
+Esta seccion es la fuente de verdad documental para el estado actual del sistema.
+
+- `/menu/corpo/` es el menu operativo principal.
+- `/menu/teleinde/` esta activo y forma parte de la migracion multi-locacion.
+- `/menu/` sigue siendo un placeholder de entrada general para menus.
+- `/` sigue siendo un placeholder institucional futuro.
+- `/admin/` sigue siendo un placeholder estatico sin funcionalidad, servido desde `public/admin/index.html`.
+- YAML es la fuente de verdad del menu: perfiles, catalogo, menu diario, precios, textos, opciones e imagenes locales.
+- Supabase es solo overlay de disponibilidad, consumido por JavaScript cliente para reflejar estado operativo.
+- El sistema funciona completamente sin Supabase; si faltan variables, falla la red o los datos no son validos, queda el estado definido en YAML.
+- Static-first permite extensiones cliente no bloqueantes. El build y el deploy siguen siendo estaticos en Vercel.
+- No hay CMS activo, pedidos online, checkout, pagos online, carrito, reservas ni cuentas de usuario.
 
 ## Proposito
 
@@ -39,7 +54,7 @@ Tambien incluye:
 - overrides acotados por menu
 - soporte opcional para imagenes locales de items del menu
 - un dialog liviano para ver fotos desde los menus publicos
-- overlay opcional de disponibilidad con Supabase
+- overlay progresivo de disponibilidad con Supabase
 - placeholder estatico para `/admin/`
 
 En esta fase no hay CMS activo dentro del repo. **Keystatic** queda como candidato preliminar para una fase editorial posterior, pero no es una decision cerrada.
@@ -109,6 +124,8 @@ Directorios generados como `dist/`, `.astro/` y `node_modules/` no forman parte 
 ## Modelo de contenido
 
 El contenido vive en `src/content/` y usa archivos `.yaml`.
+
+YAML es la fuente de verdad del menu. Define perfiles, catalogo, menu diario, precios, textos, opciones, overrides estructurales e imagenes locales.
 
 Colecciones activas:
 
@@ -232,14 +249,15 @@ image: /uploads/example-photo.webp
 
 ## Supabase availability overlay
 
-Supabase puede usarse como overlay opcional de disponibilidad live.
+Supabase es solo overlay de disponibilidad. El cliente lo consume como extension progresiva para reflejar el estado operativo de disponibilidad sin cambiar la estructura del menu.
 
 Reglas de esta fase:
 
-- YAML sigue siendo la fuente estructural principal.
+- YAML sigue siendo la fuente de verdad del menu.
 - Supabase solo puede cambiar disponibilidad visual mediante `available_override`.
 - Si no hay fila en Supabase para un item, se usa el valor `available` del YAML.
 - Si faltan variables, Supabase falla o devuelve datos invalidos, el menu queda como vino del YAML.
+- El sistema funciona completamente sin Supabase.
 - El cliente usa `fetch` directo contra la REST API publica; no usa `@supabase/supabase-js`.
 - No hay Storage, imagenes live, precios live, menu del dia live ni `/admin/` propio.
 
@@ -250,7 +268,7 @@ PUBLIC_SUPABASE_URL=
 PUBLIC_SUPABASE_ANON_KEY=
 ```
 
-El SQL inicial para crear tablas y politicas esta en `docs/supabase-availability-overlay.sql`.
+El SQL inicial para crear tablas y politicas esta en `docs/supabase-availability-overlay.sql`. Ese archivo puede contener piezas preparatorias de auth/escritura para una futura administracion del overlay de disponibilidad, pero eso no significa que exista CMS activo ni `/admin/` funcional.
 
 ## Desarrollo local
 
@@ -300,7 +318,7 @@ Estos comandos son la validacion minima del proyecto.
 
 ## Despliegue
 
-La fase actual esta preparada para despliegue estatico en **Vercel**.
+La fase actual esta preparada para despliegue estatico en **Vercel**. El proyecto es static-first con extensiones cliente no bloqueantes.
 
 Restricciones de esta etapa:
 
@@ -309,10 +327,13 @@ Restricciones de esta etapa:
 - no hay funciones server-side
 - no hay CMS activo
 - no hay escritura editorial desde `/admin/` ni desde el sitio publico
+- Supabase no es CMS, no es backend principal y no es fuente de verdad del menu
 
 ## Estado editorial
 
-No hay CMS activo en esta etapa. El contenido se edita actualmente como YAML versionado en `src/content/`, con GitHub como fuente de verdad y Vercel como destino de deploy estatico.
+No hay CMS activo en esta etapa. El contenido se edita actualmente como YAML versionado en `src/content/`, con YAML como fuente de verdad del menu, GitHub como fuente versionada y Vercel como destino de deploy estatico.
+
+Supabase queda limitado al estado operativo de disponibilidad consumido por el overlay cliente. No administra perfiles, catalogo, menu diario, precios, textos, imagenes ni contenido editorial.
 
 El repo ya no incluye:
 
@@ -340,9 +361,13 @@ No agregar estas capacidades salvo pedido explicito:
 
 - Se usa **Astro 5** para mantener compatibilidad con **Node 20**.
 - Se usa **Tailwind CSS 4** mediante el plugin de Vite.
-- El sitio sigue siendo **static-first**.
+- El sitio sigue siendo **static-first**: Static-first permite extensiones cliente no bloqueantes.
 - La superficie publica prioritaria es `/menu/corpo/`.
+- `/menu/teleinde/` esta activo como parte de la migracion multi-locacion.
 - `/menu/` queda como placeholder de entrada general para menus.
+- YAML es la fuente de verdad del menu.
+- Supabase es solo overlay de disponibilidad.
+- El sistema funciona completamente sin Supabase.
 - `/admin/` se mantiene como placeholder estatico en `public/admin/`.
 - `vercel.json` conserva la canonicalizacion de `/menu`, `/menu/corpo`, `/menu/teleinde` y `/admin`.
 - **Keystatic** sigue fuera de alcance en esta etapa y queda como candidato preliminar, no como decision cerrada.
