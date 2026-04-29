@@ -1,65 +1,39 @@
 # El Faraon Catering
 
-Base tecnica para el sistema de menu digital de **El Faraon Catering**.
+Sistema de menu digital QR para los buffets operados por **El Faraon Catering** en los dos edificios de **Teleinde**.
 
-El foco actual del proyecto es la experiencia de menu QR para buffets operados por El Faraon Catering en multiples locaciones. Esta etapa es informativa: no incluye pedidos, pagos online, reservas, cuentas de usuario, carrito ni flujos de compra.
+El proyecto esta orientado al uso cotidiano en contexto laboral, con una experiencia rapida, clara y mobile-first para tecnicos, produccion, oficinas y personal que consulta el menu desde el telefono.
 
-## Estado actual del sistema
+La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuentas de usuario, carrito ni flujos de compra.
 
-Esta seccion es la fuente de verdad documental para el estado actual del sistema.
+## Resumen del proyecto
 
-- `/menu/corpo/` es el menu operativo principal.
-- `/menu/teleinde/` esta activo y forma parte de la migracion multi-locacion.
-- `/menu/` sigue siendo un placeholder de entrada general para menus.
-- `/` sigue siendo un placeholder institucional futuro.
-- `/admin/` sigue siendo un placeholder estatico sin funcionalidad, servido desde `public/admin/index.html`.
-- YAML es la fuente de verdad del menu: perfiles, catalogo, menu diario, precios, textos, opciones e imagenes locales.
-- Supabase es solo overlay de disponibilidad, consumido por JavaScript cliente para reflejar estado operativo.
-- El sistema funciona completamente sin Supabase; si faltan variables, falla la red o los datos no son validos, queda el estado definido en YAML.
-- Static-first permite extensiones cliente no bloqueantes. El build y el deploy siguen siendo estaticos en Vercel.
-- No hay CMS activo, pedidos online, checkout, pagos online, carrito, reservas ni cuentas de usuario.
-
-## Proposito
-
-Construir un menu digital rapido, mobile-first y de bajo mantenimiento para la operacion diaria del buffet.
+El objetivo es mantener un menu digital liviano, rapido y de bajo mantenimiento para consultar platos, bebidas, precios y disponibilidad desde codigos QR.
 
 El proyecto tiene dos superficies separadas:
 
-- `/`: placeholder de la futura presencia institucional.
-- `/menu/`: placeholder de entrada general para menus.
-- `/menu/corpo/`: menu operativo QR Corpo.
-- `/menu/teleinde/`: menu operativo QR Teleinde.
-- `/admin/`: placeholder estatico para el futuro panel editorial.
+- **Menu QR operativo**: experiencia principal, mobile-first y orientada al uso diario en buffet.
+- **Futura web institucional**: superficie futura para presencia institucional, separada funcional y visualmente del menu operativo.
 
-La superficie institucional no debe mezclarse con la experiencia operativa del menu.
+La superficie institucional no debe mezclarse con la experiencia operativa del menu. El menu debe seguir siendo practico, directo y pensado para consulta rapida.
 
 ## Estado actual
 
-La base actual incluye:
+Esta seccion resume el estado vigente del sistema:
 
-- **Astro 5**
-- **TypeScript**
-- **Tailwind CSS 4**
-- **Astro Content Collections**
-- **YAML** para contenido
-- **Node 20 LTS**
-- **npm**
-- despliegue estatico preparado para **Vercel**
+- `/menu/corpo/` es el menu operativo principal.
+- `/menu/teleinde/` esta activo como parte del modelo multi-locacion.
+- `/menu/` sigue siendo un placeholder de entrada general para menus.
+- `/` sigue siendo un placeholder institucional futuro.
+- `/admin/` sigue siendo un placeholder estatico sin funcionalidad, servido desde `public/admin/index.html`.
+- YAML es la fuente de verdad del menu: perfiles, catalogo, menu diario, precios, textos, opciones, overrides e imagenes locales.
+- Supabase es solo overlay de disponibilidad, consumido por JavaScript cliente para reflejar estado operativo.
+- El sistema funciona completamente sin Supabase; si faltan variables, falla la red o los datos no son validos, queda el estado definido en YAML.
+- Static-first permite extensiones cliente no bloqueantes. El build y el deploy siguen siendo estaticos en Vercel.
+- No hay CMS activo dentro del repo.
+- No hay pedidos online, checkout, pagos online, WhatsApp ordering, carrito, reservas ni cuentas de usuario.
 
-Tambien incluye:
-
-- perfiles de menu por ubicacion
-- menu del dia independiente por ubicacion
-- catalogo compartido para Corpo y Teleinde
-- overrides acotados por menu
-- soporte opcional para imagenes locales de items del menu
-- un dialog liviano para ver fotos desde los menus publicos
-- overlay progresivo de disponibilidad con Supabase
-- placeholder estatico para `/admin/`
-
-En esta fase no hay CMS activo dentro del repo. **Keystatic** queda como candidato preliminar para una fase editorial posterior, pero no es una decision cerrada.
-
-## Rutas
+## Rutas principales
 
 | Ruta | Estado | Proposito |
 | --- | --- | --- |
@@ -78,7 +52,77 @@ En esta fase no hay CMS activo dentro del repo. **Keystatic** queda como candida
 
 `/admin/` se sirve desde `public/admin/index.html`. No debe reintroducirse como pagina Astro mientras siga siendo un placeholder estatico.
 
-## Estructura principal
+## Stack tecnico
+
+La base actual usa:
+
+- **Astro 5**
+- **TypeScript**
+- **Tailwind CSS 4**
+- **Astro Content Collections**
+- **YAML** para contenido
+- **Node 20 LTS**
+- **npm**
+- despliegue estatico preparado para **Vercel**
+
+Tambien incluye:
+
+- perfiles de menu por ubicacion
+- menu del dia independiente por ubicacion
+- catalogo compartido para Corpo y Teleinde
+- overrides acotados por menu
+- soporte opcional para imagenes locales de items del menu
+- dialog liviano para ver fotos desde los menus publicos
+- overlay progresivo de disponibilidad con Supabase
+- placeholder estatico para `/admin/`
+
+## Desarrollo local
+
+### Requisitos
+
+- Node `20.x`
+- npm `>=10`
+
+La version esperada de Node tambien esta declarada en `.nvmrc` y en `package.json`.
+
+### Instalacion
+
+```bash
+npm install
+```
+
+### Servidor de desarrollo
+
+```bash
+npm run dev
+```
+
+Rutas utiles en local:
+
+- `http://localhost:4321/`
+- `http://localhost:4321/menu/`
+- `http://localhost:4321/menu/corpo/`
+- `http://localhost:4321/menu/teleinde/`
+- `http://localhost:4321/admin/`
+
+### Preview de build
+
+```bash
+npm run preview
+```
+
+## Validacion
+
+Antes de considerar completa una modificacion, ejecutar:
+
+```bash
+npm run build
+npm run check
+```
+
+Estos comandos son la validacion minima del proyecto.
+
+## Estructura del proyecto
 
 ```text
 src/
@@ -100,8 +144,12 @@ src/
       index.astro
       corpo/index.astro
       teleinde/index.astro
+  scripts/
+    menuAvailabilityOverlay.ts
   styles/
     global.css
+  types/
+    menu.ts
   utils/
     menuContent.ts
     menuImage.ts
@@ -110,9 +158,12 @@ src/
 public/
   admin/
     index.html
+  icons/
   scripts/
     menu-photo-sheet.js
   uploads/
+docs/
+  supabase-availability-overlay.sql
 .nvmrc
 astro.config.mjs
 package.json
@@ -199,6 +250,8 @@ pricing:
         amount: 7000
 ```
 
+Reglas de precios e imagenes:
+
 - Los montos se declaran siempre como numeros en `price.amount`.
 - Las variantes son planas: no pueden contener otro `pricing` ni variantes anidadas.
 - `image` es opcional en items y debe apuntar a un archivo local bajo `/uploads/`.
@@ -270,65 +323,6 @@ PUBLIC_SUPABASE_ANON_KEY=
 
 El SQL inicial para crear tablas y politicas esta en `docs/supabase-availability-overlay.sql`. Ese archivo puede contener piezas preparatorias de auth/escritura para una futura administracion del overlay de disponibilidad, pero eso no significa que exista CMS activo ni `/admin/` funcional.
 
-## Desarrollo local
-
-### Requisitos
-
-- Node `20.x`
-- npm `>=10`
-
-La version esperada de Node tambien esta declarada en `.nvmrc` y en `package.json`.
-
-### Instalacion
-
-```bash
-npm install
-```
-
-### Servidor de desarrollo
-
-```bash
-npm run dev
-```
-
-Rutas utiles en local:
-
-- `http://localhost:4321/`
-- `http://localhost:4321/menu/`
-- `http://localhost:4321/menu/corpo/`
-- `http://localhost:4321/menu/teleinde/`
-- `http://localhost:4321/admin/`
-
-### Preview de build
-
-```bash
-npm run preview
-```
-
-## Validacion
-
-Antes de considerar completa una modificacion, ejecutar:
-
-```bash
-npm run build
-npm run check
-```
-
-Estos comandos son la validacion minima del proyecto.
-
-## Despliegue
-
-La fase actual esta preparada para despliegue estatico en **Vercel**. El proyecto es static-first con extensiones cliente no bloqueantes.
-
-Restricciones de esta etapa:
-
-- no hay SSR
-- no hay adapter de servidor
-- no hay funciones server-side
-- no hay CMS activo
-- no hay escritura editorial desde `/admin/` ni desde el sitio publico
-- Supabase no es CMS, no es backend principal y no es fuente de verdad del menu
-
 ## Estado editorial
 
 No hay CMS activo en esta etapa. El contenido se edita actualmente como YAML versionado en `src/content/`, con YAML como fuente de verdad del menu, GitHub como fuente versionada y Vercel como destino de deploy estatico.
@@ -343,7 +337,22 @@ El repo ya no incluye:
 - templates de correo del stack anterior
 - configuracion de deploy repo-managed del stack anterior
 
-## Fuera de alcance actual
+**Keystatic** queda como candidato preliminar para una fase editorial posterior, pero no es una decision cerrada.
+
+## Despliegue
+
+La fase actual esta preparada para despliegue estatico en **Vercel**. El proyecto es static-first con extensiones cliente no bloqueantes.
+
+Restricciones de esta etapa:
+
+- no hay SSR
+- no hay adapter de servidor
+- no hay funciones server-side
+- no hay CMS activo
+- no hay escritura editorial desde `/admin/` ni desde el sitio publico
+- Supabase no es CMS, no es backend principal y no es fuente de verdad del menu
+
+## Fuera de alcance
 
 No agregar estas capacidades salvo pedido explicito:
 
@@ -361,9 +370,9 @@ No agregar estas capacidades salvo pedido explicito:
 
 - Se usa **Astro 5** para mantener compatibilidad con **Node 20**.
 - Se usa **Tailwind CSS 4** mediante el plugin de Vite.
-- El sitio sigue siendo **static-first**: Static-first permite extensiones cliente no bloqueantes.
+- El sitio sigue siendo **static-first** con extensiones cliente no bloqueantes.
 - La superficie publica prioritaria es `/menu/corpo/`.
-- `/menu/teleinde/` esta activo como parte de la migracion multi-locacion.
+- `/menu/teleinde/` esta activo como parte del modelo multi-locacion.
 - `/menu/` queda como placeholder de entrada general para menus.
 - YAML es la fuente de verdad del menu.
 - Supabase es solo overlay de disponibilidad.
@@ -373,3 +382,9 @@ No agregar estas capacidades salvo pedido explicito:
 - **Keystatic** sigue fuera de alcance en esta etapa y queda como candidato preliminar, no como decision cerrada.
 - Los nombres tecnicos, archivos y componentes estan en **ingles**.
 - El contenido visible para usuarios esta en **espanol**.
+
+## Proceso de trabajo
+
+El proyecto se desarrolla con iteracion asistida por Codex, prompts estructurados y validacion mediante `npm run build` y `npm run check`.
+
+El uso de Codex no reemplaza criterios tecnicos. Las decisiones de arquitectura, producto y alcance se mantienen explicitas en la documentacion del proyecto.
