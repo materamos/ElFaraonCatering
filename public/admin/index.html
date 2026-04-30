@@ -59,8 +59,8 @@
       }
 
       .actions {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr));
         gap: 0.75rem;
         margin-top: 1.5rem;
       }
@@ -69,9 +69,14 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 3.25rem;
         border-radius: 999px;
         padding: 0.85rem 1.2rem;
         font-weight: 700;
+        line-height: 1.2;
+        text-align: center;
         text-decoration: none;
       }
 
