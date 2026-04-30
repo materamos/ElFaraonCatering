@@ -19,17 +19,5 @@ export const getPricingText = (value: MenuPricing) => {
   return null;
 };
 
-export const getPricingSummary = (pricing?: MenuPricing) => {
-  if (!pricing) {
-    return null;
-  }
-
-  if (pricing.kind === "variants") {
-    return "Seg\u00fan modalidad";
-  }
-
-  return getPricingText(pricing);
-};
-
 export const getVariantPricingText = (variant: MenuPricingVariant) =>
   formatMenuAmount(variant.price.amount);
