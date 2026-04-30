@@ -20,7 +20,7 @@ items:
         amount: 9500
   - itemId: cuarto-pollo
     name: 1/4 pollo
-    available: true
+    available: false
     image: /uploads/menu-placeholders/plato-principal.svg
     pricing:
       kind: fixed
