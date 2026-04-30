@@ -4,7 +4,7 @@ order: 20
 items:
   - itemId: milanesa-peceto
     name: Milanesa de peceto
-    available: true
+    available: false
     image: /uploads/menu-placeholders/plato-principal.svg
     pricing:
       kind: fixed
