@@ -12,23 +12,18 @@ groups:
       - itemId: coca-cola
         name: Coca-Cola
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
       - itemId: coca-cola-zero
         name: Coca-Cola Zero
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
       - itemId: fanta
         name: Fanta
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
       - itemId: sprite
         name: Sprite
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
       - itemId: sprite-zero
         name: Sprite Zero
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
   - groupId: linea-pepsi
     title: Linea Pepsi
     pricing:
@@ -39,23 +34,18 @@ groups:
       - itemId: pepsi
         name: Pepsi
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
       - itemId: pepsi-black
         name: Pepsi Black
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
       - itemId: seven-up
         name: 7Up
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
       - itemId: seven-up-free
         name: 7Up Free
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
       - itemId: paso-toros-pomelo
         name: Paso de los Toros Pomelo
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
   - groupId: linea-cunnington
     title: Linea Cunnington
     pricing:
@@ -66,15 +56,12 @@ groups:
       - itemId: cunnington-pomelo
         name: Cunnington Pomelo
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
       - itemId: cunnington-tonica
         name: Cunnington Tonica
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
       - itemId: cunnington-tonica-zero
         name: Cunnington Tonica Zero
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
   - groupId: linea-levite
     title: Linea Levite
     pricing:
@@ -85,19 +72,15 @@ groups:
       - itemId: levite-pomelo
         name: Levite Pomelo
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
       - itemId: levite-manzana
         name: Levite Manzana
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
       - itemId: levite-naranja
         name: Levite Naranja
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
       - itemId: levite-pera
         name: Levite Pera
         available: true
-        image: /uploads/menu-placeholders/bebida-gaseosa.svg
   - groupId: aguas
     title: Aguas
     pricing:
@@ -108,11 +91,9 @@ groups:
       - itemId: villavicencio-sin-gas
         name: Villavicencio sin gas
         available: true
-        image: /uploads/menu-placeholders/bebida-agua.svg
       - itemId: villavicencio-con-gas
         name: Villavicencio con gas
         available: true
-        image: /uploads/menu-placeholders/bebida-agua.svg
   - groupId: gatorade
     title: Gatorade
     pricing:
@@ -123,8 +104,6 @@ groups:
       - itemId: gatorade-manzana
         name: Gatorade Manzana
         available: true
-        image: /uploads/menu-placeholders/gatorade.svg
       - itemId: gatorade-frutos-rojos
         name: Gatorade Frutos Rojos
         available: true
-        image: /uploads/menu-placeholders/gatorade.svg
