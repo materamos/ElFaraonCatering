@@ -1,6 +1,6 @@
 ---
 import type { MenuItem, MenuOption, MenuPricing, MenuPricingVariant } from "../types/menu";
-import { getSafeMenuImagePath } from "../utils/menuImage";
+import { getMenuPhotoImagePath } from "../utils/menuImage";
 import { getPricingText, getVariantPricingText } from "../utils/menuPricing";
 
 interface Props {
@@ -34,7 +34,7 @@ const {
   image,
   hideHeading = false,
 } = Astro.props;
-const safeImage = getSafeMenuImagePath(image);
+const photoImage = getMenuPhotoImagePath(image);
 const effectivePricing = pricing ?? inheritedPricing;
 const pricingLabel = "Precio";
 
@@ -104,16 +104,16 @@ const directPricingText =
   )}
 
   <div class="mt-auto space-y-3">
-    {safeImage && (
+    {photoImage && (
       <a
         class="photo-button"
-        href={safeImage}
+        href={photoImage}
         target="_blank"
         rel="noopener noreferrer"
         aria-haspopup="dialog"
         data-photo-trigger
         data-photo-name={name}
-        data-photo-src={safeImage}
+        data-photo-src={photoImage}
       >
         Ver foto
       </a>

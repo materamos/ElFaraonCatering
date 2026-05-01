@@ -1,6 +1,7 @@
 import { z } from "astro/zod";
 
 const uploadsBasePath = "/uploads/";
+const menuPlaceholderBasePath = "/uploads/menu-placeholders/";
 const allowedMenuImageExtensions = [".avif", ".jpeg", ".jpg", ".png", ".svg", ".webp"] as const;
 
 const isSafeMenuImagePath = (value: string): boolean => {
@@ -45,6 +46,16 @@ export const getSafeMenuImagePath = (value?: string): string | undefined => {
   const trimmedValue = value.trim();
 
   return isSafeMenuImagePath(trimmedValue) ? trimmedValue : undefined;
+};
+
+export const getMenuPhotoImagePath = (value?: string): string | undefined => {
+  const safeImagePath = getSafeMenuImagePath(value);
+
+  if (!safeImagePath || safeImagePath.startsWith(menuPlaceholderBasePath)) {
+    return undefined;
+  }
+
+  return safeImagePath;
 };
 
 export const menuImageSchema = z.preprocess(
