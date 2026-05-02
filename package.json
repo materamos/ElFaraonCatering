@@ -11,7 +11,11 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "node --max-old-space-size=8192 ./node_modules/astro/astro.js check"
+    "check": "node --max-old-space-size=8192 ./node_modules/astro/astro.js check",
+    "menu:import:dry-run": "node scripts/import-menu-yaml-to-supabase.mjs --dry-run",
+    "menu:import:apply": "node scripts/import-menu-yaml-to-supabase.mjs --apply",
+    "menu:compare": "node scripts/compare-menu-content.mjs",
+    "verify:dist-secrets": "node scripts/verify-dist-secrets.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",
@@ -20,6 +24,8 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.8",
-    "typescript": "^5.9.2"
+    "postgres": "^3.4.9",
+    "typescript": "^5.9.2",
+    "yaml": "^2.8.3"
   }
 }

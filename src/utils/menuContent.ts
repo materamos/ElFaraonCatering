@@ -1,6 +1,7 @@
 import { getCollection } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 import type { MenuPricing } from "../types/menu";
+import { loadSupabaseMenuContentSnapshot } from "./menuSupabaseContent";
 
 type MenuProfileEntry = CollectionEntry<"menu-profiles">;
 type MenuOverrideEntry = CollectionEntry<"menu-overrides">;
@@ -36,6 +37,16 @@ interface MenuOverrideData {
   sections: MenuSectionOverride[];
 }
 
+interface MenuProfileRecord {
+  id: string;
+  data: MenuProfileEntry["data"];
+}
+
+interface MenuDailySectionRecord {
+  id: string;
+  data: MenuDailySectionEntry["data"];
+}
+
 interface MenuCatalogItem {
   itemId: string;
   available: boolean;
@@ -52,17 +63,18 @@ interface MenuCatalogGroup {
 }
 
 interface MenuContentSnapshot {
-  profiles: MenuProfileEntry[];
+  profiles: MenuProfileRecord[];
   overrides: MenuOverrideData[];
   catalogSections: MenuCatalogSectionData[];
-  dailyEntries: MenuDailySectionEntry[];
+  dailyEntries: MenuDailySectionRecord[];
 }
 
-let menuContentSnapshot: Promise<MenuContentSnapshot> | undefined;
+let yamlMenuContentSnapshot: Promise<MenuContentSnapshot> | undefined;
+let supabaseMenuContentSnapshot: Promise<MenuContentSnapshot> | undefined;
 
 export const getMenuProfile = async (menuId: string) => {
-  const { profiles } = await getValidatedMenuContent();
-  const profile = profiles.find((entry: MenuProfileEntry) => entry.data.id === menuId);
+  const { profiles } = await getActiveMenuContent();
+  const profile = profiles.find((entry: MenuProfileRecord) => entry.data.id === menuId);
 
   if (!profile) {
     throw new Error(`Menu profile not found: ${menuId}`);
@@ -72,8 +84,8 @@ export const getMenuProfile = async (menuId: string) => {
 };
 
 export const getMenuSections = async (menuId: string) => {
-  const { catalogSections, dailyEntries, overrides } = await getValidatedMenuContent();
-  const dailyEntry = dailyEntries.find((entry: MenuDailySectionEntry) => entry.id === menuId);
+  const { catalogSections, dailyEntries, overrides } = await getActiveMenuContent();
+  const dailyEntry = dailyEntries.find((entry: MenuDailySectionRecord) => entry.id === menuId);
 
   if (!dailyEntry) {
     throw new Error(`Daily menu section not found: ${menuId}`);
@@ -87,21 +99,57 @@ export const getMenuSections = async (menuId: string) => {
   ] satisfies MenuSectionData[];
 };
 
-const getValidatedMenuContent = async () => {
-  menuContentSnapshot ??= loadValidatedMenuContent();
+const getActiveMenuContent = async () => {
+  const source = getMenuContentSource();
 
-  return menuContentSnapshot;
+  if (source === "supabase") {
+    supabaseMenuContentSnapshot ??= loadSupabaseMenuContentSnapshot().then((snapshot) => {
+      validateMenuContentIntegrity(snapshot);
+
+      return snapshot;
+    });
+
+    return supabaseMenuContentSnapshot;
+  }
+
+  return getValidatedMenuContent();
+};
+
+const getMenuContentSource = () => {
+  const source = import.meta.env.MENU_CONTENT_SOURCE?.trim() || "yaml";
+
+  if (source !== "yaml" && source !== "supabase") {
+    throw new Error(`Unsupported MENU_CONTENT_SOURCE: ${source}`);
+  }
+
+  return source;
+};
+
+const getValidatedMenuContent = async () => {
+  yamlMenuContentSnapshot ??= loadValidatedMenuContent();
+
+  return yamlMenuContentSnapshot;
 };
 
 const loadValidatedMenuContent = async () => {
-  const [profiles, overrideEntries, catalogEntries, dailyEntries] = await Promise.all([
+  const [profileEntries, overrideEntries, catalogEntries, dailySectionEntries] = await Promise.all([
     getCollection("menu-profiles"),
     getCollection("menu-overrides"),
     getCollection("menu-catalog-sections"),
     getCollection("menu-daily-sections"),
   ]);
+  const profiles = profileEntries.map((entry: MenuProfileEntry): MenuProfileRecord => ({
+    id: entry.id,
+    data: entry.data,
+  }));
   const overrides = overrideEntries.map(
     (entry: MenuOverrideEntry): MenuOverrideData => entry.data as MenuOverrideData,
+  );
+  const dailyEntries = dailySectionEntries.map(
+    (entry: MenuDailySectionEntry): MenuDailySectionRecord => ({
+      id: entry.id,
+      data: entry.data,
+    }),
   );
   const catalogSections = catalogEntries
     .map((section: MenuCatalogSectionEntry): MenuCatalogSectionEntry["data"] => section.data)
@@ -220,7 +268,7 @@ const validateMenuContentIntegrity = ({
   catalogSections,
   dailyEntries,
 }: MenuContentSnapshot) => {
-  const profileIds = profiles.map((entry: MenuProfileEntry) => entry.data.id);
+  const profileIds = profiles.map((entry: MenuProfileRecord) => entry.data.id);
   const profileIdSet = new Set(profileIds);
 
   assertUniqueIds(profileIds, "menu profile id");
