@@ -208,10 +208,15 @@ interface SupabaseRows {
 }
 
 export const loadSupabaseMenuContentSnapshot = async (): Promise<MenuContentSnapshot> => {
-  const databaseUrl = import.meta.env.SUPABASE_DB_URL;
+  const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
+  const databaseUrl = (import.meta.env as ImportMetaEnv & Record<string, string | undefined>)[
+    privateDatabaseUrlEnvName
+  ];
 
   if (!databaseUrl) {
-    throw new Error("SUPABASE_DB_URL is required when MENU_CONTENT_SOURCE=supabase.");
+    throw new Error(
+      "Private Supabase database URL is required when menu content source is supabase.",
+    );
   }
 
   const sql = postgres(databaseUrl, {

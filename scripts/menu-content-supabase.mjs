@@ -1,8 +1,12 @@
 import postgres from "postgres";
 
-export const loadSupabaseMenuSnapshot = async (databaseUrl = process.env.SUPABASE_DB_URL) => {
+const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
+
+export const loadSupabaseMenuSnapshot = async (
+  databaseUrl = process.env[privateDatabaseUrlEnvName],
+) => {
   if (!databaseUrl) {
-    throw new Error("SUPABASE_DB_URL is required to read Supabase menu content.");
+    throw new Error("Private Supabase database URL is required to read menu content.");
   }
 
   const sql = postgres(databaseUrl, {

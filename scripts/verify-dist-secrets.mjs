@@ -3,13 +3,16 @@ import path from "node:path";
 
 const rootDir = process.cwd();
 const distDir = path.join(rootDir, "dist");
-const sensitiveNamePattern =
-  /(?:SUPABASE_DB_URL|DATABASE_URL|POSTGRES|SERVICE_ROLE|SECRET|TOKEN|PASSWORD|PRIVATE|CREDENTIAL|API_KEY|AUTH)/i;
+const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
+const sensitiveNamePattern = new RegExp(
+  `(?:${privateDatabaseUrlEnvName}|DATABASE_URL|POSTGRES|SERVICE_ROLE|SECRET|TOKEN|PASSWORD|PRIVATE|CREDENTIAL|API_KEY|AUTH)`,
+  "i",
+);
 
 const markers = [
   {
-    label: "SUPABASE_DB_URL marker",
-    value: "SUPABASE_DB_URL",
+    label: "private database URL marker",
+    value: privateDatabaseUrlEnvName,
   },
   ...Object.entries(process.env)
     .filter(([name, value]) => {

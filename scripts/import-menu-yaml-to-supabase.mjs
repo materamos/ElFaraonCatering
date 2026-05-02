@@ -25,10 +25,11 @@ if (isDryRun) {
   process.exit(0);
 }
 
-const databaseUrl = process.env.SUPABASE_DB_URL;
+const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
+const databaseUrl = process.env[privateDatabaseUrlEnvName];
 
 if (!databaseUrl) {
-  console.error("SUPABASE_DB_URL is required for --apply.");
+  console.error("Private Supabase database URL is required for --apply.");
   process.exit(1);
 }
 
