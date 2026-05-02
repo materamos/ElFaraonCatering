@@ -209,9 +209,7 @@ interface SupabaseRows {
 
 export const loadSupabaseMenuContentSnapshot = async (): Promise<MenuContentSnapshot> => {
   const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
-  const databaseUrl = (import.meta.env as ImportMetaEnv & Record<string, string | undefined>)[
-    privateDatabaseUrlEnvName
-  ];
+  const databaseUrl = getPrivateEnvironmentValue(privateDatabaseUrlEnvName);
 
   if (!databaseUrl) {
     throw new Error(
@@ -230,6 +228,15 @@ export const loadSupabaseMenuContentSnapshot = async (): Promise<MenuContentSnap
     await sql.end();
   }
 };
+
+const getPrivateEnvironmentValue = (name: string): string | undefined =>
+  (
+    globalThis as typeof globalThis & {
+      process?: {
+        env?: Record<string, string | undefined>;
+      };
+    }
+  ).process?.env?.[name];
 
 const loadRows = async (sql: ReturnType<typeof postgres>): Promise<SupabaseRows> => {
   const [
