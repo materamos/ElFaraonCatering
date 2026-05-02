@@ -73,7 +73,8 @@ Tambien incluye:
 - overrides acotados por menu
 - soporte opcional para imagenes locales de items del menu
 - dialog liviano para ver fotos desde los menus publicos
-- Supabase como overlay operativo actual y posible fuente de datos en build time en una fase posterior
+- Supabase como overlay operativo de disponibilidad
+- scripts preparatorios para proyectar/importar estructura YAML a Supabase sin cambiar la fuente de verdad actual
 - placeholder estatico para `/admin/`
 
 ## Desarrollo local
@@ -110,6 +111,21 @@ Rutas utiles en local:
 ```bash
 npm run preview
 ```
+
+## Scripts npm
+
+| Script | Uso |
+| --- | --- |
+| `npm run dev` | Levanta Astro en desarrollo. |
+| `npm run build` | Genera el sitio estatico en `dist/`. |
+| `npm run check` | Ejecuta `astro check` con limite de memoria ampliado. |
+| `npm run preview` | Sirve el build localmente para revision. |
+| `npm run menu:import:dry-run` | Proyecta el contenido YAML a filas estructurales y muestra conteos sin tocar la base. |
+| `npm run menu:import:apply` | Importa la proyeccion YAML a tablas `menu_content` en Supabase. Requiere `SUPABASE_DB_URL`. |
+| `npm run menu:compare` | Compara la proyeccion YAML con el snapshot de Supabase. Requiere `SUPABASE_DB_URL`. |
+| `npm run verify:dist-secrets` | Revisa `dist/` para detectar marcadores de secretos despues del build. |
+
+Los scripts `menu:*` son preparatorios para una posible fase YAML -> Supabase. No convierten Supabase en CMS activo ni cambian la fuente de verdad del menu.
 
 ## Validacion
 
@@ -162,8 +178,15 @@ public/
   scripts/
     menu-photo-sheet.js
   uploads/
+scripts/
+  compare-menu-content.mjs
+  import-menu-yaml-to-supabase.mjs
+  menu-content-data.mjs
+  menu-content-supabase.mjs
+  verify-dist-secrets.mjs
 docs/
   supabase-availability-overlay.sql
+  supabase-menu-schema.sql
 .nvmrc
 astro.config.mjs
 package.json
@@ -321,7 +344,30 @@ PUBLIC_SUPABASE_URL=
 PUBLIC_SUPABASE_ANON_KEY=
 ```
 
-El SQL inicial para crear tablas y politicas esta en `docs/supabase-availability-overlay.sql`. Ese archivo puede contener piezas preparatorias de auth/escritura para una futura administracion del overlay de disponibilidad, pero eso no significa que exista CMS activo ni `/admin/` funcional.
+Variable privada usada solo por scripts locales o de entorno controlado:
+
+```bash
+SUPABASE_DB_URL=
+```
+
+`SUPABASE_DB_URL` no debe exponerse al cliente ni formar parte de variables `PUBLIC_*`.
+
+### SQL disponible
+
+- `docs/supabase-availability-overlay.sql`: crea la base del overlay runtime de disponibilidad. Es el soporte de la extension cliente que lee disponibilidad operativa.
+- `docs/supabase-menu-schema.sql`: crea el schema estructural `menu_content` para proyectar perfiles, secciones, grupos, items, precios, opciones y overrides desde YAML hacia Supabase en una fase preparatoria.
+
+Estos SQL no significan que Supabase sea CMS activo ni fuente de verdad vigente. El sitio publico sigue funcionando con YAML y build estatico.
+
+### Scripts preparatorios YAML -> Supabase
+
+Los scripts `menu:*` existen para validar una posible migracion futura de estructura de menu hacia Supabase:
+
+- `npm run menu:import:dry-run` lee YAML, proyecta filas estructurales y muestra conteos sin escribir en la base.
+- `npm run menu:import:apply` requiere `SUPABASE_DB_URL`, trunca las tablas estructurales `menu_content` y carga la proyeccion YAML.
+- `npm run menu:compare` requiere `SUPABASE_DB_URL` y compara el resultado visible proyectado desde YAML contra el snapshot leido desde Supabase.
+
+Estos scripts no deben usarse para presentar Supabase como fuente de verdad activa. Mientras no exista una decision explicita de migracion editorial, YAML sigue mandando.
 
 ### Evolucion prevista
 
@@ -338,6 +384,8 @@ No hay CMS activo en esta etapa. El contenido se edita actualmente como YAML ver
 Supabase queda limitado al estado operativo de disponibilidad consumido por el overlay cliente. No administra perfiles, catalogo, menu diario, precios, textos, imagenes ni contenido editorial.
 
 Una futura migracion de Supabase a fuente de verdad requeriria una capa editorial o administrativa, pero esa capa no existe en la etapa actual.
+
+El schema `menu_content` y los scripts `menu:*` son piezas preparatorias para comparar y cargar estructura de menu. No reemplazan el flujo editorial vigente ni habilitan edicion desde `/admin/`.
 
 El repo ya no incluye:
 
@@ -388,6 +436,7 @@ No agregar estas capacidades salvo pedido explicito:
 - Supabase es solo overlay de disponibilidad.
 - El sistema funciona completamente sin Supabase.
 - La migracion de YAML a Supabase, si se implementa, debe preservar el enfoque static-first separando datos de build time y overlays runtime.
+- Los scripts `menu:*` son herramientas preparatorias de comparacion/importacion, no una decision de migracion.
 - `/admin/` se mantiene como placeholder estatico en `public/admin/`.
 - `vercel.json` conserva la canonicalizacion de `/menu`, `/menu/corpo`, `/menu/teleinde` y `/admin`.
 - **Keystatic** sigue fuera de alcance en esta etapa y queda como candidato preliminar, no como decision cerrada.

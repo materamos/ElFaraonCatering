@@ -1,137 +1,50 @@
 # AGENTS.md
 
-## Project Overview
+## Role
 
-This repository contains the source code for the **El Faraon Catering digital menu system**.
+Act as a pragmatic and precise software engineering assistant for the El Faraon Catering digital menu system.
 
-The project supports operational buffet menus for multiple locations operated by **El Faraon Catering**. `/menu/corpo/` is the primary operational menu, and `/menu/teleinde/` is active as part of the multi-location migration.
+Keep changes correct, maintainable, minimal, and aligned with the existing Astro/YAML/static-first architecture.
 
-This project has two clearly separated business surfaces:
-
-1. **Operational buffet menu** accessed mainly through QR codes
-2. **Future institutional catering website**
-
-The current development focus is the **QR menu experience**, not the institutional website.
+`README.md` is the human project manual. This file is the operational rulebook for agents making future changes.
 
 ---
 
-## Current Baseline
+## Current Project Baseline
 
-The repository currently contains a working technical base with:
+The active product surface is the operational QR menu, not the future institutional website.
 
-- **Astro 5**
-- **TypeScript**
-- **Tailwind CSS 4**
-- **Astro Content Collections**
-- **YAML content files**
-- **Node 20 LTS**
-- **npm**
-- **Static `/admin` placeholder**
-- **Optional local menu images under `/uploads/`**
-- **Lightweight menu photo dialog served by `public/scripts/menu-photo-sheet.js`**
-- **Supabase availability overlay consumed by client-side JavaScript**
-
-Implemented routes:
+Current routes:
 
 - `/` -> future institutional placeholder
 - `/menu/` -> future operational menu index placeholder
 - `/menu/corpo/` -> primary operational QR menu
-- `/menu/teleinde/` -> active operational QR menu in the multi-location migration
-- `/admin` -> reserved placeholder served from `public/admin/`
+- `/menu/teleinde/` -> active operational QR menu in the multi-location model
+- `/admin/` -> static placeholder served from `public/admin/index.html`
 
-Implemented content collections:
+Current stack:
 
-- `menu-profiles`
-- `menu-daily-sections`
-- `menu-catalog-sections`
-- `menu-overrides`
+- Astro 5
+- TypeScript
+- Tailwind CSS 4
+- Astro Content Collections
+- YAML content files
+- Node 20 LTS
+- npm
+- Vercel static deployment
 
-Current menu section schema for daily and catalog sections:
+Current source of truth:
 
-- `sectionId: string`
-- `title: string`
-- `description?: string`
-- `note?: string`
-- `order: number`
-- `items?: MenuItem[]`
-- `groups?: MenuGroup[]`
-
-Each section must define exactly one of:
-
-- `items`
-- `groups`
-
-Current menu item schema:
-
-- `name: string`
-- `description?: string`
-- `note?: string`
-- `available: boolean`
-- `pricing?: Pricing`
-- `options?: MenuOption[]`
-- `image?: string`
-
-Current pricing model:
-
-- `fixed` with numeric `price.amount`
-- `included`
-- `variants` with flat variants and numeric `price.amount`
-
-Pricing rules:
-
-- Direct section items must define `pricing`
-- Groups may define shared `pricing`
-- Items inside a priced group may omit `pricing` and inherit the group price
-- Items inside a group may define `pricing` as an override
-- If a group has no shared `pricing`, each item in the group must define `pricing`
-- Variants must not contain nested `pricing` or nested variants
-- Pricing amounts must be numeric and must not use free-text labels or pending states
-
-Current image support:
-
-- Images are optional and must be local public paths under `/uploads/`
-- Allowed extensions are `.avif`, `.jpeg`, `.jpg`, `.png`, `.svg`, and `.webp`
-- External URLs, data URLs, query strings, and fragments are not allowed
-- SVG files should remain limited to controlled local placeholders or assets
-
-Important compatibility note:
-
-- Keep the project compatible with **Node 20**
-- Prefer staying on **Astro 5** unless the runtime requirement is intentionally upgraded
-- Do not switch to tooling that requires Node 22+ unless explicitly requested
-- Keep `/admin` served from static files under `public/admin/`; do not reintroduce an Astro page at the same route
-
-Important migration note:
-
-- The previous CMS and admin stack were intentionally removed
-- There is currently **no active CMS** inside the repo
-- The current hosting phase targets **Vercel** static deployment with static-first progressive client extensions
-- **Keystatic** is a preliminary candidate for a later editorial phase, not a final decision
-- Do not reintroduce the previous CMS, auth, or repo-writing admin flow unless explicitly requested
-- Supabase is only the availability overlay. It is not the CMS, not the primary backend, and not the structural source of truth.
-- If a future YAML-to-Supabase migration is explicitly requested, preserve the static-first model by separating stable shared menu data read at build time from frequent operational data applied as a non-blocking runtime overlay.
+- YAML is the source of truth for menu profiles, catalog sections, daily sections, prices, copy, options, overrides, and local image paths.
+- Supabase is only a progressive availability overlay plus preparatory migration tooling.
+- The system must work completely without Supabase.
+- There is no active CMS in the repo.
 
 ---
 
-## Core Product Intent
+## Non-Negotiable Scope Rules
 
-The system must provide a **fast, mobile-first, low-maintenance digital menu**. The future editorial goal is that non-technical staff can update it through a CMS.
-
-The menu is **informational only** in the current phase.
-
-In the current phase there is no active CMS in the repo. YAML is the source of truth for the menu. Content is edited directly through YAML files in `src/content/` using the active collections `menu-profiles`, `menu-daily-sections`, `menu-catalog-sections`, and `menu-overrides`. Keystatic is a preliminary future CMS candidate, not a final decision.
-
-Supabase is only an availability overlay. The system works completely without Supabase; if the client overlay cannot load, the menu keeps the availability state from YAML.
-
-Canonical project definitions:
-
-- YAML es la fuente de verdad del menu.
-- Supabase es solo overlay de disponibilidad.
-- El sistema funciona completamente sin Supabase.
-- Static-first permite extensiones cliente no bloqueantes.
-- Una futura migracion YAML -> Supabase debe separar datos estables de build time y overlays operativos runtime.
-
-Do **not** add features such as:
+Do not add these capabilities unless explicitly requested:
 
 - online ordering
 - checkout or payments
@@ -139,302 +52,125 @@ Do **not** add features such as:
 - reservations
 - user accounts
 - cart flows
+- SSR
+- server output
+- serverless functions
+- CMS code, auth, or repo-writing admin flows
 
-Unless explicitly requested.
+Keep `/admin/` as a static placeholder under `public/admin/index.html`. Do not reintroduce an Astro page at the same route while it remains a placeholder.
 
----
+Keep the project compatible with Node 20 and Astro 5 unless the runtime upgrade is explicitly requested.
 
-## Tech Stack
-
-Use the following stack unless explicitly instructed otherwise:
-
-- **Astro**
-- **TypeScript**
-- **Tailwind CSS**
-- **Astro Content Collections**
-- **YAML content files**
-- **GitHub**
-- **Node 20 LTS**
-- **npm**
-
-Current direction notes:
-
-- The repo is static-first with progressive client extensions
-- Static-first allows non-blocking client extensions
-- Do not add SSR, server output, adapters, Vercel functions, or CMS code in this phase unless explicitly requested
-- A future editorial migration may evaluate **Keystatic** after Vercel hosting is stable
-
-Do not introduce alternative frameworks, runtimes, or package managers unless explicitly requested.
+Use npm only. Do not switch to pnpm, yarn, bun, or another runtime/package manager.
 
 ---
 
-## Package Manager and Runtime
+## Language and Naming Rules
 
-- Use **npm**
-- Assume **Node 20 LTS**
-- Do not switch to pnpm, yarn, bun, or other runtimes
-- Do not add tooling that requires a different runtime model
-
----
-
-## Codebase Language Rules
-
-- All **code**, **file names**, **component names**, **variables**, **types**, **schemas**, **comments**, and **internal identifiers** must be in **English**
-- All **user-facing content** must be in **Spanish**, unless multilingual support is explicitly requested later
-
-Do not mix Spanish and English in code structure.
+- Code, file names, component names, variables, types, schemas, comments, and internal identifiers must be in English.
+- User-facing content must be in Spanish unless multilingual support is explicitly requested.
+- Use ASCII-only code-facing text.
+- Do not use accents, the letter n with tilde, emojis, or unnecessary unicode in code, IDs, logs, config keys, file names, or machine-parsed strings.
+- Keep technical IDs ASCII/kebab-case and stable. Do not derive IDs from visible names at runtime.
 
 ---
 
-## Routing Structure
+## Content Rules
 
-The project must support the following route structure:
+Use Astro Content Collections under `src/content/`.
 
-- `/` -> future institutional landing page
-- `/menu` -> future operational menu index placeholder
-- `/menu/corpo/` -> primary operational QR menu
-- `/menu/teleinde/` -> active operational QR menu in the multi-location migration
-- `/admin` -> future editorial entrypoint placeholder
+Active collections:
 
-### Routing constraints
+- `menu-profiles`
+- `menu-daily-sections`
+- `menu-catalog-sections`
+- `menu-overrides`
 
-- `/menu/corpo/` is the current primary product surface
-- `/menu/teleinde/` is active and should remain supported as part of the multi-location model
-- `/menu` should remain a placeholder/index surface unless explicitly changed
-- `/menu` should keep the canonical redirect to `/menu/` in host configuration
-- `/menu/corpo` should keep the canonical redirect to `/menu/corpo/` in host configuration
-- `/menu/teleinde` should keep the canonical redirect to `/menu/teleinde/` in host configuration
-- `/` must be treated as a future-facing institutional surface
-- `/admin` is reserved for CMS access, even while the CMS is temporarily absent
-- `/admin` should stay implemented via `public/admin/index.html`
-- `/admin` should keep the canonical redirect to `/admin/` in host configuration
-- Do not couple `/menu` to the institutional site unnecessarily
-- Do not assume the institutional landing page must link directly to `/menu`
-- Do not design the buffet menu as if it were a public restaurant website
+Daily and catalog sections must define exactly one of:
 
----
+- `items`
+- `groups`
 
-## Product Scope
+Pricing rules:
 
-The menu system must support these content groups:
+- Direct section items must define `pricing`.
+- Groups may define shared `pricing`.
+- Items inside a priced group may omit `pricing` and inherit the group price.
+- Items inside a group may define `pricing` as an override.
+- If a group has no shared `pricing`, each item in that group must define `pricing`.
+- Supported pricing kinds are `fixed`, `included`, and flat `variants`.
+- Price amounts must be numeric in `price.amount`.
+- Do not use free-text price labels or pending price states.
 
-- **Day menus**
-- **Main dishes with side dish**
-- **Minutas, pies, and omelettes**
-- **Empanadas**
-- **Salads**
-- **Side dishes**
-- **Breakfast and snack**
-- **Promotions**
-- **Beverages grouped by line**
-- **Availability state**
-- **Fixed, included, and variant prices**
-- **Images** (optional local support under `/uploads/`)
+Override rules:
 
-The system is for a buffet menu with a limited catalog. Avoid solutions designed for large restaurant platforms or e-commerce catalogs.
+- Overrides may only adjust `available`, `pricing`, and `note` for existing groups/items.
+- Overrides must point to existing IDs.
+- Overrides must not create new catalog structure.
+
+Image rules:
+
+- Menu item images are optional.
+- Store images under `public/uploads/`.
+- Reference images with public paths like `/uploads/example.webp`.
+- Do not allow external URLs, data URLs, query strings, fragments, backslashes, empty path segments, `.`, or `..`.
+- Allowed extensions are `.avif`, `.jpeg`, `.jpg`, `.png`, `.svg`, and `.webp`.
+- Keep SVG usage limited to repo-controlled placeholders or assets.
 
 ---
 
-## Content Architecture
+## Supabase Rules
 
-Use **Astro Content Collections** under `src/content/`.
+Supabase is not the CMS, not the primary backend, and not the current structural source of truth.
 
-Use **YAML** as the content format.
+Runtime overlay:
 
-YAML is the source of truth for the menu: profiles, catalog, daily menus, prices, visible text, options, structural overrides, and local image paths.
+- `docs/supabase-availability-overlay.sql` supports the availability overlay.
+- Public client variables are `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.
+- The overlay may only change visual availability through availability data.
+- If Supabase is missing, unavailable, or returns invalid data, the YAML state must remain usable.
+- Do not add `@supabase/supabase-js` for the current overlay unless explicitly justified.
 
-In the current phase, YAML remains the source of truth. In a future phase, Supabase may feed the stable shared catalog at build time: sections, groups, items, base prices, variants, options, images, and display order. Availability, daily menus, operational notes, and temporary per-location changes should remain runtime overlays.
+Preparatory structural tooling:
 
-Active content collections:
+- `docs/supabase-menu-schema.sql` defines the preparatory `menu_content` schema.
+- `npm run menu:import:dry-run` projects YAML to structural rows without writing to the database.
+- `npm run menu:import:apply` writes the YAML projection to `menu_content` and requires `SUPABASE_DB_URL`.
+- `npm run menu:compare` compares YAML projection with Supabase and requires `SUPABASE_DB_URL`.
+- These scripts do not make Supabase the active source of truth.
+- Do not present the scripts or SQL as an active CMS or active editorial workflow.
+- Never expose `SUPABASE_DB_URL` to the client or any `PUBLIC_*` environment variable.
 
-- `src/content/menu-profiles/`
-- `src/content/menu-daily-sections/`
-- `src/content/menu-catalog-sections/`
-- `src/content/menu-overrides/`
-
-Catalog section YAML files should represent visible menu sections and use numeric prefixes to preserve display order, for example `20-platos-principales.yaml` and `90-bebidas.yaml`.
-
-### Content modeling principles
-
-- Keep schemas strict and typed
-- Prefer clear fields over flexible but ambiguous structures
-- Avoid overly nested data unless it provides real value
-- Keep the future editor experience simple
-- Model availability explicitly
-- Model prices explicitly
-- Keep optional images safe, local, and compatible with future CMS editing
+When touching Supabase projection logic, preserve the static-first model: stable shared menu data may be read at build time in a future migration, while operational overlays must remain non-blocking runtime extensions.
 
 ---
 
-### Image content rules
+## UI, Performance, and Architecture Rules
 
-Menu images are already supported as optional local public assets.
+The QR menu is mobile-first. Prioritize fast access, readability, low interaction cost, simple hierarchy, and practical buffet usage.
 
-- Store menu images under `public/uploads/`
-- Reference them from YAML with `/uploads/...`
-- Keep image paths local and safe; do not use external URLs or data URLs
-- Do not add query strings, fragments, backslashes, empty path segments, `.` segments, or `..` segments
-- Keep SVG usage limited to repo-controlled placeholders or assets
+Keep the operational menu visually and functionally separate from the future institutional website. Shared tokens and branding are acceptable; marketing-style landing page patterns inside `/menu` are not.
 
----
+Prefer:
 
-## CMS Rules
-
-The CMS remains a critical part of the project, even though it is temporarily absent from the repo.
-
-Current phase rule:
-
-- Do not add CMS code, auth, or repo-writing admin flows unless explicitly requested
-- Keep editing content through YAML files in `src/content/`
-- Keep `/admin/` as a static placeholder served from `public/admin/index.html`
-- Supabase is only an availability overlay consumed by the client. It does not replace YAML, does not manage prices, text, images, or menu structure, and is not an active CMS.
-- A real migration from YAML to Supabase as the source of truth would require an explicit editorial/admin layer; this note does not authorize adding CMS, auth, or writing flows in the current phase.
-- `docs/supabase-availability-overlay.sql` may contain preparatory auth/write pieces for future administration of the overlay. That does not mean there is an active CMS or functional `/admin/`.
-
-The future CMS must be able to manage:
-
-- menu sections
-- direct menu items
-- grouped menu items
-- options and variants
-- availability
-- fixed, included, and variant prices
-- images (future-ready)
-
-### CMS design constraints
-
-- The editing experience must be simple enough for non-technical staff
-- Do not expose unnecessary technical fields in the CMS
-- Prefer constrained field choices when applicable
-- Avoid content models that require editors to understand implementation details
-- Minimize editorial friction
-
-Do not design the CMS around developer convenience only. Editorial usability matters.
-
----
-
-## UI and Design Rules
-
-### Primary UX principle
-
-The QR menu is **mobile-first**.
-
-This is a hard requirement.
-
-All UI decisions must prioritize:
-
-- fast access from mobile devices
-- readability
-- low interaction cost
-- fast loading
-- clear hierarchy
-- practical use inside a buffet context
-
-### Visual separation
-
-Do **not** visually mix the future institutional catering site with the operational buffet menu.
-
-That means:
-
-- avoid overly corporate landing-page patterns inside `/menu`
-- avoid treating the menu like a brand-heavy marketing page
-- keep the buffet menu functional and operational
-- allow the institutional site to evolve later with a different content emphasis
-
-Shared design tokens are fine. Shared branding is fine. But the two surfaces must remain clearly differentiated in purpose and UX.
-
-### Component system
-
-The project should be organized around:
-
-- reusable components
-- reusable layout patterns
-- reusable UI primitives
-- a visual token base from the start
-
-This should include, where appropriate:
-
-- spacing tokens
-- typography scale
-- radius rules
-- color roles
-- elevation/shadow rules
-- layout constraints
-
-Do not hardcode one-off visual values repeatedly if they belong to the design system.
-
-At the same time, do not overengineer a full design system beyond what the project actually needs.
-
----
-
-## Styling Rules
-
-Use **Tailwind CSS**.
-
-### Tailwind expectations
-
-- Prefer reusable component abstractions for repeated UI
-- Avoid long, duplicated utility chains when a component or shared abstraction is more appropriate
-- Keep styling consistent with a token-oriented approach
-- Avoid arbitrary values unless necessary
-- Prefer maintainable composition over ad hoc styling
-
-Do not add a second styling system unless explicitly required.
-
----
-
-## Performance Rules
-
-Performance is a core requirement.
-
-Prioritize:
-
-- static output for the public menu whenever practical
-- minimal client-side JavaScript
-- non-blocking progressive client extensions, such as the photo dialog and Supabase availability overlay
-- fast page load
-- optimized images
-- simple DOM structures
-- limited interactivity unless required
-
-### Performance constraints
-
-- Do not add heavy client-side libraries without strong justification
-- Do not hydrate components unless necessary
-- Prefer Astro-first rendering patterns
-- Avoid unnecessary animations, sliders, carousels, or runtime effects
-- Treat image handling carefully, especially once food photography is added
-- Keep the site statically deployable on Vercel in this phase
-- If a future YAML-to-Supabase migration is implemented, preserve Astro-generated static pages and avoid SSR unless explicitly requested.
-
-If an implementation choice increases complexity or runtime cost, prefer the simpler and faster solution unless there is a clear functional gain.
-
----
-
-## Architecture Principles
-
-Be strict about simplicity.
-
-### Always prefer
-
-- straightforward folder structure
-- explicit naming
-- typed schemas
+- Astro-first rendering
+- static output
+- minimal client JavaScript
+- non-blocking progressive client extensions
 - reusable components where repetition exists
-- static-first implementation with non-blocking client extensions only when they serve the operational menu
-- low-maintenance decisions
+- typed schemas and explicit logic
+- simple folder structure
+- Tailwind CSS and existing local patterns
 
-### Avoid
+Avoid:
 
-- overengineering
+- heavy client-side libraries
+- unnecessary hydration
+- sliders, carousels, animations, or runtime effects without clear value
 - speculative abstractions
-- premature generalization
-- unnecessary dependencies
 - hidden magic
 - deeply coupled architecture
-- CMS models that are harder than the product needs
-
-This project should be easy to understand, easy to maintain, and easy to hand off.
+- new dependencies without strong justification
 
 ---
 
@@ -442,48 +178,41 @@ This project should be easy to understand, easy to maintain, and easy to hand of
 
 Do not add dependencies casually.
 
-A new dependency is acceptable only if it provides clear value and meaningfully reduces implementation complexity.
-
-Before adding any dependency, prefer:
+Before adding a dependency, prefer:
 
 1. Astro built-ins
 2. Tailwind utilities and composition
 3. TypeScript-native modeling
 4. simple local utilities/components
 
-Do not add libraries for problems that can be solved cleanly with the existing stack.
+A dependency is acceptable only when it clearly reduces complexity or enables a required capability that is not practical with the existing stack.
 
 ---
 
-## File and Naming Conventions
+## Documentation Rules
 
-Use explicit English names.
+Keep `README.md` and `AGENTS.md` synchronized without making them duplicates:
 
-Examples:
+- `README.md` should explain the project for humans: setup, routes, content model, scripts, Supabase notes, deployment, and decisions.
+- `AGENTS.md` should define rules for agents: scope boundaries, technical constraints, naming rules, validation, and safe handling of future migrations.
 
-- `MenuSection.astro`
-- `DishCard.astro`
-- `content.config.ts`
-- `menu-catalog-sections`
-- `menu-placeholders`
-
-Avoid vague names like:
-
-- `data`
-- `stuff`
-- `helpers2`
-- `new-component`
-- `temp`
-
-Keep naming predictable and descriptive.
+When adding scripts, environment variables, content collections, routes, or deployment behavior, update both documents if the change affects both human usage and agent constraints.
 
 ---
 
 ## Quality Gates
 
-Before considering a task complete, always run:
+Before considering a change complete, run:
 
 ```bash
 npm run build
 npm run check
 ```
+
+Additional checks:
+
+- Run `npm run verify:dist-secrets` after `npm run build` when working with environment variables or Supabase database credentials.
+- Run `npm run menu:import:dry-run` when changing YAML projection logic.
+- Run `npm run menu:compare` only when `SUPABASE_DB_URL` is intentionally available and a Supabase structural comparison is part of the task.
+
+Do not claim validation that was not performed.
