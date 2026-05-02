@@ -12,9 +12,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "node --max-old-space-size=8192 ./node_modules/astro/astro.js check",
-    "menu:import:dry-run": "node scripts/import-menu-yaml-to-supabase.mjs --dry-run",
-    "menu:import:apply": "node scripts/import-menu-yaml-to-supabase.mjs --apply",
-    "menu:compare": "node scripts/compare-menu-content.mjs",
+    "menu:validate": "node scripts/validate-menu-supabase.mjs",
     "verify:dist-secrets": "node scripts/verify-dist-secrets.mjs"
   },
   "dependencies": {
@@ -25,7 +23,6 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.8",
     "postgres": "^3.4.9",
-    "typescript": "^5.9.2",
-    "yaml": "^2.8.3"
+    "typescript": "^5.9.2"
   }
 }

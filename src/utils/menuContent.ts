@@ -1,16 +1,13 @@
-import { getCollection } from "astro:content";
-import type { CollectionEntry } from "astro:content";
-import type { MenuPricing } from "../types/menu";
+import type {
+  MenuCatalogSectionData,
+  MenuDailySectionData,
+  MenuGroup,
+  MenuItem,
+  MenuPricing,
+  MenuProfileData,
+  MenuSectionData,
+} from "../types/menu";
 import { loadSupabaseMenuContentSnapshot } from "./menuSupabaseContent";
-
-type MenuProfileEntry = CollectionEntry<"menu-profiles">;
-type MenuOverrideEntry = CollectionEntry<"menu-overrides">;
-type MenuCatalogSectionEntry = CollectionEntry<"menu-catalog-sections">;
-type MenuDailySectionEntry = CollectionEntry<"menu-daily-sections">;
-type MenuSectionData =
-  | MenuCatalogSectionEntry["data"]
-  | MenuDailySectionEntry["data"];
-type MenuCatalogSectionData = MenuCatalogSectionEntry["data"];
 
 interface MenuItemOverride {
   itemId: string;
@@ -39,27 +36,12 @@ interface MenuOverrideData {
 
 interface MenuProfileRecord {
   id: string;
-  data: MenuProfileEntry["data"];
+  data: MenuProfileData;
 }
 
 interface MenuDailySectionRecord {
   id: string;
-  data: MenuDailySectionEntry["data"];
-}
-
-interface MenuCatalogItem {
-  itemId: string;
-  available: boolean;
-  note?: string;
-  pricing?: MenuPricing;
-  options?: { id: string }[];
-}
-
-interface MenuCatalogGroup {
-  groupId: string;
-  note?: string;
-  pricing?: MenuPricing;
-  items: MenuCatalogItem[];
+  data: MenuDailySectionData;
 }
 
 interface MenuContentSnapshot {
@@ -69,29 +51,28 @@ interface MenuContentSnapshot {
   dailyEntries: MenuDailySectionRecord[];
 }
 
-let yamlMenuContentSnapshot: Promise<MenuContentSnapshot> | undefined;
 let supabaseMenuContentSnapshot: Promise<MenuContentSnapshot> | undefined;
 
 export const getMenuProfile = async (menuId: string) => {
   const { profiles } = await getActiveMenuContent();
-  const profile = profiles.find((entry: MenuProfileRecord) => entry.data.id === menuId);
+  const profile = profiles.find((entry) => entry.data.id === menuId);
 
   if (!profile) {
     throw new Error(`Menu profile not found: ${menuId}`);
   }
 
-  return profile.data satisfies MenuProfileEntry["data"];
+  return profile.data;
 };
 
 export const getMenuSections = async (menuId: string) => {
   const { catalogSections, dailyEntries, overrides } = await getActiveMenuContent();
-  const dailyEntry = dailyEntries.find((entry: MenuDailySectionRecord) => entry.id === menuId);
+  const dailyEntry = dailyEntries.find((entry) => entry.id === menuId);
 
   if (!dailyEntry) {
     throw new Error(`Daily menu section not found: ${menuId}`);
   }
 
-  const override = overrides.find((entry: MenuOverrideData) => entry.menuId === menuId);
+  const override = overrides.find((entry) => entry.menuId === menuId);
 
   return [
     dailyEntry.data,
@@ -100,79 +81,13 @@ export const getMenuSections = async (menuId: string) => {
 };
 
 const getActiveMenuContent = async () => {
-  const source = getMenuContentSource();
+  supabaseMenuContentSnapshot ??= loadSupabaseMenuContentSnapshot().then((snapshot) => {
+    validateMenuContentIntegrity(snapshot);
 
-  if (source === "supabase") {
-    supabaseMenuContentSnapshot ??= loadSupabaseMenuContentSnapshot().then((snapshot) => {
-      validateMenuContentIntegrity(snapshot);
-
-      return snapshot;
-    });
-
-    return supabaseMenuContentSnapshot;
-  }
-
-  return getValidatedMenuContent();
-};
-
-const getMenuContentSource = () => {
-  const source = import.meta.env.MENU_CONTENT_SOURCE?.trim() || "yaml";
-
-  if (source !== "yaml" && source !== "supabase") {
-    throw new Error(`Unsupported MENU_CONTENT_SOURCE: ${source}`);
-  }
-
-  return source;
-};
-
-const getValidatedMenuContent = async () => {
-  yamlMenuContentSnapshot ??= loadValidatedMenuContent();
-
-  return yamlMenuContentSnapshot;
-};
-
-const loadValidatedMenuContent = async () => {
-  const [profileEntries, overrideEntries, catalogEntries, dailySectionEntries] = await Promise.all([
-    getCollection("menu-profiles"),
-    getCollection("menu-overrides"),
-    getCollection("menu-catalog-sections"),
-    getCollection("menu-daily-sections"),
-  ]);
-  const profiles = profileEntries.map((entry: MenuProfileEntry): MenuProfileRecord => ({
-    id: entry.id,
-    data: entry.data,
-  }));
-  const overrides = overrideEntries.map(
-    (entry: MenuOverrideEntry): MenuOverrideData => entry.data as MenuOverrideData,
-  );
-  const dailyEntries = dailySectionEntries.map(
-    (entry: MenuDailySectionEntry): MenuDailySectionRecord => ({
-      id: entry.id,
-      data: entry.data,
-    }),
-  );
-  const catalogSections = catalogEntries
-    .map((section: MenuCatalogSectionEntry): MenuCatalogSectionEntry["data"] => section.data)
-    .sort(
-      (
-        left: MenuCatalogSectionEntry["data"],
-        right: MenuCatalogSectionEntry["data"],
-      ) => left.order - right.order,
-    );
-
-  validateMenuContentIntegrity({
-    profiles,
-    overrides,
-    catalogSections,
-    dailyEntries,
+    return snapshot;
   });
 
-  return {
-    profiles,
-    overrides,
-    catalogSections,
-    dailyEntries,
-  } satisfies MenuContentSnapshot;
+  return supabaseMenuContentSnapshot;
 };
 
 const applyMenuOverrides = (
@@ -184,10 +99,10 @@ const applyMenuOverrides = (
   }
 
   const sectionOverrides = new Map<string, MenuSectionOverride>(
-    override.sections.map((section: MenuSectionOverride) => [section.sectionId, section]),
+    override.sections.map((section) => [section.sectionId, section]),
   );
 
-  return sections.map((section: MenuCatalogSectionData): MenuCatalogSectionData => {
+  return sections.map((section): MenuCatalogSectionData => {
     const sectionOverride = sectionOverrides.get(section.sectionId);
 
     if (!sectionOverride) {
@@ -196,12 +111,12 @@ const applyMenuOverrides = (
 
     if (section.items) {
       const itemOverrides = new Map(
-        sectionOverride.items?.map((item: MenuItemOverride) => [item.itemId, item]) ?? [],
+        sectionOverride.items?.map((item) => [item.itemId, item]) ?? [],
       );
 
       return {
         ...section,
-        items: section.items.map((item: MenuCatalogItem) =>
+        items: section.items.map((item) =>
           applyItemOverride(item, itemOverrides.get(item.itemId)),
         ),
       } as MenuCatalogSectionData;
@@ -209,12 +124,12 @@ const applyMenuOverrides = (
 
     if (section.groups) {
       const groupOverrides = new Map(
-        sectionOverride.groups?.map((group: MenuGroupOverride) => [group.groupId, group]) ?? [],
+        sectionOverride.groups?.map((group) => [group.groupId, group]) ?? [],
       );
 
       return {
         ...section,
-        groups: section.groups.map((group: MenuCatalogGroup) =>
+        groups: section.groups.map((group) =>
           applyGroupOverride(group, groupOverrides.get(group.groupId)),
         ),
       } as MenuCatalogSectionData;
@@ -225,7 +140,7 @@ const applyMenuOverrides = (
 };
 
 const applyGroupOverride = (
-  group: MenuCatalogGroup,
+  group: MenuGroup,
   override?: MenuGroupOverride,
 ) => {
   if (!override) {
@@ -233,20 +148,20 @@ const applyGroupOverride = (
   }
 
   const itemOverrides = new Map(
-    override.items?.map((item: MenuItemOverride) => [item.itemId, item]) ?? [],
+    override.items?.map((item) => [item.itemId, item]) ?? [],
   );
 
   return {
     ...group,
     note: override.note ?? group.note,
     pricing: override.pricing ?? group.pricing,
-    items: group.items.map((item: MenuCatalogItem) =>
+    items: group.items.map((item) =>
       applyItemOverride(item, itemOverrides.get(item.itemId)),
     ),
   };
 };
 
-const applyItemOverride = <TItem extends MenuCatalogItem>(
+const applyItemOverride = <TItem extends MenuItem>(
   item: TItem,
   override?: MenuItemOverride,
 ) => {
@@ -268,23 +183,23 @@ const validateMenuContentIntegrity = ({
   catalogSections,
   dailyEntries,
 }: MenuContentSnapshot) => {
-  const profileIds = profiles.map((entry: MenuProfileRecord) => entry.data.id);
+  const profileIds = profiles.map((entry) => entry.data.id);
   const profileIdSet = new Set(profileIds);
 
   assertUniqueIds(profileIds, "menu profile id");
   assertUniqueIds(
-    catalogSections.map((section: MenuCatalogSectionData) => section.sectionId),
+    catalogSections.map((section) => section.sectionId),
     "catalog section id",
   );
   assertUniqueIds(
-    overrides.map((override: MenuOverrideData) => override.menuId),
+    overrides.map((override) => override.menuId),
     "menu override menuId",
   );
 
   for (const dailyEntry of dailyEntries) {
     if (!profileIdSet.has(dailyEntry.id)) {
       throw new Error(
-        `Daily menu section file ${dailyEntry.id} does not match a menu profile id.`,
+        `Daily menu section ${dailyEntry.id} does not match a menu profile id.`,
       );
     }
 
@@ -308,43 +223,43 @@ const validateMenuContentIntegrity = ({
 const validateSectionIds = (scope: string, section: MenuSectionData) => {
   if (section.items) {
     assertUniqueIds(
-      section.items.map((item: MenuCatalogItem) => item.itemId),
+      section.items.map((item) => item.itemId),
       `${scope} item id`,
     );
-    section.items.forEach((item: MenuCatalogItem) =>
+    section.items.forEach((item) =>
       validateItemChildIds(`${scope} item ${item.itemId}`, item),
     );
   }
 
   if (section.groups) {
     assertUniqueIds(
-      section.groups.map((group: MenuCatalogGroup) => group.groupId),
+      section.groups.map((group) => group.groupId),
       `${scope} group id`,
     );
 
-    section.groups.forEach((group: MenuCatalogGroup) => {
+    section.groups.forEach((group) => {
       assertUniqueIds(
-        group.items.map((item: MenuCatalogItem) => item.itemId),
+        group.items.map((item) => item.itemId),
         `${scope} group ${group.groupId} item id`,
       );
-      group.items.forEach((item: MenuCatalogItem) =>
+      group.items.forEach((item) =>
         validateItemChildIds(`${scope} group ${group.groupId} item ${item.itemId}`, item),
       );
     });
   }
 };
 
-const validateItemChildIds = (scope: string, item: MenuCatalogItem) => {
+const validateItemChildIds = (scope: string, item: MenuItem) => {
   if (item.options) {
     assertUniqueIds(
-      item.options.map((option: { id: string }) => option.id),
+      item.options.map((option) => option.id),
       `${scope} option id`,
     );
   }
 
   if (item.pricing?.kind === "variants") {
     assertUniqueIds(
-      item.pricing.variants.map((variant: { id: string }) => variant.id),
+      item.pricing.variants.map((variant) => variant.id),
       `${scope} variant id`,
     );
   }
@@ -352,27 +267,27 @@ const validateItemChildIds = (scope: string, item: MenuCatalogItem) => {
 
 const validateOverrideIds = (override: MenuOverrideData) => {
   assertUniqueIds(
-    override.sections.map((section: MenuSectionOverride) => section.sectionId),
+    override.sections.map((section) => section.sectionId),
     `menu override ${override.menuId} section id`,
   );
 
   for (const section of override.sections) {
     if (section.items) {
       assertUniqueIds(
-        section.items.map((item: MenuItemOverride) => item.itemId),
+        section.items.map((item) => item.itemId),
         `menu override ${override.menuId} section ${section.sectionId} item id`,
       );
     }
 
     if (section.groups) {
       assertUniqueIds(
-        section.groups.map((group: MenuGroupOverride) => group.groupId),
+        section.groups.map((group) => group.groupId),
         `menu override ${override.menuId} section ${section.sectionId} group id`,
       );
 
       for (const group of section.groups) {
         assertUniqueIds(
-          group.items?.map((item: MenuItemOverride) => item.itemId) ?? [],
+          group.items?.map((item) => item.itemId) ?? [],
           `menu override ${override.menuId} section ${section.sectionId} group ${group.groupId} item id`,
         );
       }
@@ -387,7 +302,7 @@ const validateMenuOverrides = (
 ) => {
   for (const sectionOverride of override.sections) {
     const section = sections.find(
-      (candidate: MenuCatalogSectionData) => candidate.sectionId === sectionOverride.sectionId,
+      (candidate) => candidate.sectionId === sectionOverride.sectionId,
     );
 
     if (!section) {
@@ -418,7 +333,7 @@ const validateSectionItemOverrides = (
   }
 
   for (const itemOverride of itemOverrides) {
-    if (!section.items.some((item: MenuCatalogItem) => item.itemId === itemOverride.itemId)) {
+    if (!section.items.some((item) => item.itemId === itemOverride.itemId)) {
       throw new Error(
         `Menu override ${menuId} references unknown item ${itemOverride.itemId} in section ${section.sectionId}`,
       );
@@ -439,7 +354,7 @@ const validateGroupOverrides = (
 
   for (const groupOverride of groupOverrides) {
     const group = section.groups.find(
-      (candidate: MenuCatalogGroup) => candidate.groupId === groupOverride.groupId,
+      (candidate) => candidate.groupId === groupOverride.groupId,
     );
 
     if (!group) {
@@ -449,7 +364,7 @@ const validateGroupOverrides = (
     }
 
     for (const itemOverride of groupOverride.items ?? []) {
-      if (!group.items.some((item: MenuCatalogItem) => item.itemId === itemOverride.itemId)) {
+      if (!group.items.some((item) => item.itemId === itemOverride.itemId)) {
         throw new Error(
           `Menu override ${menuId} references unknown item ${itemOverride.itemId} in group ${group.groupId}`,
         );

@@ -1,81 +1,34 @@
 # El Faraon Catering
 
-Sistema de menu digital QR para los buffets operados por **El Faraon Catering** en los dos edificios de **Teleinde**.
+Sistema de menu digital QR para los buffets operados por **El Faraon Catering** en los edificios de **Teleinde**.
 
 El proyecto esta orientado al uso cotidiano en contexto laboral, con una experiencia rapida, clara y mobile-first para tecnicos, produccion, oficinas y personal que consulta el menu desde el telefono.
 
 La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuentas de usuario, carrito ni flujos de compra.
 
-## Resumen del proyecto
-
-El objetivo es mantener un menu digital liviano, rapido y de bajo mantenimiento para consultar platos, bebidas, precios y disponibilidad desde codigos QR.
-
-El proyecto tiene dos superficies separadas:
-
-- **Menu QR operativo**: experiencia principal, mobile-first y orientada al uso diario en buffet.
-- **Futura web institucional**: superficie futura para presencia institucional, separada funcional y visualmente del menu operativo.
-
-La superficie institucional no debe mezclarse con la experiencia operativa del menu. El menu debe seguir siendo practico, directo y pensado para consulta rapida.
-
 ## Estado actual
-
-Esta seccion resume el estado vigente del sistema:
 
 - `/menu/corpo/` es el menu operativo principal.
 - `/menu/teleinde/` esta activo como parte del modelo multi-locacion.
 - `/menu/` sigue siendo un placeholder de entrada general para menus.
 - `/` sigue siendo un placeholder institucional futuro.
 - `/admin/` sigue siendo un placeholder estatico sin funcionalidad, servido desde `public/admin/index.html`.
-- YAML es la fuente de verdad del menu: perfiles, catalogo, menu diario, precios, textos, opciones, overrides e imagenes locales.
-- Supabase es solo overlay de disponibilidad, consumido por JavaScript cliente para reflejar estado operativo.
-- El sistema funciona completamente sin Supabase; si faltan variables, falla la red o los datos no son validos, queda el estado definido en YAML.
-- Static-first permite extensiones cliente no bloqueantes. El build y el deploy siguen siendo estaticos en Vercel.
+- Supabase `menu_content` es la fuente estructural build-time del menu.
+- El sitio sigue siendo static-first y se genera como output `"static"` en Astro.
+- El overlay runtime de disponibilidad sigue separado y se consume desde JavaScript cliente.
 - No hay CMS activo dentro del repo.
-- No hay pedidos online, checkout, pagos online, WhatsApp ordering, carrito, reservas ni cuentas de usuario.
 
-## Rutas principales
-
-| Ruta | Estado | Proposito |
-| --- | --- | --- |
-| `/` | Placeholder | Futura web institucional |
-| `/menu/` | Placeholder | Entrada general futura para menus |
-| `/menu/corpo/` | Activa | Menu operativo Corpo |
-| `/menu/teleinde/` | Activa | Menu operativo Teleinde |
-| `/admin/` | Placeholder estatico | Futuro entrypoint editorial |
-
-`vercel.json` mantiene redirects canonicos:
-
-- `/menu` -> `/menu/`
-- `/menu/corpo` -> `/menu/corpo/`
-- `/menu/teleinde` -> `/menu/teleinde/`
-- `/admin` -> `/admin/`
-
-`/admin/` se sirve desde `public/admin/index.html`. No debe reintroducirse como pagina Astro mientras siga siendo un placeholder estatico.
+El rollback a la etapa anterior con archivos YAML se hace desde Git usando el tag `yaml-rollback-2026-05-02`.
 
 ## Stack tecnico
 
-La base actual usa:
-
-- **Astro 5**
-- **TypeScript**
-- **Tailwind CSS 4**
-- **Astro Content Collections**
-- **YAML** para contenido
-- **Node 20 LTS**
-- **npm**
-- despliegue estatico preparado para **Vercel**
-
-Tambien incluye:
-
-- perfiles de menu por ubicacion
-- menu del dia independiente por ubicacion
-- catalogo compartido para Corpo y Teleinde
-- overrides acotados por menu
-- soporte opcional para imagenes locales de items del menu
-- dialog liviano para ver fotos desde los menus publicos
-- Supabase como overlay operativo de disponibilidad
-- scripts preparatorios para proyectar/importar estructura YAML a Supabase sin cambiar la fuente de verdad actual
-- placeholder estatico para `/admin/`
+- Astro 5
+- TypeScript
+- Tailwind CSS 4
+- Node 20 LTS
+- npm
+- Supabase Postgres para contenido estructural build-time
+- Vercel static deployment
 
 ## Desarrollo local
 
@@ -83,8 +36,7 @@ Tambien incluye:
 
 - Node `20.x`
 - npm `>=10`
-
-La version esperada de Node tambien esta declarada en `.nvmrc` y en `package.json`.
+- `SUPABASE_DB_URL` disponible para build y validacion estructural
 
 ### Instalacion
 
@@ -117,26 +69,22 @@ npm run preview
 | Script | Uso |
 | --- | --- |
 | `npm run dev` | Levanta Astro en desarrollo. |
-| `npm run build` | Genera el sitio estatico en `dist/`. |
+| `npm run build` | Genera el sitio estatico en `dist/` leyendo `menu_content` en build-time. |
 | `npm run check` | Ejecuta `astro check` con limite de memoria ampliado. |
 | `npm run preview` | Sirve el build localmente para revision. |
-| `npm run menu:import:dry-run` | Proyecta el contenido YAML a filas estructurales y muestra conteos sin tocar la base. |
-| `npm run menu:import:apply` | Importa la proyeccion YAML a tablas `menu_content` en Supabase. Requiere `SUPABASE_DB_URL`. |
-| `npm run menu:compare` | Compara la proyeccion YAML con el snapshot de Supabase. Requiere `SUPABASE_DB_URL`. |
+| `npm run menu:validate` | Valida contenido estructural y hardening esperado en Supabase. Requiere `SUPABASE_DB_URL`. |
 | `npm run verify:dist-secrets` | Revisa `dist/` para detectar marcadores de secretos despues del build. |
 
-Los scripts `menu:*` son preparatorios para una posible fase YAML -> Supabase. No convierten Supabase en CMS activo ni cambian la fuente de verdad del menu.
-
-## Validacion
-
-Antes de considerar completa una modificacion, ejecutar:
+Validacion recomendada:
 
 ```bash
+npm run menu:validate
 npm run build
+npm run verify:dist-secrets
 npm run check
 ```
 
-Estos comandos son la validacion minima del proyecto.
+`SUPABASE_DB_URL` es una variable privada de build/validacion. No debe exponerse al cliente ni formar parte de variables `PUBLIC_*`.
 
 ## Estructura del proyecto
 
@@ -147,11 +95,6 @@ src/
     MenuInfoPanel.astro
     MenuPage.astro
     MenuSection.astro
-  content/
-    menu-catalog-sections/
-    menu-daily-sections/
-    menu-overrides/
-    menu-profiles/
   layouts/
     BaseLayout.astro
   pages/
@@ -170,7 +113,7 @@ src/
     menuContent.ts
     menuImage.ts
     menuPricing.ts
-  content.config.ts
+    menuSupabaseContent.ts
 public/
   admin/
     index.html
@@ -179,221 +122,78 @@ public/
     menu-photo-sheet.js
   uploads/
 scripts/
-  compare-menu-content.mjs
-  import-menu-yaml-to-supabase.mjs
-  menu-content-data.mjs
   menu-content-supabase.mjs
+  validate-menu-supabase.mjs
   verify-dist-secrets.mjs
 docs/
   supabase-availability-overlay.sql
   supabase-menu-schema.sql
-.nvmrc
-astro.config.mjs
-package.json
-vercel.json
+  supabase-menu-schema-audit.sql
+  supabase-menu-schema-hardening.sql
 ```
 
 Directorios generados como `dist/`, `.astro/` y `node_modules/` no forman parte de la estructura fuente documentada.
 
 ## Modelo de contenido
 
-El contenido vive en `src/content/` y usa archivos `.yaml`.
+El contenido estructural vive en el schema Supabase `menu_content` y se lee solo durante el build de Astro.
 
-YAML es la fuente de verdad del menu. Define perfiles, catalogo, menu diario, precios, textos, opciones, overrides estructurales e imagenes locales.
+El lector build-time arma la misma forma que consumen `MenuPage`, `MenuSection` y `DishCard`:
 
-Colecciones activas:
-
-- `menu-profiles`: primera card, contacto, datos utiles y pagos por menu.
-- `menu-daily-sections`: menu del dia independiente por menu.
-- `menu-catalog-sections`: catalogo compartido, sin menu del dia.
-- `menu-overrides`: diferencias acotadas por menu.
-
-El render final muestra primero el menu del dia del perfil y despues el catalogo compartido ordenado por `order`.
-
-Estructura general de seccion:
-
-```yaml
-sectionId: platos-principales
-title: Platos principales con guarnicion
-description: Texto opcional
-note: Texto opcional
-order: 20
-items:
-  - itemId: milanesa-peceto
-    name: Milanesa de peceto
-    available: true
-    pricing:
-      kind: fixed
-      price:
-        amount: 11000
-```
+- perfiles por menu
+- seccion diaria por menu
+- catalogo compartido
+- overrides por menu
+- grupos e items
+- precios `fixed`, `included` y `variants`
+- opciones
+- imagenes locales bajo `/uploads/`
 
 Reglas principales:
 
-- `sectionId` es obligatorio en secciones.
-- `groupId` es obligatorio en grupos.
-- `itemId` es obligatorio en items vendibles.
-- `id` se mantiene en perfiles, datos auxiliares, opciones y variantes.
-- Los IDs son tecnicos, ASCII/kebab-case, y no se derivan de `name` o `title`.
-- Una seccion debe usar `items` o `groups`, pero no ambos.
-- Si una seccion usa `items`, cada item debe definir `pricing`.
-- Si una seccion usa `groups`, un grupo puede definir `pricing` compartido.
-- Si el grupo tiene `pricing`, sus items pueden omitirlo y heredan ese precio.
-- Si un item dentro de un grupo define `pricing`, ese valor funciona como override.
-- Si un grupo no tiene `pricing`, cada item del grupo debe definir el suyo.
-- `available` es obligatorio en productos vendibles.
-- `available` en variantes y opciones es opcional y por defecto se considera disponible.
-- `note` sirve para aclaraciones visibles, no para reemplazar precios.
+- Los IDs tecnicos son ASCII/kebab-case y estables.
+- Las secciones definen `items` o `groups`, no ambos.
+- Los items directos deben definir precio.
+- Un grupo puede definir precio compartido.
+- Un item dentro de un grupo puede omitir precio para heredar o definir precio para sobrescribir.
+- Si un grupo no tiene precio compartido, cada item del grupo debe definir el suyo.
+- Las variantes son planas y sus montos son numericos.
+- Las imagenes deben ser paths locales bajo `/uploads/`.
 
-Tipos de precio soportados:
+## Supabase
 
-```yaml
-pricing:
-  kind: fixed
-  price:
-    amount: 7500
-```
+Hay dos superficies Supabase separadas:
 
-```yaml
-pricing:
-  kind: included
-```
+- `menu_content`: fuente estructural build-time del menu.
+- overlay runtime de disponibilidad: extension cliente no bloqueante para disponibilidad operativa.
 
-```yaml
-pricing:
-  kind: variants
-  variants:
-    - id: con-guarnicion
-      name: Con guarnicion
-      price:
-        amount: 9000
-    - id: sin-guarnicion
-      name: Sin guarnicion
-      price:
-        amount: 7000
-```
+El overlay runtime no administra estructura, textos, precios, imagenes ni menu diario. Si el overlay falla, el menu estatico generado en build-time sigue disponible.
 
-Reglas de precios e imagenes:
-
-- Los montos se declaran siempre como numeros en `price.amount`.
-- Las variantes son planas: no pueden contener otro `pricing` ni variantes anidadas.
-- `image` es opcional en items y debe apuntar a un archivo local bajo `/uploads/`.
-- No se aceptan URLs externas, data URLs, query strings ni fragments en `image`.
-- Las extensiones permitidas son `.avif`, `.jpeg`, `.jpg`, `.png`, `.svg` y `.webp`.
-
-Los SVG quedan reservados para placeholders o assets locales controlados por el repo.
-
-## Overrides por menu
-
-Los overrides no modifican la estructura del catalogo. Solo pueden cambiar:
-
-- `available` en items.
-- `pricing` en groups e items.
-- `note` en groups e items.
-
-Ejemplo:
-
-```yaml
-menuId: teleinde
-sections:
-  - sectionId: bebidas
-    groups:
-      - groupId: linea-coca-cola
-        pricing:
-          kind: fixed
-          price:
-            amount: 2600
-        items:
-          - itemId: coca-cola
-            available: false
-            note: Sin stock temporal
-```
-
-Los overrides deben apuntar a IDs existentes. Si una referencia no existe, el build falla.
-
-## Imagenes del menu
-
-El menu soporta imagenes opcionales por item.
-
-Cuando un item tiene `image`, `DishCard.astro` muestra la accion `Ver foto`. Esa accion usa `public/scripts/menu-photo-sheet.js` para abrir un `dialog` liviano. El enlace conserva `href` al archivo local como fallback.
-
-Las imagenes deben colocarse en `public/uploads/` y referenciarse desde YAML con path publico:
-
-```yaml
-image: /uploads/example-photo.webp
-```
-
-## Supabase availability overlay
-
-Supabase es solo overlay de disponibilidad. El cliente lo consume como extension progresiva para reflejar el estado operativo de disponibilidad sin cambiar la estructura del menu.
-
-Reglas de esta fase:
-
-- YAML sigue siendo la fuente de verdad del menu.
-- Supabase solo puede cambiar disponibilidad visual mediante `available_override`.
-- Si no hay fila en Supabase para un item, se usa el valor `available` del YAML.
-- Si faltan variables, Supabase falla o devuelve datos invalidos, el menu queda como vino del YAML.
-- El sistema funciona completamente sin Supabase.
-- El cliente usa `fetch` directo contra la REST API publica; no usa `@supabase/supabase-js`.
-- No hay Storage, imagenes live, precios live, menu del dia live ni `/admin/` propio.
-
-Variables publicas esperadas:
+Variables publicas del overlay:
 
 ```bash
 PUBLIC_SUPABASE_URL=
 PUBLIC_SUPABASE_ANON_KEY=
 ```
 
-Variable privada usada solo por scripts locales o de entorno controlado:
+Variable privada de build/validacion:
 
 ```bash
 SUPABASE_DB_URL=
 ```
 
-`SUPABASE_DB_URL` no debe exponerse al cliente ni formar parte de variables `PUBLIC_*`.
+SQL disponible:
 
-### SQL disponible
-
-- `docs/supabase-availability-overlay.sql`: crea la base del overlay runtime de disponibilidad. Es el soporte de la extension cliente que lee disponibilidad operativa.
-- `docs/supabase-menu-schema.sql`: crea el schema estructural `menu_content` para proyectar perfiles, secciones, grupos, items, precios, opciones y overrides desde YAML hacia Supabase en una fase preparatoria.
-
-Estos SQL no significan que Supabase sea CMS activo ni fuente de verdad vigente. El sitio publico sigue funcionando con YAML y build estatico.
-
-### Scripts preparatorios YAML -> Supabase
-
-Los scripts `menu:*` existen para validar una posible migracion futura de estructura de menu hacia Supabase:
-
-- `npm run menu:import:dry-run` lee YAML, proyecta filas estructurales y muestra conteos sin escribir en la base.
-- `npm run menu:import:apply` requiere `SUPABASE_DB_URL`, trunca las tablas estructurales `menu_content` y carga la proyeccion YAML.
-- `npm run menu:compare` requiere `SUPABASE_DB_URL` y compara el resultado visible proyectado desde YAML contra el snapshot leido desde Supabase.
-
-Estos scripts no deben usarse para presentar Supabase como fuente de verdad activa. Mientras no exista una decision explicita de migracion editorial, YAML sigue mandando.
-
-### Evolucion prevista
-
-Supabase podria usarse en build time para alimentar el catalogo fijo compartido entre buffets: secciones, grupos, items, precios base, variantes, opciones, imagenes y orden de visualizacion.
-
-Supabase seguiria usandose en runtime como overlay para datos operativos variables, como disponibilidad, menu del dia, notas operativas y cambios temporales por sede.
-
-Astro generaria paginas estaticas desde datos de Supabase durante el build, sin SSR. Si el overlay runtime falla, el menu fijo generado en build time seguiria disponible.
+- `docs/supabase-availability-overlay.sql`: base del overlay runtime de disponibilidad.
+- `docs/supabase-menu-schema.sql`: schema estructural `menu_content`.
+- `docs/supabase-menu-schema-audit.sql`: auditoria de constraints e indices esperados.
+- `docs/supabase-menu-schema-hardening.sql`: hardening idempotente de constraints e indices.
 
 ## Estado editorial
 
-No hay CMS activo en esta etapa. El contenido se edita actualmente como YAML versionado en `src/content/`, con YAML como fuente de verdad del menu, GitHub como fuente versionada y Vercel como destino de deploy estatico.
+No hay CMS activo en esta etapa. Supabase `menu_content` funciona como fuente estructural de build, pero no como CMS editorial.
 
-Supabase queda limitado al estado operativo de disponibilidad consumido por el overlay cliente. No administra perfiles, catalogo, menu diario, precios, textos, imagenes ni contenido editorial.
-
-Una futura migracion de Supabase a fuente de verdad requeriria una capa editorial o administrativa, pero esa capa no existe en la etapa actual.
-
-El schema `menu_content` y los scripts `menu:*` son piezas preparatorias para comparar y cargar estructura de menu. No reemplazan el flujo editorial vigente ni habilitan edicion desde `/admin/`.
-
-El repo ya no incluye:
-
-- Decap CMS
-- servicios de autenticacion editorial del stack anterior
-- integracion de escritura al repo del stack anterior
-- templates de correo del stack anterior
-- configuracion de deploy repo-managed del stack anterior
+No existe flujo de escritura desde `/admin/`, auth editorial, roles editoriales ni administracion de contenido dentro del sitio publico.
 
 **Keystatic** queda como candidato preliminar para una fase editorial posterior, pero no es una decision cerrada.
 
@@ -408,7 +208,7 @@ Restricciones de esta etapa:
 - no hay funciones server-side
 - no hay CMS activo
 - no hay escritura editorial desde `/admin/` ni desde el sitio publico
-- Supabase no es CMS, no es backend principal y no es fuente de verdad del menu
+- no hay consultas estructurales desde el navegador
 
 ## Fuera de alcance
 
@@ -429,22 +229,9 @@ No agregar estas capacidades salvo pedido explicito:
 - Se usa **Astro 5** para mantener compatibilidad con **Node 20**.
 - Se usa **Tailwind CSS 4** mediante el plugin de Vite.
 - El sitio sigue siendo **static-first** con extensiones cliente no bloqueantes.
-- La superficie publica prioritaria es `/menu/corpo/`.
-- `/menu/teleinde/` esta activo como parte del modelo multi-locacion.
-- `/menu/` queda como placeholder de entrada general para menus.
-- YAML es la fuente de verdad del menu.
-- Supabase es solo overlay de disponibilidad.
-- El sistema funciona completamente sin Supabase.
-- La migracion de YAML a Supabase, si se implementa, debe preservar el enfoque static-first separando datos de build time y overlays runtime.
-- Los scripts `menu:*` son herramientas preparatorias de comparacion/importacion, no una decision de migracion.
+- Supabase `menu_content` es la fuente estructural build-time.
+- El overlay runtime de disponibilidad queda separado de la estructura del menu.
 - `/admin/` se mantiene como placeholder estatico en `public/admin/`.
 - `vercel.json` conserva la canonicalizacion de `/menu`, `/menu/corpo`, `/menu/teleinde` y `/admin`.
-- **Keystatic** sigue fuera de alcance en esta etapa y queda como candidato preliminar, no como decision cerrada.
 - Los nombres tecnicos, archivos y componentes estan en **ingles**.
 - El contenido visible para usuarios esta en **espanol**.
-
-## Proceso de trabajo
-
-El proyecto se desarrolla con iteracion asistida por Codex, prompts estructurados y validacion mediante `npm run build` y `npm run check`.
-
-El uso de Codex no reemplaza criterios tecnicos. Las decisiones de arquitectura, producto y alcance se mantienen explicitas en la documentacion del proyecto.

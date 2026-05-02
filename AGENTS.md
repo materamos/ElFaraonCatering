@@ -4,7 +4,7 @@
 
 Act as a pragmatic and precise software engineering assistant for the El Faraon Catering digital menu system.
 
-Keep changes correct, maintainable, minimal, and aligned with the existing Astro/YAML/static-first architecture.
+Keep changes correct, maintainable, minimal, and aligned with the existing Astro/Supabase/static-first architecture.
 
 `README.md` is the human project manual. This file is the operational rulebook for agents making future changes.
 
@@ -27,18 +27,17 @@ Current stack:
 - Astro 5
 - TypeScript
 - Tailwind CSS 4
-- Astro Content Collections
-- YAML content files
 - Node 20 LTS
 - npm
+- Supabase Postgres for build-time structural menu content
 - Vercel static deployment
 
 Current source of truth:
 
-- YAML is the source of truth for menu profiles, catalog sections, daily sections, prices, copy, options, overrides, and local image paths.
-- Supabase is only a progressive availability overlay plus preparatory migration tooling.
-- The system must work completely without Supabase.
+- Supabase `menu_content` is the structural source read at build time.
+- The runtime availability overlay is separate and progressive.
 - There is no active CMS in the repo.
+- The rollback to the previous file-backed content stage is the Git tag `yaml-rollback-2026-05-02`.
 
 ---
 
@@ -77,19 +76,21 @@ Use npm only. Do not switch to pnpm, yarn, bun, or another runtime/package manag
 
 ## Content Rules
 
-Use Astro Content Collections under `src/content/`.
+Structural menu content is read from Supabase `menu_content` at build time.
 
-Active collections:
+The reader must return the shape consumed by `MenuPage`, `MenuSection`, and `DishCard`.
 
-- `menu-profiles`
-- `menu-daily-sections`
-- `menu-catalog-sections`
-- `menu-overrides`
+Required content surfaces:
 
-Daily and catalog sections must define exactly one of:
-
-- `items`
-- `groups`
+- profiles
+- daily sections
+- catalog sections
+- menu overrides
+- groups
+- items
+- options
+- fixed, included, and variant prices
+- local image paths
 
 Pricing rules:
 
@@ -121,27 +122,29 @@ Image rules:
 
 ## Supabase Rules
 
-Supabase is not the CMS, not the primary backend, and not the current structural source of truth.
+Supabase is not a CMS and does not imply an editorial workflow.
+
+Build-time structural content:
+
+- `docs/supabase-menu-schema.sql` defines the `menu_content` schema.
+- `docs/supabase-menu-schema-audit.sql` audits expected constraints and indexes.
+- `docs/supabase-menu-schema-hardening.sql` hardens constraints and indexes idempotently.
+- `SUPABASE_DB_URL` is required for build-time structural reads and menu validation.
+- Never expose `SUPABASE_DB_URL` to the client or any `PUBLIC_*` environment variable.
 
 Runtime overlay:
 
 - `docs/supabase-availability-overlay.sql` supports the availability overlay.
 - Public client variables are `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.
 - The overlay may only change visual availability through availability data.
-- If Supabase is missing, unavailable, or returns invalid data, the YAML state must remain usable.
 - Do not add `@supabase/supabase-js` for the current overlay unless explicitly justified.
 
-Preparatory structural tooling:
+Preserve the static-first model:
 
-- `docs/supabase-menu-schema.sql` defines the preparatory `menu_content` schema.
-- `npm run menu:import:dry-run` projects YAML to structural rows without writing to the database.
-- `npm run menu:import:apply` writes the YAML projection to `menu_content` and requires `SUPABASE_DB_URL`.
-- `npm run menu:compare` compares YAML projection with Supabase and requires `SUPABASE_DB_URL`.
-- These scripts do not make Supabase the active source of truth.
-- Do not present the scripts or SQL as an active CMS or active editorial workflow.
-- Never expose `SUPABASE_DB_URL` to the client or any `PUBLIC_*` environment variable.
-
-When touching Supabase projection logic, preserve the static-first model: stable shared menu data may be read at build time in a future migration, while operational overlays must remain non-blocking runtime extensions.
+- stable menu content may be read only at build time
+- operational overlays must remain non-blocking runtime extensions
+- do not add structural browser queries
+- do not add SSR, server output, adapters, or Vercel Functions
 
 ---
 
@@ -158,7 +161,7 @@ Prefer:
 - minimal client JavaScript
 - non-blocking progressive client extensions
 - reusable components where repetition exists
-- typed schemas and explicit logic
+- explicit TypeScript interfaces
 - simple folder structure
 - Tailwind CSS and existing local patterns
 
@@ -196,7 +199,7 @@ Keep `README.md` and `AGENTS.md` synchronized without making them duplicates:
 - `README.md` should explain the project for humans: setup, routes, content model, scripts, Supabase notes, deployment, and decisions.
 - `AGENTS.md` should define rules for agents: scope boundaries, technical constraints, naming rules, validation, and safe handling of future migrations.
 
-When adding scripts, environment variables, content collections, routes, or deployment behavior, update both documents if the change affects both human usage and agent constraints.
+When adding scripts, environment variables, content sources, routes, or deployment behavior, update both documents if the change affects both human usage and agent constraints.
 
 ---
 
@@ -211,8 +214,7 @@ npm run check
 
 Additional checks:
 
+- Run `npm run menu:validate` when working with menu content loading, Supabase schema expectations, or menu data shape.
 - Run `npm run verify:dist-secrets` after `npm run build` when working with environment variables or Supabase database credentials.
-- Run `npm run menu:import:dry-run` when changing YAML projection logic.
-- Run `npm run menu:compare` only when `SUPABASE_DB_URL` is intentionally available and a Supabase structural comparison is part of the task.
 
 Do not claim validation that was not performed.

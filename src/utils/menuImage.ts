@@ -1,5 +1,3 @@
-import { z } from "astro/zod";
-
 const uploadsBasePath = "/uploads/";
 const menuPlaceholderBasePath = "/uploads/menu-placeholders/";
 const allowedMenuImageExtensions = [".avif", ".jpeg", ".jpg", ".png", ".svg", ".webp"] as const;
@@ -57,21 +55,3 @@ export const getMenuPhotoImagePath = (value?: string): string | undefined => {
 
   return safeImagePath;
 };
-
-export const menuImageSchema = z.preprocess(
-  (value) => {
-    if (typeof value !== "string") {
-      return value;
-    }
-
-    const trimmedValue = value.trim();
-
-    return trimmedValue === "" ? undefined : trimmedValue;
-  },
-  z
-    .string()
-    .refine(isSafeMenuImagePath, {
-      message: "Menu images must be local files under /uploads.",
-    })
-    .optional(),
-);

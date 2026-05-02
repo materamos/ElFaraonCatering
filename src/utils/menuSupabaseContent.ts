@@ -213,7 +213,7 @@ export const loadSupabaseMenuContentSnapshot = async (): Promise<MenuContentSnap
 
   if (!databaseUrl) {
     throw new Error(
-      "Private Supabase database URL is required when menu content source is supabase.",
+      "Private Supabase database URL is required for build-time menu content.",
     );
   }
 
@@ -529,8 +529,8 @@ const createPriceMap = (
 ): Map<string, MenuPricing> => {
   const variantsByPrice = groupByStringKey(variants, "pricing_key");
 
-  return new Map(
-    prices.map((price) => {
+  return new Map<string, MenuPricing>(
+    prices.map((price): [string, MenuPricing] => {
       if (price.kind === "fixed") {
         return [
           price.pricing_key,
