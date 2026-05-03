@@ -1,8 +1,11 @@
 import postgres from "postgres";
+import { loadLocalEnv } from "./load-local-env.mjs";
 
 const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
 const dailyMenuWithDrinkPricingKey = "menu-del-dia-con-bebida";
 const dailyMenuVegetarianPricingKey = "menu-vegetariano-del-dia";
+
+loadLocalEnv();
 
 export const loadSupabaseMenuSnapshot = async (
   databaseUrl = process.env[privateDatabaseUrlEnvName],

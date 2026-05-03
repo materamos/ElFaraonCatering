@@ -144,6 +144,7 @@ Build-time structural content:
 - `docs/supabase-menu-schema-audit.sql` audits expected constraints and indexes.
 - `docs/supabase-menu-schema-hardening.sql` hardens constraints and indexes idempotently.
 - `SUPABASE_DB_URL` is required for build-time structural reads and menu validation.
+- Local development may define `SUPABASE_DB_URL` in `.env.local`; scripts load it only when an environment value is not already set.
 - Never expose `SUPABASE_DB_URL` to the client or any `PUBLIC_*` environment variable.
 
 Runtime overlay:

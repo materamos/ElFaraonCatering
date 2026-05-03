@@ -1,9 +1,13 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
+import { loadLocalEnv } from "./load-local-env.mjs";
 
 const rootDir = process.cwd();
 const distDir = path.join(rootDir, "dist");
 const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
+
+loadLocalEnv(rootDir);
+
 const sensitiveNamePattern = new RegExp(
   `(?:${privateDatabaseUrlEnvName}|DATABASE_URL|POSTGRES|SERVICE_ROLE|SECRET|TOKEN|PASSWORD|PRIVATE|CREDENTIAL|API_KEY|AUTH)`,
   "i",

@@ -36,13 +36,25 @@ El rollback a la etapa anterior con archivos YAML se hace desde Git usando el ta
 
 - Node `20.x`
 - npm `>=10`
-- `SUPABASE_DB_URL` disponible para build y validacion estructural
+- `SUPABASE_DB_URL` disponible para build y validacion estructural, por entorno o `.env.local`
 
 ### Instalacion
 
 ```bash
 npm install
 ```
+
+### Variables de entorno locales
+
+El repo incluye `.env.local` para desarrollo y auditoria local. Ese archivo esta ignorado por Git.
+
+Completar la URL privada de Postgres en esta linea:
+
+```bash
+SUPABASE_DB_URL="postgresql://..."
+```
+
+No usar prefijo `PUBLIC_` para `SUPABASE_DB_URL`. Los scripts Node cargan `.env.local` si existe y no pisan variables ya definidas en el entorno.
 
 ### Servidor de desarrollo
 
@@ -190,6 +202,8 @@ Variable privada de build/validacion:
 ```bash
 SUPABASE_DB_URL=
 ```
+
+En local puede definirse en `.env.local`; en Vercel debe configurarse como variable privada de build.
 
 SQL disponible:
 
