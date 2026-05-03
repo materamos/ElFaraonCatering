@@ -1,12 +1,14 @@
 import postgres from "postgres";
 import type {
   MenuCatalogSectionData,
-  MenuDailySectionData,
+  MenuDailyMenuData,
+  MenuDailyServiceSettings,
+  MenuItemsSectionData,
   MenuPricing,
   MenuProfileData,
+  MenuSectionData,
 } from "../types/menu";
 
-type MenuSectionData = MenuCatalogSectionData | MenuDailySectionData;
 type MenuItemData =
   | NonNullable<MenuSectionData["items"]>[number]
   | NonNullable<NonNullable<MenuSectionData["groups"]>[number]["items"]>[number];
@@ -41,16 +43,13 @@ interface MenuProfileRecord {
   data: MenuProfileData;
 }
 
-interface MenuDailySectionRecord {
-  id: string;
-  data: MenuDailySectionData;
-}
-
 interface MenuContentSnapshot {
   profiles: MenuProfileRecord[];
   overrides: MenuOverrideData[];
   catalogSections: MenuCatalogSectionData[];
-  dailyEntries: MenuDailySectionRecord[];
+  dailyMenu: MenuDailyMenuData;
+  dailyServiceSettings: MenuDailyServiceSettings[];
+  grillSection: MenuItemsSectionData;
 }
 
 interface ProfileRow {
@@ -93,6 +92,20 @@ interface PriceVariantRow {
   name: string;
   amount: number;
   available: boolean;
+}
+
+interface DailyMenuRow {
+  id: "current";
+  name: string;
+  description: string | null;
+  note: string | null;
+  available: boolean;
+  pricing_key: string;
+}
+
+interface DailyServiceSettingsRow {
+  profile_id: string;
+  grill_enabled: boolean;
 }
 
 interface SectionRow {
@@ -152,6 +165,15 @@ interface GroupItemRow {
   pricing_key: string | null;
 }
 
+interface GrillItemRow {
+  id: number | string;
+  item_row_id: number | string;
+  item_id: string;
+  available: boolean;
+  note: string | null;
+  pricing_key: string;
+}
+
 interface OverrideRow {
   id: number | string;
   menu_id: string;
@@ -194,18 +216,24 @@ interface SupabaseRows {
   paymentMethods: ProfilePaymentMethodRow[];
   prices: PriceRow[];
   priceVariants: PriceVariantRow[];
+  dailyMenus: DailyMenuRow[];
+  dailyServiceSettings: DailyServiceSettingsRow[];
   sections: SectionRow[];
   groups: GroupRow[];
   items: ItemRow[];
   options: OptionRow[];
   sectionItems: SectionItemRow[];
   groupItems: GroupItemRow[];
+  grillItems: GrillItemRow[];
   overrides: OverrideRow[];
   overrideSections: OverrideSectionRow[];
   overrideGroups: OverrideGroupRow[];
   overrideSectionItems: OverrideSectionItemRow[];
   overrideGroupItems: OverrideGroupItemRow[];
 }
+
+const dailyMenuWithDrinkPricingKey = "menu-del-dia-con-bebida";
+const dailyMenuVegetarianPricingKey = "menu-vegetariano-del-dia";
 
 export const loadSupabaseMenuContentSnapshot = async (): Promise<MenuContentSnapshot> => {
   const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
@@ -246,12 +274,15 @@ const loadRows = async (sql: ReturnType<typeof postgres>): Promise<SupabaseRows>
     paymentMethods,
     prices,
     priceVariants,
+    dailyMenus,
+    dailyServiceSettings,
     sections,
     groups,
     items,
     options,
     sectionItems,
     groupItems,
+    grillItems,
     overrides,
     overrideSections,
     overrideGroups,
@@ -264,12 +295,15 @@ const loadRows = async (sql: ReturnType<typeof postgres>): Promise<SupabaseRows>
     sql`select * from menu_content.menu_profile_payment_methods order by profile_id, order_index`,
     sql`select * from menu_content.menu_prices order by pricing_key`,
     sql`select * from menu_content.menu_price_variants order by pricing_key, order_index`,
+    sql`select * from menu_content.menu_daily_menu order by id`,
+    sql`select * from menu_content.menu_daily_service_settings order by profile_id`,
     sql`select * from menu_content.menu_sections order by section_scope, coalesce(menu_id, ''), order_index`,
     sql`select * from menu_content.menu_groups order by section_row_id, order_index`,
     sql`select * from menu_content.menu_items order by id`,
     sql`select * from menu_content.menu_item_options order by item_row_id, order_index`,
     sql`select * from menu_content.menu_section_items order by section_row_id, order_index`,
     sql`select * from menu_content.menu_group_items order by group_row_id, order_index`,
+    sql`select * from menu_content.menu_grill_items order by order_index`,
     sql`select * from menu_content.menu_overrides order by menu_id`,
     sql`select * from menu_content.menu_override_sections order by override_row_id, order_index`,
     sql`select * from menu_content.menu_override_groups order by override_section_row_id, order_index`,
@@ -284,12 +318,15 @@ const loadRows = async (sql: ReturnType<typeof postgres>): Promise<SupabaseRows>
     paymentMethods: paymentMethods as unknown as ProfilePaymentMethodRow[],
     prices: prices as unknown as PriceRow[],
     priceVariants: priceVariants as unknown as PriceVariantRow[],
+    dailyMenus: dailyMenus as unknown as DailyMenuRow[],
+    dailyServiceSettings: dailyServiceSettings as unknown as DailyServiceSettingsRow[],
     sections: sections as unknown as SectionRow[],
     groups: groups as unknown as GroupRow[],
     items: items as unknown as ItemRow[],
     options: options as unknown as OptionRow[],
     sectionItems: sectionItems as unknown as SectionItemRow[],
     groupItems: groupItems as unknown as GroupItemRow[],
+    grillItems: grillItems as unknown as GrillItemRow[],
     overrides: overrides as unknown as OverrideRow[],
     overrideSections: overrideSections as unknown as OverrideSectionRow[],
     overrideGroups: overrideGroups as unknown as OverrideGroupRow[],
@@ -308,6 +345,13 @@ const createSnapshot = (rows: SupabaseRows): MenuContentSnapshot => {
   const factsByProfile = groupByStringKey(rows.facts, "profile_id");
   const paymentByProfile = new Map(rows.payments.map((payment) => [payment.profile_id, payment]));
   const paymentMethodsByProfile = groupByStringKey(rows.paymentMethods, "profile_id");
+  const dailyMenu = createDailyMenu(rows.dailyMenus, priceMap);
+  const grillSection = createGrillSection({
+    grillItems: rows.grillItems,
+    priceMap,
+    itemMap,
+    optionsByItem,
+  });
 
   const profiles = rows.profiles.map((profile): MenuProfileRecord => {
     const payment = requireMapValue(paymentByProfile, profile.id);
@@ -366,14 +410,77 @@ const createSnapshot = (rows: SupabaseRows): MenuContentSnapshot => {
       .filter((record) => record.scope === "catalog")
       .map((record) => record.data as MenuCatalogSectionData)
       .sort((left, right) => left.order - right.order),
-    dailyEntries: sectionRecords
-      .filter((record) => record.scope === "daily")
-      .map((record) => ({
-        id: record.menuId ?? "",
-        data: record.data as MenuDailySectionData,
-      })),
+    dailyMenu,
+    dailyServiceSettings: rows.dailyServiceSettings.map((entry) => ({
+      menuId: entry.profile_id,
+      grillEnabled: entry.grill_enabled,
+    })),
+    grillSection,
   };
 };
+
+const createDailyMenu = (
+  dailyMenus: DailyMenuRow[],
+  priceMap: Map<string, MenuPricing>,
+): MenuDailyMenuData => {
+  if (dailyMenus.length !== 1) {
+    throw new Error("Supabase menu content must define one current daily menu row.");
+  }
+
+  const dailyMenu = dailyMenus[0];
+  const dailyMenuAvailable = dailyMenu.available;
+
+  return {
+    items: [
+      cleanOptional({
+        itemId: "menu-del-dia",
+        name: dailyMenu.name,
+        description: dailyMenu.description ?? undefined,
+        note: dailyMenu.note ?? undefined,
+        available: dailyMenuAvailable,
+        pricing: requireMapValue(priceMap, dailyMenu.pricing_key),
+      }),
+      {
+        itemId: "menu-del-dia-con-bebida",
+        name: "Menu del dia + bebida",
+        available: dailyMenuAvailable,
+        pricing: requireMapValue(priceMap, dailyMenuWithDrinkPricingKey),
+      },
+      {
+        itemId: "menu-vegetariano-del-dia",
+        name: "Menu del dia vegetariano",
+        available: dailyMenuAvailable,
+        pricing: requireMapValue(priceMap, dailyMenuVegetarianPricingKey),
+      },
+    ],
+  };
+};
+
+const createGrillSection = ({
+  grillItems,
+  priceMap,
+  itemMap,
+  optionsByItem,
+}: {
+  grillItems: GrillItemRow[];
+  priceMap: Map<string, MenuPricing>;
+  itemMap: Map<number, ItemRow>;
+  optionsByItem: Map<number, OptionRow[]>;
+}): MenuItemsSectionData => ({
+  sectionId: "parrilla",
+  title: "Parrilla",
+  description: "Productos de parrilla. La disponibilidad puede variar durante el dia.",
+  order: 10,
+  presentation: "compact-list",
+  items: grillItems.map((itemRow) =>
+    createItem({
+      occurrence: itemRow,
+      item: requireMapValue(itemMap, Number(itemRow.item_row_id)),
+      options: optionsByItem.get(Number(itemRow.item_row_id)) ?? [],
+      priceMap,
+    }),
+  ),
+});
 
 const createSection = ({
   section,
@@ -442,7 +549,7 @@ const createItem = ({
   options,
   priceMap,
 }: {
-  occurrence: SectionItemRow | GroupItemRow;
+  occurrence: SectionItemRow | GroupItemRow | GrillItemRow;
   item: ItemRow;
   options: OptionRow[];
   priceMap: Map<string, MenuPricing>;

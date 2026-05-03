@@ -83,7 +83,9 @@ The reader must return the shape consumed by `MenuPage`, `MenuSection`, and `Dis
 Required content surfaces:
 
 - profiles
-- daily sections
+- current daily menu
+- daily service settings by local
+- fixed grill items
 - catalog sections
 - menu overrides
 - groups
@@ -91,6 +93,17 @@ Required content surfaces:
 - options
 - fixed, included, and variant prices
 - local image paths
+
+Daily service rules:
+
+- `menu_daily_menu` is the single shared daily-menu main dish field for the active day.
+- `menu_daily_menu` must define the main dish name, availability, pricing, and may define description and note.
+- `menu_daily_service_settings` must define one settings row per profile.
+- `grill_enabled` is the per-profile property that applies the grill variant to the daily service.
+- When `grill_enabled` is false, the profile shows three daily-menu options: the shared main dish, `Menu del dia + bebida`, and `Menu del dia vegetariano`.
+- When `grill_enabled` is true, the profile shows `menu_grill_items` as the daily service variant.
+- A profile may show either menu del dia or grill, never both.
+- `menu_grill_items` is the fixed grill list; per-product availability can change through build-time data or the runtime availability overlay.
 
 Pricing rules:
 
@@ -127,6 +140,7 @@ Supabase is not a CMS and does not imply an editorial workflow.
 Build-time structural content:
 
 - `docs/supabase-menu-schema.sql` defines the `menu_content` schema.
+- `docs/supabase-menu-daily-service-data.sql` seeds the daily-service settings and fixed grill list.
 - `docs/supabase-menu-schema-audit.sql` audits expected constraints and indexes.
 - `docs/supabase-menu-schema-hardening.sql` hardens constraints and indexes idempotently.
 - `SUPABASE_DB_URL` is required for build-time structural reads and menu validation.

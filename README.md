@@ -127,6 +127,7 @@ scripts/
   verify-dist-secrets.mjs
 docs/
   supabase-availability-overlay.sql
+  supabase-menu-daily-service-data.sql
   supabase-menu-schema.sql
   supabase-menu-schema-audit.sql
   supabase-menu-schema-hardening.sql
@@ -141,7 +142,9 @@ El contenido estructural vive en el schema Supabase `menu_content` y se lee solo
 El lector build-time arma la misma forma que consumen `MenuPage`, `MenuSection` y `DishCard`:
 
 - perfiles por menu
-- seccion diaria por menu
+- servicio del dia compartido
+- configuracion `grill_enabled` por local
+- lista fija de parrilla
 - catalogo compartido
 - overrides por menu
 - grupos e items
@@ -152,6 +155,12 @@ El lector build-time arma la misma forma que consumen `MenuPage`, `MenuSection` 
 Reglas principales:
 
 - Los IDs tecnicos son ASCII/kebab-case y estables.
+- `menu_daily_menu` define el plato principal vigente del menu del dia con nombre, descripcion opcional, disponibilidad y precio.
+- `menu_daily_service_settings` define por local si la propiedad `grill_enabled` esta activa.
+- Si `grill_enabled` es `false`, el local muestra tres opciones: el plato principal compartido, `Menu del dia + bebida` y `Menu del dia vegetariano`.
+- Si `grill_enabled` es `true`, el local aplica la variante de parrilla al servicio del dia y muestra `menu_grill_items`.
+- Cada local puede mostrar menu del dia o parrilla, nunca ambas a la vez.
+- `menu_grill_items` contiene la lista fija de parrilla; la disponibilidad de cada producto puede cambiar por datos build-time u overlay runtime.
 - Las secciones definen `items` o `groups`, no ambos.
 - Los items directos deben definir precio.
 - Un grupo puede definir precio compartido.
@@ -186,6 +195,7 @@ SQL disponible:
 
 - `docs/supabase-availability-overlay.sql`: base del overlay runtime de disponibilidad.
 - `docs/supabase-menu-schema.sql`: schema estructural `menu_content`.
+- `docs/supabase-menu-daily-service-data.sql`: datos base para configuracion diaria y parrilla.
 - `docs/supabase-menu-schema-audit.sql`: auditoria de constraints e indices esperados.
 - `docs/supabase-menu-schema-hardening.sql`: hardening idempotente de constraints e indices.
 

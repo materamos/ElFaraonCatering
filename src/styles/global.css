@@ -168,6 +168,18 @@
     color: var(--color-danger);
   }
 
+  .compact-availability-status {
+    display: none;
+    color: var(--color-danger);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.25rem;
+  }
+
+  .compact-availability-status[data-state="unavailable"] {
+    display: inline-flex;
+  }
+
   .photo-button {
     @apply inline-flex w-fit items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition-colors;
     background-color: rgba(141, 91, 32, 0.1);

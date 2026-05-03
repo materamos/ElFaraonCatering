@@ -88,6 +88,38 @@ begin
   end if;
 end $$;
 
+do $$
+begin
+  if exists (
+    select 1
+    from menu_content.menu_daily_menu
+    where id <> 'current'
+  ) then
+    raise exception 'menu_daily_menu contains rows that violate singleton rules. Run docs/supabase-menu-schema-audit.sql for diagnostics.';
+  end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where connamespace = 'menu_content'::regnamespace
+      and conrelid = 'menu_content.menu_daily_menu'::regclass
+      and conname = 'menu_daily_menu_singleton_valid'
+  ) then
+    alter table menu_content.menu_daily_menu
+      add constraint menu_daily_menu_singleton_valid
+      check (id = 'current');
+  end if;
+end $$;
+
+create unique index if not exists menu_daily_service_settings_profile_key
+  on menu_content.menu_daily_service_settings (profile_id);
+
+create unique index if not exists menu_grill_items_item_id_key
+  on menu_content.menu_grill_items (item_id);
+
+create unique index if not exists menu_grill_items_order_index_key
+  on menu_content.menu_grill_items (order_index);
+
 create unique index if not exists menu_prices_pricing_key_kind_key
   on menu_content.menu_prices (pricing_key, kind);
 

@@ -56,12 +56,15 @@ export interface MenuGroup {
   items: MenuItem[];
 }
 
+export type MenuSectionPresentation = "cards" | "compact-list";
+
 export interface MenuSectionBase {
   sectionId: string;
   title: string;
   description?: string;
   note?: string;
   order: number;
+  presentation?: MenuSectionPresentation;
 }
 
 export type MenuItemsSectionData = MenuSectionBase & {
@@ -81,6 +84,15 @@ export type MenuCatalogSectionData =
 export type MenuDailySectionData = MenuCatalogSectionData;
 
 export type MenuSectionData = MenuCatalogSectionData | MenuDailySectionData;
+
+export interface MenuDailyMenuData {
+  items: MenuItem[];
+}
+
+export interface MenuDailyServiceSettings {
+  menuId: string;
+  grillEnabled: boolean;
+}
 
 export interface MenuProfileFactLink {
   text: string;

@@ -1,8 +1,10 @@
 import type {
   MenuCatalogSectionData,
-  MenuDailySectionData,
+  MenuDailyMenuData,
+  MenuDailyServiceSettings,
   MenuGroup,
   MenuItem,
+  MenuItemsSectionData,
   MenuPricing,
   MenuProfileData,
   MenuSectionData,
@@ -39,16 +41,13 @@ interface MenuProfileRecord {
   data: MenuProfileData;
 }
 
-interface MenuDailySectionRecord {
-  id: string;
-  data: MenuDailySectionData;
-}
-
 interface MenuContentSnapshot {
   profiles: MenuProfileRecord[];
   overrides: MenuOverrideData[];
   catalogSections: MenuCatalogSectionData[];
-  dailyEntries: MenuDailySectionRecord[];
+  dailyMenu: MenuDailyMenuData;
+  dailyServiceSettings: MenuDailyServiceSettings[];
+  grillSection: MenuItemsSectionData;
 }
 
 let supabaseMenuContentSnapshot: Promise<MenuContentSnapshot> | undefined;
@@ -65,17 +64,12 @@ export const getMenuProfile = async (menuId: string) => {
 };
 
 export const getMenuSections = async (menuId: string) => {
-  const { catalogSections, dailyEntries, overrides } = await getActiveMenuContent();
-  const dailyEntry = dailyEntries.find((entry) => entry.id === menuId);
-
-  if (!dailyEntry) {
-    throw new Error(`Daily menu section not found: ${menuId}`);
-  }
-
+  const content = await getActiveMenuContent();
+  const { catalogSections, overrides } = content;
   const override = overrides.find((entry) => entry.menuId === menuId);
 
   return [
-    dailyEntry.data,
+    getDailyServiceSection(menuId, content),
     ...applyMenuOverrides(catalogSections, override),
   ] satisfies MenuSectionData[];
 };
@@ -88,6 +82,29 @@ const getActiveMenuContent = async () => {
   });
 
   return supabaseMenuContentSnapshot;
+};
+
+const getDailyServiceSection = (
+  menuId: string,
+  { dailyMenu, dailyServiceSettings, grillSection }: MenuContentSnapshot,
+): MenuSectionData => {
+  const settings = dailyServiceSettings.find((entry) => entry.menuId === menuId);
+
+  if (!settings) {
+    throw new Error(`Daily service settings not found for ${menuId}.`);
+  }
+
+  if (settings.grillEnabled) {
+    return grillSection;
+  }
+
+  return {
+    sectionId: "menu-del-dia",
+    title: "Menu del dia",
+    description: "Opcion principal del dia.",
+    order: 10,
+    items: dailyMenu.items,
+  };
 };
 
 const applyMenuOverrides = (
@@ -181,10 +198,13 @@ const validateMenuContentIntegrity = ({
   profiles,
   overrides,
   catalogSections,
-  dailyEntries,
+  dailyMenu,
+  dailyServiceSettings,
+  grillSection,
 }: MenuContentSnapshot) => {
   const profileIds = profiles.map((entry) => entry.data.id);
   const profileIdSet = new Set(profileIds);
+  const dailyServiceMenuIds = dailyServiceSettings.map((entry) => entry.menuId);
 
   assertUniqueIds(profileIds, "menu profile id");
   assertUniqueIds(
@@ -195,15 +215,30 @@ const validateMenuContentIntegrity = ({
     overrides.map((override) => override.menuId),
     "menu override menuId",
   );
+  assertUniqueIds(dailyServiceMenuIds, "daily service settings entry");
 
-  for (const dailyEntry of dailyEntries) {
-    if (!profileIdSet.has(dailyEntry.id)) {
-      throw new Error(
-        `Daily menu section ${dailyEntry.id} does not match a menu profile id.`,
-      );
+  validateSectionIds("daily menu service", {
+    sectionId: "menu-del-dia",
+    title: "Menu del dia",
+    order: 10,
+    items: dailyMenu.items,
+  });
+  validateSectionIds("grill service", grillSection);
+
+  for (const settings of dailyServiceSettings) {
+    if (!profileIdSet.has(settings.menuId)) {
+      throw new Error(`Daily service settings references unknown profile: ${settings.menuId}`);
     }
 
-    validateSectionIds(`daily menu ${dailyEntry.id}`, dailyEntry.data);
+    if (typeof settings.grillEnabled !== "boolean") {
+      throw new Error(`Daily service settings ${settings.menuId} grillEnabled must be boolean.`);
+    }
+  }
+
+  for (const profileId of profileIds) {
+    if (!dailyServiceMenuIds.includes(profileId)) {
+      throw new Error(`Daily service settings missing ${profileId}.`);
+    }
   }
 
   for (const section of catalogSections) {

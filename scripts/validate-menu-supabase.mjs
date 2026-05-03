@@ -9,12 +9,16 @@ const uploadsBasePath = "/uploads/";
 const allowedMenuImageExtensions = [".avif", ".jpeg", ".jpg", ".png", ".svg", ".webp"];
 
 const expectedConstraints = [
+  "menu_daily_menu_singleton_valid",
   "menu_prices_kind_amount_valid",
   "menu_sections_scope_menu_id_valid",
   "menu_profile_facts_link_pair_valid",
 ];
 
 const expectedIndexes = [
+  "menu_daily_service_settings_profile_key",
+  "menu_grill_items_item_id_key",
+  "menu_grill_items_order_index_key",
   "menu_prices_pricing_key_kind_key",
   "menu_price_variants_pricing_key_order_key",
   "menu_sections_context_section_id_key",
@@ -84,7 +88,7 @@ console.log(`Menu validation passed for ${expectedMenuIds.join(", ")}.`);
 function validateSnapshot(snapshot, errors) {
   const profileIds = snapshot.profiles.map((entry) => entry.data.id);
   const profileIdSet = new Set(profileIds);
-  const dailyEntriesById = new Map(snapshot.dailyEntries.map((entry) => [entry.id, entry]));
+  const dailyServiceMenuIds = snapshot.dailyServiceSettings.map((entry) => entry.menuId);
   const catalogSectionsById = new Map(
     snapshot.catalogSections.map((section) => [section.sectionId, section]),
   );
@@ -105,14 +109,11 @@ function validateSnapshot(snapshot, errors) {
     "menu override menuId",
     errors,
   );
+  assertUnique(dailyServiceMenuIds, "daily service settings entry", errors);
 
   for (const menuId of expectedMenuIds) {
     if (!profileIdSet.has(menuId)) {
       errors.push(`Missing required menu profile: ${menuId}`);
-    }
-
-    if (!dailyEntriesById.has(menuId)) {
-      errors.push(`Missing required daily menu section: ${menuId}`);
     }
   }
 
@@ -120,12 +121,23 @@ function validateSnapshot(snapshot, errors) {
     validateProfile(profile.data, errors);
   }
 
-  for (const dailyEntry of snapshot.dailyEntries) {
-    if (!profileIdSet.has(dailyEntry.id)) {
-      errors.push(`Daily menu section ${dailyEntry.id} does not match a menu profile id.`);
+  validateDailyMenu(snapshot.dailyMenu, errors);
+  validateSection("grill service", snapshot.grillSection, errors);
+
+  for (const settings of snapshot.dailyServiceSettings) {
+    if (!profileIdSet.has(settings.menuId)) {
+      errors.push(`Daily service settings references unknown profile: ${settings.menuId}`);
     }
 
-    validateSection(`daily menu ${dailyEntry.id}`, dailyEntry.data, errors);
+    if (typeof settings.grillEnabled !== "boolean") {
+      errors.push(`Daily service settings ${settings.menuId} grillEnabled must be boolean.`);
+    }
+  }
+
+  for (const menuId of profileIds) {
+    if (!dailyServiceMenuIds.includes(menuId)) {
+      errors.push(`Missing daily service settings for ${menuId}.`);
+    }
   }
 
   for (const section of snapshot.catalogSections) {
@@ -135,6 +147,29 @@ function validateSnapshot(snapshot, errors) {
   for (const override of snapshot.overrides) {
     validateOverride(override, profileIdSet, catalogSectionsById, errors);
   }
+}
+
+function validateDailyMenu(dailyMenu, errors) {
+  if (!dailyMenu) {
+    errors.push("Current daily menu must be defined.");
+    return;
+  }
+
+  if (!Array.isArray(dailyMenu.items) || dailyMenu.items.length !== 3) {
+    errors.push("Current daily menu must define the three daily menu options.");
+    return;
+  }
+
+  validateSection(
+    "daily menu service",
+    {
+      sectionId: "menu-del-dia",
+      title: "Menu del dia",
+      order: 10,
+      items: dailyMenu.items,
+    },
+    errors,
+  );
 }
 
 function validateProfile(profile, errors) {

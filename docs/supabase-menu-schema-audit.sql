@@ -3,6 +3,7 @@
 
 with expected_constraints (constraint_name, table_name, expectation) as (
   values
+    ('menu_daily_menu_singleton_valid', 'menu_daily_menu', 'only the current daily menu row is allowed'),
     ('menu_prices_kind_amount_valid', 'menu_prices', 'fixed requires amount; included/variants require null amount'),
     ('menu_sections_scope_menu_id_valid', 'menu_sections', 'catalog requires null menu_id; daily requires non-null menu_id'),
     ('menu_profile_facts_link_pair_valid', 'menu_profile_facts', 'link_text and link_href must both be null or both be present')
@@ -31,6 +32,9 @@ order by expected.table_name, expected.constraint_name;
 
 with expected_indexes (index_name, table_name, expectation) as (
   values
+    ('menu_daily_service_settings_profile_key', 'menu_daily_service_settings', 'unique settings row per profile'),
+    ('menu_grill_items_item_id_key', 'menu_grill_items', 'unique grill item id'),
+    ('menu_grill_items_order_index_key', 'menu_grill_items', 'unique grill item order'),
     ('menu_prices_pricing_key_kind_key', 'menu_prices', 'unique pricing_key + kind for variant FK'),
     ('menu_price_variants_pricing_key_order_key', 'menu_price_variants', 'unique variant order per price'),
     ('menu_sections_context_section_id_key', 'menu_sections', 'unique section_id per section scope and menu'),
@@ -112,9 +116,36 @@ where not (
   or (link_text is not null and link_href is not null)
 );
 
+select
+  'menu_daily_menu_singleton_invalid' as diagnostic,
+  id
+from menu_content.menu_daily_menu
+where id <> 'current';
+
 -- Duplicate diagnostics for unique indexes created by hardening.
 
 with duplicate_checks as (
+  select 'menu_daily_service_settings_profile_key' as index_name, profile_id::text as context_key, profile_id::text as duplicate_key, count(*) as duplicate_count
+  from menu_content.menu_daily_service_settings
+  group by profile_id
+  having count(*) > 1
+
+  union all
+
+  select 'menu_grill_items_item_id_key', 'parrilla', item_id, count(*)
+  from menu_content.menu_grill_items
+  group by item_id
+  having count(*) > 1
+
+  union all
+
+  select 'menu_grill_items_order_index_key', 'parrilla', order_index::text, count(*)
+  from menu_content.menu_grill_items
+  group by order_index
+  having count(*) > 1
+
+  union all
+
   select 'menu_price_variants_pricing_key_order_key' as index_name, pricing_key::text as context_key, order_index::text as duplicate_key, count(*) as duplicate_count
   from menu_content.menu_price_variants
   group by pricing_key, order_index

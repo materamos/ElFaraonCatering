@@ -1,6 +1,8 @@
 import postgres from "postgres";
 
 const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
+const dailyMenuWithDrinkPricingKey = "menu-del-dia-con-bebida";
+const dailyMenuVegetarianPricingKey = "menu-vegetariano-del-dia";
 
 export const loadSupabaseMenuSnapshot = async (
   databaseUrl = process.env[privateDatabaseUrlEnvName],
@@ -31,12 +33,15 @@ const loadRows = async (sql) => {
     paymentMethods,
     prices,
     priceVariants,
+    dailyMenus,
+    dailyServiceSettings,
     sections,
     groups,
     items,
     options,
     sectionItems,
     groupItems,
+    grillItems,
     overrides,
     overrideSections,
     overrideGroups,
@@ -49,12 +54,15 @@ const loadRows = async (sql) => {
     sql`select * from menu_content.menu_profile_payment_methods order by profile_id, order_index`,
     sql`select * from menu_content.menu_prices order by pricing_key`,
     sql`select * from menu_content.menu_price_variants order by pricing_key, order_index`,
+    sql`select * from menu_content.menu_daily_menu order by id`,
+    sql`select * from menu_content.menu_daily_service_settings order by profile_id`,
     sql`select * from menu_content.menu_sections order by section_scope, coalesce(menu_id, ''), order_index`,
     sql`select * from menu_content.menu_groups order by section_row_id, order_index`,
     sql`select * from menu_content.menu_items order by id`,
     sql`select * from menu_content.menu_item_options order by item_row_id, order_index`,
     sql`select * from menu_content.menu_section_items order by section_row_id, order_index`,
     sql`select * from menu_content.menu_group_items order by group_row_id, order_index`,
+    sql`select * from menu_content.menu_grill_items order by order_index`,
     sql`select * from menu_content.menu_overrides order by menu_id`,
     sql`select * from menu_content.menu_override_sections order by override_row_id, order_index`,
     sql`select * from menu_content.menu_override_groups order by override_section_row_id, order_index`,
@@ -69,12 +77,15 @@ const loadRows = async (sql) => {
     paymentMethods,
     prices,
     priceVariants,
+    dailyMenus,
+    dailyServiceSettings,
     sections,
     groups,
     items,
     options,
     sectionItems,
     groupItems,
+    grillItems,
     overrides,
     overrideSections,
     overrideGroups,
@@ -93,6 +104,13 @@ const createSnapshot = (rows) => {
   const factsByProfile = groupByStringKey(rows.facts, "profile_id");
   const paymentByProfile = new Map(rows.payments.map((payment) => [payment.profile_id, payment]));
   const paymentMethodsByProfile = groupByStringKey(rows.paymentMethods, "profile_id");
+  const dailyMenu = createDailyMenu(rows.dailyMenus, priceMap);
+  const grillSection = createGrillSection({
+    grillItems: rows.grillItems,
+    priceMap,
+    itemMap,
+    optionsByItem,
+  });
 
   const profiles = rows.profiles.map((profile) => {
     const payment = paymentByProfile.get(profile.id);
@@ -156,14 +174,64 @@ const createSnapshot = (rows) => {
       .filter((record) => record.scope === "catalog")
       .map((record) => record.data)
       .sort((left, right) => left.order - right.order),
-    dailyEntries: sectionRecords
-      .filter((record) => record.scope === "daily")
-      .map((record) => ({
-        id: record.menuId,
-        data: record.data,
-      })),
+    dailyMenu,
+    dailyServiceSettings: rows.dailyServiceSettings.map((entry) => ({
+      menuId: entry.profile_id,
+      grillEnabled: entry.grill_enabled,
+    })),
+    grillSection,
   };
 };
+
+const createDailyMenu = (dailyMenus, priceMap) => {
+  if (dailyMenus.length !== 1) {
+    throw new Error("Supabase menu content must define one current daily menu row.");
+  }
+
+  const dailyMenu = dailyMenus[0];
+  const dailyMenuAvailable = dailyMenu.available;
+
+  return {
+    items: [
+      cleanOptional({
+        itemId: "menu-del-dia",
+        name: dailyMenu.name,
+        description: dailyMenu.description ?? undefined,
+        note: dailyMenu.note ?? undefined,
+        available: dailyMenuAvailable,
+        pricing: requireMapValue(priceMap, dailyMenu.pricing_key),
+      }),
+      {
+        itemId: "menu-del-dia-con-bebida",
+        name: "Menu del dia + bebida",
+        available: dailyMenuAvailable,
+        pricing: requireMapValue(priceMap, dailyMenuWithDrinkPricingKey),
+      },
+      {
+        itemId: "menu-vegetariano-del-dia",
+        name: "Menu del dia vegetariano",
+        available: dailyMenuAvailable,
+        pricing: requireMapValue(priceMap, dailyMenuVegetarianPricingKey),
+      },
+    ],
+  };
+};
+
+const createGrillSection = ({ grillItems, priceMap, itemMap, optionsByItem }) => ({
+  sectionId: "parrilla",
+  title: "Parrilla",
+  description: "Productos de parrilla. La disponibilidad puede variar durante el dia.",
+  order: 10,
+  presentation: "compact-list",
+  items: grillItems.map((itemRow) =>
+    createItem({
+      occurrence: itemRow,
+      item: requireMapValue(itemMap, Number(itemRow.item_row_id)),
+      options: optionsByItem.get(Number(itemRow.item_row_id)) ?? [],
+      priceMap,
+    }),
+  ),
+});
 
 const createSection = ({
   section,
