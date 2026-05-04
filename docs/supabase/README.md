@@ -25,7 +25,7 @@ Archivos read-only:
 
 - `audits/menu-schema-audit.sql`: revisa constraints, indices y duplicados esperados.
 - `audits/database-audit.sql`: inventario amplio de objetos, exposicion, policies y hallazgos.
-- `schema-diagram.md`: diagrama ERD y notas de relacion.
+- `schema-diagram.md`: mapa versionado principal para entender schemas, relaciones fisicas, relaciones logicas y statuses de auditoria.
 
 ## Orden recomendado
 
