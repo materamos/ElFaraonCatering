@@ -138,11 +138,16 @@ scripts/
   validate-menu-supabase.mjs
   verify-dist-secrets.mjs
 docs/
-  supabase-availability-overlay.sql
-  supabase-menu-daily-service-data.sql
-  supabase-menu-schema.sql
-  supabase-menu-schema-audit.sql
-  supabase-menu-schema-hardening.sql
+  supabase/
+    README.md
+    availability-overlay.sql
+    daily-service-data.sql
+    hardening.sql
+    schema-diagram.md
+    schema.sql
+    audits/
+      database-audit.sql
+      menu-schema-audit.sql
 ```
 
 Directorios generados como `dist/`, `.astro/` y `node_modules/` no forman parte de la estructura fuente documentada.
@@ -207,11 +212,22 @@ En local puede definirse en `.env.local`; en Vercel debe configurarse como varia
 
 SQL disponible:
 
-- `docs/supabase-availability-overlay.sql`: base del overlay runtime de disponibilidad.
-- `docs/supabase-menu-schema.sql`: schema estructural `menu_content`.
-- `docs/supabase-menu-daily-service-data.sql`: datos base para configuracion diaria y parrilla.
-- `docs/supabase-menu-schema-audit.sql`: auditoria de constraints e indices esperados.
-- `docs/supabase-menu-schema-hardening.sql`: hardening idempotente de constraints e indices.
+- `docs/supabase/README.md`: flujo local-first, orden de ejecucion y reglas de aplicacion remota.
+- `docs/supabase/schema-diagram.md`: diagrama ERD Mermaid del schema estructural y overlay runtime.
+- `docs/supabase/schema.sql`: schema estructural `menu_content`.
+- `docs/supabase/daily-service-data.sql`: datos base para configuracion diaria y parrilla.
+- `docs/supabase/availability-overlay.sql`: base del overlay runtime de disponibilidad.
+- `docs/supabase/hardening.sql`: hardening idempotente de constraints e indices.
+- `docs/supabase/audits/menu-schema-audit.sql`: auditoria read-only de constraints e indices esperados.
+- `docs/supabase/audits/database-audit.sql`: auditoria read-only de inventario, exposicion, objetos inesperados y hallazgos de datos.
+
+Flujo local-first para cambios de base:
+
+1. Versionar el SQL propuesto dentro de `docs/supabase/`.
+2. Actualizar `docs/supabase/schema-diagram.md` si cambia el esquema o una relacion.
+3. Ejecutar primero los audits read-only contra la base apuntada por `SUPABASE_DB_URL`.
+4. Ejecutar `npm run menu:validate`, `npm run build`, `npm run verify:dist-secrets` y `npm run check`.
+5. Aplicar SQL mutante en Supabase remoto solo si los audits y validaciones pasan.
 
 ## Estado editorial
 

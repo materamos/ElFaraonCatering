@@ -1,5 +1,5 @@
 -- Idempotent data patch for the daily service model.
--- Run after docs/supabase-menu-schema.sql.
+-- Run after docs/supabase/schema.sql.
 -- This inserts operational defaults only if missing; update these rows directly for daily changes.
 
 insert into menu_content.menu_prices (pricing_key, kind, amount)

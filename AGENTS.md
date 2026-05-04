@@ -139,17 +139,20 @@ Supabase is not a CMS and does not imply an editorial workflow.
 
 Build-time structural content:
 
-- `docs/supabase-menu-schema.sql` defines the `menu_content` schema.
-- `docs/supabase-menu-daily-service-data.sql` seeds the daily-service settings and fixed grill list.
-- `docs/supabase-menu-schema-audit.sql` audits expected constraints and indexes.
-- `docs/supabase-menu-schema-hardening.sql` hardens constraints and indexes idempotently.
+- `docs/supabase/schema.sql` defines the `menu_content` schema.
+- `docs/supabase/daily-service-data.sql` seeds the daily-service settings and fixed grill list.
+- `docs/supabase/hardening.sql` hardens constraints and indexes idempotently.
+- `docs/supabase/audits/menu-schema-audit.sql` audits expected constraints and indexes.
+- `docs/supabase/audits/database-audit.sql` is a read-only inventory, exposure, unexpected-object, and data-finding audit.
+- `docs/supabase/README.md` documents the local-first Supabase workflow and remote-application rules.
+- `docs/supabase/schema-diagram.md` documents the Mermaid ERD for `menu_content` and the runtime overlay.
 - `SUPABASE_DB_URL` is required for build-time structural reads and menu validation.
 - Local development may define `SUPABASE_DB_URL` in `.env.local`; scripts load it only when an environment value is not already set.
 - Never expose `SUPABASE_DB_URL` to the client or any `PUBLIC_*` environment variable.
 
 Runtime overlay:
 
-- `docs/supabase-availability-overlay.sql` supports the availability overlay.
+- `docs/supabase/availability-overlay.sql` supports the availability overlay.
 - Public client variables are `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.
 - The overlay may only change visual availability through availability data.
 - Do not add `@supabase/supabase-js` for the current overlay unless explicitly justified.

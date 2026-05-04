@@ -11,7 +11,7 @@ begin
       or (kind in ('included', 'variants') and amount is null)
     )
   ) then
-    raise exception 'menu_prices contains rows that violate fixed/included/variants amount rules. Run docs/supabase-menu-schema-audit.sql for diagnostics.';
+    raise exception 'menu_prices contains rows that violate fixed/included/variants amount rules. Run docs/supabase/audits/menu-schema-audit.sql for diagnostics.';
   end if;
 
   if not exists (
@@ -40,7 +40,7 @@ begin
       or (section_scope = 'daily' and menu_id is not null)
     )
   ) then
-    raise exception 'menu_sections contains rows that violate section_scope/menu_id rules. Run docs/supabase-menu-schema-audit.sql for diagnostics.';
+    raise exception 'menu_sections contains rows that violate section_scope/menu_id rules. Run docs/supabase/audits/menu-schema-audit.sql for diagnostics.';
   end if;
 
   if not exists (
@@ -69,7 +69,7 @@ begin
       or (link_text is not null and link_href is not null)
     )
   ) then
-    raise exception 'menu_profile_facts contains rows that violate link_text/link_href pairing. Run docs/supabase-menu-schema-audit.sql for diagnostics.';
+    raise exception 'menu_profile_facts contains rows that violate link_text/link_href pairing. Run docs/supabase/audits/menu-schema-audit.sql for diagnostics.';
   end if;
 
   if not exists (
@@ -95,7 +95,7 @@ begin
     from menu_content.menu_daily_menu
     where id <> 'current'
   ) then
-    raise exception 'menu_daily_menu contains rows that violate singleton rules. Run docs/supabase-menu-schema-audit.sql for diagnostics.';
+    raise exception 'menu_daily_menu contains rows that violate singleton rules. Run docs/supabase/audits/menu-schema-audit.sql for diagnostics.';
   end if;
 
   if not exists (
