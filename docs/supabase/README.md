@@ -20,6 +20,7 @@ Archivos que modifican schema o datos:
 - `daily-service-data.sql`: inserta defaults del menu diario y parrilla fija.
 - `availability-overlay.sql`: crea tablas, indices y policies del overlay runtime.
 - `hardening.sql`: agrega constraints e indices idempotentes para bases existentes.
+- `migrations/`: cambios incrementales versionados para bases existentes.
 
 Archivos read-only:
 
@@ -44,8 +45,9 @@ Para una base existente:
 1. Ejecutar primero los SQL de `audits/`.
 2. Resolver cualquier fila que bloquee constraints o indices.
 3. Revisar y versionar el SQL idempotente que se quiere aplicar.
-4. Aplicarlo en Supabase solo despues de validar localmente.
-5. Volver a ejecutar audits y validaciones.
+4. Si el cambio vive en `migrations/`, revisar el archivo completo antes de aplicarlo.
+5. Aplicarlo en Supabase solo despues de validar localmente.
+6. Volver a ejecutar audits y validaciones.
 
 ## Variables
 

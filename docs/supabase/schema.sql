@@ -42,7 +42,6 @@ create table if not exists menu_content.menu_prices (
   pricing_key text primary key check (length(btrim(pricing_key)) > 0),
   kind text not null check (kind in ('fixed', 'included', 'variants')),
   amount integer null check (amount is null or amount >= 0),
-  currency text not null default 'ARS' check (currency = 'ARS'),
   unique (pricing_key, kind),
   check (
     (kind = 'fixed' and amount is not null)

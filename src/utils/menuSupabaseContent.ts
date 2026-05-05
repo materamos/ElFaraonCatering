@@ -293,7 +293,7 @@ const loadRows = async (sql: ReturnType<typeof postgres>): Promise<SupabaseRows>
     sql`select * from menu_content.menu_profile_facts order by profile_id, order_index`,
     sql`select * from menu_content.menu_profile_payments order by profile_id`,
     sql`select * from menu_content.menu_profile_payment_methods order by profile_id, order_index`,
-    sql`select * from menu_content.menu_prices order by pricing_key`,
+    sql`select pricing_key, kind, amount from menu_content.menu_prices order by pricing_key`,
     sql`select * from menu_content.menu_price_variants order by pricing_key, order_index`,
     sql`select * from menu_content.menu_daily_menu order by id`,
     sql`select * from menu_content.menu_daily_service_settings order by profile_id`,
