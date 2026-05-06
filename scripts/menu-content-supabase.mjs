@@ -172,7 +172,7 @@ const createSnapshot = (rows) => {
 
   return {
     profiles,
-    overrides: createOverrides(rows, priceMap),
+    overrides: createOverrides(rows),
     catalogSections: sectionRecords
       .filter((record) => record.scope === "catalog")
       .map((record) => record.data)
@@ -312,7 +312,7 @@ const createItem = ({ occurrence, item, options, priceMap }) =>
     image: item.image_path ?? undefined,
   });
 
-const createOverrides = (rows, priceMap) => {
+const createOverrides = (rows) => {
   const sectionsByOverride = groupByNumberKey(rows.overrideSections, "override_row_id");
   const groupsBySection = groupByNumberKey(rows.overrideGroups, "override_section_row_id");
   const sectionItemsBySection = groupByNumberKey(
@@ -332,7 +332,6 @@ const createOverrides = (rows, priceMap) => {
                 cleanOptional({
                   itemId: item.item_id,
                   available: item.available ?? undefined,
-                  pricing: readPricing(priceMap, item.pricing_key),
                   note: item.note ?? undefined,
                 }),
               )
@@ -342,7 +341,6 @@ const createOverrides = (rows, priceMap) => {
             ? (groupsBySection.get(Number(section.id)) ?? []).map((group) =>
                 cleanOptional({
                   groupId: group.group_id,
-                  pricing: readPricing(priceMap, group.pricing_key),
                   note: group.note ?? undefined,
                   items:
                     (groupItemsByGroup.get(Number(group.id)) ?? []).length > 0
@@ -350,7 +348,6 @@ const createOverrides = (rows, priceMap) => {
                           cleanOptional({
                             itemId: item.item_id,
                             available: item.available ?? undefined,
-                            pricing: readPricing(priceMap, item.pricing_key),
                             note: item.note ?? undefined,
                           }),
                         )

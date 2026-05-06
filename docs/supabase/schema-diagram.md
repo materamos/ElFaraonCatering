@@ -176,21 +176,18 @@ erDiagram
     bigint id PK
     bigint override_section_row_id FK
     text group_id
-    text pricing_key FK
   }
 
   MENU_OVERRIDE_SECTION_ITEMS {
     bigint id PK
     bigint override_section_row_id FK
     text item_id
-    text pricing_key FK
   }
 
   MENU_OVERRIDE_GROUP_ITEMS {
     bigint id PK
     bigint override_group_row_id FK
     text item_id
-    text pricing_key FK
   }
 
   MENU_PROFILES ||--o{ MENU_PROFILE_FACTS : physical
@@ -206,10 +203,6 @@ erDiagram
   MENU_PRICES ||--o{ MENU_SECTION_ITEMS : physical
   MENU_PRICES ||--o{ MENU_GROUP_ITEMS : physical
   MENU_PRICES ||--o{ MENU_GRILL_ITEMS : physical
-  MENU_PRICES ||--o{ MENU_OVERRIDE_GROUPS : physical
-  MENU_PRICES ||--o{ MENU_OVERRIDE_SECTION_ITEMS : physical
-  MENU_PRICES ||--o{ MENU_OVERRIDE_GROUP_ITEMS : physical
-
   MENU_SECTIONS ||--o{ MENU_GROUPS : physical
   MENU_SECTIONS ||--o{ MENU_SECTION_ITEMS : physical
   MENU_GROUPS ||--o{ MENU_GROUP_ITEMS : physical
@@ -304,6 +297,7 @@ estructura existente y se revisan con `audits/database-audit.sql` y `npm run men
 - `menu_sections.section_scope = 'catalog'` usa `menu_id = null`; `section_scope = 'daily'` usa un `menu_id` de `menu_profiles`.
 - `menu_daily_menu` es singleton: solo permite el id `current`.
 - `menu_grill_items` representa la lista fija de parrilla usada cuando `grill_enabled` esta activo para un perfil.
-- Los overrides solo pueden ajustar disponibilidad, precio y nota sobre estructura existente.
+- Los overrides solo pueden ajustar disponibilidad y nota sobre estructura existente.
+- Los precios son globales y no pueden cambiar por local/menu mediante overrides.
 - Las imagenes se validan como paths permitidos bajo `/uploads/`; su existencia fisica requiere comparar contra el inventario del repo.
 - Cualquier limpieza futura debe vivir en otro SQL separado, transaccional y no ejecutado sin aprobacion explicita.

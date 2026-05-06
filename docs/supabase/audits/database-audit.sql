@@ -467,9 +467,6 @@ with direct_price_references as (
   union all select pricing_key from menu_content.menu_groups where pricing_key is not null
   union all select pricing_key from menu_content.menu_section_items where pricing_key is not null
   union all select pricing_key from menu_content.menu_group_items where pricing_key is not null
-  union all select pricing_key from menu_content.menu_override_groups where pricing_key is not null
-  union all select pricing_key from menu_content.menu_override_section_items where pricing_key is not null
-  union all select pricing_key from menu_content.menu_override_group_items where pricing_key is not null
 ),
 semantic_price_keys(pricing_key) as (
   values

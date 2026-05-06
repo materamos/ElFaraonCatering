@@ -42,6 +42,12 @@ const expectedIndexes = [
   "menu_override_group_items_group_order_key",
 ];
 
+const forbiddenColumns = [
+  ["menu_override_groups", "pricing_key"],
+  ["menu_override_section_items", "pricing_key"],
+  ["menu_override_group_items", "pricing_key"],
+];
+
 if (!databaseUrl) {
   console.error("Private Supabase database URL is required for menu validation.");
   process.exit(1);
@@ -401,12 +407,6 @@ function validateOverride(override, profileIdSet, catalogSectionsById, errors) {
           `override ${override.menuId} section ${section.sectionId} group ${groupOverride.groupId}`,
           errors,
         );
-        validatePricing(
-          groupOverride.pricing,
-          `override ${override.menuId} section ${section.sectionId} group ${groupOverride.groupId}`,
-          errors,
-        );
-
         if (!group) {
           errors.push(
             `Override ${override.menuId} references unknown group ${groupOverride.groupId} in section ${section.sectionId}`,
@@ -434,7 +434,6 @@ function validateOverrideItems(scope, items, validItemIds, errors) {
 
   for (const item of items) {
     validateTechnicalId(item.itemId, `${scope} item ${item.itemId}`, errors);
-    validatePricing(item.pricing, `${scope} item ${item.itemId}`, errors);
 
     if (!validItemIds.has(item.itemId)) {
       errors.push(`${scope} references unknown item: ${item.itemId}`);
@@ -514,6 +513,20 @@ async function validateSchema(sql, errors) {
     if (!presentIndexes.has(indexName)) {
       errors.push(`Missing menu_content index: ${indexName}`);
     }
+  }
+
+  const columnRows = await sql`
+    select table_name, column_name
+    from information_schema.columns
+    where table_schema = 'menu_content'
+      and table_name in ${sql(forbiddenColumns.map(([tableName]) => tableName))}
+      and column_name = 'pricing_key'
+  `;
+
+  for (const row of columnRows) {
+    errors.push(
+      `Unexpected menu_content override pricing column: ${row.table_name}.${row.column_name}`,
+    );
   }
 }
 

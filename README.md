@@ -178,12 +178,16 @@ Reglas principales:
 - Si `grill_enabled` es `true`, el local aplica la variante de parrilla al servicio del dia y muestra `menu_grill_items`.
 - Cada local puede mostrar menu del dia o parrilla, nunca ambas a la vez.
 - `menu_grill_items` contiene la lista fija de parrilla; la disponibilidad de cada producto puede cambiar por datos build-time u overlay runtime.
+- Cuando ambos locales muestran menu del dia, el plato principal es el mismo para ambos.
+- Los precios son globales para todos los locales; no se cambian mediante overrides por menu.
+- La disponibilidad es individual por local/menu.
 - Las secciones definen `items` o `groups`, no ambos.
 - Los items directos deben definir precio.
 - Un grupo puede definir precio compartido.
 - Un item dentro de un grupo puede omitir precio para heredar o definir precio para sobrescribir.
 - Si un grupo no tiene precio compartido, cada item del grupo debe definir el suyo.
 - Las variantes son planas y sus montos son numericos.
+- Los overrides por menu solo ajustan disponibilidad y notas sobre estructura existente.
 - Las imagenes deben ser paths locales bajo `/uploads/`.
 
 ## Supabase
@@ -229,13 +233,13 @@ Flujo local-first para cambios de base:
 4. Ejecutar `npm run menu:validate`, `npm run build`, `npm run verify:dist-secrets` y `npm run check`.
 5. Aplicar SQL mutante en Supabase remoto solo si los audits y validaciones pasan.
 
-## Estado editorial
+## Estado operativo
 
-No hay CMS activo en esta etapa. Supabase `menu_content` funciona como fuente estructural de build, pero no como CMS editorial.
+No hay CMS activo dentro del repo en esta etapa. Supabase `menu_content` es la base prevista para un CMS operativo limitado a menu del dia, modo parrilla, disponibilidad y precios globales.
 
 No existe flujo de escritura desde `/admin/`, auth editorial, roles editoriales ni administracion de contenido dentro del sitio publico.
 
-**Keystatic** queda como candidato preliminar para una fase editorial posterior, pero no es una decision cerrada.
+Un CMS editorial amplio sigue fuera de alcance y requeriria una decision de arquitectura separada.
 
 ## Despliegue
 
@@ -246,7 +250,7 @@ Restricciones de esta etapa:
 - no hay SSR
 - no hay adapter de servidor
 - no hay funciones server-side
-- no hay CMS activo
+- no hay CMS activo dentro del repo
 - no hay escritura editorial desde `/admin/` ni desde el sitio publico
 - no hay consultas estructurales desde el navegador
 
@@ -262,7 +266,7 @@ No agregar estas capacidades salvo pedido explicito:
 - carrito
 - SSR
 - serverless functions
-- CMS, auth o flujos de escritura editorial
+- CMS editorial amplio, auth o flujos de escritura editorial
 
 ## Decisiones tecnicas actuales
 

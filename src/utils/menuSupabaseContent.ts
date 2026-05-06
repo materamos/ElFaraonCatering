@@ -16,13 +16,11 @@ type MenuItemData =
 interface MenuItemOverride {
   itemId: string;
   available?: boolean;
-  pricing?: MenuPricing;
   note?: string;
 }
 
 interface MenuGroupOverride {
   groupId: string;
-  pricing?: MenuPricing;
   note?: string;
   items?: MenuItemOverride[];
 }
@@ -189,7 +187,6 @@ interface OverrideGroupRow {
   id: number | string;
   override_section_row_id: number | string;
   group_id: string;
-  pricing_key: string | null;
   note: string | null;
 }
 
@@ -197,7 +194,6 @@ interface OverrideSectionItemRow {
   override_section_row_id: number | string;
   item_id: string;
   available: boolean | null;
-  pricing_key: string | null;
   note: string | null;
 }
 
@@ -205,7 +201,6 @@ interface OverrideGroupItemRow {
   override_group_row_id: number | string;
   item_id: string;
   available: boolean | null;
-  pricing_key: string | null;
   note: string | null;
 }
 
@@ -405,7 +400,7 @@ const createSnapshot = (rows: SupabaseRows): MenuContentSnapshot => {
 
   return {
     profiles,
-    overrides: createOverrides(rows, priceMap),
+    overrides: createOverrides(rows),
     catalogSections: sectionRecords
       .filter((record) => record.scope === "catalog")
       .map((record) => record.data as MenuCatalogSectionData)
@@ -576,10 +571,7 @@ const createItem = ({
     image: item.image_path ?? undefined,
   }) as MenuItemData;
 
-const createOverrides = (
-  rows: SupabaseRows,
-  priceMap: Map<string, MenuPricing>,
-): MenuOverrideData[] => {
+const createOverrides = (rows: SupabaseRows): MenuOverrideData[] => {
   const sectionsByOverride = groupByNumberKey(rows.overrideSections, "override_row_id");
   const groupsBySection = groupByNumberKey(rows.overrideGroups, "override_section_row_id");
   const sectionItemsBySection = groupByNumberKey(
@@ -599,7 +591,6 @@ const createOverrides = (
                 cleanOptional({
                   itemId: item.item_id,
                   available: item.available ?? undefined,
-                  pricing: readPricing(priceMap, item.pricing_key),
                   note: item.note ?? undefined,
                 }),
               )
@@ -609,7 +600,6 @@ const createOverrides = (
             ? (groupsBySection.get(Number(section.id)) ?? []).map((group) =>
                 cleanOptional({
                   groupId: group.group_id,
-                  pricing: readPricing(priceMap, group.pricing_key),
                   note: group.note ?? undefined,
                   items:
                     (groupItemsByGroup.get(Number(group.id)) ?? []).length > 0
@@ -617,7 +607,6 @@ const createOverrides = (
                           cleanOptional({
                             itemId: item.item_id,
                             available: item.available ?? undefined,
-                            pricing: readPricing(priceMap, item.pricing_key),
                             note: item.note ?? undefined,
                           }),
                         )

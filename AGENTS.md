@@ -54,7 +54,10 @@ Do not add these capabilities unless explicitly requested:
 - SSR
 - server output
 - serverless functions
-- CMS code, auth, or repo-writing admin flows
+- broad editorial CMS code, auth, or repo-writing admin flows
+
+Operational CMS work is limited to menu del dia, grill mode, availability, and global
+prices unless a broader admin scope is explicitly requested.
 
 Keep `/admin/` as a static placeholder under `public/admin/index.html`. Do not reintroduce an Astro page at the same route while it remains a placeholder.
 
@@ -104,6 +107,9 @@ Daily service rules:
 - When `grill_enabled` is true, the profile shows `menu_grill_items` as the daily service variant.
 - A profile may show either menu del dia or grill, never both.
 - `menu_grill_items` is the fixed grill list; per-product availability can change through build-time data or the runtime availability overlay.
+- When multiple profiles show menu del dia, they share the same current main dish.
+- Prices are global across profiles; do not implement profile/menu-specific prices through overrides.
+- Availability is profile/menu-specific.
 
 Pricing rules:
 
@@ -118,7 +124,7 @@ Pricing rules:
 
 Override rules:
 
-- Overrides may only adjust `available`, `pricing`, and `note` for existing groups/items.
+- Overrides may only adjust `available` and `note` for existing groups/items.
 - Overrides must point to existing IDs.
 - Overrides must not create new catalog structure.
 
@@ -135,7 +141,9 @@ Image rules:
 
 ## Supabase Rules
 
-Supabase is not a CMS and does not imply an editorial workflow.
+Supabase may back an operational CMS for daily menu, grill mode, availability, and
+global prices. It must not become a broad editorial CMS without an explicit
+architecture decision.
 
 Build-time structural content:
 

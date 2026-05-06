@@ -122,6 +122,19 @@ select
 from menu_content.menu_daily_menu
 where id <> 'current';
 
+select
+  'menu_override_pricing_column_unexpected' as diagnostic,
+  table_name,
+  column_name
+from information_schema.columns
+where table_schema = 'menu_content'
+  and column_name = 'pricing_key'
+  and table_name in (
+    'menu_override_groups',
+    'menu_override_section_items',
+    'menu_override_group_items'
+  );
+
 -- Duplicate diagnostics for unique indexes created by hardening.
 
 with duplicate_checks as (

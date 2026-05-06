@@ -5,7 +5,6 @@ import type {
   MenuGroup,
   MenuItem,
   MenuItemsSectionData,
-  MenuPricing,
   MenuProfileData,
   MenuSectionData,
 } from "../types/menu";
@@ -14,13 +13,11 @@ import { loadSupabaseMenuContentSnapshot } from "./menuSupabaseContent";
 interface MenuItemOverride {
   itemId: string;
   available?: boolean;
-  pricing?: MenuPricing;
   note?: string;
 }
 
 interface MenuGroupOverride {
   groupId: string;
-  pricing?: MenuPricing;
   note?: string;
   items?: MenuItemOverride[];
 }
@@ -171,7 +168,6 @@ const applyGroupOverride = (
   return {
     ...group,
     note: override.note ?? group.note,
-    pricing: override.pricing ?? group.pricing,
     items: group.items.map((item) =>
       applyItemOverride(item, itemOverrides.get(item.itemId)),
     ),
@@ -190,7 +186,6 @@ const applyItemOverride = <TItem extends MenuItem>(
     ...item,
     available: override.available ?? item.available,
     note: override.note ?? item.note,
-    pricing: override.pricing ?? item.pricing,
   } as TItem;
 };
 
