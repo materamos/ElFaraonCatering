@@ -53,7 +53,7 @@ const getDirectPricingText = (pricing?: MenuPricing) =>
   </div>
 
   {items && presentation === "compact-list" && (
-    <section class="surface-card menu-section__compact">
+    <section class="menu-section__compact">
       <ul class="compact-list">
         {items.map((item) => {
           const directPricingText = getDirectPricingText(item.pricing);

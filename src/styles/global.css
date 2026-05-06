@@ -1,19 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --color-page: #f7f7f5;
+  --color-page: #f8f8f6;
   --color-surface: #ffffff;
-  --color-surface-soft: #fafafa;
-  --color-line: #deded8;
-  --color-line-strong: #c8c8c0;
+  --color-line: #d9d9d2;
+  --color-line-soft: #e8e8e2;
   --color-ink: #20201d;
   --color-muted: #66665f;
   --color-accent: #333333;
   --color-success: #2f6b4f;
   --color-danger: #9a3f3b;
   --radius-panel: 0.75rem;
-  --radius-small: 0.5rem;
-  --radius-pill: 999px;
+  --radius-small: 0.45rem;
   --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -96,7 +94,7 @@
   .placeholder {
     display: grid;
     gap: 1.5rem;
-    padding: 1.25rem;
+    padding-block: 0.75rem 1.5rem;
   }
 
   .placeholder__intro {
@@ -111,16 +109,15 @@
 
   .placeholder__panel {
     display: grid;
-    gap: 1rem;
-    padding: 1rem;
-    background: var(--color-surface-soft);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-small);
+    gap: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-line);
   }
 
   .placeholder__content {
     display: grid;
     gap: 0.75rem;
+    max-width: 42rem;
     color: var(--color-ink);
     font-size: 0.95rem;
     line-height: 1.6;
@@ -128,23 +125,24 @@
 
   .menu-page {
     display: grid;
-    gap: 1.5rem;
+    gap: 2rem;
   }
 
   .menu-page__hero {
     display: grid;
-    gap: 1.5rem;
-    padding: 1.25rem;
+    gap: 1.25rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-line);
   }
 
   .menu-page__intro {
     display: grid;
-    gap: 1rem;
+    gap: 0.9rem;
   }
 
   .menu-page__title {
     max-width: 48rem;
-    font-size: clamp(2.4rem, 10vw, 4rem);
+    font-size: clamp(2.25rem, 9vw, 3.6rem);
   }
 
   .menu-page__description {
@@ -153,29 +151,23 @@
 
   .menu-page__sections {
     display: grid;
-    gap: 1.5rem;
+    gap: 2rem;
   }
 
   .menu-info-panel {
     display: grid;
     gap: 1rem;
-    height: 100%;
-    padding: 1rem;
-    background: var(--color-surface-soft);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-small);
   }
 
   .menu-info-panel__facts {
     display: grid;
-    gap: 0.75rem;
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.75rem 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   }
 
   .menu-info-panel__fact {
     display: grid;
-    gap: 0.3rem;
-    padding-block: 0.25rem;
+    gap: 0.25rem;
   }
 
   .menu-info-panel__label {
@@ -192,7 +184,7 @@
 
   .menu-info-panel__value {
     color: var(--color-ink);
-    font-size: 1rem;
+    font-size: 0.98rem;
     font-weight: 600;
     line-height: 1.5;
   }
@@ -204,44 +196,43 @@
 
   .menu-info-panel__payment {
     display: grid;
-    gap: 0.75rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--color-line);
+    gap: 0.5rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--color-line-soft);
   }
 
   .menu-info-panel__chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.35rem 0.75rem;
   }
 
   .menu-info-chip {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2rem;
-    padding: 0.35rem 0.7rem;
     color: var(--color-ink);
     font-size: 0.92rem;
     font-weight: 600;
-    line-height: 1.25;
-    background: var(--color-surface);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-pill);
+    line-height: 1.45;
+  }
+
+  .menu-info-chip + .menu-info-chip::before {
+    color: var(--color-muted);
+    content: "/";
+    margin-right: 0.75rem;
   }
 
   .menu-section {
     display: grid;
-    gap: 1rem;
+    gap: 0.9rem;
   }
 
   .menu-section__header {
     display: grid;
-    gap: 0.45rem;
+    gap: 0.4rem;
   }
 
   .menu-section__title {
     color: var(--color-ink);
-    font-size: clamp(1.6rem, 7vw, 2.15rem);
+    font-size: clamp(1.45rem, 6vw, 2rem);
   }
 
   .menu-section__description {
@@ -264,11 +255,20 @@
   .menu-section__groups,
   .menu-group__items {
     display: grid;
-    gap: 0.85rem;
+  }
+
+  .menu-section__items,
+  .menu-group__items,
+  .compact-list {
+    border-top: 1px solid var(--color-line);
+  }
+
+  .menu-section__groups {
+    gap: 1.25rem;
   }
 
   .menu-section__compact {
-    padding: 0.25rem 1rem;
+    display: grid;
   }
 
   .compact-list {
@@ -281,16 +281,11 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 1rem;
-    padding-block: 0.85rem;
-    border-top: 1px solid var(--color-line);
-  }
-
-  .compact-item:first-child {
-    border-top: 0;
+    padding-block: 0.9rem;
+    border-bottom: 1px solid var(--color-line-soft);
   }
 
   .compact-item__content,
-  .compact-item__main,
   .compact-item__variants {
     display: grid;
     gap: 0.35rem;
@@ -351,11 +346,7 @@
 
   .menu-group {
     display: grid;
-    gap: 0.85rem;
-    padding: 1rem;
-    background: var(--color-surface);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-panel);
+    gap: 0.75rem;
   }
 
   .menu-group__header {
@@ -365,7 +356,7 @@
 
   .menu-group__title {
     color: var(--color-ink);
-    font-size: clamp(1.3rem, 5vw, 1.7rem);
+    font-size: clamp(1.2rem, 5vw, 1.55rem);
   }
 
   .menu-group__description {
@@ -374,31 +365,30 @@
     line-height: 1.6;
   }
 
-  .dish-card {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    height: 100%;
-    padding: 1rem;
+  .dish-row {
+    display: grid;
+    gap: 0.75rem;
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--color-line-soft);
   }
 
   .dish-card__header {
     display: flex;
-    align-items: flex-start;
+    align-items: baseline;
     justify-content: space-between;
     gap: 1rem;
   }
 
   .dish-card__main {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.45rem;
     min-width: 0;
   }
 
   .dish-card__title {
     overflow-wrap: anywhere;
     color: var(--color-ink);
-    font-size: 1.2rem;
+    font-size: 1.08rem;
   }
 
   .dish-card__description {
@@ -410,17 +400,12 @@
 
   .dish-card__footer {
     display: grid;
-    gap: 0.85rem;
-    margin-top: auto;
+    gap: 0.7rem;
   }
 
   .dish-card__options {
     display: grid;
-    gap: 0.65rem;
-    padding: 0.85rem;
-    background: var(--color-surface-soft);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-small);
+    gap: 0.45rem;
   }
 
   .dish-card__option-label,
@@ -445,43 +430,31 @@
     font-weight: 650;
   }
 
-  .dish-card__price-row,
-  .dish-card__variants {
-    padding-top: 0.85rem;
-    border-top: 1px solid var(--color-line);
-  }
-
   .dish-card__price-row {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
     gap: 1rem;
   }
 
   .dish-card__variants {
     display: grid;
-    gap: 0.65rem;
+    gap: 0.45rem;
   }
 
-  .dish-card__variant-list {
+  .dish-card__variant-list,
+  .dish-card__option-list {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.35rem;
   }
 
   .status-pill {
     display: inline-flex;
     flex-shrink: 0;
-    align-items: center;
-    padding: 0.25rem 0.6rem;
-    border: 1px solid currentColor;
-    border-radius: var(--radius-pill);
+    color: var(--color-success);
     font-size: 0.78rem;
     font-weight: 650;
-    line-height: 1.25;
-  }
-
-  .status-pill[data-state="available"] {
-    color: var(--color-success);
+    line-height: 1.35;
   }
 
   .status-pill[data-state="unavailable"] {
@@ -505,20 +478,13 @@
     width: fit-content;
     align-items: center;
     justify-content: center;
-    min-height: 2.25rem;
-    padding: 0.4rem 0.75rem;
+    min-height: 2rem;
     color: var(--color-ink);
     font-size: 0.9rem;
     font-weight: 650;
     line-height: 1.25;
-    text-decoration: none;
-    background: var(--color-surface-soft);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-small);
-  }
-
-  .photo-button:hover {
-    border-color: var(--color-line-strong);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
   }
 
   .photo-sheet {
@@ -568,13 +534,9 @@
     font-weight: 650;
     line-height: 1.25;
     cursor: pointer;
-    background: var(--color-surface-soft);
+    background: transparent;
     border: 1px solid var(--color-line);
     border-radius: var(--radius-small);
-  }
-
-  .photo-sheet__close:hover {
-    border-color: var(--color-line-strong);
   }
 
   .photo-sheet__title {
@@ -589,8 +551,7 @@
     aspect-ratio: 4 / 3;
     margin-top: 1rem;
     overflow: hidden;
-    background: var(--color-surface-soft);
-    border: 1px solid var(--color-line);
+    background: var(--color-page);
     border-radius: var(--radius-small);
   }
 
@@ -614,11 +575,6 @@
 @media (min-width: 640px) {
   .page-shell {
     padding-block: 2rem;
-  }
-
-  .placeholder,
-  .menu-page__hero {
-    padding: 1.5rem;
   }
 
   .photo-sheet {
