@@ -7,35 +7,33 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   description="Base institucional futura de El Faraon Catering."
 >
   <main class="page-shell">
-    <section class="surface-card overflow-hidden">
-      <div class="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.2fr_0.8fr] lg:p-10">
-        <div class="space-y-5">
-          <p class="eyebrow">Superficie institucional futura</p>
-          <h1 class="max-w-xl text-5xl sm:text-6xl">El Faraon Catering</h1>
-          <p class="max-w-2xl text-base leading-7 text-[var(--color-muted)] sm:text-lg">
-            Esta ruta queda reservada para la futura presencia institucional del servicio de catering.
-            En esta primera etapa mantenemos una base tecnica minima para no mezclarla con la experiencia
-            operativa del menu QR.
-          </p>
-        </div>
-
-        <aside class="rounded-[var(--radius-panel)] bg-[var(--color-surface-strong)] p-5">
-          <p class="eyebrow">Estado actual</p>
-          <div class="mt-4 space-y-3 text-sm leading-6 text-[var(--color-ink)]">
-            <p>
-              La prioridad del proyecto hoy es la experiencia móvil en
-              <a href="/menu/corpo/" class="font-semibold underline underline-offset-4">
-                /menu/corpo
-              </a>
-              y
-              <a href="/menu/teleinde/" class="font-semibold underline underline-offset-4">
-                /menu/teleinde
-              </a>.
-            </p>
-            <p>Mas adelante esta portada podra crecer con informacion institucional, locaciones y contacto.</p>
-          </div>
-        </aside>
+    <section class="surface-card placeholder">
+      <div class="placeholder__intro">
+        <p class="eyebrow">Superficie institucional futura</p>
+        <h1 class="placeholder__title">El Faraon Catering</h1>
+        <p class="body-copy">
+          Esta ruta queda reservada para la futura presencia institucional del servicio de catering.
+          En esta primera etapa mantenemos una base tecnica minima para no mezclarla con la experiencia
+          operativa del menu QR.
+        </p>
       </div>
+
+      <aside class="placeholder__panel">
+        <p class="eyebrow">Estado actual</p>
+        <div class="placeholder__content">
+          <p>
+            La prioridad del proyecto hoy es la experiencia móvil en
+            <a href="/menu/corpo/" class="text-link">
+              /menu/corpo
+            </a>
+            y
+            <a href="/menu/teleinde/" class="text-link">
+              /menu/teleinde
+            </a>.
+          </p>
+          <p>Mas adelante esta portada podra crecer con informacion institucional, locaciones y contacto.</p>
+        </div>
+      </aside>
     </section>
   </main>
 </BaseLayout>

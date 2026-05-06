@@ -7,35 +7,33 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   description="Entrada general futura para los menus operativos de El Faraon Catering."
 >
   <main class="page-shell">
-    <section class="surface-card overflow-hidden">
-      <div class="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.2fr_0.8fr] lg:p-10">
-        <div class="space-y-5">
-          <p class="eyebrow">Menus operativos</p>
-          <h1 class="max-w-xl text-5xl sm:text-6xl">Seleccion de menu</h1>
-          <p class="max-w-2xl text-base leading-7 text-[var(--color-muted)] sm:text-lg">
-            Esta ruta queda reservada como entrada general para los menus por ubicacion de
-            El Faraon Catering.
+    <section class="surface-card placeholder">
+      <div class="placeholder__intro">
+        <p class="eyebrow">Menus operativos</p>
+        <h1 class="placeholder__title">Seleccion de menu</h1>
+        <p class="body-copy">
+          Esta ruta queda reservada como entrada general para los menus por ubicacion de
+          El Faraon Catering.
+        </p>
+      </div>
+
+      <aside class="placeholder__panel">
+        <p class="eyebrow">Estado actual</p>
+        <div class="placeholder__content">
+          <p>
+            El menu Corpo esta disponible en
+            <a href="/menu/corpo/" class="text-link">
+              /menu/corpo
+            </a>.
+          </p>
+          <p>
+            El menu Teleinde esta disponible en
+            <a href="/menu/teleinde/" class="text-link">
+              /menu/teleinde
+            </a>.
           </p>
         </div>
-
-        <aside class="rounded-[var(--radius-panel)] bg-[var(--color-surface-strong)] p-5">
-          <p class="eyebrow">Estado actual</p>
-          <div class="mt-4 space-y-3 text-sm leading-6 text-[var(--color-ink)]">
-            <p>
-              El menu Corpo esta disponible en
-              <a href="/menu/corpo/" class="font-semibold underline underline-offset-4">
-                /menu/corpo
-              </a>.
-            </p>
-            <p>
-              El menu Teleinde esta disponible en
-              <a href="/menu/teleinde/" class="font-semibold underline underline-offset-4">
-                /menu/teleinde
-              </a>.
-            </p>
-          </div>
-        </aside>
-      </div>
+      </aside>
     </section>
   </main>
 </BaseLayout>

@@ -39,37 +39,37 @@ const getDirectPricingText = (pricing?: MenuPricing) =>
   pricing && pricing.kind !== "variants" ? getPricingText(pricing) : null;
 ---
 
-<section class="space-y-4">
-  <div class="space-y-2">
-    <h2 class="text-3xl text-[var(--color-ink)]">{title}</h2>
+<section class="menu-section">
+  <div class="menu-section__header">
+    <h2 class="menu-section__title">{title}</h2>
     {description && (
-      <p class="max-w-2xl text-sm leading-6 text-[var(--color-muted)]">{description}</p>
+      <p class="menu-section__description">{description}</p>
     )}
     {note && (
-      <p class="max-w-2xl text-sm font-semibold leading-6 text-[var(--color-brand-strong)]">
+      <p class="menu-section__note">
         {note}
       </p>
     )}
   </div>
 
   {items && presentation === "compact-list" && (
-    <section class="surface-card p-3 sm:p-4">
-      <ul class="divide-y divide-[var(--color-line)]">
+    <section class="surface-card menu-section__compact">
+      <ul class="compact-list">
         {items.map((item) => {
           const directPricingText = getDirectPricingText(item.pricing);
           const variants = item.pricing?.kind === "variants" ? item.pricing.variants : [];
 
           return (
             <li
-              class="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-3 first:pt-0 last:pb-0"
+              class="compact-item"
               data-menu-id={menuId}
               data-section-id={sectionId}
               data-item-id={item.itemId}
               data-available={item.available ? "true" : "false"}
             >
-              <div class="min-w-0 space-y-1">
-                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <h3 class="break-words text-base font-semibold leading-6 text-[var(--color-ink)]">
+              <div class="compact-item__content">
+                <div class="compact-item__header">
+                  <h3 class="compact-item__title">
                     {item.name}
                   </h3>
                   <span
@@ -82,27 +82,27 @@ const getDirectPricingText = (pricing?: MenuPricing) =>
                 </div>
 
                 {item.description && (
-                  <p class="whitespace-pre-line text-sm leading-6 text-[var(--color-muted)]">
+                  <p class="compact-item__description">
                     {item.description}
                   </p>
                 )}
                 {item.note && (
-                  <p class="text-sm leading-6 text-[var(--color-muted)]">{item.note}</p>
+                  <p class="compact-item__note">{item.note}</p>
                 )}
 
                 {variants.length > 0 && (
-                  <ul class="mt-2 grid gap-1 text-sm leading-5">
+                  <ul class="compact-item__variants">
                     {variants.map((variant: MenuPricingVariant) => (
-                      <li class="flex items-start justify-between gap-3">
-                        <span class="text-[var(--color-ink)]">
+                      <li class="compact-item__variant">
+                        <span>
                           {variant.name}
                           {variant.available === false && (
-                            <span class="block font-semibold text-[var(--color-danger)]">
+                            <span class="dish-card__variant-status">
                               No disponible
                             </span>
                           )}
                         </span>
-                        <strong class="shrink-0 text-right text-[var(--color-brand-strong)]">
+                        <strong class="compact-item__variant-price">
                           {getVariantPricingText(variant)}
                         </strong>
                       </li>
@@ -112,7 +112,7 @@ const getDirectPricingText = (pricing?: MenuPricing) =>
               </div>
 
               {directPricingText && (
-                <strong class="shrink-0 text-right text-base font-semibold leading-6 text-[var(--color-brand-strong)]">
+                <strong class="compact-item__price">
                   {directPricingText}
                 </strong>
               )}
@@ -124,7 +124,7 @@ const getDirectPricingText = (pricing?: MenuPricing) =>
   )}
 
   {items && presentation !== "compact-list" && (
-    <div class="grid gap-4">
+    <div class="menu-section__items">
       {items.map((item) => (
         <DishCard
           menuId={menuId}
@@ -144,24 +144,22 @@ const getDirectPricingText = (pricing?: MenuPricing) =>
   )}
 
   {groups && (
-    <div class="space-y-5">
+    <div class="menu-section__groups">
       {groups.map((group) => (
-        <section class="space-y-3 rounded-[var(--radius-panel)] border border-[var(--color-line)] bg-[rgba(255,253,249,0.52)] p-3 sm:p-4">
-          <div class="flex flex-wrap items-start justify-between gap-3">
-            <div class="space-y-1">
-              <h3 class="text-2xl text-[var(--color-ink)]">{group.title}</h3>
-              {group.description && (
-                <p class="text-sm leading-6 text-[var(--color-muted)]">{group.description}</p>
-              )}
-              {group.note && (
-                <p class="text-sm font-semibold leading-6 text-[var(--color-brand-strong)]">
-                  {group.note}
-                </p>
-              )}
-            </div>
+        <section class="menu-group">
+          <div class="menu-group__header">
+            <h3 class="menu-group__title">{group.title}</h3>
+            {group.description && (
+              <p class="menu-group__description">{group.description}</p>
+            )}
+            {group.note && (
+              <p class="menu-group__note">
+                {group.note}
+              </p>
+            )}
           </div>
 
-          <div class="grid gap-3">
+          <div class="menu-group__items">
             {group.items.map((item: MenuItem) => (
               <DishCard
                 menuId={menuId}
