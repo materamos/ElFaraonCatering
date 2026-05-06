@@ -105,8 +105,6 @@ erDiagram
 
   MENU_SECTIONS {
     bigint id PK
-    text section_scope
-    text menu_id FK
     text section_id
     text content_kind
     int order_index
@@ -194,7 +192,6 @@ erDiagram
   MENU_PROFILES ||--|| MENU_PROFILE_PAYMENTS : physical
   MENU_PROFILE_PAYMENTS ||--o{ MENU_PROFILE_PAYMENT_METHODS : physical
   MENU_PROFILES ||--o{ MENU_DAILY_SERVICE_SETTINGS : physical
-  MENU_PROFILES ||--o{ MENU_SECTIONS : physical_daily
   MENU_PROFILES ||--o{ MENU_OVERRIDES : physical
 
   MENU_PRICES ||--o{ MENU_PRICE_VARIANTS : physical
@@ -262,10 +259,10 @@ flowchart TD
   OVERRIDE_GROUP_ITEMS["menu_override_group_items.item_id"]
   AVAILABILITY["menu_availability_overlays"]
 
-  CATALOG_SECTIONS["catalog menu_sections.section_id"]
-  CATALOG_GROUPS["catalog menu_groups.group_id"]
-  DIRECT_ITEMS["catalog menu_section_items.item_id"]
-  GROUPED_ITEMS["catalog menu_group_items.item_id"]
+  CATALOG_SECTIONS["menu_sections.section_id"]
+  CATALOG_GROUPS["menu_groups.group_id"]
+  DIRECT_ITEMS["menu_section_items.item_id"]
+  GROUPED_ITEMS["menu_group_items.item_id"]
   PROFILES["menu_profiles.id"]
 
   OVERRIDE_SECTIONS -. "audit target" .-> CATALOG_SECTIONS
@@ -294,7 +291,7 @@ estructura existente y se revisan con `audits/database-audit.sql` y `npm run men
 
 ## Notas operativas
 
-- `menu_sections.section_scope = 'catalog'` usa `menu_id = null`; `section_scope = 'daily'` usa un `menu_id` de `menu_profiles`.
+- `menu_sections` representa solo el catalogo compartido. El servicio diario no se modela como secciones por local.
 - `menu_daily_menu` es singleton: solo permite el id `current`.
 - `menu_grill_items` representa la lista fija de parrilla usada cuando `grill_enabled` esta activo para un perfil.
 - Los overrides solo pueden ajustar disponibilidad y nota sobre estructura existente.

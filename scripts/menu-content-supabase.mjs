@@ -59,7 +59,7 @@ const loadRows = async (sql) => {
     sql`select * from menu_content.menu_price_variants order by pricing_key, order_index`,
     sql`select * from menu_content.menu_daily_menu order by id`,
     sql`select * from menu_content.menu_daily_service_settings order by profile_id`,
-    sql`select * from menu_content.menu_sections order by section_scope, coalesce(menu_id, ''), order_index`,
+    sql`select * from menu_content.menu_sections order by order_index`,
     sql`select * from menu_content.menu_groups order by section_row_id, order_index`,
     sql`select * from menu_content.menu_items order by id`,
     sql`select * from menu_content.menu_item_options order by item_row_id, order_index`,
@@ -155,28 +155,24 @@ const createSnapshot = (rows) => {
     };
   });
 
-  const sectionRecords = rows.sections.map((section) => ({
-    id: section.menu_id ?? section.section_id,
-    scope: section.section_scope,
-    menuId: section.menu_id,
-    data: createSection({
-      section,
-      priceMap,
-      itemMap,
-      optionsByItem,
-      sectionItemsBySection,
-      groupsBySection,
-      groupItemsByGroup,
-    }),
-  }));
+  const catalogSections = rows.sections
+    .map((section) =>
+      createSection({
+        section,
+        priceMap,
+        itemMap,
+        optionsByItem,
+        sectionItemsBySection,
+        groupsBySection,
+        groupItemsByGroup,
+      }),
+    )
+    .sort((left, right) => left.order - right.order);
 
   return {
     profiles,
     overrides: createOverrides(rows),
-    catalogSections: sectionRecords
-      .filter((record) => record.scope === "catalog")
-      .map((record) => record.data)
-      .sort((left, right) => left.order - right.order),
+    catalogSections,
     dailyMenu,
     dailyServiceSettings: rows.dailyServiceSettings.map((entry) => ({
       menuId: entry.profile_id,

@@ -34,35 +34,6 @@ do $$
 begin
   if exists (
     select 1
-    from menu_content.menu_sections
-    where not (
-      (section_scope = 'catalog' and menu_id is null)
-      or (section_scope = 'daily' and menu_id is not null)
-    )
-  ) then
-    raise exception 'menu_sections contains rows that violate section_scope/menu_id rules. Run docs/supabase/audits/menu-schema-audit.sql for diagnostics.';
-  end if;
-
-  if not exists (
-    select 1
-    from pg_constraint
-    where connamespace = 'menu_content'::regnamespace
-      and conrelid = 'menu_content.menu_sections'::regclass
-      and conname = 'menu_sections_scope_menu_id_valid'
-  ) then
-    alter table menu_content.menu_sections
-      add constraint menu_sections_scope_menu_id_valid
-      check (
-        (section_scope = 'catalog' and menu_id is null)
-        or (section_scope = 'daily' and menu_id is not null)
-      );
-  end if;
-end $$;
-
-do $$
-begin
-  if exists (
-    select 1
     from menu_content.menu_profile_facts
     where not (
       (link_text is null and link_href is null)
@@ -126,11 +97,11 @@ create unique index if not exists menu_prices_pricing_key_kind_key
 create unique index if not exists menu_price_variants_pricing_key_order_key
   on menu_content.menu_price_variants (pricing_key, order_index);
 
-create unique index if not exists menu_sections_context_section_id_key
-  on menu_content.menu_sections (section_scope, coalesce(menu_id, ''), section_id);
+create unique index if not exists menu_sections_section_id_key
+  on menu_content.menu_sections (section_id);
 
-create unique index if not exists menu_sections_context_order_key
-  on menu_content.menu_sections (section_scope, coalesce(menu_id, ''), order_index);
+create unique index if not exists menu_sections_order_key
+  on menu_content.menu_sections (order_index);
 
 create unique index if not exists menu_groups_section_group_id_key
   on menu_content.menu_groups (section_row_id, group_id);

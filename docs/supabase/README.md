@@ -28,6 +28,7 @@ Reglas operativas relevantes:
 
 - El menu del dia vigente vive en una sola fila compartida por los locales.
 - `grill_enabled` decide por local si el servicio diario muestra menu del dia o parrilla.
+- `menu_sections` contiene solo el catalogo compartido, no el servicio diario por local.
 - Los precios son globales; los overrides por local no pueden cambiar precios.
 - La disponibilidad puede variar por local/menu.
 

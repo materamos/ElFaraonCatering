@@ -5,7 +5,6 @@ with expected_constraints (constraint_name, table_name, expectation) as (
   values
     ('menu_daily_menu_singleton_valid', 'menu_daily_menu', 'only the current daily menu row is allowed'),
     ('menu_prices_kind_amount_valid', 'menu_prices', 'fixed requires amount; included/variants require null amount'),
-    ('menu_sections_scope_menu_id_valid', 'menu_sections', 'catalog requires null menu_id; daily requires non-null menu_id'),
     ('menu_profile_facts_link_pair_valid', 'menu_profile_facts', 'link_text and link_href must both be null or both be present')
 ),
 actual_constraints as (
@@ -37,8 +36,8 @@ with expected_indexes (index_name, table_name, expectation) as (
     ('menu_grill_items_order_index_key', 'menu_grill_items', 'unique grill item order'),
     ('menu_prices_pricing_key_kind_key', 'menu_prices', 'unique pricing_key + kind for variant FK'),
     ('menu_price_variants_pricing_key_order_key', 'menu_price_variants', 'unique variant order per price'),
-    ('menu_sections_context_section_id_key', 'menu_sections', 'unique section_id per section scope and menu'),
-    ('menu_sections_context_order_key', 'menu_sections', 'unique section order per section scope and menu'),
+    ('menu_sections_section_id_key', 'menu_sections', 'unique catalog section_id'),
+    ('menu_sections_order_key', 'menu_sections', 'unique catalog section order'),
     ('menu_groups_section_group_id_key', 'menu_groups', 'unique group_id per section'),
     ('menu_groups_section_order_key', 'menu_groups', 'unique group order per section'),
     ('menu_items_id_item_id_key', 'menu_items', 'unique id + item_id for contextual item FK'),
@@ -93,18 +92,6 @@ where not (
 );
 
 select
-  'menu_sections_scope_menu_id_invalid' as diagnostic,
-  section_key,
-  section_scope,
-  menu_id,
-  section_id
-from menu_content.menu_sections
-where not (
-  (section_scope = 'catalog' and menu_id is null)
-  or (section_scope = 'daily' and menu_id is not null)
-);
-
-select
   'menu_profile_facts_link_pair_invalid' as diagnostic,
   profile_id,
   fact_id,
@@ -134,6 +121,15 @@ where table_schema = 'menu_content'
     'menu_override_section_items',
     'menu_override_group_items'
   );
+
+select
+  'menu_sections_legacy_column_unexpected' as diagnostic,
+  table_name,
+  column_name
+from information_schema.columns
+where table_schema = 'menu_content'
+  and table_name = 'menu_sections'
+  and column_name in ('section_scope', 'menu_id');
 
 -- Duplicate diagnostics for unique indexes created by hardening.
 
@@ -166,16 +162,16 @@ with duplicate_checks as (
 
   union all
 
-  select 'menu_sections_context_section_id_key', concat(section_scope, ':', coalesce(menu_id, '')), section_id, count(*)
+  select 'menu_sections_section_id_key', 'catalog', section_id, count(*)
   from menu_content.menu_sections
-  group by section_scope, coalesce(menu_id, ''), section_id
+  group by section_id
   having count(*) > 1
 
   union all
 
-  select 'menu_sections_context_order_key', concat(section_scope, ':', coalesce(menu_id, '')), order_index::text, count(*)
+  select 'menu_sections_order_key', 'catalog', order_index::text, count(*)
   from menu_content.menu_sections
-  group by section_scope, coalesce(menu_id, ''), order_index
+  group by order_index
   having count(*) > 1
 
   union all

@@ -541,8 +541,7 @@ join menu_content.menu_overrides o on o.id = os.override_row_id
 where not exists (
   select 1
   from menu_content.menu_sections s
-  where s.section_scope = 'catalog'
-    and s.section_id = os.section_id
+  where s.section_id = os.section_id
 )
 order by o.menu_id, os.section_id;
 
@@ -568,8 +567,7 @@ where not exists (
   select 1
   from menu_content.menu_sections s
   join menu_content.menu_groups g on g.section_row_id = s.id
-  where s.section_scope = 'catalog'
-    and s.section_id = os.section_id
+  where s.section_id = os.section_id
     and g.group_id = og.group_id
 )
 order by o.menu_id, os.section_id, og.group_id;
@@ -596,8 +594,7 @@ where not exists (
   select 1
   from menu_content.menu_sections s
   join menu_content.menu_section_items si on si.section_row_id = s.id
-  where s.section_scope = 'catalog'
-    and s.section_id = os.section_id
+  where s.section_id = os.section_id
     and si.item_id = oi.item_id
 )
 order by o.menu_id, os.section_id, oi.item_id;
@@ -627,8 +624,7 @@ where not exists (
   from menu_content.menu_sections s
   join menu_content.menu_groups g on g.section_row_id = s.id
   join menu_content.menu_group_items gi on gi.group_row_id = g.id
-  where s.section_scope = 'catalog'
-    and s.section_id = os.section_id
+  where s.section_id = os.section_id
     and g.group_id = og.group_id
     and gi.item_id = oi.item_id
 )
@@ -663,7 +659,7 @@ select
   'menu_availability_overlays' as object_name,
   'data' as object_type,
   'risk' as suggested_status,
-  'Runtime availability overlay does not match a direct item or grouped item in catalog sections.' as reason,
+  'Runtime availability overlay does not match a visible catalog, daily menu, or grill item.' as reason,
   jsonb_build_object(
     'id', o.id,
     'menu_id', o.menu_id,
@@ -677,8 +673,7 @@ where not exists (
   select 1
   from menu_content.menu_sections s
   join menu_content.menu_section_items si on si.section_row_id = s.id
-  where s.section_scope = 'catalog'
-    and s.section_id = o.section_id
+  where s.section_id = o.section_id
     and o.group_id is null
     and si.item_id = o.item_id
 )
@@ -687,10 +682,23 @@ and not exists (
   from menu_content.menu_sections s
   join menu_content.menu_groups g on g.section_row_id = s.id
   join menu_content.menu_group_items gi on gi.group_row_id = g.id
-  where s.section_scope = 'catalog'
-    and s.section_id = o.section_id
+  where s.section_id = o.section_id
     and o.group_id = g.group_id
     and gi.item_id = o.item_id
+)
+and not (
+  o.section_id = 'menu-del-dia'
+  and o.group_id is null
+  and o.item_id in ('menu-del-dia', 'menu-del-dia-con-bebida', 'menu-vegetariano-del-dia')
+)
+and not (
+  o.section_id = 'parrilla'
+  and o.group_id is null
+  and exists (
+    select 1
+    from menu_content.menu_grill_items gi
+    where gi.item_id = o.item_id
+  )
 )
 order by o.menu_id, o.section_id, o.group_id, o.item_id;
 
@@ -734,8 +742,6 @@ select
   jsonb_build_object(
     'section_row_id', s.id,
     'section_key', s.section_key,
-    'section_scope', s.section_scope,
-    'menu_id', s.menu_id,
     'section_id', s.section_id,
     'content_kind', s.content_kind
   )::text as evidence,
@@ -757,7 +763,7 @@ where (
       where g.section_row_id = s.id
     )
   )
-order by s.section_scope, s.menu_id, s.order_index;
+order by s.order_index;
 
 -- 24. Groups without display items.
 select

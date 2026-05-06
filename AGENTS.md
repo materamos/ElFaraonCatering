@@ -107,6 +107,7 @@ Daily service rules:
 - When `grill_enabled` is true, the profile shows `menu_grill_items` as the daily service variant.
 - A profile may show either menu del dia or grill, never both.
 - `menu_grill_items` is the fixed grill list; per-product availability can change through build-time data or the runtime availability overlay.
+- `menu_sections` contains only shared catalog sections; do not model daily service as profile-specific sections.
 - When multiple profiles show menu del dia, they share the same current main dish.
 - Prices are global across profiles; do not implement profile/menu-specific prices through overrides.
 - Availability is profile/menu-specific.

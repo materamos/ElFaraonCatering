@@ -11,7 +11,6 @@ const allowedMenuImageExtensions = [".avif", ".jpeg", ".jpg", ".png", ".svg", ".
 const expectedConstraints = [
   "menu_daily_menu_singleton_valid",
   "menu_prices_kind_amount_valid",
-  "menu_sections_scope_menu_id_valid",
   "menu_profile_facts_link_pair_valid",
 ];
 
@@ -21,8 +20,8 @@ const expectedIndexes = [
   "menu_grill_items_order_index_key",
   "menu_prices_pricing_key_kind_key",
   "menu_price_variants_pricing_key_order_key",
-  "menu_sections_context_section_id_key",
-  "menu_sections_context_order_key",
+  "menu_sections_section_id_key",
+  "menu_sections_order_key",
   "menu_groups_section_group_id_key",
   "menu_groups_section_order_key",
   "menu_items_id_item_id_key",
@@ -43,9 +42,11 @@ const expectedIndexes = [
 ];
 
 const forbiddenColumns = [
-  ["menu_override_groups", "pricing_key"],
-  ["menu_override_section_items", "pricing_key"],
-  ["menu_override_group_items", "pricing_key"],
+  "menu_sections.section_scope",
+  "menu_sections.menu_id",
+  "menu_override_groups.pricing_key",
+  "menu_override_section_items.pricing_key",
+  "menu_override_group_items.pricing_key",
 ];
 
 if (!databaseUrl) {
@@ -519,8 +520,7 @@ async function validateSchema(sql, errors) {
     select table_name, column_name
     from information_schema.columns
     where table_schema = 'menu_content'
-      and table_name in ${sql(forbiddenColumns.map(([tableName]) => tableName))}
-      and column_name = 'pricing_key'
+      and concat(table_name, '.', column_name) in ${sql(forbiddenColumns)}
   `;
 
   for (const row of columnRows) {

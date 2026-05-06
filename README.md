@@ -178,6 +178,7 @@ Reglas principales:
 - Si `grill_enabled` es `true`, el local aplica la variante de parrilla al servicio del dia y muestra `menu_grill_items`.
 - Cada local puede mostrar menu del dia o parrilla, nunca ambas a la vez.
 - `menu_grill_items` contiene la lista fija de parrilla; la disponibilidad de cada producto puede cambiar por datos build-time u overlay runtime.
+- `menu_sections` contiene solo secciones del catalogo compartido; no modela el servicio diario por local.
 - Cuando ambos locales muestran menu del dia, el plato principal es el mismo para ambos.
 - Los precios son globales para todos los locales; no se cambian mediante overrides por menu.
 - La disponibilidad es individual por local/menu.
