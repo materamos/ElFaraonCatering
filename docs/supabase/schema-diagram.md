@@ -7,7 +7,8 @@ overlay de disponibilidad.
 Fuentes versionadas:
 
 - `schema.sql`: estado limpio esperado del schema privado `menu_content`.
-- `migrations/2026-05-07-flatten-menu-content-model.sql`: primera migracion remota al modelo plano; conserva tablas legacy.
+- `migrations/2026-05-07-flatten-menu-content-model.sql`: primera migracion remota al modelo plano.
+- `migrations/2026-05-07-drop-legacy-menu-content-model.sql`: limpieza de tablas legacy despues de validar deploy.
 - `availability-overlay.sql`: unica superficie runtime en `public`.
 - `audits/menu-schema-audit.sql`: auditoria read-only del modelo activo.
 - `audits/database-audit.sql`: inventario amplio de objetos, exposicion y hallazgos.
@@ -181,25 +182,8 @@ flowchart LR
 - `public.menu_availability_overlays` es el unico dato editable en runtime sin rebuild.
 - El cliente no debe consultar estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.
 
-## Legacy temporal
+## Legacy
 
-La primera migracion remota conserva las tablas del modelo anterior para rollback y
-validacion de deploy. Esas tablas no deben ser consultadas por el loader activo:
-
-- `menu_daily_menu`
-- `menu_daily_service_settings`
-- `menu_sections`
-- `menu_groups`
-- `menu_items`
-- `menu_item_options`
-- `menu_section_items`
-- `menu_group_items`
-- `menu_grill_items`
-- `menu_overrides`
-- `menu_override_sections`
-- `menu_override_groups`
-- `menu_override_section_items`
-- `menu_override_group_items`
-
-La limpieza fisica de legacy debe vivir en una segunda migracion separada, solo
-despues de validar build, checks, deploy y ausencia de dependencias activas.
+El modelo anterior se conservo durante la primera migracion remota para validar
+deploy. La limpieza fisica vive en `2026-05-07-drop-legacy-menu-content-model.sql`
+y no forma parte del modelo activo.

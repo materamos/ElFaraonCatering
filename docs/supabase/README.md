@@ -26,9 +26,9 @@ El modelo activo de `menu_content` es plano y orientado al dominio real:
 - `menu_grill_families` y `menu_grill_catalog_items` contienen la lista fija de parrilla.
 - `menu_prices` y `menu_price_variants` contienen precios globales build-time.
 
-La primera migracion remota al modelo plano conserva tablas legacy. Esas tablas no
-deben ser leidas por el loader activo y solo se eliminaran con una migracion
-posterior despues de validar deploy.
+La primera migracion remota al modelo plano conservo tablas legacy para validar
+deploy. La migracion posterior `2026-05-07-drop-legacy-menu-content-model.sql`
+elimina esas tablas despues de confirmar que el loader activo no las usa.
 
 ## Frontera build-time/runtime
 
@@ -60,7 +60,7 @@ Archivos read-only:
 
 - `audits/menu-schema-audit.sql`: revisa tablas, constraints, indices y diagnosticos del modelo activo.
 - `audits/database-audit.sql`: inventario amplio de objetos, exposicion, policies y hallazgos.
-- `schema-diagram.md`: mapa versionado de `menu_content`, overlay runtime y legacy temporal.
+- `schema-diagram.md`: mapa versionado de `menu_content` y overlay runtime.
 
 ## Orden recomendado
 
@@ -80,11 +80,11 @@ Para una base existente:
 1. Ejecutar primero los SQL de `audits/`.
 2. Resolver cualquier fila que bloquee constraints o indices.
 3. Revisar y versionar el SQL idempotente que se quiere aplicar.
-4. Aplicar `migrations/2026-05-07-flatten-menu-content-model.sql` para crear y poblar el modelo activo sin dropear legacy.
+4. Aplicar `migrations/2026-05-07-flatten-menu-content-model.sql` para crear y poblar el modelo activo.
 5. Ejecutar `hardening.sql`.
 6. Volver a ejecutar audits y validaciones.
 7. Validar deploy.
-8. Crear una migracion posterior para limpiar legacy solo si no quedan dependencias activas.
+8. Aplicar `migrations/2026-05-07-drop-legacy-menu-content-model.sql` solo despues de confirmar que no quedan dependencias activas.
 
 ## Variables
 

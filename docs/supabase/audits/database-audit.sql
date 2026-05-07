@@ -61,20 +61,6 @@ with documented_relations(schema_name, object_name, object_type, status) as (
     ('menu_content', 'menu_catalog_item_options', 'table', 'active'),
     ('menu_content', 'menu_grill_families', 'table', 'active'),
     ('menu_content', 'menu_grill_catalog_items', 'table', 'active'),
-    ('menu_content', 'menu_daily_menu', 'table', 'legacy'),
-    ('menu_content', 'menu_daily_service_settings', 'table', 'legacy'),
-    ('menu_content', 'menu_sections', 'table', 'legacy'),
-    ('menu_content', 'menu_groups', 'table', 'legacy'),
-    ('menu_content', 'menu_items', 'table', 'legacy'),
-    ('menu_content', 'menu_item_options', 'table', 'legacy'),
-    ('menu_content', 'menu_section_items', 'table', 'legacy'),
-    ('menu_content', 'menu_group_items', 'table', 'legacy'),
-    ('menu_content', 'menu_grill_items', 'table', 'legacy'),
-    ('menu_content', 'menu_overrides', 'table', 'legacy'),
-    ('menu_content', 'menu_override_sections', 'table', 'legacy'),
-    ('menu_content', 'menu_override_groups', 'table', 'legacy'),
-    ('menu_content', 'menu_override_section_items', 'table', 'legacy'),
-    ('menu_content', 'menu_override_group_items', 'table', 'legacy'),
     ('public', 'editor_profiles', 'table', 'active'),
     ('public', 'menu_availability_overlays', 'table', 'active')
 ),
@@ -100,13 +86,11 @@ select
   o.object_type,
   case
     when d.status = 'active' then 'keep'
-    when d.status = 'legacy' then 'review'
     when d.object_name is null then 'unknown'
     else 'review'
   end as suggested_status,
   case
     when d.status = 'active' then 'Documented active project relation.'
-    when d.status = 'legacy' then 'Legacy relation intentionally retained until a later cleanup migration.'
     else 'Relation is not documented by this project audit.'
   end as reason
 from observed_relations o

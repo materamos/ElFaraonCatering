@@ -156,7 +156,7 @@ Build-time structural and operational content:
 - Never expose `SUPABASE_DB_URL` to the client or any `PUBLIC_*` environment variable.
 - Menu del dia, notes, active service, prices, catalog, groups, sections, images, and structural text are build-time data even if a future CMS edits them.
 - Changes to build-time data require rebuild/deploy before affecting `/menu/corpo/` and `/menu/teleinde/`.
-- The first flat-model remote migration must preserve legacy tables until deploy validation; drop legacy only in a later explicit cleanup migration.
+- Legacy menu-content tables were removed by the explicit cleanup migration after flat-model deploy validation.
 
 Runtime overlay:
 
