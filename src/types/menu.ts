@@ -89,9 +89,9 @@ export interface MenuDailyMenuData {
   items: MenuItem[];
 }
 
-export interface MenuDailyServiceSettings {
+export interface MenuProfileServiceSettings {
   menuId: string;
-  grillEnabled: boolean;
+  serviceKind: "daily-menu" | "grill";
 }
 
 export interface MenuProfileFactLink {

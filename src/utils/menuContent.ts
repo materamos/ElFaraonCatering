@@ -1,9 +1,9 @@
 import type {
   MenuCatalogSectionData,
   MenuDailyMenuData,
-  MenuDailyServiceSettings,
   MenuItem,
   MenuItemsSectionData,
+  MenuProfileServiceSettings,
   MenuProfileData,
   MenuSectionData,
 } from "../types/menu";
@@ -18,7 +18,7 @@ interface MenuContentSnapshot {
   profiles: MenuProfileRecord[];
   catalogSections: MenuCatalogSectionData[];
   dailyMenu: MenuDailyMenuData;
-  dailyServiceSettings: MenuDailyServiceSettings[];
+  profileServiceSettings: MenuProfileServiceSettings[];
   grillSection: MenuItemsSectionData;
 }
 
@@ -56,15 +56,15 @@ const getActiveMenuContent = async () => {
 
 const getDailyServiceSection = (
   menuId: string,
-  { dailyMenu, dailyServiceSettings, grillSection }: MenuContentSnapshot,
+  { dailyMenu, profileServiceSettings, grillSection }: MenuContentSnapshot,
 ): MenuSectionData => {
-  const settings = dailyServiceSettings.find((entry) => entry.menuId === menuId);
+  const settings = profileServiceSettings.find((entry) => entry.menuId === menuId);
 
   if (!settings) {
-    throw new Error(`Daily service settings not found for ${menuId}.`);
+    throw new Error(`Profile service settings not found for ${menuId}.`);
   }
 
-  if (settings.grillEnabled) {
+  if (settings.serviceKind === "grill") {
     return grillSection;
   }
 
@@ -81,19 +81,19 @@ const validateMenuContentIntegrity = ({
   profiles,
   catalogSections,
   dailyMenu,
-  dailyServiceSettings,
+  profileServiceSettings,
   grillSection,
 }: MenuContentSnapshot) => {
   const profileIds = profiles.map((entry) => entry.data.id);
   const profileIdSet = new Set(profileIds);
-  const dailyServiceMenuIds = dailyServiceSettings.map((entry) => entry.menuId);
+  const profileServiceMenuIds = profileServiceSettings.map((entry) => entry.menuId);
 
   assertUniqueIds(profileIds, "menu profile id");
   assertUniqueIds(
     catalogSections.map((section) => section.sectionId),
     "catalog section id",
   );
-  assertUniqueIds(dailyServiceMenuIds, "daily service settings entry");
+  assertUniqueIds(profileServiceMenuIds, "profile service settings entry");
 
   validateSectionIds("daily menu service", {
     sectionId: "menu-del-dia",
@@ -103,19 +103,19 @@ const validateMenuContentIntegrity = ({
   });
   validateSectionIds("grill service", grillSection);
 
-  for (const settings of dailyServiceSettings) {
+  for (const settings of profileServiceSettings) {
     if (!profileIdSet.has(settings.menuId)) {
-      throw new Error(`Daily service settings references unknown profile: ${settings.menuId}`);
+      throw new Error(`Profile service settings references unknown profile: ${settings.menuId}`);
     }
 
-    if (typeof settings.grillEnabled !== "boolean") {
-      throw new Error(`Daily service settings ${settings.menuId} grillEnabled must be boolean.`);
+    if (settings.serviceKind !== "daily-menu" && settings.serviceKind !== "grill") {
+      throw new Error(`Profile service settings ${settings.menuId} serviceKind must be daily-menu or grill.`);
     }
   }
 
   for (const profileId of profileIds) {
-    if (!dailyServiceMenuIds.includes(profileId)) {
-      throw new Error(`Daily service settings missing ${profileId}.`);
+    if (!profileServiceMenuIds.includes(profileId)) {
+      throw new Error(`Profile service settings missing ${profileId}.`);
     }
   }
 

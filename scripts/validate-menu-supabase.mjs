@@ -93,7 +93,7 @@ console.log(`Menu validation passed for ${expectedMenuIds.join(", ")}.`);
 function validateSnapshot(snapshot, errors) {
   const profileIds = snapshot.profiles.map((entry) => entry.data.id);
   const profileIdSet = new Set(profileIds);
-  const dailyServiceMenuIds = snapshot.dailyServiceSettings.map((entry) => entry.menuId);
+  const profileServiceMenuIds = snapshot.profileServiceSettings.map((entry) => entry.menuId);
 
   assertUnique(profileIds, "menu profile id", errors);
   assertUnique(
@@ -106,7 +106,7 @@ function validateSnapshot(snapshot, errors) {
     "catalog section order",
     errors,
   );
-  assertUnique(dailyServiceMenuIds, "daily service settings entry", errors);
+  assertUnique(profileServiceMenuIds, "profile service settings entry", errors);
 
   for (const menuId of expectedMenuIds) {
     if (!profileIdSet.has(menuId)) {
@@ -121,19 +121,19 @@ function validateSnapshot(snapshot, errors) {
   validateDailyMenu(snapshot.dailyMenu, errors);
   validateSection("grill service", snapshot.grillSection, errors);
 
-  for (const settings of snapshot.dailyServiceSettings) {
+  for (const settings of snapshot.profileServiceSettings) {
     if (!profileIdSet.has(settings.menuId)) {
-      errors.push(`Daily service settings references unknown profile: ${settings.menuId}`);
+      errors.push(`Profile service settings references unknown profile: ${settings.menuId}`);
     }
 
-    if (typeof settings.grillEnabled !== "boolean") {
-      errors.push(`Daily service settings ${settings.menuId} grillEnabled must be boolean.`);
+    if (settings.serviceKind !== "daily-menu" && settings.serviceKind !== "grill") {
+      errors.push(`Profile service settings ${settings.menuId} serviceKind must be daily-menu or grill.`);
     }
   }
 
   for (const menuId of profileIds) {
-    if (!dailyServiceMenuIds.includes(menuId)) {
-      errors.push(`Missing daily service settings for ${menuId}.`);
+    if (!profileServiceMenuIds.includes(menuId)) {
+      errors.push(`Missing profile service settings for ${menuId}.`);
     }
   }
 

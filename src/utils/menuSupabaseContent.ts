@@ -2,10 +2,10 @@ import postgres from "postgres";
 import type {
   MenuCatalogSectionData,
   MenuDailyMenuData,
-  MenuDailyServiceSettings,
   MenuItemsSectionData,
   MenuPricing,
   MenuProfileData,
+  MenuProfileServiceSettings,
   MenuSectionData,
 } from "../types/menu";
 
@@ -22,7 +22,7 @@ interface MenuContentSnapshot {
   profiles: MenuProfileRecord[];
   catalogSections: MenuCatalogSectionData[];
   dailyMenu: MenuDailyMenuData;
-  dailyServiceSettings: MenuDailyServiceSettings[];
+  profileServiceSettings: MenuProfileServiceSettings[];
   grillSection: MenuItemsSectionData;
 }
 
@@ -291,9 +291,9 @@ const createSnapshot = (rows: SupabaseRows): MenuContentSnapshot => {
     dailyMenu: {
       items: rows.dailyItems.map((item) => createFlatItem(item, [], priceMap)),
     },
-    dailyServiceSettings: rows.profileServiceSettings.map((entry) => ({
+    profileServiceSettings: rows.profileServiceSettings.map((entry) => ({
       menuId: entry.profile_id,
-      grillEnabled: entry.service_kind === "grill",
+      serviceKind: entry.service_kind,
     })),
     grillSection: {
       sectionId: "parrilla",
