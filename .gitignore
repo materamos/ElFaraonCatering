@@ -1,21 +1,57 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
 .astro/
+
+# Vercel
 .vercel/
 
 # Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # Environment files
 .env
 .env.*
 !.env.example
+!.env.test
+
+# TypeScript
+*.tsbuildinfo
+
+# User-uploaded content (no versionar fotos reales subidas por el admin)
+public/uploads/*.jpg
+public/uploads/*.jpeg
+public/uploads/*.png
+public/uploads/*.gif
+public/uploads/*.webp
+public/uploads/*.avif
+public/uploads/*.svg
+!public/uploads/menu-placeholders/
+!public/uploads/.gitkeep
 
 # Editor settings
-.vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 .idea/
+*.swp
+*.swo
 
 # OS files
-Thumbs.db
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+*.local
+.cache/
