@@ -118,8 +118,7 @@ create table if not exists menu_content.menu_catalog_items (
   pricing_key text null references menu_content.menu_prices(pricing_key),
   order_index integer not null check (order_index >= 0),
   unique (section_id, group_id, item_id),
-  unique (section_id, group_id, order_index),
-  unique (id, item_id)
+  unique (section_id, group_id, order_index)
 );
 
 create table if not exists menu_content.menu_catalog_item_options (

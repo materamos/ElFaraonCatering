@@ -15,19 +15,19 @@ const expectedConstraints = [
 
 const expectedIndexes = [
   "menu_daily_items_item_id_key",
-  "menu_daily_items_order_key",
-  "menu_profile_service_settings_profile_key",
-  "menu_price_variants_pricing_key_order_key",
+  "menu_daily_items_order_index_key",
+  "menu_profile_service_settings_pkey",
+  "menu_price_variants_pricing_key_order_index_key",
   "menu_catalog_sections_section_id_key",
-  "menu_catalog_sections_order_key",
-  "menu_catalog_groups_section_group_id_key",
-  "menu_catalog_groups_section_order_key",
-  "menu_catalog_items_context_item_id_key",
-  "menu_catalog_items_context_order_key",
-  "menu_catalog_item_options_item_order_key",
-  "menu_grill_families_order_key",
+  "menu_catalog_sections_order_index_key",
+  "menu_catalog_groups_section_id_group_id_key",
+  "menu_catalog_groups_section_id_order_index_key",
+  "menu_catalog_items_section_id_group_id_item_id_key",
+  "menu_catalog_items_section_id_group_id_order_index_key",
+  "menu_catalog_item_options_catalog_item_id_order_index_key",
+  "menu_grill_families_order_index_key",
   "menu_grill_catalog_items_item_id_key",
-  "menu_grill_catalog_items_order_key",
+  "menu_grill_catalog_items_order_index_key",
 ];
 
 const expectedTables = [

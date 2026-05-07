@@ -19,47 +19,10 @@ alter table menu_content.menu_profile_facts
     or (link_text is not null and link_href is not null)
   );
 
-create unique index if not exists menu_price_variants_pricing_key_order_key
-  on menu_content.menu_price_variants (pricing_key, order_index);
-
-create unique index if not exists menu_daily_items_item_id_key
-  on menu_content.menu_daily_items (item_id);
-
-create unique index if not exists menu_daily_items_order_key
-  on menu_content.menu_daily_items (order_index);
-
-create unique index if not exists menu_profile_service_settings_profile_key
-  on menu_content.menu_profile_service_settings (profile_id);
-
-create unique index if not exists menu_catalog_sections_section_id_key
-  on menu_content.menu_catalog_sections (section_id);
-
-create unique index if not exists menu_catalog_sections_order_key
-  on menu_content.menu_catalog_sections (order_index);
-
-create unique index if not exists menu_catalog_groups_section_group_id_key
-  on menu_content.menu_catalog_groups (section_id, group_id);
-
-create unique index if not exists menu_catalog_groups_section_order_key
-  on menu_content.menu_catalog_groups (section_id, order_index);
-
-create unique index if not exists menu_catalog_items_context_item_id_key
-  on menu_content.menu_catalog_items (section_id, group_id, item_id);
-
-create unique index if not exists menu_catalog_items_context_order_key
-  on menu_content.menu_catalog_items (section_id, group_id, order_index);
-
-create unique index if not exists menu_catalog_item_options_item_order_key
-  on menu_content.menu_catalog_item_options (catalog_item_id, order_index);
-
-create unique index if not exists menu_grill_families_order_key
-  on menu_content.menu_grill_families (order_index);
-
-create unique index if not exists menu_grill_catalog_items_item_id_key
-  on menu_content.menu_grill_catalog_items (item_id);
-
-create unique index if not exists menu_grill_catalog_items_order_key
-  on menu_content.menu_grill_catalog_items (order_index);
+-- Unique indexes for menu_content are created automatically by the inline
+-- `unique (...)` clauses and primary keys in schema.sql. Do not duplicate them
+-- here under alternative names; that produces redundant indexes covering the
+-- same columns and adds write overhead without query benefit.
 
 revoke all on schema menu_content from anon, authenticated;
 revoke all on all tables in schema menu_content from anon, authenticated;

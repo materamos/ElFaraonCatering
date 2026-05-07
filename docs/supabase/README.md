@@ -85,6 +85,7 @@ Para una base existente:
 6. Volver a ejecutar audits y validaciones.
 7. Validar deploy.
 8. Aplicar `migrations/2026-05-06-drop-legacy-menu-content-model.sql` solo despues de confirmar que no quedan dependencias activas.
+9. Aplicar `migrations/2026-05-07-dedupe-menu-content-indexes.sql` para descartar indices unique redundantes que duplicaban los auto-generados por las clausulas `unique (...)` y la constraint vestigial `(id, item_id)` en `menu_catalog_items`. Idempotente.
 
 ## Variables
 
