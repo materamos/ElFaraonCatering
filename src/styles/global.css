@@ -57,12 +57,6 @@
     padding-block: 1.5rem;
   }
 
-  .surface-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-panel);
-  }
-
   .eyebrow {
     color: var(--color-muted);
     font-size: 0.76rem;
