@@ -181,9 +181,3 @@ flowchart LR
 - Un CMS futuro puede editar esos datos, pero el cambio requiere rebuild/deploy para impactar el menu publico.
 - `public.menu_availability_overlays` es el unico dato editable en runtime sin rebuild.
 - El cliente no debe consultar estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.
-
-## Legacy
-
-El modelo anterior se conservo durante la primera migracion remota para validar
-deploy. La limpieza fisica vive en `2026-05-06-drop-legacy-menu-content-model.sql`
-y no forma parte del modelo activo.
