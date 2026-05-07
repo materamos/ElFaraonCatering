@@ -27,7 +27,7 @@ El modelo activo de `menu_content` es plano y orientado al dominio real:
 - `menu_prices` y `menu_price_variants` contienen precios globales build-time.
 
 La primera migracion remota al modelo plano conservo tablas legacy para validar
-deploy. La migracion posterior `2026-05-07-drop-legacy-menu-content-model.sql`
+deploy. La migracion posterior `2026-05-06-drop-legacy-menu-content-model.sql`
 elimina esas tablas despues de confirmar que el loader activo no las usa.
 
 ## Frontera build-time/runtime
@@ -80,11 +80,11 @@ Para una base existente:
 1. Ejecutar primero los SQL de `audits/`.
 2. Resolver cualquier fila que bloquee constraints o indices.
 3. Revisar y versionar el SQL idempotente que se quiere aplicar.
-4. Aplicar `migrations/2026-05-07-flatten-menu-content-model.sql` para crear y poblar el modelo activo.
+4. Aplicar `migrations/2026-05-06-flatten-menu-content-model.sql` para crear y poblar el modelo activo.
 5. Ejecutar `hardening.sql`.
 6. Volver a ejecutar audits y validaciones.
 7. Validar deploy.
-8. Aplicar `migrations/2026-05-07-drop-legacy-menu-content-model.sql` solo despues de confirmar que no quedan dependencias activas.
+8. Aplicar `migrations/2026-05-06-drop-legacy-menu-content-model.sql` solo despues de confirmar que no quedan dependencias activas.
 
 ## Variables
 

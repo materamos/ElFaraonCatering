@@ -7,8 +7,8 @@ overlay de disponibilidad.
 Fuentes versionadas:
 
 - `schema.sql`: estado limpio esperado del schema privado `menu_content`.
-- `migrations/2026-05-07-flatten-menu-content-model.sql`: primera migracion remota al modelo plano.
-- `migrations/2026-05-07-drop-legacy-menu-content-model.sql`: limpieza de tablas legacy despues de validar deploy.
+- `migrations/2026-05-06-flatten-menu-content-model.sql`: primera migracion remota al modelo plano.
+- `migrations/2026-05-06-drop-legacy-menu-content-model.sql`: limpieza de tablas legacy despues de validar deploy.
 - `availability-overlay.sql`: unica superficie runtime en `public`.
 - `audits/menu-schema-audit.sql`: auditoria read-only del modelo activo.
 - `audits/database-audit.sql`: inventario amplio de objetos, exposicion y hallazgos.
@@ -185,5 +185,5 @@ flowchart LR
 ## Legacy
 
 El modelo anterior se conservo durante la primera migracion remota para validar
-deploy. La limpieza fisica vive en `2026-05-07-drop-legacy-menu-content-model.sql`
+deploy. La limpieza fisica vive en `2026-05-06-drop-legacy-menu-content-model.sql`
 y no forma parte del modelo activo.

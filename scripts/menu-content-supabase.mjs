@@ -119,7 +119,6 @@ const createSnapshot = (rows) => {
 
   return {
     profiles,
-    overrides: [],
     catalogSections: rows.catalogSections.map((section) =>
       createCatalogSection({
         section,

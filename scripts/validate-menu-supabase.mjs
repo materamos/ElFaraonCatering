@@ -94,9 +94,6 @@ function validateSnapshot(snapshot, errors) {
   const profileIds = snapshot.profiles.map((entry) => entry.data.id);
   const profileIdSet = new Set(profileIds);
   const dailyServiceMenuIds = snapshot.dailyServiceSettings.map((entry) => entry.menuId);
-  const catalogSectionsById = new Map(
-    snapshot.catalogSections.map((section) => [section.sectionId, section]),
-  );
 
   assertUnique(profileIds, "menu profile id", errors);
   assertUnique(
@@ -107,11 +104,6 @@ function validateSnapshot(snapshot, errors) {
   assertUnique(
     snapshot.catalogSections.map((section) => section.order),
     "catalog section order",
-    errors,
-  );
-  assertUnique(
-    snapshot.overrides.map((override) => override.menuId),
-    "menu override menuId",
     errors,
   );
   assertUnique(dailyServiceMenuIds, "daily service settings entry", errors);
@@ -147,14 +139,6 @@ function validateSnapshot(snapshot, errors) {
 
   for (const section of snapshot.catalogSections) {
     validateSection(`catalog section ${section.sectionId}`, section, errors);
-  }
-
-  if (snapshot.overrides.length > 0) {
-    errors.push("Active flat menu snapshot must not read legacy menu overrides.");
-  }
-
-  for (const override of snapshot.overrides) {
-    validateOverride(override, profileIdSet, catalogSectionsById, errors);
   }
 }
 
@@ -333,117 +317,6 @@ function validateItem(scope, item, errors) {
       if (typeof option.available !== "boolean") {
         errors.push(`${scope} option ${option.id} available must be boolean.`);
       }
-    }
-  }
-}
-
-function validateOverride(override, profileIdSet, catalogSectionsById, errors) {
-  validateTechnicalId(override.menuId, `override ${override.menuId}`, errors);
-
-  if (!profileIdSet.has(override.menuId)) {
-    errors.push(`Override references unknown profile: ${override.menuId}`);
-  }
-
-  if (!Array.isArray(override.sections)) {
-    errors.push(`Override ${override.menuId} sections must be an array.`);
-    return;
-  }
-
-  assertUnique(
-    override.sections.map((section) => section.sectionId),
-    `override ${override.menuId} section id`,
-    errors,
-  );
-
-  for (const sectionOverride of override.sections) {
-    const section = catalogSectionsById.get(sectionOverride.sectionId);
-
-    validateTechnicalId(
-      sectionOverride.sectionId,
-      `override ${override.menuId} section ${sectionOverride.sectionId}`,
-      errors,
-    );
-
-    if (!section) {
-      errors.push(
-        `Override ${override.menuId} references unknown section: ${sectionOverride.sectionId}`,
-      );
-      continue;
-    }
-
-    if (sectionOverride.items) {
-      if (!section.items) {
-        errors.push(
-          `Override ${override.menuId} cannot override direct items in grouped section: ${section.sectionId}`,
-        );
-      } else {
-        validateOverrideItems(
-          `override ${override.menuId} section ${section.sectionId}`,
-          sectionOverride.items,
-          new Set(section.items.map((item) => item.itemId)),
-          errors,
-        );
-      }
-    }
-
-    if (sectionOverride.groups) {
-      if (!section.groups) {
-        errors.push(
-          `Override ${override.menuId} cannot override groups in item section: ${section.sectionId}`,
-        );
-        continue;
-      }
-
-      const groupsById = new Map(section.groups.map((group) => [group.groupId, group]));
-
-      assertUnique(
-        sectionOverride.groups.map((group) => group.groupId),
-        `override ${override.menuId} section ${section.sectionId} group id`,
-        errors,
-      );
-
-      for (const groupOverride of sectionOverride.groups) {
-        const group = groupsById.get(groupOverride.groupId);
-
-        validateTechnicalId(
-          groupOverride.groupId,
-          `override ${override.menuId} section ${section.sectionId} group ${groupOverride.groupId}`,
-          errors,
-        );
-        if (!group) {
-          errors.push(
-            `Override ${override.menuId} references unknown group ${groupOverride.groupId} in section ${section.sectionId}`,
-          );
-          continue;
-        }
-
-        validateOverrideItems(
-          `override ${override.menuId} section ${section.sectionId} group ${group.groupId}`,
-          groupOverride.items ?? [],
-          new Set(group.items.map((item) => item.itemId)),
-          errors,
-        );
-      }
-    }
-  }
-}
-
-function validateOverrideItems(scope, items, validItemIds, errors) {
-  assertUnique(
-    items.map((item) => item.itemId),
-    `${scope} item id`,
-    errors,
-  );
-
-  for (const item of items) {
-    validateTechnicalId(item.itemId, `${scope} item ${item.itemId}`, errors);
-
-    if (!validItemIds.has(item.itemId)) {
-      errors.push(`${scope} references unknown item: ${item.itemId}`);
-    }
-
-    if (item.available !== undefined && typeof item.available !== "boolean") {
-      errors.push(`${scope} item ${item.itemId} available must be boolean.`);
     }
   }
 }

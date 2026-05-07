@@ -13,29 +13,6 @@ type MenuItemData =
   | NonNullable<MenuSectionData["items"]>[number]
   | NonNullable<NonNullable<MenuSectionData["groups"]>[number]["items"]>[number];
 
-interface MenuItemOverride {
-  itemId: string;
-  available?: boolean;
-  note?: string;
-}
-
-interface MenuGroupOverride {
-  groupId: string;
-  note?: string;
-  items?: MenuItemOverride[];
-}
-
-interface MenuSectionOverride {
-  sectionId: string;
-  items?: MenuItemOverride[];
-  groups?: MenuGroupOverride[];
-}
-
-interface MenuOverrideData {
-  menuId: string;
-  sections: MenuSectionOverride[];
-}
-
 interface MenuProfileRecord {
   id: string;
   data: MenuProfileData;
@@ -43,7 +20,6 @@ interface MenuProfileRecord {
 
 interface MenuContentSnapshot {
   profiles: MenuProfileRecord[];
-  overrides: MenuOverrideData[];
   catalogSections: MenuCatalogSectionData[];
   dailyMenu: MenuDailyMenuData;
   dailyServiceSettings: MenuDailyServiceSettings[];
@@ -303,7 +279,6 @@ const createSnapshot = (rows: SupabaseRows): MenuContentSnapshot => {
 
   return {
     profiles,
-    overrides: [],
     catalogSections: rows.catalogSections.map((section) =>
       createCatalogSection({
         section,

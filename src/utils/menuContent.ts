@@ -2,36 +2,12 @@ import type {
   MenuCatalogSectionData,
   MenuDailyMenuData,
   MenuDailyServiceSettings,
-  MenuGroup,
   MenuItem,
   MenuItemsSectionData,
   MenuProfileData,
   MenuSectionData,
 } from "../types/menu";
 import { loadSupabaseMenuContentSnapshot } from "./menuSupabaseContent";
-
-interface MenuItemOverride {
-  itemId: string;
-  available?: boolean;
-  note?: string;
-}
-
-interface MenuGroupOverride {
-  groupId: string;
-  note?: string;
-  items?: MenuItemOverride[];
-}
-
-interface MenuSectionOverride {
-  sectionId: string;
-  items?: MenuItemOverride[];
-  groups?: MenuGroupOverride[];
-}
-
-interface MenuOverrideData {
-  menuId: string;
-  sections: MenuSectionOverride[];
-}
 
 interface MenuProfileRecord {
   id: string;
@@ -40,7 +16,6 @@ interface MenuProfileRecord {
 
 interface MenuContentSnapshot {
   profiles: MenuProfileRecord[];
-  overrides: MenuOverrideData[];
   catalogSections: MenuCatalogSectionData[];
   dailyMenu: MenuDailyMenuData;
   dailyServiceSettings: MenuDailyServiceSettings[];
@@ -62,12 +37,10 @@ export const getMenuProfile = async (menuId: string) => {
 
 export const getMenuSections = async (menuId: string) => {
   const content = await getActiveMenuContent();
-  const { catalogSections, overrides } = content;
-  const override = overrides.find((entry) => entry.menuId === menuId);
 
   return [
     getDailyServiceSection(menuId, content),
-    ...applyMenuOverrides(catalogSections, override),
+    ...content.catalogSections,
   ] satisfies MenuSectionData[];
 };
 
@@ -104,94 +77,8 @@ const getDailyServiceSection = (
   };
 };
 
-const applyMenuOverrides = (
-  sections: MenuCatalogSectionData[],
-  override?: MenuOverrideData,
-) => {
-  if (!override) {
-    return sections;
-  }
-
-  const sectionOverrides = new Map<string, MenuSectionOverride>(
-    override.sections.map((section) => [section.sectionId, section]),
-  );
-
-  return sections.map((section): MenuCatalogSectionData => {
-    const sectionOverride = sectionOverrides.get(section.sectionId);
-
-    if (!sectionOverride) {
-      return section;
-    }
-
-    if (section.items) {
-      const itemOverrides = new Map(
-        sectionOverride.items?.map((item) => [item.itemId, item]) ?? [],
-      );
-
-      return {
-        ...section,
-        items: section.items.map((item) =>
-          applyItemOverride(item, itemOverrides.get(item.itemId)),
-        ),
-      } as MenuCatalogSectionData;
-    }
-
-    if (section.groups) {
-      const groupOverrides = new Map(
-        sectionOverride.groups?.map((group) => [group.groupId, group]) ?? [],
-      );
-
-      return {
-        ...section,
-        groups: section.groups.map((group) =>
-          applyGroupOverride(group, groupOverrides.get(group.groupId)),
-        ),
-      } as MenuCatalogSectionData;
-    }
-
-    return section;
-  });
-};
-
-const applyGroupOverride = (
-  group: MenuGroup,
-  override?: MenuGroupOverride,
-) => {
-  if (!override) {
-    return group;
-  }
-
-  const itemOverrides = new Map(
-    override.items?.map((item) => [item.itemId, item]) ?? [],
-  );
-
-  return {
-    ...group,
-    note: override.note ?? group.note,
-    items: group.items.map((item) =>
-      applyItemOverride(item, itemOverrides.get(item.itemId)),
-    ),
-  };
-};
-
-const applyItemOverride = <TItem extends MenuItem>(
-  item: TItem,
-  override?: MenuItemOverride,
-) => {
-  if (!override) {
-    return item;
-  }
-
-  return {
-    ...item,
-    available: override.available ?? item.available,
-    note: override.note ?? item.note,
-  } as TItem;
-};
-
 const validateMenuContentIntegrity = ({
   profiles,
-  overrides,
   catalogSections,
   dailyMenu,
   dailyServiceSettings,
@@ -205,10 +92,6 @@ const validateMenuContentIntegrity = ({
   assertUniqueIds(
     catalogSections.map((section) => section.sectionId),
     "catalog section id",
-  );
-  assertUniqueIds(
-    overrides.map((override) => override.menuId),
-    "menu override menuId",
   );
   assertUniqueIds(dailyServiceMenuIds, "daily service settings entry");
 
@@ -238,15 +121,6 @@ const validateMenuContentIntegrity = ({
 
   for (const section of catalogSections) {
     validateSectionIds(`catalog section ${section.sectionId}`, section);
-  }
-
-  for (const override of overrides) {
-    if (!profileIdSet.has(override.menuId)) {
-      throw new Error(`Menu override references unknown profile: ${override.menuId}`);
-    }
-
-    validateOverrideIds(override);
-    validateMenuOverrides(override.menuId, catalogSections, override);
   }
 };
 
@@ -292,114 +166,6 @@ const validateItemChildIds = (scope: string, item: MenuItem) => {
       item.pricing.variants.map((variant) => variant.id),
       `${scope} variant id`,
     );
-  }
-};
-
-const validateOverrideIds = (override: MenuOverrideData) => {
-  assertUniqueIds(
-    override.sections.map((section) => section.sectionId),
-    `menu override ${override.menuId} section id`,
-  );
-
-  for (const section of override.sections) {
-    if (section.items) {
-      assertUniqueIds(
-        section.items.map((item) => item.itemId),
-        `menu override ${override.menuId} section ${section.sectionId} item id`,
-      );
-    }
-
-    if (section.groups) {
-      assertUniqueIds(
-        section.groups.map((group) => group.groupId),
-        `menu override ${override.menuId} section ${section.sectionId} group id`,
-      );
-
-      for (const group of section.groups) {
-        assertUniqueIds(
-          group.items?.map((item) => item.itemId) ?? [],
-          `menu override ${override.menuId} section ${section.sectionId} group ${group.groupId} item id`,
-        );
-      }
-    }
-  }
-};
-
-const validateMenuOverrides = (
-  menuId: string,
-  sections: MenuCatalogSectionData[],
-  override: MenuOverrideData,
-) => {
-  for (const sectionOverride of override.sections) {
-    const section = sections.find(
-      (candidate) => candidate.sectionId === sectionOverride.sectionId,
-    );
-
-    if (!section) {
-      throw new Error(
-        `Menu override ${menuId} references unknown section: ${sectionOverride.sectionId}`,
-      );
-    }
-
-    if (sectionOverride.items) {
-      validateSectionItemOverrides(menuId, section, sectionOverride.items);
-    }
-
-    if (sectionOverride.groups) {
-      validateGroupOverrides(menuId, section, sectionOverride.groups);
-    }
-  }
-};
-
-const validateSectionItemOverrides = (
-  menuId: string,
-  section: MenuCatalogSectionData,
-  itemOverrides: MenuItemOverride[],
-) => {
-  if (!section.items) {
-    throw new Error(
-      `Menu override ${menuId} cannot override direct items in grouped section: ${section.sectionId}`,
-    );
-  }
-
-  for (const itemOverride of itemOverrides) {
-    if (!section.items.some((item) => item.itemId === itemOverride.itemId)) {
-      throw new Error(
-        `Menu override ${menuId} references unknown item ${itemOverride.itemId} in section ${section.sectionId}`,
-      );
-    }
-  }
-};
-
-const validateGroupOverrides = (
-  menuId: string,
-  section: MenuCatalogSectionData,
-  groupOverrides: MenuGroupOverride[],
-) => {
-  if (!section.groups) {
-    throw new Error(
-      `Menu override ${menuId} cannot override groups in item section: ${section.sectionId}`,
-    );
-  }
-
-  for (const groupOverride of groupOverrides) {
-    const group = section.groups.find(
-      (candidate) => candidate.groupId === groupOverride.groupId,
-    );
-
-    if (!group) {
-      throw new Error(
-        `Menu override ${menuId} references unknown group ${groupOverride.groupId} in section ${section.sectionId}`,
-      );
-    }
-
-    for (const itemOverride of groupOverride.items ?? []) {
-      if (!group.items.some((item) => item.itemId === itemOverride.itemId)) {
-        throw new Error(
-          `Menu override ${menuId} references unknown item ${itemOverride.itemId} in group ${group.groupId}`,
-        );
-      }
-    }
   }
 };
 
