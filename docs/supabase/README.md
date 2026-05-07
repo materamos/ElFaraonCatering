@@ -1,63 +1,90 @@
 # Supabase local-first workflow
 
-Esta carpeta contiene la definicion versionada de la base Supabase usada por el menu QR.
-Los archivos SQL no se eliminan despues de ejecutarse: documentan el estado esperado,
-permiten auditar drift y dejan una ruta reproducible para reconstruir o revisar la base.
+Esta carpeta contiene la definicion versionada de la base Supabase usada por el
+menu QR. Los archivos SQL no se eliminan despues de ejecutarse: documentan el
+estado esperado, permiten auditar drift y dejan una ruta reproducible para revisar
+o reconstruir la base.
 
 ## Superficies
 
-- `menu_content`: fuente privada del menu operativo, leida por el build para estructura y precios.
-- `public.menu_availability_overlays`: overlay runtime de disponibilidad, leido desde el cliente.
+- `menu_content`: fuente privada de estructura y operacion build-time.
+- `public.menu_availability_overlays`: unico overlay runtime sin rebuild.
 - `public.editor_profiles`: lista minima de usuarios autenticados que pueden editar overlays.
 
-`menu_content` puede respaldar un CMS operativo limitado para menu del dia, parrilla,
-disponibilidad y precios globales. No debe consultarse directamente desde el navegador
-ni convertirse en un CMS editorial amplio sin una decision de arquitectura separada.
+Supabase puede respaldar un CMS operativo, pero "CMS editable" no significa
+"runtime editable". Salvo disponibilidad, todo cambio operativo en Supabase
+requiere rebuild/deploy para impactar `/menu/corpo/` y `/menu/teleinde/`.
+
+## Modelo activo
+
+El modelo activo de `menu_content` es plano y orientado al dominio real:
+
+- Perfiles, facts y pagos se leen en build-time.
+- `menu_daily_items` contiene las tres opciones reales del menu del dia.
+- `menu_profile_service_settings.service_kind` define por local `daily-menu` o `grill`.
+- `menu_catalog_sections`, `menu_catalog_groups`, `menu_catalog_items` y `menu_catalog_item_options` contienen el catalogo estable.
+- `menu_grill_families` y `menu_grill_catalog_items` contienen la lista fija de parrilla.
+- `menu_prices` y `menu_price_variants` contienen precios globales build-time.
+
+La primera migracion remota al modelo plano conserva tablas legacy. Esas tablas no
+deben ser leidas por el loader activo y solo se eliminaran con una migracion
+posterior despues de validar deploy.
+
+## Frontera build-time/runtime
+
+Editables build-time con rebuild requerido:
+
+- menu del dia base: nombre, descripcion y nota
+- servicio activo por local: `daily-menu` o `grill`
+- precios globales en `menu_prices` y `menu_price_variants`
+- catalogo, grupos, secciones, imagenes y textos estructurales
+
+Editable runtime sin rebuild:
+
+- disponibilidad por local usando exclusivamente `public.menu_availability_overlays`
+
+No implementar consultas runtime para menu del dia, precios, servicio activo,
+catalogo, grupos, secciones, imagenes ni textos estructurales.
 
 ## Archivos
 
 Archivos que modifican schema o datos:
 
-- `schema.sql`: crea el schema estructural `menu_content`.
-- `daily-service-data.sql`: inserta defaults del menu diario y parrilla fija.
-- `availability-overlay.sql`: crea tablas, indices y policies del overlay runtime.
-- `hardening.sql`: agrega constraints e indices idempotentes para bases existentes.
-- `migrations/`: cambios incrementales versionados para bases existentes.
-
-Reglas operativas relevantes:
-
-- El menu del dia vigente vive en una sola fila compartida por los locales.
-- `grill_enabled` decide por local si el servicio diario muestra menu del dia o parrilla.
-- `menu_sections` contiene solo el catalogo compartido, no el servicio diario por local.
-- Los precios son globales; los overrides por local no pueden cambiar precios.
-- La disponibilidad puede variar por local/menu.
+- `schema.sql`: estado limpio esperado del schema privado `menu_content`.
+- `daily-service-data.sql`: defaults del servicio diario y parrilla fija para bases nuevas.
+- `availability-overlay.sql`: tablas, indices y policies del overlay runtime.
+- `hardening.sql`: constraints e indices idempotentes del modelo activo.
+- `migrations/`: cambios incrementales para bases existentes.
 
 Archivos read-only:
 
-- `audits/menu-schema-audit.sql`: revisa constraints, indices y duplicados esperados.
+- `audits/menu-schema-audit.sql`: revisa tablas, constraints, indices y diagnosticos del modelo activo.
 - `audits/database-audit.sql`: inventario amplio de objetos, exposicion, policies y hallazgos.
-- `schema-diagram.md`: mapa versionado principal para entender schemas, relaciones fisicas, relaciones logicas y statuses de auditoria.
+- `schema-diagram.md`: mapa versionado de `menu_content`, overlay runtime y legacy temporal.
 
 ## Orden recomendado
 
 Para una base nueva:
 
 1. Ejecutar `schema.sql`.
-2. Ejecutar `daily-service-data.sql`.
-3. Ejecutar `availability-overlay.sql` si se usara el overlay runtime.
-4. Ejecutar `hardening.sql`.
-5. Ejecutar `audits/menu-schema-audit.sql`.
-6. Ejecutar `audits/database-audit.sql`.
-7. Ejecutar validaciones del repo.
+2. Cargar perfiles/catalogo base.
+3. Ejecutar `daily-service-data.sql`.
+4. Ejecutar `availability-overlay.sql` si se usara el overlay runtime.
+5. Ejecutar `hardening.sql`.
+6. Ejecutar `audits/menu-schema-audit.sql`.
+7. Ejecutar `audits/database-audit.sql`.
+8. Ejecutar validaciones del repo.
 
 Para una base existente:
 
 1. Ejecutar primero los SQL de `audits/`.
 2. Resolver cualquier fila que bloquee constraints o indices.
 3. Revisar y versionar el SQL idempotente que se quiere aplicar.
-4. Si el cambio vive en `migrations/`, revisar el archivo completo antes de aplicarlo.
-5. Aplicarlo en Supabase solo despues de validar localmente.
+4. Aplicar `migrations/2026-05-07-flatten-menu-content-model.sql` para crear y poblar el modelo activo sin dropear legacy.
+5. Ejecutar `hardening.sql`.
 6. Volver a ejecutar audits y validaciones.
+7. Validar deploy.
+8. Crear una migracion posterior para limpiar legacy solo si no quedan dependencias activas.
 
 ## Variables
 
@@ -80,8 +107,8 @@ npm run verify:dist-secrets
 npm run check
 ```
 
-No aplicar `hardening.sql` ni nuevos SQL mutantes en Supabase remoto si los audits
-muestran bloqueos conocidos o si `npm run menu:validate` falla.
+No aplicar SQL mutante en Supabase remoto si los audits muestran bloqueos conocidos
+o si `npm run menu:validate` falla.
 
 ## Cambios futuros
 

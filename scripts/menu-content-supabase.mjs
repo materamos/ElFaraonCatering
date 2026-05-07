@@ -2,8 +2,6 @@ import postgres from "postgres";
 import { loadLocalEnv } from "./load-local-env.mjs";
 
 const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
-const dailyMenuWithDrinkPricingKey = "menu-del-dia-con-bebida";
-const dailyMenuVegetarianPricingKey = "menu-vegetariano-del-dia";
 
 loadLocalEnv();
 
@@ -20,9 +18,7 @@ export const loadSupabaseMenuSnapshot = async (
   });
 
   try {
-    const rows = await loadRows(sql);
-
-    return createSnapshot(rows);
+    return createSnapshot(await loadRows(sql));
   } finally {
     await sql.end();
   }
@@ -36,20 +32,13 @@ const loadRows = async (sql) => {
     paymentMethods,
     prices,
     priceVariants,
-    dailyMenus,
-    dailyServiceSettings,
-    sections,
-    groups,
-    items,
-    options,
-    sectionItems,
-    groupItems,
+    dailyItems,
+    profileServiceSettings,
+    catalogSections,
+    catalogGroups,
+    catalogItems,
+    catalogItemOptions,
     grillItems,
-    overrides,
-    overrideSections,
-    overrideGroups,
-    overrideSectionItems,
-    overrideGroupItems,
   ] = await Promise.all([
     sql`select * from menu_content.menu_profiles order by id`,
     sql`select * from menu_content.menu_profile_facts order by profile_id, order_index`,
@@ -57,20 +46,13 @@ const loadRows = async (sql) => {
     sql`select * from menu_content.menu_profile_payment_methods order by profile_id, order_index`,
     sql`select pricing_key, kind, amount from menu_content.menu_prices order by pricing_key`,
     sql`select * from menu_content.menu_price_variants order by pricing_key, order_index`,
-    sql`select * from menu_content.menu_daily_menu order by id`,
-    sql`select * from menu_content.menu_daily_service_settings order by profile_id`,
-    sql`select * from menu_content.menu_sections order by order_index`,
-    sql`select * from menu_content.menu_groups order by section_row_id, order_index`,
-    sql`select * from menu_content.menu_items order by id`,
-    sql`select * from menu_content.menu_item_options order by item_row_id, order_index`,
-    sql`select * from menu_content.menu_section_items order by section_row_id, order_index`,
-    sql`select * from menu_content.menu_group_items order by group_row_id, order_index`,
-    sql`select * from menu_content.menu_grill_items order by order_index`,
-    sql`select * from menu_content.menu_overrides order by menu_id`,
-    sql`select * from menu_content.menu_override_sections order by override_row_id, order_index`,
-    sql`select * from menu_content.menu_override_groups order by override_section_row_id, order_index`,
-    sql`select * from menu_content.menu_override_section_items order by override_section_row_id, order_index`,
-    sql`select * from menu_content.menu_override_group_items order by override_group_row_id, order_index`,
+    sql`select * from menu_content.menu_daily_items order by order_index`,
+    sql`select * from menu_content.menu_profile_service_settings order by profile_id`,
+    sql`select * from menu_content.menu_catalog_sections order by order_index`,
+    sql`select * from menu_content.menu_catalog_groups order by section_id, order_index`,
+    sql`select * from menu_content.menu_catalog_items order by section_id, group_id, order_index`,
+    sql`select * from menu_content.menu_catalog_item_options order by catalog_item_id, order_index`,
+    sql`select * from menu_content.menu_grill_catalog_items order by order_index`,
   ]);
 
   return {
@@ -80,47 +62,27 @@ const loadRows = async (sql) => {
     paymentMethods,
     prices,
     priceVariants,
-    dailyMenus,
-    dailyServiceSettings,
-    sections,
-    groups,
-    items,
-    options,
-    sectionItems,
-    groupItems,
+    dailyItems,
+    profileServiceSettings,
+    catalogSections,
+    catalogGroups,
+    catalogItems,
+    catalogItemOptions,
     grillItems,
-    overrides,
-    overrideSections,
-    overrideGroups,
-    overrideSectionItems,
-    overrideGroupItems,
   };
 };
 
 const createSnapshot = (rows) => {
   const priceMap = createPriceMap(rows.prices, rows.priceVariants);
-  const itemMap = new Map(rows.items.map((item) => [Number(item.id), item]));
-  const optionsByItem = groupByNumberKey(rows.options, "item_row_id");
-  const sectionItemsBySection = groupByNumberKey(rows.sectionItems, "section_row_id");
-  const groupsBySection = groupByNumberKey(rows.groups, "section_row_id");
-  const groupItemsByGroup = groupByNumberKey(rows.groupItems, "group_row_id");
   const factsByProfile = groupByStringKey(rows.facts, "profile_id");
   const paymentByProfile = new Map(rows.payments.map((payment) => [payment.profile_id, payment]));
   const paymentMethodsByProfile = groupByStringKey(rows.paymentMethods, "profile_id");
-  const dailyMenu = createDailyMenu(rows.dailyMenus, priceMap);
-  const grillSection = createGrillSection({
-    grillItems: rows.grillItems,
-    priceMap,
-    itemMap,
-    optionsByItem,
-  });
+  const catalogItemsBySection = groupByStringKey(rows.catalogItems, "section_id");
+  const catalogGroupsBySection = groupByStringKey(rows.catalogGroups, "section_id");
+  const optionsByCatalogItem = groupByNumberKey(rows.catalogItemOptions, "catalog_item_id");
 
   const profiles = rows.profiles.map((profile) => {
-    const payment = paymentByProfile.get(profile.id);
-
-    if (!payment) {
-      throw new Error(`Missing payment data for profile: ${profile.id}`);
-    }
+    const payment = requireMapValue(paymentByProfile, profile.id);
 
     return {
       id: profile.id,
@@ -155,91 +117,42 @@ const createSnapshot = (rows) => {
     };
   });
 
-  const catalogSections = rows.sections
-    .map((section) =>
-      createSection({
-        section,
-        priceMap,
-        itemMap,
-        optionsByItem,
-        sectionItemsBySection,
-        groupsBySection,
-        groupItemsByGroup,
-      }),
-    )
-    .sort((left, right) => left.order - right.order);
-
   return {
     profiles,
-    overrides: createOverrides(rows),
-    catalogSections,
-    dailyMenu,
-    dailyServiceSettings: rows.dailyServiceSettings.map((entry) => ({
-      menuId: entry.profile_id,
-      grillEnabled: entry.grill_enabled,
-    })),
-    grillSection,
-  };
-};
-
-const createDailyMenu = (dailyMenus, priceMap) => {
-  if (dailyMenus.length !== 1) {
-    throw new Error("Supabase menu content must define one current daily menu row.");
-  }
-
-  const dailyMenu = dailyMenus[0];
-  const dailyMenuAvailable = dailyMenu.available;
-
-  return {
-    items: [
-      cleanOptional({
-        itemId: "menu-del-dia",
-        name: dailyMenu.name,
-        description: dailyMenu.description ?? undefined,
-        note: dailyMenu.note ?? undefined,
-        available: dailyMenuAvailable,
-        pricing: requireMapValue(priceMap, dailyMenu.pricing_key),
+    overrides: [],
+    catalogSections: rows.catalogSections.map((section) =>
+      createCatalogSection({
+        section,
+        groups: catalogGroupsBySection.get(section.section_id) ?? [],
+        items: catalogItemsBySection.get(section.section_id) ?? [],
+        optionsByCatalogItem,
+        priceMap,
       }),
-      {
-        itemId: "menu-del-dia-con-bebida",
-        name: "Menu del dia + bebida",
-        available: dailyMenuAvailable,
-        pricing: requireMapValue(priceMap, dailyMenuWithDrinkPricingKey),
-      },
-      {
-        itemId: "menu-vegetariano-del-dia",
-        name: "Menu del dia vegetariano",
-        available: dailyMenuAvailable,
-        pricing: requireMapValue(priceMap, dailyMenuVegetarianPricingKey),
-      },
-    ],
+    ),
+    dailyMenu: {
+      items: rows.dailyItems.map((item) => createFlatItem(item, [], priceMap)),
+    },
+    dailyServiceSettings: rows.profileServiceSettings.map((entry) => ({
+      menuId: entry.profile_id,
+      grillEnabled: entry.service_kind === "grill",
+    })),
+    grillSection: {
+      sectionId: "parrilla",
+      title: "Parrilla",
+      description: "Productos de parrilla. La disponibilidad puede variar durante el dia.",
+      order: 10,
+      presentation: "compact-list",
+      items: rows.grillItems.map((item) => createFlatItem(item, [], priceMap)),
+    },
   };
 };
 
-const createGrillSection = ({ grillItems, priceMap, itemMap, optionsByItem }) => ({
-  sectionId: "parrilla",
-  title: "Parrilla",
-  description: "Productos de parrilla. La disponibilidad puede variar durante el dia.",
-  order: 10,
-  presentation: "compact-list",
-  items: grillItems.map((itemRow) =>
-    createItem({
-      occurrence: itemRow,
-      item: requireMapValue(itemMap, Number(itemRow.item_row_id)),
-      options: optionsByItem.get(Number(itemRow.item_row_id)) ?? [],
-      priceMap,
-    }),
-  ),
-});
-
-const createSection = ({
+const createCatalogSection = ({
   section,
+  groups,
+  items,
+  optionsByCatalogItem,
   priceMap,
-  itemMap,
-  optionsByItem,
-  sectionItemsBySection,
-  groupsBySection,
-  groupItemsByGroup,
 }) => {
   const baseSection = cleanOptional({
     sectionId: section.section_id,
@@ -247,52 +160,58 @@ const createSection = ({
     description: section.description ?? undefined,
     note: section.note ?? undefined,
     order: section.order_index,
+    presentation: section.presentation === "compact-list" ? section.presentation : undefined,
   });
 
   if (section.content_kind === "items") {
     return {
       ...baseSection,
-      items: (sectionItemsBySection.get(Number(section.id)) ?? []).map((itemRow) =>
-        createItem({
-          occurrence: itemRow,
-          item: requireMapValue(itemMap, Number(itemRow.item_row_id)),
-          options: optionsByItem.get(Number(itemRow.item_row_id)) ?? [],
-          priceMap,
-        }),
-      ),
+      items: items
+        .filter((item) => item.group_id === "")
+        .map((item) =>
+          createFlatItem(
+            item,
+            optionsByCatalogItem.get(Number(item.id)) ?? [],
+            priceMap,
+          ),
+        ),
     };
   }
 
+  const itemsByGroup = groupByStringKey(
+    items.filter((item) => item.group_id !== ""),
+    "group_id",
+  );
+
   return {
     ...baseSection,
-    groups: (groupsBySection.get(Number(section.id)) ?? []).map((group) =>
+    groups: groups.map((group) =>
       cleanOptional({
         groupId: group.group_id,
         title: group.title,
         description: group.description ?? undefined,
         note: group.note ?? undefined,
         pricing: readPricing(priceMap, group.pricing_key),
-        items: (groupItemsByGroup.get(Number(group.id)) ?? []).map((itemRow) =>
-          createItem({
-            occurrence: itemRow,
-            item: requireMapValue(itemMap, Number(itemRow.item_row_id)),
-            options: optionsByItem.get(Number(itemRow.item_row_id)) ?? [],
+        items: (itemsByGroup.get(group.group_id) ?? []).map((item) =>
+          createFlatItem(
+            item,
+            optionsByCatalogItem.get(Number(item.id)) ?? [],
             priceMap,
-          }),
+          ),
         ),
       }),
     ),
   };
 };
 
-const createItem = ({ occurrence, item, options, priceMap }) =>
+const createFlatItem = (item, options, priceMap) =>
   cleanOptional({
-    itemId: occurrence.item_id,
+    itemId: item.item_id,
     name: item.name,
     description: item.description ?? undefined,
-    note: occurrence.note ?? undefined,
-    available: occurrence.available,
-    pricing: readPricing(priceMap, occurrence.pricing_key),
+    note: item.note ?? undefined,
+    available: item.available,
+    pricing: readPricing(priceMap, item.pricing_key),
     options:
       options.length > 0
         ? options.map((option) =>
@@ -307,54 +226,6 @@ const createItem = ({ occurrence, item, options, priceMap }) =>
         : undefined,
     image: item.image_path ?? undefined,
   });
-
-const createOverrides = (rows) => {
-  const sectionsByOverride = groupByNumberKey(rows.overrideSections, "override_row_id");
-  const groupsBySection = groupByNumberKey(rows.overrideGroups, "override_section_row_id");
-  const sectionItemsBySection = groupByNumberKey(
-    rows.overrideSectionItems,
-    "override_section_row_id",
-  );
-  const groupItemsByGroup = groupByNumberKey(rows.overrideGroupItems, "override_group_row_id");
-
-  return rows.overrides.map((override) => ({
-    menuId: override.menu_id,
-    sections: (sectionsByOverride.get(Number(override.id)) ?? []).map((section) =>
-      cleanOptional({
-        sectionId: section.section_id,
-        items:
-          (sectionItemsBySection.get(Number(section.id)) ?? []).length > 0
-            ? (sectionItemsBySection.get(Number(section.id)) ?? []).map((item) =>
-                cleanOptional({
-                  itemId: item.item_id,
-                  available: item.available ?? undefined,
-                  note: item.note ?? undefined,
-                }),
-              )
-            : undefined,
-        groups:
-          (groupsBySection.get(Number(section.id)) ?? []).length > 0
-            ? (groupsBySection.get(Number(section.id)) ?? []).map((group) =>
-                cleanOptional({
-                  groupId: group.group_id,
-                  note: group.note ?? undefined,
-                  items:
-                    (groupItemsByGroup.get(Number(group.id)) ?? []).length > 0
-                      ? (groupItemsByGroup.get(Number(group.id)) ?? []).map((item) =>
-                          cleanOptional({
-                            itemId: item.item_id,
-                            available: item.available ?? undefined,
-                            note: item.note ?? undefined,
-                          }),
-                        )
-                      : undefined,
-                }),
-              )
-            : undefined,
-      }),
-    ),
-  }));
-};
 
 const createPriceMap = (prices, variants) => {
   const variantsByPrice = groupByStringKey(variants, "pricing_key");

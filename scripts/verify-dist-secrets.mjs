@@ -39,6 +39,20 @@ const markers = [
     .filter((marker) => marker.value.length >= 8),
 ];
 
+const forbiddenRuntimeMarkers = [
+  "menu_content.",
+  "menu_daily_items",
+  "menu_profile_service_settings",
+  "menu_catalog_sections",
+  "menu_catalog_groups",
+  "menu_catalog_items",
+  "menu_catalog_item_options",
+  "menu_grill_families",
+  "menu_grill_catalog_items",
+  "menu_prices",
+  "menu_price_variants",
+];
+
 try {
   await stat(distDir);
 } catch {
@@ -57,6 +71,15 @@ for (const filePath of files) {
       findings.push({
         filePath,
         label: marker.label,
+      });
+    }
+  }
+
+  for (const marker of forbiddenRuntimeMarkers) {
+    if (content.includes(Buffer.from(marker))) {
+      findings.push({
+        filePath,
+        label: `runtime structural query marker: ${marker}`,
       });
     }
   }

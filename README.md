@@ -13,7 +13,7 @@ La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuent
 - `/menu/` sigue siendo un placeholder de entrada general para menus.
 - `/` sigue siendo un placeholder institucional futuro.
 - `/admin/` sigue siendo un placeholder estatico sin funcionalidad, servido desde `public/admin/index.html`.
-- Supabase `menu_content` es la fuente estructural build-time del menu.
+- Supabase `menu_content` es la fuente estructural y operativa build-time del menu.
 - El sitio sigue siendo static-first y se genera como output `"static"` en Astro.
 - El overlay runtime de disponibilidad sigue separado y se consume desde JavaScript cliente.
 - No hay CMS activo dentro del repo.
@@ -27,7 +27,7 @@ El rollback a la etapa anterior con archivos YAML se hace desde Git usando el ta
 - Tailwind CSS 4
 - Node 20 LTS
 - npm
-- Supabase Postgres para contenido estructural build-time
+- Supabase Postgres para contenido estructural y operativo build-time
 - Vercel static deployment
 
 ## Desarrollo local
@@ -154,16 +154,15 @@ Directorios generados como `dist/`, `.astro/` y `node_modules/` no forman parte 
 
 ## Modelo de contenido
 
-El contenido estructural vive en el schema Supabase `menu_content` y se lee solo durante el build de Astro.
+El contenido estructural y operativo vive en el schema Supabase `menu_content` y se lee solo durante el build de Astro.
 
 El lector build-time arma la misma forma que consumen `MenuPage`, `MenuSection` y `DishCard`:
 
 - perfiles por menu
 - servicio del dia compartido
-- configuracion `grill_enabled` por local
+- servicio activo por local con `service_kind`
 - lista fija de parrilla
 - catalogo compartido
-- overrides por menu
 - grupos e items
 - precios `fixed`, `included` y `variants`
 - opciones
@@ -172,15 +171,15 @@ El lector build-time arma la misma forma que consumen `MenuPage`, `MenuSection` 
 Reglas principales:
 
 - Los IDs tecnicos son ASCII/kebab-case y estables.
-- `menu_daily_menu` define el plato principal vigente del menu del dia con nombre, descripcion opcional, disponibilidad y precio.
-- `menu_daily_service_settings` define por local si la propiedad `grill_enabled` esta activa.
-- Si `grill_enabled` es `false`, el local muestra tres opciones: el plato principal compartido, `Menu del dia + bebida` y `Menu del dia vegetariano`.
-- Si `grill_enabled` es `true`, el local aplica la variante de parrilla al servicio del dia y muestra `menu_grill_items`.
+- `menu_daily_items` define las tres opciones reales del menu del dia: plato principal compartido, `Menu del dia + bebida` y `Menu del dia vegetariano`.
+- `menu_profile_service_settings` define por local si el servicio activo es `daily-menu` o `grill`.
+- Si `service_kind` es `daily-menu`, el local muestra las tres opciones de `menu_daily_items`.
+- Si `service_kind` es `grill`, el local aplica la variante de parrilla al servicio del dia y muestra `menu_grill_catalog_items`.
 - Cada local puede mostrar menu del dia o parrilla, nunca ambas a la vez.
-- `menu_grill_items` contiene la lista fija de parrilla; la disponibilidad de cada producto puede cambiar por datos build-time u overlay runtime.
-- `menu_sections` contiene solo secciones del catalogo compartido; no modela el servicio diario por local.
+- `menu_grill_catalog_items` contiene la lista fija de parrilla, agrupada por `menu_grill_families`.
+- `menu_catalog_sections` contiene solo secciones del catalogo compartido; no modela el servicio diario por local.
 - Cuando ambos locales muestran menu del dia, el plato principal es el mismo para ambos.
-- Los precios son globales para todos los locales; no se cambian mediante overrides por menu.
+- Los precios son globales para todos los locales.
 - La disponibilidad es individual por local/menu.
 - Las secciones definen `items` o `groups`, no ambos.
 - Los items directos deben definir precio.
@@ -188,17 +187,25 @@ Reglas principales:
 - Un item dentro de un grupo puede omitir precio para heredar o definir precio para sobrescribir.
 - Si un grupo no tiene precio compartido, cada item del grupo debe definir el suyo.
 - Las variantes son planas y sus montos son numericos.
-- Los overrides por menu solo ajustan disponibilidad y notas sobre estructura existente.
 - Las imagenes deben ser paths locales bajo `/uploads/`.
+
+Frontera build-time/runtime:
+
+- Menu del dia, descripcion/nota, servicio activo por local, precios globales, catalogo, grupos, secciones, imagenes y textos estructurales son datos build-time.
+- Un CMS futuro puede editar esos datos en Supabase, pero cada cambio requiere rebuild/deploy para impactar el menu publico.
+- El unico dato editable en runtime sin rebuild es la disponibilidad por local mediante `public.menu_availability_overlays`.
+- El cliente no debe consultar estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.
 
 ## Supabase
 
 Hay dos superficies Supabase separadas:
 
-- `menu_content`: fuente estructural build-time del menu.
+- `menu_content`: fuente estructural y operativa build-time del menu.
 - overlay runtime de disponibilidad: extension cliente no bloqueante para disponibilidad operativa.
 
 El overlay runtime no administra estructura, textos, precios, imagenes ni menu diario. Si el overlay falla, el menu estatico generado en build-time sigue disponible.
+
+Un CMS operativo futuro puede editar menu del dia, servicio activo por local y precios globales, pero esos cambios son build-time: requieren rebuild/deploy. CMS editable no implica runtime editable.
 
 Variables publicas del overlay:
 
@@ -236,7 +243,7 @@ Flujo local-first para cambios de base:
 
 ## Estado operativo
 
-No hay CMS activo dentro del repo en esta etapa. Supabase `menu_content` es la base prevista para un CMS operativo limitado a menu del dia, modo parrilla, disponibilidad y precios globales.
+No hay CMS activo dentro del repo en esta etapa. Supabase `menu_content` es la base prevista para un CMS operativo limitado a menu del dia, servicio activo por local y precios globales como datos build-time, mas disponibilidad como unico overlay runtime.
 
 No existe flujo de escritura desde `/admin/`, auth editorial, roles editoriales ni administracion de contenido dentro del sitio publico.
 

@@ -9,44 +9,42 @@ const uploadsBasePath = "/uploads/";
 const allowedMenuImageExtensions = [".avif", ".jpeg", ".jpg", ".png", ".svg", ".webp"];
 
 const expectedConstraints = [
-  "menu_daily_menu_singleton_valid",
   "menu_prices_kind_amount_valid",
   "menu_profile_facts_link_pair_valid",
 ];
 
 const expectedIndexes = [
-  "menu_daily_service_settings_profile_key",
-  "menu_grill_items_item_id_key",
-  "menu_grill_items_order_index_key",
-  "menu_prices_pricing_key_kind_key",
+  "menu_daily_items_item_id_key",
+  "menu_daily_items_order_key",
+  "menu_profile_service_settings_profile_key",
   "menu_price_variants_pricing_key_order_key",
-  "menu_sections_section_id_key",
-  "menu_sections_order_key",
-  "menu_groups_section_group_id_key",
-  "menu_groups_section_order_key",
-  "menu_items_id_item_id_key",
-  "menu_section_items_section_item_id_key",
-  "menu_section_items_section_order_key",
-  "menu_group_items_group_item_id_key",
-  "menu_group_items_group_order_key",
-  "menu_item_options_item_order_key",
-  "menu_overrides_menu_id_key",
-  "menu_override_sections_override_section_id_key",
-  "menu_override_sections_override_order_key",
-  "menu_override_groups_section_group_id_key",
-  "menu_override_groups_section_order_key",
-  "menu_override_section_items_section_item_id_key",
-  "menu_override_section_items_section_order_key",
-  "menu_override_group_items_group_item_id_key",
-  "menu_override_group_items_group_order_key",
+  "menu_catalog_sections_section_id_key",
+  "menu_catalog_sections_order_key",
+  "menu_catalog_groups_section_group_id_key",
+  "menu_catalog_groups_section_order_key",
+  "menu_catalog_items_context_item_id_key",
+  "menu_catalog_items_context_order_key",
+  "menu_catalog_item_options_item_order_key",
+  "menu_grill_families_order_key",
+  "menu_grill_catalog_items_item_id_key",
+  "menu_grill_catalog_items_order_key",
 ];
 
-const forbiddenColumns = [
-  "menu_sections.section_scope",
-  "menu_sections.menu_id",
-  "menu_override_groups.pricing_key",
-  "menu_override_section_items.pricing_key",
-  "menu_override_group_items.pricing_key",
+const expectedTables = [
+  "menu_profiles",
+  "menu_profile_facts",
+  "menu_profile_payments",
+  "menu_profile_payment_methods",
+  "menu_prices",
+  "menu_price_variants",
+  "menu_daily_items",
+  "menu_profile_service_settings",
+  "menu_catalog_sections",
+  "menu_catalog_groups",
+  "menu_catalog_items",
+  "menu_catalog_item_options",
+  "menu_grill_families",
+  "menu_grill_catalog_items",
 ];
 
 if (!databaseUrl) {
@@ -149,6 +147,10 @@ function validateSnapshot(snapshot, errors) {
 
   for (const section of snapshot.catalogSections) {
     validateSection(`catalog section ${section.sectionId}`, section, errors);
+  }
+
+  if (snapshot.overrides.length > 0) {
+    errors.push("Active flat menu snapshot must not read legacy menu overrides.");
   }
 
   for (const override of snapshot.overrides) {
@@ -488,6 +490,21 @@ function validatePricing(pricing, scope, errors) {
 }
 
 async function validateSchema(sql, errors) {
+  const tableRows = await sql`
+    select table_name
+    from information_schema.tables
+    where table_schema = 'menu_content'
+      and table_type = 'BASE TABLE'
+      and table_name in ${sql(expectedTables)}
+  `;
+  const presentTables = new Set(tableRows.map((row) => row.table_name));
+
+  for (const tableName of expectedTables) {
+    if (!presentTables.has(tableName)) {
+      errors.push(`Missing active menu_content table: ${tableName}`);
+    }
+  }
+
   const constraintRows = await sql`
     select conname
     from pg_constraint
@@ -514,19 +531,6 @@ async function validateSchema(sql, errors) {
     if (!presentIndexes.has(indexName)) {
       errors.push(`Missing menu_content index: ${indexName}`);
     }
-  }
-
-  const columnRows = await sql`
-    select table_name, column_name
-    from information_schema.columns
-    where table_schema = 'menu_content'
-      and concat(table_name, '.', column_name) in ${sql(forbiddenColumns)}
-  `;
-
-  for (const row of columnRows) {
-    errors.push(
-      `Unexpected menu_content override pricing column: ${row.table_name}.${row.column_name}`,
-    );
   }
 }
 

@@ -1,9 +1,45 @@
--- Audit expected structural constraints and indexes for menu_content.
+-- Audit expected structural constraints and indexes for the active flat menu_content model.
 -- This file is read-only: it does not mutate data or schema.
+
+with expected_tables (table_name, expectation) as (
+  values
+    ('menu_profiles', 'profile metadata read at build time'),
+    ('menu_profile_facts', 'profile fact rows read at build time'),
+    ('menu_profile_payments', 'profile payment metadata read at build time'),
+    ('menu_profile_payment_methods', 'profile payment methods read at build time'),
+    ('menu_prices', 'global build-time prices'),
+    ('menu_price_variants', 'global build-time variant prices'),
+    ('menu_daily_items', 'three build-time daily menu options'),
+    ('menu_profile_service_settings', 'active build-time service per profile'),
+    ('menu_catalog_sections', 'flat build-time catalog sections'),
+    ('menu_catalog_groups', 'flat build-time catalog groups'),
+    ('menu_catalog_items', 'flat build-time catalog items'),
+    ('menu_catalog_item_options', 'flat build-time catalog item options'),
+    ('menu_grill_families', 'fixed build-time grill families'),
+    ('menu_grill_catalog_items', 'fixed build-time grill item list')
+),
+actual_tables as (
+  select table_name
+  from information_schema.tables
+  where table_schema = 'menu_content'
+    and table_type = 'BASE TABLE'
+)
+select
+  'table' as object_type,
+  expected.table_name as object_name,
+  expected.table_name,
+  case
+    when actual.table_name is null then 'missing'
+    else 'present'
+  end as status,
+  expected.expectation
+from expected_tables expected
+left join actual_tables actual
+  on actual.table_name = expected.table_name
+order by expected.table_name;
 
 with expected_constraints (constraint_name, table_name, expectation) as (
   values
-    ('menu_daily_menu_singleton_valid', 'menu_daily_menu', 'only the current daily menu row is allowed'),
     ('menu_prices_kind_amount_valid', 'menu_prices', 'fixed requires amount; included/variants require null amount'),
     ('menu_profile_facts_link_pair_valid', 'menu_profile_facts', 'link_text and link_href must both be null or both be present')
 ),
@@ -31,30 +67,20 @@ order by expected.table_name, expected.constraint_name;
 
 with expected_indexes (index_name, table_name, expectation) as (
   values
-    ('menu_daily_service_settings_profile_key', 'menu_daily_service_settings', 'unique settings row per profile'),
-    ('menu_grill_items_item_id_key', 'menu_grill_items', 'unique grill item id'),
-    ('menu_grill_items_order_index_key', 'menu_grill_items', 'unique grill item order'),
-    ('menu_prices_pricing_key_kind_key', 'menu_prices', 'unique pricing_key + kind for variant FK'),
+    ('menu_daily_items_item_id_key', 'menu_daily_items', 'unique daily menu item id'),
+    ('menu_daily_items_order_key', 'menu_daily_items', 'unique daily menu order'),
+    ('menu_profile_service_settings_profile_key', 'menu_profile_service_settings', 'unique service settings row per profile'),
     ('menu_price_variants_pricing_key_order_key', 'menu_price_variants', 'unique variant order per price'),
-    ('menu_sections_section_id_key', 'menu_sections', 'unique catalog section_id'),
-    ('menu_sections_order_key', 'menu_sections', 'unique catalog section order'),
-    ('menu_groups_section_group_id_key', 'menu_groups', 'unique group_id per section'),
-    ('menu_groups_section_order_key', 'menu_groups', 'unique group order per section'),
-    ('menu_items_id_item_id_key', 'menu_items', 'unique id + item_id for contextual item FK'),
-    ('menu_section_items_section_item_id_key', 'menu_section_items', 'unique item_id per section'),
-    ('menu_section_items_section_order_key', 'menu_section_items', 'unique item order per section'),
-    ('menu_group_items_group_item_id_key', 'menu_group_items', 'unique item_id per group'),
-    ('menu_group_items_group_order_key', 'menu_group_items', 'unique item order per group'),
-    ('menu_item_options_item_order_key', 'menu_item_options', 'unique option order per item'),
-    ('menu_overrides_menu_id_key', 'menu_overrides', 'unique override per menu'),
-    ('menu_override_sections_override_section_id_key', 'menu_override_sections', 'unique override section per override'),
-    ('menu_override_sections_override_order_key', 'menu_override_sections', 'unique override section order per override'),
-    ('menu_override_groups_section_group_id_key', 'menu_override_groups', 'unique override group per override section'),
-    ('menu_override_groups_section_order_key', 'menu_override_groups', 'unique override group order per override section'),
-    ('menu_override_section_items_section_item_id_key', 'menu_override_section_items', 'unique override item per override section'),
-    ('menu_override_section_items_section_order_key', 'menu_override_section_items', 'unique override item order per override section'),
-    ('menu_override_group_items_group_item_id_key', 'menu_override_group_items', 'unique override item per override group'),
-    ('menu_override_group_items_group_order_key', 'menu_override_group_items', 'unique override item order per override group')
+    ('menu_catalog_sections_section_id_key', 'menu_catalog_sections', 'unique catalog section id'),
+    ('menu_catalog_sections_order_key', 'menu_catalog_sections', 'unique catalog section order'),
+    ('menu_catalog_groups_section_group_id_key', 'menu_catalog_groups', 'unique group id per section'),
+    ('menu_catalog_groups_section_order_key', 'menu_catalog_groups', 'unique group order per section'),
+    ('menu_catalog_items_context_item_id_key', 'menu_catalog_items', 'unique item id per section/group context'),
+    ('menu_catalog_items_context_order_key', 'menu_catalog_items', 'unique item order per section/group context'),
+    ('menu_catalog_item_options_item_order_key', 'menu_catalog_item_options', 'unique option order per catalog item'),
+    ('menu_grill_families_order_key', 'menu_grill_families', 'unique grill family order'),
+    ('menu_grill_catalog_items_item_id_key', 'menu_grill_catalog_items', 'unique grill item id'),
+    ('menu_grill_catalog_items_order_key', 'menu_grill_catalog_items', 'unique grill item order')
 ),
 actual_indexes as (
   select
@@ -77,8 +103,6 @@ left join actual_indexes actual
   on actual.index_name = expected.index_name
  and actual.table_name = expected.table_name
 order by expected.table_name, expected.index_name;
-
--- Diagnostic rows that would block the hardening constraints.
 
 select
   'menu_prices_kind_amount_invalid' as diagnostic,
@@ -104,188 +128,50 @@ where not (
 );
 
 select
-  'menu_daily_menu_singleton_invalid' as diagnostic,
-  id
-from menu_content.menu_daily_menu
-where id <> 'current';
+  'menu_daily_items_count_invalid' as diagnostic,
+  count(*) as daily_item_count
+from menu_content.menu_daily_items
+having count(*) <> 3;
 
 select
-  'menu_override_pricing_column_unexpected' as diagnostic,
-  table_name,
-  column_name
-from information_schema.columns
+  'menu_profile_service_settings_missing' as diagnostic,
+  profile.id as profile_id
+from menu_content.menu_profiles profile
+left join menu_content.menu_profile_service_settings settings
+  on settings.profile_id = profile.id
+where settings.profile_id is null;
+
+select
+  'menu_catalog_item_group_missing' as diagnostic,
+  item.section_id,
+  item.group_id,
+  item.item_id
+from menu_content.menu_catalog_items item
+left join menu_content.menu_catalog_groups menu_group
+  on menu_group.section_id = item.section_id
+ and menu_group.group_id = item.group_id
+where item.group_id <> ''
+  and menu_group.group_id is null;
+
+select
+  'legacy_table_still_present' as diagnostic,
+  table_name
+from information_schema.tables
 where table_schema = 'menu_content'
-  and column_name = 'pricing_key'
   and table_name in (
+    'menu_daily_menu',
+    'menu_daily_service_settings',
+    'menu_sections',
+    'menu_groups',
+    'menu_items',
+    'menu_item_options',
+    'menu_section_items',
+    'menu_group_items',
+    'menu_grill_items',
+    'menu_overrides',
+    'menu_override_sections',
     'menu_override_groups',
     'menu_override_section_items',
     'menu_override_group_items'
-  );
-
-select
-  'menu_sections_legacy_column_unexpected' as diagnostic,
-  table_name,
-  column_name
-from information_schema.columns
-where table_schema = 'menu_content'
-  and table_name = 'menu_sections'
-  and column_name in ('section_scope', 'menu_id');
-
--- Duplicate diagnostics for unique indexes created by hardening.
-
-with duplicate_checks as (
-  select 'menu_daily_service_settings_profile_key' as index_name, profile_id::text as context_key, profile_id::text as duplicate_key, count(*) as duplicate_count
-  from menu_content.menu_daily_service_settings
-  group by profile_id
-  having count(*) > 1
-
-  union all
-
-  select 'menu_grill_items_item_id_key', 'parrilla', item_id, count(*)
-  from menu_content.menu_grill_items
-  group by item_id
-  having count(*) > 1
-
-  union all
-
-  select 'menu_grill_items_order_index_key', 'parrilla', order_index::text, count(*)
-  from menu_content.menu_grill_items
-  group by order_index
-  having count(*) > 1
-
-  union all
-
-  select 'menu_price_variants_pricing_key_order_key' as index_name, pricing_key::text as context_key, order_index::text as duplicate_key, count(*) as duplicate_count
-  from menu_content.menu_price_variants
-  group by pricing_key, order_index
-  having count(*) > 1
-
-  union all
-
-  select 'menu_sections_section_id_key', 'catalog', section_id, count(*)
-  from menu_content.menu_sections
-  group by section_id
-  having count(*) > 1
-
-  union all
-
-  select 'menu_sections_order_key', 'catalog', order_index::text, count(*)
-  from menu_content.menu_sections
-  group by order_index
-  having count(*) > 1
-
-  union all
-
-  select 'menu_groups_section_group_id_key', section_row_id::text, group_id, count(*)
-  from menu_content.menu_groups
-  group by section_row_id, group_id
-  having count(*) > 1
-
-  union all
-
-  select 'menu_groups_section_order_key', section_row_id::text, order_index::text, count(*)
-  from menu_content.menu_groups
-  group by section_row_id, order_index
-  having count(*) > 1
-
-  union all
-
-  select 'menu_section_items_section_item_id_key', section_row_id::text, item_id, count(*)
-  from menu_content.menu_section_items
-  group by section_row_id, item_id
-  having count(*) > 1
-
-  union all
-
-  select 'menu_section_items_section_order_key', section_row_id::text, order_index::text, count(*)
-  from menu_content.menu_section_items
-  group by section_row_id, order_index
-  having count(*) > 1
-
-  union all
-
-  select 'menu_group_items_group_item_id_key', group_row_id::text, item_id, count(*)
-  from menu_content.menu_group_items
-  group by group_row_id, item_id
-  having count(*) > 1
-
-  union all
-
-  select 'menu_group_items_group_order_key', group_row_id::text, order_index::text, count(*)
-  from menu_content.menu_group_items
-  group by group_row_id, order_index
-  having count(*) > 1
-
-  union all
-
-  select 'menu_item_options_item_order_key', item_row_id::text, order_index::text, count(*)
-  from menu_content.menu_item_options
-  group by item_row_id, order_index
-  having count(*) > 1
-
-  union all
-
-  select 'menu_overrides_menu_id_key', menu_id, menu_id, count(*)
-  from menu_content.menu_overrides
-  group by menu_id
-  having count(*) > 1
-
-  union all
-
-  select 'menu_override_sections_override_section_id_key', override_row_id::text, section_id, count(*)
-  from menu_content.menu_override_sections
-  group by override_row_id, section_id
-  having count(*) > 1
-
-  union all
-
-  select 'menu_override_sections_override_order_key', override_row_id::text, order_index::text, count(*)
-  from menu_content.menu_override_sections
-  group by override_row_id, order_index
-  having count(*) > 1
-
-  union all
-
-  select 'menu_override_groups_section_group_id_key', override_section_row_id::text, group_id, count(*)
-  from menu_content.menu_override_groups
-  group by override_section_row_id, group_id
-  having count(*) > 1
-
-  union all
-
-  select 'menu_override_groups_section_order_key', override_section_row_id::text, order_index::text, count(*)
-  from menu_content.menu_override_groups
-  group by override_section_row_id, order_index
-  having count(*) > 1
-
-  union all
-
-  select 'menu_override_section_items_section_item_id_key', override_section_row_id::text, item_id, count(*)
-  from menu_content.menu_override_section_items
-  group by override_section_row_id, item_id
-  having count(*) > 1
-
-  union all
-
-  select 'menu_override_section_items_section_order_key', override_section_row_id::text, order_index::text, count(*)
-  from menu_content.menu_override_section_items
-  group by override_section_row_id, order_index
-  having count(*) > 1
-
-  union all
-
-  select 'menu_override_group_items_group_item_id_key', override_group_row_id::text, item_id, count(*)
-  from menu_content.menu_override_group_items
-  group by override_group_row_id, item_id
-  having count(*) > 1
-
-  union all
-
-  select 'menu_override_group_items_group_order_key', override_group_row_id::text, order_index::text, count(*)
-  from menu_content.menu_override_group_items
-  group by override_group_row_id, order_index
-  having count(*) > 1
-)
-select *
-from duplicate_checks
-order by index_name, context_key, duplicate_key;
+  )
+order by table_name;
