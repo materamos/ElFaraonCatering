@@ -36,6 +36,8 @@ Current source of truth:
 
 - Supabase `menu_content` is the structural and operational source read at build time.
 - The runtime availability overlay is separate and progressive.
+- `public.staff_users` is the staff permission source for the future operational CMS.
+- Operational CMS writes must go through explicit Supabase RPCs, not direct table grants.
 - There is no active CMS in the repo.
 - The rollback to the previous file-backed content stage is the Git tag `yaml-rollback-2026-05-02`.
 
@@ -58,6 +60,9 @@ Do not add these capabilities unless explicitly requested:
 
 Operational CMS work is limited to menu del dia, active service, availability, and global
 prices unless a broader admin scope is explicitly requested.
+
+Operational staff auth and roles may support that CMS surface. Do not expand them
+into customer accounts, broad editorial accounts, or public user features.
 
 CMS editable does not mean runtime editable. Except for availability, operational CMS
 changes require rebuild/deploy before they affect the public menu.
@@ -101,11 +106,11 @@ Required content surfaces:
 
 Daily service rules:
 
-- `menu_daily_items` defines the three daily-menu options: the shared main dish, `Menu del dia + bebida`, and `Menu del dia vegetariano`.
+- `menu_daily_items` defines the four daily-menu options: regular menu, regular menu with drink, vegetarian menu, and vegetarian menu with drink.
 - `menu_daily_items` must define name, availability, pricing, and may define description and note.
 - `menu_profile_service_settings` must define one settings row per profile.
 - `service_kind` is the per-profile property that selects `daily-menu` or `grill`.
-- When `service_kind` is `daily-menu`, the profile shows the three daily-menu options.
+- When `service_kind` is `daily-menu`, the profile shows the four daily-menu options.
 - When `service_kind` is `grill`, the profile shows `menu_grill_catalog_items` as the daily service variant.
 - A profile may show either menu del dia or grill, never both.
 - `menu_grill_catalog_items` is the fixed grill list grouped by `menu_grill_families`.
@@ -161,6 +166,11 @@ Build-time structural and operational content:
 Runtime overlay:
 
 - `docs/supabase/availability-overlay.sql` supports the availability overlay.
+- `docs/supabase/operational-edit-rpcs.sql` defines the approved RPC write surface for operational CMS edits.
+- `public.staff_users` defines operational staff roles: `availability_editor`, `menu_editor`, and `admin`.
+- `public.staff_users` and its helpers are required before operational edit RPCs may be installed.
+- `public.editor_profiles` is legacy-only and must not back new policies.
+- The first `admin` staff row must be bootstrapped through privileged SQL or service role access, not browser RLS.
 - Public client variables are `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.
 - The overlay may only change visual availability through availability data.
 - Do not add `@supabase/supabase-js` for the current overlay unless explicitly justified.
@@ -169,6 +179,7 @@ Preserve the static-first model:
 
 - stable menu content and build-time operational content may be read only at build time
 - availability is the only allowed runtime overlay
+- browser writes to operational data must use the approved RPCs and RLS helpers
 - do not add structural browser queries
 - do not add runtime queries for daily menu, service kind, prices, catalog, groups, sections, images, or structural text
 - do not add SSR, server output, adapters, or Vercel Functions

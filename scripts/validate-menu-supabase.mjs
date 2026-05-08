@@ -8,6 +8,13 @@ const technicalIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const uploadsBasePath = "/uploads/";
 const allowedMenuImageExtensions = [".avif", ".jpeg", ".jpg", ".png", ".svg", ".webp"];
 
+const expectedDailyItemIds = [
+  "menu-del-dia",
+  "menu-del-dia-con-bebida",
+  "menu-vegetariano-del-dia",
+  "menu-vegetariano-del-dia-con-bebida",
+];
+
 const expectedConstraints = [
   "menu_prices_kind_amount_valid",
   "menu_profile_facts_link_pair_valid",
@@ -148,9 +155,17 @@ function validateDailyMenu(dailyMenu, errors) {
     return;
   }
 
-  if (!Array.isArray(dailyMenu.items) || dailyMenu.items.length !== 3) {
-    errors.push("Current daily menu must define the three daily menu options.");
+  if (!Array.isArray(dailyMenu.items) || dailyMenu.items.length !== expectedDailyItemIds.length) {
+    errors.push("Current daily menu must define the four daily menu options.");
     return;
+  }
+
+  const dailyItemIds = dailyMenu.items.map((item) => item.itemId);
+
+  for (const expectedDailyItemId of expectedDailyItemIds) {
+    if (!dailyItemIds.includes(expectedDailyItemId)) {
+      errors.push(`Current daily menu is missing option: ${expectedDailyItemId}`);
+    }
   }
 
   validateSection(

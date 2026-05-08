@@ -9,7 +9,8 @@ Fuentes versionadas:
 - `schema.sql`: estado limpio esperado del schema privado `menu_content`.
 - `migrations/2026-05-06-flatten-menu-content-model.sql`: primera migracion remota al modelo plano.
 - `migrations/2026-05-06-drop-legacy-menu-content-model.sql`: limpieza de tablas legacy despues de validar deploy.
-- `availability-overlay.sql`: unica superficie runtime en `public`.
+- `availability-overlay.sql`: superficie runtime en `public` para disponibilidad y permisos de staff.
+- `operational-edit-rpcs.sql`: RPCs de escritura operativa para el CMS futuro.
 - `audits/menu-schema-audit.sql`: auditoria read-only del modelo activo.
 - `audits/database-audit.sql`: inventario amplio de objetos, exposicion y hallazgos.
 
@@ -20,13 +21,13 @@ flowchart TD
   DB[(Supabase Postgres)]
 
   DB --> MC["menu_content<br/>estructura y operacion build-time"]
-  DB --> PUB["public<br/>overlay runtime limitado"]
+  DB --> PUB["public<br/>overlay runtime y staff"]
   DB --> AUTH["auth<br/>Supabase-managed"]
 
   MC --> BUILD["Astro build<br/>SUPABASE_DB_URL"]
   BUILD --> STATIC["HTML/JS estatico<br/>/menu/corpo y /menu/teleinde"]
   PUB --> CLIENT["Cliente runtime<br/>solo disponibilidad"]
-  AUTH -. "editores autorizados" .-> PUB
+  AUTH -. "staff autenticado" .-> PUB
 
   classDef project fill:#eef6ff,stroke:#1f4f82,color:#102a43;
   classDef runtime fill:#f3f8ee,stroke:#446b2f,color:#223815;
@@ -156,20 +157,27 @@ erDiagram
 ```mermaid
 flowchart LR
   AUTH_USERS["auth.users<br/>Supabase-managed"]
-  EDITORS["public.editor_profiles<br/>editores activos"]
+  STAFF["public.staff_users<br/>roles y alcance CMS"]
+  EDITORS["public.editor_profiles<br/>legacy backfill"]
   OVERLAYS["public.menu_availability_overlays<br/>disponibilidad runtime"]
+  RPCS["public RPCs<br/>edicion operativa"]
 
   STATIC["HTML estatico<br/>data-menu-id / data-section-id / data-item-id"]
 
+  AUTH_USERS -->|"FK fisica: user_id"| STAFF
   AUTH_USERS -->|"FK fisica: user_id"| EDITORS
   AUTH_USERS -->|"FK fisica: updated_by"| OVERLAYS
+  EDITORS -. "backfill temporal" .-> STAFF
+  STAFF -. "RLS helper: can_edit_availability" .-> OVERLAYS
+  STAFF -. "RLS helpers" .-> RPCS
+  RPCS -->|"writes controlados"| OVERLAYS
   OVERLAYS -. "IDs logicos" .-> STATIC
 
   classDef runtime fill:#f3f8ee,stroke:#446b2f,color:#223815;
   classDef structural fill:#eef6ff,stroke:#1f4f82,color:#102a43;
   classDef platform fill:#f6f6f6,stroke:#777,color:#333;
 
-  class EDITORS,OVERLAYS runtime;
+  class STAFF,EDITORS,OVERLAYS,RPCS runtime;
   class STATIC structural;
   class AUTH_USERS platform;
 ```
@@ -178,6 +186,10 @@ flowchart LR
 
 - `menu_content` se lee solo durante build/validacion con `SUPABASE_DB_URL`.
 - Menu del dia, notas, servicio activo por local, catalogo, secciones, grupos, imagenes y precios son datos build-time.
+- `menu_daily_items` modela cuatro opciones planas: comun, comun con bebida, vegetariano y vegetariano con bebida.
 - Un CMS futuro puede editar esos datos, pero el cambio requiere rebuild/deploy para impactar el menu publico.
 - `public.menu_availability_overlays` es el unico dato editable en runtime sin rebuild.
+- `public.staff_users` define roles operativos (`availability_editor`, `menu_editor`, `admin`) y alcance por perfil para futuras pantallas del CMS.
+- Las escrituras del CMS deben pasar por RPCs operativas con respuesta `ok`, `changed`, `requires_redeploy`, `operation` y `message`.
+- `public.editor_profiles` es legacy temporal y no debe respaldar nuevas policies.
 - El cliente no debe consultar estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.

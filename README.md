@@ -16,6 +16,8 @@ La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuent
 - Supabase `menu_content` es la fuente estructural y operativa build-time del menu.
 - El sitio sigue siendo static-first y se genera como output `"static"` en Astro.
 - El overlay runtime de disponibilidad sigue separado y se consume desde JavaScript cliente.
+- La base de permisos del CMS operativo queda versionada en `public.staff_users`, pero `/admin/` aun no implementa login ni escritura.
+- Las escrituras operativas quedan previstas mediante RPCs Supabase, sin grants directos sobre `menu_content`.
 - No hay CMS activo dentro del repo.
 
 El rollback a la etapa anterior con archivos YAML se hace desde Git usando el tag `yaml-rollback-2026-05-02`.
@@ -171,9 +173,9 @@ El lector build-time arma la misma forma que consumen `MenuPage`, `MenuSection` 
 Reglas principales:
 
 - Los IDs tecnicos son ASCII/kebab-case y estables.
-- `menu_daily_items` define las tres opciones reales del menu del dia: plato principal compartido, `Menu del dia + bebida` y `Menu del dia vegetariano`.
+- `menu_daily_items` define las cuatro opciones reales del menu del dia: menu comun, menu comun con bebida, menu vegetariano y menu vegetariano con bebida.
 - `menu_profile_service_settings` define por local si el servicio activo es `daily-menu` o `grill`.
-- Si `service_kind` es `daily-menu`, el local muestra las tres opciones de `menu_daily_items`.
+- Si `service_kind` es `daily-menu`, el local muestra las cuatro opciones de `menu_daily_items`.
 - Si `service_kind` es `grill`, el local aplica la variante de parrilla al servicio del dia y muestra `menu_grill_catalog_items`.
 - Cada local puede mostrar menu del dia o parrilla, nunca ambas a la vez.
 - `menu_grill_catalog_items` contiene la lista fija de parrilla, agrupada por `menu_grill_families`.
@@ -198,14 +200,28 @@ Frontera build-time/runtime:
 
 ## Supabase
 
-Hay dos superficies Supabase separadas:
+Hay tres superficies Supabase separadas:
 
 - `menu_content`: fuente estructural y operativa build-time del menu.
 - overlay runtime de disponibilidad: extension cliente no bloqueante para disponibilidad operativa.
+- `public.staff_users`: usuarios autenticados, roles y alcance por perfil para el futuro CMS operativo.
+- RPCs operativas: unica superficie prevista de escritura para disponibilidad, servicio activo, menu del dia y precios.
 
 El overlay runtime no administra estructura, textos, precios, imagenes ni menu diario. Si el overlay falla, el menu estatico generado en build-time sigue disponible.
 
 Un CMS operativo futuro puede editar menu del dia, servicio activo por local y precios globales, pero esos cambios son build-time: requieren rebuild/deploy. CMS editable no implica runtime editable.
+
+Roles operativos previstos:
+
+- `availability_editor`: edita disponibilidad, globalmente o con alcance a un perfil.
+- `menu_editor`: publica cambios build-time mediante un flujo seguro futuro.
+- `admin`: gestiona empleados y hereda los permisos operativos.
+
+El primer `admin` se crea por SQL privilegiado o service role; el panel futuro podra gestionar empleados despues de ese bootstrap.
+
+Las RPCs operativas devuelven siempre `ok`, `changed`, `requires_redeploy`, `operation` y `message`. Disponibilidad no requiere redeploy; Parrilla, menu del dia y precios globales si lo requieren.
+
+`public.staff_users` y sus helpers son precondicion obligatoria para instalar las RPCs operativas.
 
 Variables publicas del overlay:
 
@@ -228,7 +244,8 @@ SQL disponible:
 - `docs/supabase/schema-diagram.md`: diagrama ERD Mermaid del schema estructural y overlay runtime.
 - `docs/supabase/schema.sql`: schema estructural `menu_content`.
 - `docs/supabase/daily-service-data.sql`: datos base para configuracion diaria y parrilla.
-- `docs/supabase/availability-overlay.sql`: base del overlay runtime de disponibilidad.
+- `docs/supabase/availability-overlay.sql`: base del overlay runtime de disponibilidad y roles de staff.
+- `docs/supabase/operational-edit-rpcs.sql`: RPCs de edicion operativa para el futuro CMS.
 - `docs/supabase/hardening.sql`: hardening idempotente de constraints e indices.
 - `docs/supabase/audits/menu-schema-audit.sql`: auditoria read-only de constraints e indices esperados.
 - `docs/supabase/audits/database-audit.sql`: auditoria read-only de inventario, exposicion, objetos inesperados y hallazgos de datos.
@@ -245,7 +262,7 @@ Flujo local-first para cambios de base:
 
 No hay CMS activo dentro del repo en esta etapa. Supabase `menu_content` es la base prevista para un CMS operativo limitado a menu del dia, servicio activo por local y precios globales como datos build-time, mas disponibilidad como unico overlay runtime.
 
-No existe flujo de escritura desde `/admin/`, auth editorial, roles editoriales ni administracion de contenido dentro del sitio publico.
+`public.staff_users` define la base de empleados y roles para ese CMS, y las RPCs operativas definen la superficie de escritura de base. Todavia no existe flujo de escritura desde `/admin/`, administracion de contenido dentro del sitio publico ni redeploy desde el panel.
 
 Un CMS editorial amplio sigue fuera de alcance y requeriria una decision de arquitectura separada.
 
@@ -274,7 +291,7 @@ No agregar estas capacidades salvo pedido explicito:
 - carrito
 - SSR
 - serverless functions
-- CMS editorial amplio, auth o flujos de escritura editorial
+- CMS editorial amplio, auth no operativa o flujos de escritura editorial
 
 ## Decisiones tecnicas actuales
 

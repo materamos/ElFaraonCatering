@@ -9,7 +9,7 @@ with expected_tables (table_name, expectation) as (
     ('menu_profile_payment_methods', 'profile payment methods read at build time'),
     ('menu_prices', 'global build-time prices'),
     ('menu_price_variants', 'global build-time variant prices'),
-    ('menu_daily_items', 'three build-time daily menu options'),
+    ('menu_daily_items', 'four build-time daily menu options'),
     ('menu_profile_service_settings', 'active build-time service per profile'),
     ('menu_catalog_sections', 'flat build-time catalog sections'),
     ('menu_catalog_groups', 'flat build-time catalog groups'),
@@ -68,19 +68,19 @@ order by expected.table_name, expected.constraint_name;
 with expected_indexes (index_name, table_name, expectation) as (
   values
     ('menu_daily_items_item_id_key', 'menu_daily_items', 'unique daily menu item id'),
-    ('menu_daily_items_order_key', 'menu_daily_items', 'unique daily menu order'),
-    ('menu_profile_service_settings_profile_key', 'menu_profile_service_settings', 'unique service settings row per profile'),
-    ('menu_price_variants_pricing_key_order_key', 'menu_price_variants', 'unique variant order per price'),
+    ('menu_daily_items_order_index_key', 'menu_daily_items', 'unique daily menu order'),
+    ('menu_profile_service_settings_pkey', 'menu_profile_service_settings', 'unique service settings row per profile'),
+    ('menu_price_variants_pricing_key_order_index_key', 'menu_price_variants', 'unique variant order per price'),
     ('menu_catalog_sections_section_id_key', 'menu_catalog_sections', 'unique catalog section id'),
-    ('menu_catalog_sections_order_key', 'menu_catalog_sections', 'unique catalog section order'),
-    ('menu_catalog_groups_section_group_id_key', 'menu_catalog_groups', 'unique group id per section'),
-    ('menu_catalog_groups_section_order_key', 'menu_catalog_groups', 'unique group order per section'),
-    ('menu_catalog_items_context_item_id_key', 'menu_catalog_items', 'unique item id per section/group context'),
-    ('menu_catalog_items_context_order_key', 'menu_catalog_items', 'unique item order per section/group context'),
-    ('menu_catalog_item_options_item_order_key', 'menu_catalog_item_options', 'unique option order per catalog item'),
-    ('menu_grill_families_order_key', 'menu_grill_families', 'unique grill family order'),
+    ('menu_catalog_sections_order_index_key', 'menu_catalog_sections', 'unique catalog section order'),
+    ('menu_catalog_groups_section_id_group_id_key', 'menu_catalog_groups', 'unique group id per section'),
+    ('menu_catalog_groups_section_id_order_index_key', 'menu_catalog_groups', 'unique group order per section'),
+    ('menu_catalog_items_section_id_group_id_item_id_key', 'menu_catalog_items', 'unique item id per section/group context'),
+    ('menu_catalog_items_section_id_group_id_order_index_key', 'menu_catalog_items', 'unique item order per section/group context'),
+    ('menu_catalog_item_options_catalog_item_id_order_index_key', 'menu_catalog_item_options', 'unique option order per catalog item'),
+    ('menu_grill_families_order_index_key', 'menu_grill_families', 'unique grill family order'),
     ('menu_grill_catalog_items_item_id_key', 'menu_grill_catalog_items', 'unique grill item id'),
-    ('menu_grill_catalog_items_order_key', 'menu_grill_catalog_items', 'unique grill item order')
+    ('menu_grill_catalog_items_order_index_key', 'menu_grill_catalog_items', 'unique grill item order')
 ),
 actual_indexes as (
   select
@@ -131,7 +131,26 @@ select
   'menu_daily_items_count_invalid' as diagnostic,
   count(*) as daily_item_count
 from menu_content.menu_daily_items
-having count(*) <> 3;
+having count(*) <> 4;
+
+with expected_daily_items (item_id, order_index) as (
+  values
+    ('menu-del-dia', 0),
+    ('menu-del-dia-con-bebida', 1),
+    ('menu-vegetariano-del-dia', 2),
+    ('menu-vegetariano-del-dia-con-bebida', 3)
+)
+select
+  'menu_daily_item_missing' as diagnostic,
+  expected.item_id,
+  expected.order_index
+from expected_daily_items expected
+where not exists (
+  select 1
+  from menu_content.menu_daily_items item
+  where item.item_id = expected.item_id
+    and item.order_index = expected.order_index
+);
 
 select
   'menu_profile_service_settings_missing' as diagnostic,

@@ -1,3 +1,5 @@
+begin;
+
 create extension if not exists pgcrypto;
 
 create table if not exists public.editor_profiles (
@@ -146,6 +148,7 @@ grant select, insert, update on public.staff_users to authenticated;
 
 revoke all on public.menu_availability_overlays from anon, authenticated;
 grant select on public.menu_availability_overlays to anon, authenticated;
+grant insert, update, delete on public.menu_availability_overlays to authenticated;
 
 revoke all on function public.is_active_staff() from public, anon, authenticated;
 revoke all on function public.can_edit_availability(text) from public, anon, authenticated;
@@ -223,3 +226,24 @@ create policy "Menu availability overlays are publicly readable"
   for select
   to anon, authenticated
   using (true);
+
+create policy "Staff can insert menu availability overlays"
+  on public.menu_availability_overlays
+  for insert
+  to authenticated
+  with check (public.can_edit_availability(menu_id));
+
+create policy "Staff can update menu availability overlays"
+  on public.menu_availability_overlays
+  for update
+  to authenticated
+  using (public.can_edit_availability(menu_id))
+  with check (public.can_edit_availability(menu_id));
+
+create policy "Staff can delete menu availability overlays"
+  on public.menu_availability_overlays
+  for delete
+  to authenticated
+  using (public.can_edit_availability(menu_id));
+
+commit;

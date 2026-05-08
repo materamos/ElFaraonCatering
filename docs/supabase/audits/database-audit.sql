@@ -13,7 +13,7 @@ select
   end as suggested_status,
   case
     when n.nspname = 'menu_content' then 'Project build-time structural and operational source.'
-    when n.nspname = 'public' then 'Runtime surface. Only availability overlay is expected for this project.'
+    when n.nspname = 'public' then 'Runtime availability overlay and operational CMS staff permissions.'
     else 'Supabase-managed or unrelated schema.'
   end as reason
 from pg_namespace n
@@ -34,7 +34,7 @@ select
   end as object_type,
   case
     when n.nspname = 'menu_content' then 'keep'
-    when n.nspname = 'public' and c.relname in ('editor_profiles', 'menu_availability_overlays') then 'keep'
+    when n.nspname = 'public' and c.relname in ('editor_profiles', 'staff_users', 'menu_availability_overlays') then 'keep'
     else 'review'
   end as suggested_status,
   c.reltuples::bigint as estimated_rows
@@ -61,7 +61,8 @@ with documented_relations(schema_name, object_name, object_type, status) as (
     ('menu_content', 'menu_catalog_item_options', 'table', 'active'),
     ('menu_content', 'menu_grill_families', 'table', 'active'),
     ('menu_content', 'menu_grill_catalog_items', 'table', 'active'),
-    ('public', 'editor_profiles', 'table', 'active'),
+    ('public', 'editor_profiles', 'table', 'legacy'),
+    ('public', 'staff_users', 'table', 'active'),
     ('public', 'menu_availability_overlays', 'table', 'active')
 ),
 observed_relations as (
@@ -85,12 +86,13 @@ select
   o.object_name,
   o.object_type,
   case
-    when d.status = 'active' then 'keep'
+    when d.status in ('active', 'legacy') then 'keep'
     when d.object_name is null then 'unknown'
     else 'review'
   end as suggested_status,
   case
     when d.status = 'active' then 'Documented active project relation.'
+    when d.status = 'legacy' then 'Documented legacy project relation kept for backfill.'
     else 'Relation is not documented by this project audit.'
   end as reason
 from observed_relations o
@@ -109,6 +111,9 @@ select
   case
     when g.table_schema = 'menu_content' and lower(g.grantee) in ('anon', 'authenticated', 'public') then 'risk'
     when g.table_schema = 'public' and g.table_name = 'menu_availability_overlays' and lower(g.grantee) in ('anon', 'authenticated') and g.privilege_type = 'SELECT' then 'keep'
+    when g.table_schema = 'public' and g.table_name = 'menu_availability_overlays' and lower(g.grantee) = 'authenticated' and g.privilege_type in ('INSERT', 'UPDATE', 'DELETE') then 'risk'
+    when g.table_schema = 'public' and g.table_name = 'staff_users' and lower(g.grantee) = 'authenticated' and g.privilege_type in ('SELECT', 'INSERT', 'UPDATE') then 'keep'
+    when g.table_schema = 'public' and g.table_name = 'staff_users' and lower(g.grantee) in ('anon', 'public') then 'risk'
     when lower(g.grantee) in ('anon', 'authenticated', 'public') then 'review'
     else 'review'
   end as suggested_status
@@ -117,14 +122,14 @@ where g.table_schema in ('menu_content', 'public')
   and lower(g.grantee) in ('anon', 'authenticated', 'public')
 order by g.table_schema, g.table_name, g.grantee, g.privilege_type;
 
--- 05. RLS status for public runtime tables.
+-- 05. RLS status for public project tables.
 select
   n.nspname as schema_name,
   c.relname as table_name,
   c.relrowsecurity as rls_enabled,
   c.relforcerowsecurity as rls_forced,
   case
-    when n.nspname = 'public' and c.relname in ('editor_profiles', 'menu_availability_overlays') and c.relrowsecurity then 'keep'
+    when n.nspname = 'public' and c.relname in ('editor_profiles', 'staff_users', 'menu_availability_overlays') and c.relrowsecurity then 'keep'
     when n.nspname = 'public' then 'review'
     else 'keep'
   end as suggested_status
@@ -147,22 +152,54 @@ from pg_policies
 where schemaname in ('menu_content', 'public')
 order by schemaname, tablename, policyname;
 
--- 07. Availability overlay targets that do not match active rendered targets.
-with active_targets as (
+-- 07. Staff permission and operational edit functions.
+with expected_functions (function_name, identity_arguments, expectation) as (
+  values
+    ('is_active_staff', '', 'active staff membership check'),
+    ('can_edit_availability', 'target_profile_id text', 'availability edit scope check'),
+    ('can_edit_menu_content', '', 'build-time menu edit role check'),
+    ('can_manage_staff', '', 'staff administration role check'),
+    ('can_publish_menu', '', 'build-time publish role check'),
+    ('menu_availability_target_exists', 'target_menu_id text, target_section_id text, target_group_id text, target_item_id text', 'availability target universe validation'),
+    ('set_menu_availability_overlay', 'menu_id text, section_id text, group_id text, item_id text, available_override boolean', 'availability overlay upsert RPC'),
+    ('clear_menu_availability_overlay', 'menu_id text, section_id text, group_id text, item_id text', 'availability overlay clear RPC'),
+    ('set_profile_service_kind', 'profile_id text, service_kind text', 'active service edit RPC'),
+    ('set_daily_menu', 'regular_name text, regular_description text, regular_note text, regular_available boolean, vegetarian_name text, vegetarian_description text, vegetarian_note text, vegetarian_available boolean', 'daily menu edit RPC'),
+    ('set_global_fixed_price', 'pricing_key text, amount integer', 'fixed price edit RPC'),
+    ('set_global_price_variant', 'pricing_key text, variant_id text, amount integer, available boolean', 'variant price edit RPC')
+),
+actual_functions as (
+  select
+    p.proname as function_name,
+    pg_get_function_identity_arguments(p.oid) as identity_arguments
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public'
+)
+select
+  expected.function_name,
+  expected.identity_arguments,
+  case
+    when actual.function_name is null then 'missing'
+    else 'present'
+  end as status,
+  expected.expectation
+from expected_functions expected
+left join actual_functions actual
+  on actual.function_name = expected.function_name
+ and actual.identity_arguments = expected.identity_arguments
+order by expected.function_name;
+
+-- 08. Availability overlay targets that do not match possible menu targets.
+with possible_targets as (
   select profile.id as menu_id, 'menu-del-dia'::text as section_id, ''::text as group_id, item.item_id
   from menu_content.menu_profiles profile
-  join menu_content.menu_profile_service_settings settings
-    on settings.profile_id = profile.id
-   and settings.service_kind = 'daily-menu'
   cross join menu_content.menu_daily_items item
 
   union all
 
   select profile.id, 'parrilla', '', item.item_id
   from menu_content.menu_profiles profile
-  join menu_content.menu_profile_service_settings settings
-    on settings.profile_id = profile.id
-   and settings.service_kind = 'grill'
   cross join menu_content.menu_grill_catalog_items item
 
   union all
@@ -177,11 +214,11 @@ select
   overlay.group_id,
   overlay.item_id,
   'risk' as suggested_status,
-  'Availability overlay row does not match an active rendered menu target.' as reason
+  'Availability overlay row does not match a possible menu target.' as reason
 from public.menu_availability_overlays overlay
 where not exists (
   select 1
-  from active_targets target
+  from possible_targets target
   where target.menu_id = overlay.menu_id
     and target.section_id = overlay.section_id
     and target.group_id = coalesce(overlay.group_id, '')
@@ -189,7 +226,7 @@ where not exists (
 )
 order by overlay.menu_id, overlay.section_id, overlay.group_id, overlay.item_id;
 
--- 08. Image paths with invalid format in the active catalog.
+-- 09. Image paths with invalid format in the active catalog.
 select
   'menu_catalog_items' as object_name,
   section_id,
