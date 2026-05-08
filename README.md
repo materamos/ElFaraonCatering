@@ -221,7 +221,7 @@ El primer `admin` se crea por SQL privilegiado o service role; el panel futuro p
 
 Las RPCs operativas devuelven siempre `ok`, `changed`, `requires_redeploy`, `operation` y `message`. Disponibilidad no requiere redeploy; Parrilla, menu del dia y precios globales si lo requieren.
 
-`public.staff_users` y sus helpers son precondicion obligatoria para instalar las RPCs operativas.
+`public.staff_users` y sus helpers (`can_edit_availability(text)`, `can_manage_staff()`, `can_publish_menu()`) son precondicion obligatoria para instalar las RPCs operativas. `can_edit_menu_content()` se introduce en la fase de RPCs operativas; no es precondicion de la migracion de `staff_users`.
 
 Variables publicas del overlay:
 

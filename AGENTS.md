@@ -168,7 +168,8 @@ Runtime overlay:
 - `docs/supabase/availability-overlay.sql` supports the availability overlay.
 - `docs/supabase/operational-edit-rpcs.sql` defines the approved RPC write surface for operational CMS edits.
 - `public.staff_users` defines operational staff roles: `availability_editor`, `menu_editor`, and `admin`.
-- `public.staff_users` and its helpers are required before operational edit RPCs may be installed.
+- `public.staff_users` and the `can_edit_availability(text)`, `can_manage_staff()`, and `can_publish_menu()` helpers are required before operational edit RPCs may be installed.
+- `can_edit_menu_content()` is introduced by the operational edit RPC phase; it is not a precondition of the `staff_users` migration.
 - `public.editor_profiles` is legacy-only and must not back new policies.
 - The first `admin` staff row must be bootstrapped through privileged SQL or service role access, not browser RLS.
 - Public client variables are `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.

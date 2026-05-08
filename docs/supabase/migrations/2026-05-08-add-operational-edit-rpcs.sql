@@ -73,12 +73,16 @@ values (
 )
 on conflict (item_id) do nothing;
 
+-- `can_edit_menu_content()` is introduced by this operational edit RPC phase.
+-- It is not a precondition of the earlier staff-users migration. The required
+-- preconditions are public.staff_users, can_edit_availability(text),
+-- can_manage_staff(), and can_publish_menu().
 create or replace function public.can_edit_menu_content()
 returns boolean
 language sql
 stable
 security definer
-set search_path = public
+set search_path = public, pg_temp
 as $$
   select exists (
     select 1
@@ -99,7 +103,7 @@ returns boolean
 language sql
 stable
 security definer
-set search_path = public, menu_content
+set search_path = public, menu_content, pg_temp
 as $$
   select exists (
     select 1
@@ -146,7 +150,7 @@ returns table (
 )
 language plpgsql
 security definer
-set search_path = public, menu_content
+set search_path = public, menu_content, pg_temp
 as $$
 declare
   normalized_group_id text := nullif(btrim(set_menu_availability_overlay.group_id), '');
@@ -230,7 +234,7 @@ returns table (
 )
 language plpgsql
 security definer
-set search_path = public, menu_content
+set search_path = public, menu_content, pg_temp
 as $$
 declare
   normalized_group_id text := nullif(btrim(clear_menu_availability_overlay.group_id), '');
@@ -276,7 +280,7 @@ returns table (
 )
 language plpgsql
 security definer
-set search_path = public, menu_content
+set search_path = public, menu_content, pg_temp
 as $$
 declare
   current_service_kind text;
@@ -344,7 +348,7 @@ returns table (
 )
 language plpgsql
 security definer
-set search_path = public, menu_content
+set search_path = public, menu_content, pg_temp
 as $$
 declare
   regular_name_value text := nullif(btrim(set_daily_menu.regular_name), '');
@@ -455,7 +459,7 @@ returns table (
 )
 language plpgsql
 security definer
-set search_path = public, menu_content
+set search_path = public, menu_content, pg_temp
 as $$
 declare
   pricing_key_value text := nullif(btrim(set_global_fixed_price.pricing_key), '');
@@ -521,7 +525,7 @@ returns table (
 )
 language plpgsql
 security definer
-set search_path = public, menu_content
+set search_path = public, menu_content, pg_temp
 as $$
 declare
   pricing_key_value text := nullif(btrim(set_global_price_variant.pricing_key), '');

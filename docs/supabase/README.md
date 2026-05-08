@@ -53,7 +53,8 @@ Permisos del CMS operativo:
 - `editor_profiles` no debe usarse para policies nuevas; queda solo como origen de migracion.
 - El primer `admin` debe crearse por SQL privilegiado o service role; luego los admins pueden gestionar empleados desde el CMS futuro.
 - Las RPCs operativas devuelven `ok`, `changed`, `requires_redeploy`, `operation` y `message`.
-- `staff_users` y sus helpers son precondicion obligatoria para instalar `operational-edit-rpcs.sql`.
+- `staff_users` y sus helpers (`can_edit_availability(text)`, `can_manage_staff()`, `can_publish_menu()`) son precondicion obligatoria para instalar `operational-edit-rpcs.sql`.
+- `can_edit_menu_content()` se introduce en la fase de RPCs operativas; no es precondicion de la migracion de `staff_users`.
 
 No implementar consultas runtime para menu del dia, precios, servicio activo,
 catalogo, grupos, secciones, imagenes ni textos estructurales.
@@ -67,7 +68,7 @@ Archivos que modifican schema o datos:
 - `availability-overlay.sql`: tablas, funciones, indices y policies del overlay runtime y roles de staff.
 - `operational-edit-rpcs.sql`: RPCs de edicion operativa para disponibilidad, servicio activo, menu del dia y precios.
 - `hardening.sql`: constraints e indices idempotentes del modelo activo.
-- `migrations/`: cambios incrementales para bases existentes, incluyendo `2026-05-08-add-staff-users.sql` y `2026-05-08-add-operational-edit-rpcs.sql`.
+- `migrations/`: cambios incrementales para bases existentes, incluyendo `2026-05-08-add-staff-users.sql`, `2026-05-08-add-operational-edit-rpcs.sql` y `2026-05-08-harden-security-definer-search-path.sql`.
 
 Archivos read-only:
 
@@ -102,6 +103,7 @@ Para una base existente:
 9. Aplicar `migrations/2026-05-07-dedupe-menu-content-indexes.sql` para descartar indices unique redundantes que duplicaban los auto-generados por las clausulas `unique (...)` y la constraint vestigial `(id, item_id)` en `menu_catalog_items`. Idempotente.
 10. Aplicar `migrations/2026-05-08-add-staff-users.sql` para migrar permisos de overlay desde `editor_profiles` hacia `staff_users`.
 11. Aplicar `migrations/2026-05-08-add-operational-edit-rpcs.sql` para instalar las RPCs operativas y el modelo de cuatro opciones del menu del dia.
+12. Aplicar `migrations/2026-05-08-harden-security-definer-search-path.sql` para endurecer el `search_path` de funciones `security definer` ya instaladas.
 
 ## Variables
 
