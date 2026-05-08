@@ -30,7 +30,7 @@ El modelo activo de `menu_content` es plano y orientado al dominio real:
 - `menu_prices` y `menu_price_variants` contienen precios globales build-time.
 
 La primera migracion remota al modelo plano conservo tablas legacy para validar
-deploy. La migracion posterior `2026-05-06-drop-legacy-menu-content-model.sql`
+deploy. La migracion posterior `20260506002000_drop_legacy_menu_content_model.sql`
 elimina esas tablas despues de confirmar que el loader activo no las usa.
 
 ## Frontera build-time/runtime
@@ -73,7 +73,7 @@ Archivos que modifican schema o datos:
 
 Migraciones operativas:
 
-- `../../supabase/migrations/`: cambios incrementales aplicables a bases existentes y ubicacion canonica para Supabase CLI, incluyendo `2026-05-08-add-staff-users.sql`, `2026-05-08-add-operational-edit-rpcs.sql`, `2026-05-08-harden-security-definer-search-path.sql` y `2026-05-08-add-publish-menu-changes-support.sql`.
+- `../../supabase/migrations/`: cambios incrementales aplicables a bases existentes y ubicacion canonica para Supabase CLI, incluyendo `20260508000000_add_staff_users.sql`, `20260508001000_add_operational_edit_rpcs.sql`, `20260508002000_harden_security_definer_search_path.sql` y `20260508003000_add_publish_menu_changes_support.sql`.
 
 Archivos read-only:
 
@@ -102,16 +102,16 @@ Para una base existente:
 1. Ejecutar primero los SQL de `audits/`.
 2. Resolver cualquier fila que bloquee constraints o indices.
 3. Revisar y versionar el SQL idempotente que se quiere aplicar.
-4. Aplicar `../../supabase/migrations/2026-05-06-flatten-menu-content-model.sql` para crear y poblar el modelo activo.
+4. Aplicar `../../supabase/migrations/20260506000000_flatten_menu_content_model.sql` para crear y poblar el modelo activo.
 5. Ejecutar `hardening.sql`.
 6. Volver a ejecutar audits y validaciones.
 7. Validar deploy.
-8. Aplicar `../../supabase/migrations/2026-05-06-drop-legacy-menu-content-model.sql` solo despues de confirmar que no quedan dependencias activas.
-9. Aplicar `../../supabase/migrations/2026-05-07-dedupe-menu-content-indexes.sql` para descartar indices unique redundantes que duplicaban los auto-generados por las clausulas `unique (...)` y la constraint vestigial `(id, item_id)` en `menu_catalog_items`. Idempotente.
-10. Aplicar `../../supabase/migrations/2026-05-08-add-staff-users.sql` para migrar permisos de overlay desde `editor_profiles` hacia `staff_users`.
-11. Aplicar `../../supabase/migrations/2026-05-08-add-operational-edit-rpcs.sql` para instalar las RPCs operativas y el modelo de cuatro opciones del menu del dia.
-12. Aplicar `../../supabase/migrations/2026-05-08-harden-security-definer-search-path.sql` para endurecer el `search_path` de funciones `security definer` ya instaladas.
-13. Aplicar `../../supabase/migrations/2026-05-08-add-publish-menu-changes-support.sql` para crear el log privado y helpers internos de `publish-menu-changes`.
+8. Aplicar `../../supabase/migrations/20260506002000_drop_legacy_menu_content_model.sql` solo despues de confirmar que no quedan dependencias activas.
+9. Aplicar `../../supabase/migrations/20260507000000_dedupe_menu_content_indexes.sql` para descartar indices unique redundantes que duplicaban los auto-generados por las clausulas `unique (...)` y la constraint vestigial `(id, item_id)` en `menu_catalog_items`. Idempotente.
+10. Aplicar `../../supabase/migrations/20260508000000_add_staff_users.sql` para migrar permisos de overlay desde `editor_profiles` hacia `staff_users`.
+11. Aplicar `../../supabase/migrations/20260508001000_add_operational_edit_rpcs.sql` para instalar las RPCs operativas y el modelo de cuatro opciones del menu del dia.
+12. Aplicar `../../supabase/migrations/20260508002000_harden_security_definer_search_path.sql` para endurecer el `search_path` de funciones `security definer` ya instaladas.
+13. Aplicar `../../supabase/migrations/20260508003000_add_publish_menu_changes_support.sql` para crear el log privado y helpers internos de `publish-menu-changes`.
 
 ## Variables
 

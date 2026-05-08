@@ -7,8 +7,8 @@ overlay de disponibilidad.
 Fuentes versionadas:
 
 - `schema.sql`: estado limpio esperado del schema privado `menu_content`.
-- `../../supabase/migrations/2026-05-06-flatten-menu-content-model.sql`: primera migracion remota al modelo plano.
-- `../../supabase/migrations/2026-05-06-drop-legacy-menu-content-model.sql`: limpieza de tablas legacy despues de validar deploy.
+- `../../supabase/migrations/20260506000000_flatten_menu_content_model.sql`: primera migracion remota al modelo plano.
+- `../../supabase/migrations/20260506002000_drop_legacy_menu_content_model.sql`: limpieza de tablas legacy despues de validar deploy.
 - `availability-overlay.sql`: superficie runtime en `public` para disponibilidad y permisos de staff.
 - `operational-edit-rpcs.sql`: RPCs de escritura operativa para el CMS futuro.
 - `audits/menu-schema-audit.sql`: auditoria read-only del modelo activo.
