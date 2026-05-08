@@ -55,7 +55,7 @@ Do not add these capabilities unless explicitly requested:
 - cart flows
 - SSR
 - server output
-- serverless functions
+- serverless functions, except the explicitly approved Supabase Edge Function `publish-menu-changes`
 - broad editorial CMS code, auth, or repo-writing admin flows
 
 Operational CMS work is limited to menu del dia, active service, availability, and global
@@ -170,6 +170,7 @@ Runtime overlay:
 - `public.staff_users` defines operational staff roles: `availability_editor`, `menu_editor`, and `admin`.
 - `public.staff_users` and the `can_edit_availability(text)`, `can_manage_staff()`, and `can_publish_menu()` helpers are required before operational edit RPCs may be installed.
 - `can_edit_menu_content()` is introduced by the operational edit RPC phase; it is not a precondition of the `staff_users` migration.
+- `publish-menu-changes` is the only approved Supabase Edge Function. It may publish build-time operational changes by validating Supabase Auth, checking `can_publish_menu()`, logging privately in `app_private`, and calling the Vercel Deploy Hook from Supabase Function secrets.
 - `public.editor_profiles` is legacy-only and must not back new policies.
 - The first `admin` staff row must be bootstrapped through privileged SQL or service role access, not browser RLS.
 - Public client variables are `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.
@@ -181,6 +182,7 @@ Preserve the static-first model:
 - stable menu content and build-time operational content may be read only at build time
 - availability is the only allowed runtime overlay
 - browser writes to operational data must use the approved RPCs and RLS helpers
+- browser publish requests must use the `publish-menu-changes` Supabase Edge Function
 - do not add structural browser queries
 - do not add runtime queries for daily menu, service kind, prices, catalog, groups, sections, images, or structural text
 - do not add SSR, server output, adapters, or Vercel Functions

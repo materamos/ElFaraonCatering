@@ -161,6 +161,9 @@ flowchart LR
   EDITORS["public.editor_profiles<br/>legacy backfill"]
   OVERLAYS["public.menu_availability_overlays<br/>disponibilidad runtime"]
   RPCS["public RPCs<br/>edicion operativa"]
+  EDGE["Supabase Edge Function<br/>publish-menu-changes"]
+  PRIVATE["app_private.menu_publish_requests<br/>auditoria privada"]
+  VERCEL["Vercel Deploy Hook<br/>secreto en Functions"]
 
   STATIC["HTML estatico<br/>data-menu-id / data-section-id / data-item-id"]
 
@@ -170,16 +173,19 @@ flowchart LR
   EDITORS -. "backfill temporal" .-> STAFF
   STAFF -. "RLS helper: can_edit_availability" .-> OVERLAYS
   STAFF -. "RLS helpers" .-> RPCS
+  STAFF -. "can_publish_menu" .-> EDGE
   RPCS -->|"writes controlados"| OVERLAYS
+  EDGE -->|"log privado"| PRIVATE
+  EDGE -->|"POST server-side"| VERCEL
   OVERLAYS -. "IDs logicos" .-> STATIC
 
   classDef runtime fill:#f3f8ee,stroke:#446b2f,color:#223815;
   classDef structural fill:#eef6ff,stroke:#1f4f82,color:#102a43;
   classDef platform fill:#f6f6f6,stroke:#777,color:#333;
 
-  class STAFF,EDITORS,OVERLAYS,RPCS runtime;
+  class STAFF,EDITORS,OVERLAYS,RPCS,EDGE,PRIVATE runtime;
   class STATIC structural;
-  class AUTH_USERS platform;
+  class AUTH_USERS,VERCEL platform;
 ```
 
 ## Frontera build-time/runtime
@@ -191,5 +197,6 @@ flowchart LR
 - `public.menu_availability_overlays` es el unico dato editable en runtime sin rebuild.
 - `public.staff_users` define roles operativos (`availability_editor`, `menu_editor`, `admin`) y alcance por perfil para futuras pantallas del CMS.
 - Las escrituras del CMS deben pasar por RPCs operativas con respuesta `ok`, `changed`, `requires_redeploy`, `operation` y `message`.
+- `publish-menu-changes` es la frontera server-side para publicar cambios build-time: valida Auth, usa `can_publish_menu()`, registra auditoria privada y llama el Deploy Hook desde secretos.
 - `public.editor_profiles` es legacy temporal y no debe respaldar nuevas policies.
 - El cliente no debe consultar estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.

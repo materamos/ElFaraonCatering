@@ -1,0 +1,4 @@
+project_id = "el-faraon"
+
+[functions.publish-menu-changes]
+verify_jwt = false

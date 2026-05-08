@@ -12,6 +12,7 @@ o reconstruir la base.
 - `public.staff_users`: usuarios autenticados, roles y alcance por perfil para el CMS operativo.
 - `public.editor_profiles`: tabla legacy temporal usada solo para backfill hacia `staff_users`.
 - RPCs operativas: unica superficie de escritura para disponibilidad, servicio activo, menu del dia y precios.
+- `publish-menu-changes`: Supabase Edge Function server-side para publicar cambios build-time sin exponer el Deploy Hook.
 
 Supabase puede respaldar un CMS operativo, pero "CMS editable" no significa
 "runtime editable". Salvo disponibilidad, todo cambio operativo en Supabase
@@ -55,6 +56,7 @@ Permisos del CMS operativo:
 - Las RPCs operativas devuelven `ok`, `changed`, `requires_redeploy`, `operation` y `message`.
 - `staff_users` y sus helpers (`can_edit_availability(text)`, `can_manage_staff()`, `can_publish_menu()`) son precondicion obligatoria para instalar `operational-edit-rpcs.sql`.
 - `can_edit_menu_content()` se introduce en la fase de RPCs operativas; no es precondicion de la migracion de `staff_users`.
+- `publish-menu-changes` usa `can_publish_menu()` para autorizar publicacion, registra auditoria minima privada en `app_private` y llama el Vercel Deploy Hook desde secretos de Supabase Functions. No usa `pg_net`.
 
 No implementar consultas runtime para menu del dia, precios, servicio activo,
 catalogo, grupos, secciones, imagenes ni textos estructurales.
@@ -68,7 +70,7 @@ Archivos que modifican schema o datos:
 - `availability-overlay.sql`: tablas, funciones, indices y policies del overlay runtime y roles de staff.
 - `operational-edit-rpcs.sql`: RPCs de edicion operativa para disponibilidad, servicio activo, menu del dia y precios.
 - `hardening.sql`: constraints e indices idempotentes del modelo activo.
-- `migrations/`: cambios incrementales para bases existentes, incluyendo `2026-05-08-add-staff-users.sql`, `2026-05-08-add-operational-edit-rpcs.sql` y `2026-05-08-harden-security-definer-search-path.sql`.
+- `migrations/`: cambios incrementales para bases existentes, incluyendo `2026-05-08-add-staff-users.sql`, `2026-05-08-add-operational-edit-rpcs.sql`, `2026-05-08-harden-security-definer-search-path.sql` y `2026-05-08-add-publish-menu-changes-support.sql`.
 
 Archivos read-only:
 
@@ -104,12 +106,16 @@ Para una base existente:
 10. Aplicar `migrations/2026-05-08-add-staff-users.sql` para migrar permisos de overlay desde `editor_profiles` hacia `staff_users`.
 11. Aplicar `migrations/2026-05-08-add-operational-edit-rpcs.sql` para instalar las RPCs operativas y el modelo de cuatro opciones del menu del dia.
 12. Aplicar `migrations/2026-05-08-harden-security-definer-search-path.sql` para endurecer el `search_path` de funciones `security definer` ya instaladas.
+13. Aplicar `migrations/2026-05-08-add-publish-menu-changes-support.sql` para crear el log privado y helpers internos de `publish-menu-changes`.
 
 ## Variables
 
 - `SUPABASE_DB_URL`: conexion privada Postgres para build y validacion. Puede vivir en `.env.local` y nunca debe ser `PUBLIC_*`.
 - `PUBLIC_SUPABASE_URL`: URL publica del proyecto Supabase para el overlay runtime.
 - `PUBLIC_SUPABASE_ANON_KEY`: anon key publica para leer el overlay runtime con RLS.
+- `VERCEL_DEPLOY_HOOK_URL`: secreto de Supabase Functions para `publish-menu-changes`; es credencial.
+- `PUBLISH_ALLOWED_ORIGINS`: origins permitidos por CORS para la Edge Function, separados por coma.
+- `PUBLISH_COOLDOWN_SECONDS`: cooldown global de publicacion; default recomendado `60`.
 
 ## Flujo local primero
 
@@ -136,4 +142,5 @@ o si `npm run menu:validate` falla.
 - Mantener nombres tecnicos ASCII/kebab-case donde corresponda.
 - Usar `staff_users` y funciones helper para permisos nuevos del CMS operativo; no reusar `editor_profiles` para nuevas policies.
 - Usar RPCs operativas para escrituras desde el browser; no otorgar grants directos sobre `menu_content`.
-- No agregar SSR, serverless functions, CMS editorial amplio, auth editorial ni queries estructurales desde el navegador por cambios en esta carpeta.
+- Usar `publish-menu-changes` para publicacion; no exponer el Vercel Deploy Hook, no usar `pg_net` y no otorgar grants client-facing sobre `app_private`.
+- No agregar SSR, Vercel Functions, CMS editorial amplio, auth editorial ni queries estructurales desde el navegador por cambios en esta carpeta.

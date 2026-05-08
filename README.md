@@ -206,6 +206,7 @@ Hay tres superficies Supabase separadas:
 - overlay runtime de disponibilidad: extension cliente no bloqueante para disponibilidad operativa.
 - `public.staff_users`: usuarios autenticados, roles y alcance por perfil para el futuro CMS operativo.
 - RPCs operativas: unica superficie prevista de escritura para disponibilidad, servicio activo, menu del dia y precios.
+- `publish-menu-changes`: Supabase Edge Function server-side para disparar redeploy con un Vercel Deploy Hook secreto.
 
 El overlay runtime no administra estructura, textos, precios, imagenes ni menu diario. Si el overlay falla, el menu estatico generado en build-time sigue disponible.
 
@@ -223,6 +224,8 @@ Las RPCs operativas devuelven siempre `ok`, `changed`, `requires_redeploy`, `ope
 
 `public.staff_users` y sus helpers (`can_edit_availability(text)`, `can_manage_staff()`, `can_publish_menu()`) son precondicion obligatoria para instalar las RPCs operativas. `can_edit_menu_content()` se introduce en la fase de RPCs operativas; no es precondicion de la migracion de `staff_users`.
 
+`publish-menu-changes` valida la sesion Supabase Auth del empleado, verifica `can_publish_menu()`, aplica cooldown global y llama el Vercel Deploy Hook desde secretos de Supabase Functions. La URL del hook es credencial y nunca debe llegar al browser ni versionarse. No se usa `pg_net` para publicar.
+
 Variables publicas del overlay:
 
 ```bash
@@ -237,6 +240,16 @@ SUPABASE_DB_URL=
 ```
 
 En local puede definirse en `.env.local`; en Vercel debe configurarse como variable privada de build.
+
+Secretos de Supabase Edge Function:
+
+```bash
+VERCEL_DEPLOY_HOOK_URL=
+PUBLISH_ALLOWED_ORIGINS=
+PUBLISH_COOLDOWN_SECONDS=60
+```
+
+Estos secretos se cargan en Supabase, por ejemplo con `supabase secrets set`, no como variables `PUBLIC_*`.
 
 SQL disponible:
 
@@ -262,7 +275,7 @@ Flujo local-first para cambios de base:
 
 No hay CMS activo dentro del repo en esta etapa. Supabase `menu_content` es la base prevista para un CMS operativo limitado a menu del dia, servicio activo por local y precios globales como datos build-time, mas disponibilidad como unico overlay runtime.
 
-`public.staff_users` define la base de empleados y roles para ese CMS, y las RPCs operativas definen la superficie de escritura de base. Todavia no existe flujo de escritura desde `/admin/`, administracion de contenido dentro del sitio publico ni redeploy desde el panel.
+`public.staff_users` define la base de empleados y roles para ese CMS, las RPCs operativas definen la superficie de escritura de base y `publish-menu-changes` define la frontera server-side para publicar cambios build-time. Todavia no existe UI de escritura desde `/admin/` ni administracion de contenido dentro del sitio publico.
 
 Un CMS editorial amplio sigue fuera de alcance y requeriria una decision de arquitectura separada.
 
@@ -274,7 +287,8 @@ Restricciones de esta etapa:
 
 - no hay SSR
 - no hay adapter de servidor
-- no hay funciones server-side
+- no hay Vercel Functions ni funciones server-side del sitio Astro
+- hay una Supabase Edge Function aislada para publicacion operativa
 - no hay CMS activo dentro del repo
 - no hay escritura editorial desde `/admin/` ni desde el sitio publico
 - no hay consultas estructurales desde el navegador
@@ -290,7 +304,8 @@ No agregar estas capacidades salvo pedido explicito:
 - cuentas de usuario
 - carrito
 - SSR
-- serverless functions
+- Vercel serverless functions
+- nuevas Supabase Edge Functions fuera de `publish-menu-changes`
 - CMS editorial amplio, auth no operativa o flujos de escritura editorial
 
 ## Decisiones tecnicas actuales
