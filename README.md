@@ -88,6 +88,10 @@ npm run preview
 | `npm run preview` | Sirve el build localmente para revision. |
 | `npm run menu:validate` | Valida contenido estructural y hardening esperado en Supabase. Requiere `SUPABASE_DB_URL`. |
 | `npm run verify:dist-secrets` | Revisa `dist/` para detectar marcadores de secretos despues del build. |
+| `npm run supabase -- <args>` | Ejecuta Supabase CLI local del proyecto. |
+| `npm run supabase:link` | Vincula el checkout local con un proyecto Supabase remoto. Requiere project ref y credenciales. |
+| `npm run supabase:migrations` | Lista migraciones locales/remotas con Supabase CLI. Requiere proyecto vinculado o `-- --db-url`. |
+| `npm run supabase:functions:deploy` | Despliega solo la Edge Function aprobada `publish-menu-changes` usando el CLI y `--no-verify-jwt`. |
 
 Validacion recomendada:
 
@@ -251,8 +255,20 @@ PUBLISH_COOLDOWN_SECONDS=60
 
 Estos secretos se cargan en Supabase, por ejemplo con `supabase secrets set`, no como variables `PUBLIC_*`.
 
+Supabase CLI esta instalado como dependencia de desarrollo y se ejecuta desde npm:
+
+```bash
+npm run supabase -- --version
+npm run supabase:link -- --project-ref <project-ref>
+npm run supabase:migrations
+npm run supabase:functions:deploy
+```
+
+El login y el link remotos requieren credenciales de Supabase. No versionar tokens, passwords, `.env.local` ni archivos temporales del CLI.
+
 SQL disponible:
 
+- `supabase/migrations/`: migraciones operativas aplicables a bases existentes y ubicacion canonica para Supabase CLI.
 - `docs/supabase/README.md`: flujo local-first, orden de ejecucion y reglas de aplicacion remota.
 - `docs/supabase/schema-diagram.md`: diagrama ERD Mermaid del schema estructural y overlay runtime.
 - `docs/supabase/schema.sql`: schema estructural `menu_content`.
@@ -265,7 +281,7 @@ SQL disponible:
 
 Flujo local-first para cambios de base:
 
-1. Versionar el SQL propuesto dentro de `docs/supabase/`.
+1. Versionar migraciones aplicables dentro de `supabase/migrations/`; conservar SQL de referencia, documentacion y auditorias dentro de `docs/supabase/`.
 2. Actualizar `docs/supabase/schema-diagram.md` si cambia el esquema o una relacion.
 3. Ejecutar primero los audits read-only contra la base apuntada por `SUPABASE_DB_URL`.
 4. Ejecutar `npm run menu:validate`, `npm run build`, `npm run verify:dist-secrets` y `npm run check`.

@@ -13,7 +13,11 @@
     "preview": "astro preview",
     "check": "node --max-old-space-size=8192 ./node_modules/astro/astro.js check",
     "menu:validate": "node scripts/validate-menu-supabase.mjs",
-    "verify:dist-secrets": "node scripts/verify-dist-secrets.mjs"
+    "verify:dist-secrets": "node scripts/verify-dist-secrets.mjs",
+    "supabase": "supabase",
+    "supabase:link": "supabase link",
+    "supabase:migrations": "supabase migration list",
+    "supabase:functions:deploy": "supabase functions deploy publish-menu-changes --use-api --no-verify-jwt"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",

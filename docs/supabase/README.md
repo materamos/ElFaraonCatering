@@ -70,13 +70,18 @@ Archivos que modifican schema o datos:
 - `availability-overlay.sql`: tablas, funciones, indices y policies del overlay runtime y roles de staff.
 - `operational-edit-rpcs.sql`: RPCs de edicion operativa para disponibilidad, servicio activo, menu del dia y precios.
 - `hardening.sql`: constraints e indices idempotentes del modelo activo.
-- `migrations/`: cambios incrementales para bases existentes, incluyendo `2026-05-08-add-staff-users.sql`, `2026-05-08-add-operational-edit-rpcs.sql`, `2026-05-08-harden-security-definer-search-path.sql` y `2026-05-08-add-publish-menu-changes-support.sql`.
+
+Migraciones operativas:
+
+- `../../supabase/migrations/`: cambios incrementales aplicables a bases existentes y ubicacion canonica para Supabase CLI, incluyendo `2026-05-08-add-staff-users.sql`, `2026-05-08-add-operational-edit-rpcs.sql`, `2026-05-08-harden-security-definer-search-path.sql` y `2026-05-08-add-publish-menu-changes-support.sql`.
 
 Archivos read-only:
 
 - `audits/menu-schema-audit.sql`: revisa tablas, constraints, indices y diagnosticos del modelo activo.
 - `audits/database-audit.sql`: inventario amplio de objetos, exposicion, policies y hallazgos.
 - `schema-diagram.md`: mapa versionado de `menu_content` y overlay runtime.
+
+Esta carpeta conserva documentacion tecnica, snapshots, SQL de referencia y auditorias. No contiene las migraciones operativas del proyecto.
 
 ## Orden recomendado
 
@@ -97,16 +102,16 @@ Para una base existente:
 1. Ejecutar primero los SQL de `audits/`.
 2. Resolver cualquier fila que bloquee constraints o indices.
 3. Revisar y versionar el SQL idempotente que se quiere aplicar.
-4. Aplicar `migrations/2026-05-06-flatten-menu-content-model.sql` para crear y poblar el modelo activo.
+4. Aplicar `../../supabase/migrations/2026-05-06-flatten-menu-content-model.sql` para crear y poblar el modelo activo.
 5. Ejecutar `hardening.sql`.
 6. Volver a ejecutar audits y validaciones.
 7. Validar deploy.
-8. Aplicar `migrations/2026-05-06-drop-legacy-menu-content-model.sql` solo despues de confirmar que no quedan dependencias activas.
-9. Aplicar `migrations/2026-05-07-dedupe-menu-content-indexes.sql` para descartar indices unique redundantes que duplicaban los auto-generados por las clausulas `unique (...)` y la constraint vestigial `(id, item_id)` en `menu_catalog_items`. Idempotente.
-10. Aplicar `migrations/2026-05-08-add-staff-users.sql` para migrar permisos de overlay desde `editor_profiles` hacia `staff_users`.
-11. Aplicar `migrations/2026-05-08-add-operational-edit-rpcs.sql` para instalar las RPCs operativas y el modelo de cuatro opciones del menu del dia.
-12. Aplicar `migrations/2026-05-08-harden-security-definer-search-path.sql` para endurecer el `search_path` de funciones `security definer` ya instaladas.
-13. Aplicar `migrations/2026-05-08-add-publish-menu-changes-support.sql` para crear el log privado y helpers internos de `publish-menu-changes`.
+8. Aplicar `../../supabase/migrations/2026-05-06-drop-legacy-menu-content-model.sql` solo despues de confirmar que no quedan dependencias activas.
+9. Aplicar `../../supabase/migrations/2026-05-07-dedupe-menu-content-indexes.sql` para descartar indices unique redundantes que duplicaban los auto-generados por las clausulas `unique (...)` y la constraint vestigial `(id, item_id)` en `menu_catalog_items`. Idempotente.
+10. Aplicar `../../supabase/migrations/2026-05-08-add-staff-users.sql` para migrar permisos de overlay desde `editor_profiles` hacia `staff_users`.
+11. Aplicar `../../supabase/migrations/2026-05-08-add-operational-edit-rpcs.sql` para instalar las RPCs operativas y el modelo de cuatro opciones del menu del dia.
+12. Aplicar `../../supabase/migrations/2026-05-08-harden-security-definer-search-path.sql` para endurecer el `search_path` de funciones `security definer` ya instaladas.
+13. Aplicar `../../supabase/migrations/2026-05-08-add-publish-menu-changes-support.sql` para crear el log privado y helpers internos de `publish-menu-changes`.
 
 ## Variables
 
@@ -117,9 +122,33 @@ Para una base existente:
 - `PUBLISH_ALLOWED_ORIGINS`: origins permitidos por CORS para la Edge Function, separados por coma.
 - `PUBLISH_COOLDOWN_SECONDS`: cooldown global de publicacion; default recomendado `60`.
 
+## Supabase CLI
+
+El CLI esta instalado como dependencia de desarrollo del repo. Usar npm para fijar
+la version del proyecto:
+
+```bash
+npm run supabase -- --version
+npm run supabase:link -- --project-ref <project-ref>
+npm run supabase:migrations
+npm run supabase:functions:deploy
+```
+
+`npm run supabase:functions:deploy` despliega solo `publish-menu-changes` con
+`--no-verify-jwt`, que coincide con `supabase/config.toml`. Es la unica Edge
+Function aprobada para esta arquitectura. Configurar secretos con el CLI remoto,
+por ejemplo:
+
+```bash
+npm run supabase -- secrets set VERCEL_DEPLOY_HOOK_URL=...
+```
+
+No versionar tokens, passwords, `.env.local` ni archivos temporales generados por
+Supabase CLI.
+
 ## Flujo local primero
 
-1. Hacer cambios en SQL versionado dentro de esta carpeta.
+1. Versionar migraciones aplicables en `../../supabase/migrations/`; conservar en esta carpeta SQL de referencia, documentacion y auditorias.
 2. Actualizar `schema-diagram.md` si cambia una tabla, columna clave o relacion.
 3. Actualizar este README si cambia el orden de ejecucion o la superficie Supabase.
 4. Correr los audits read-only contra la base apuntada por `SUPABASE_DB_URL`.

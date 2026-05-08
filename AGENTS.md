@@ -149,6 +149,7 @@ architecture decision.
 
 Build-time structural and operational content:
 
+- `supabase/migrations/` contains real operational Supabase migrations and is the canonical migration location for Supabase CLI and future migrations.
 - `docs/supabase/schema.sql` defines the `menu_content` schema.
 - `docs/supabase/daily-service-data.sql` seeds the daily-service settings and fixed grill list.
 - `docs/supabase/hardening.sql` hardens constraints and indexes idempotently.
@@ -156,6 +157,9 @@ Build-time structural and operational content:
 - `docs/supabase/audits/database-audit.sql` is a read-only inventory, exposure, unexpected-object, and data-finding audit.
 - `docs/supabase/README.md` documents the local-first Supabase workflow and remote-application rules.
 - `docs/supabase/schema-diagram.md` documents the Mermaid ERD for `menu_content` and the runtime overlay.
+- `docs/supabase/` keeps documentation, audits, snapshots, and explanatory SQL; do not place real migrations there.
+- Supabase CLI is installed as a dev dependency and should be run through npm scripts, for example `npm run supabase -- <args>`.
+- `npm run supabase:functions:deploy` may deploy only the approved `publish-menu-changes` Edge Function and must keep platform JWT verification disabled for that function.
 - `SUPABASE_DB_URL` is required for build-time structural reads and menu validation.
 - Local development may define `SUPABASE_DB_URL` in `.env.local`; scripts load it only when an environment value is not already set.
 - Never expose `SUPABASE_DB_URL` to the client or any `PUBLIC_*` environment variable.
