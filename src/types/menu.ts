@@ -81,9 +81,7 @@ export type MenuCatalogSectionData =
   | MenuItemsSectionData
   | MenuGroupsSectionData;
 
-export type MenuDailySectionData = MenuCatalogSectionData;
-
-export type MenuSectionData = MenuCatalogSectionData | MenuDailySectionData;
+export type MenuSectionData = MenuCatalogSectionData;
 
 export interface MenuDailyMenuData {
   items: MenuItem[];

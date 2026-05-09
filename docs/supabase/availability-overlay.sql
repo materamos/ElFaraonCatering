@@ -145,7 +145,13 @@ revoke all on public.staff_users from anon, authenticated;
 grant select, insert, update on public.staff_users to authenticated;
 
 revoke all on public.menu_availability_overlays from anon, authenticated;
-grant select on public.menu_availability_overlays to anon, authenticated;
+grant select (
+  menu_id,
+  section_id,
+  group_id,
+  item_id,
+  available_override
+) on public.menu_availability_overlays to anon, authenticated;
 
 revoke all on function public.is_active_staff() from public, anon, authenticated;
 revoke all on function public.can_edit_availability(text) from public, anon, authenticated;

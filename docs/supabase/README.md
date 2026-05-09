@@ -105,6 +105,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260509001000_remove_service_kind_profile_id_ambiguity.sql` | Desambigua `profile_id` en cambio de servicio activo. |
 | `20260509002000_revoke_staff_users_trigger_helper_execute.sql` | Revoca execute client-facing del trigger helper de staff. |
 | `20260509003000_add_publish_cooldown_remaining.sql` | Agrega segundos restantes al contrato de cooldown de publicacion. |
+| `20260509004000_limit_availability_overlay_public_select.sql` | Limita la lectura publica del overlay a las columnas que consume el cliente. |
 
 ## Orden recomendado
 

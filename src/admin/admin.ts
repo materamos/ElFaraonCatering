@@ -8,7 +8,6 @@ interface AuthSession {
   accessToken: string;
   refreshToken: string;
   expiresAt: number;
-  userEmail: string;
 }
 
 interface StaffState {
@@ -1312,7 +1311,6 @@ function createSession(body: AuthApiResponse): AuthSession {
     accessToken: body.access_token,
     refreshToken: body.refresh_token,
     expiresAt: Date.now() + body.expires_in * 1000,
-    userEmail: body.user.email ?? "",
   };
 }
 
@@ -1358,9 +1356,7 @@ interface AuthApiResponse {
   access_token: string;
   refresh_token: string;
   expires_in: number;
-  user: {
-    email?: string;
-  };
+  user: object;
 }
 
 function isAuthResponse(value: unknown): value is AuthApiResponse {
@@ -1380,8 +1376,7 @@ function isStoredSession(value: unknown): value is AuthSession {
       && typeof value === "object"
       && typeof (value as AuthSession).accessToken === "string"
       && typeof (value as AuthSession).refreshToken === "string"
-      && typeof (value as AuthSession).expiresAt === "number"
-      && typeof (value as AuthSession).userEmail === "string",
+      && typeof (value as AuthSession).expiresAt === "number",
   );
 }
 

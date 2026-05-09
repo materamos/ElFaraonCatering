@@ -114,7 +114,7 @@ select
   g.privilege_type,
   case
     when g.table_schema in ('app_private', 'menu_content') and lower(g.grantee) in ('anon', 'authenticated', 'public') then 'risk'
-    when g.table_schema = 'public' and g.table_name = 'menu_availability_overlays' and lower(g.grantee) in ('anon', 'authenticated') and g.privilege_type = 'SELECT' then 'keep'
+    when g.table_schema = 'public' and g.table_name = 'menu_availability_overlays' and lower(g.grantee) in ('anon', 'authenticated') and g.privilege_type = 'SELECT' then 'risk'
     when g.table_schema = 'public' and g.table_name = 'menu_availability_overlays' and lower(g.grantee) = 'authenticated' and g.privilege_type in ('INSERT', 'UPDATE', 'DELETE') then 'risk'
     when g.table_schema = 'public' and g.table_name = 'staff_users' and lower(g.grantee) = 'authenticated' and g.privilege_type in ('SELECT', 'INSERT', 'UPDATE') then 'keep'
     when g.table_schema = 'public' and g.table_name = 'staff_users' and lower(g.grantee) in ('anon', 'public') then 'risk'
@@ -126,7 +126,68 @@ where g.table_schema in ('app_private', 'menu_content', 'public')
   and lower(g.grantee) in ('anon', 'authenticated', 'public')
 order by g.table_schema, g.table_name, g.grantee, g.privilege_type;
 
--- 05. RLS status for public project tables.
+-- 05. Public overlay column grants.
+with expected_overlay_select_columns(column_name) as (
+  values
+    ('menu_id'),
+    ('section_id'),
+    ('group_id'),
+    ('item_id'),
+    ('available_override')
+),
+client_roles(grantee) as (
+  values
+    ('anon'),
+    ('authenticated')
+),
+actual_column_grants as (
+  select
+    lower(grantee) as grantee,
+    column_name
+  from information_schema.column_privileges
+  where table_schema = 'public'
+    and table_name = 'menu_availability_overlays'
+    and privilege_type = 'SELECT'
+    and lower(grantee) in ('anon', 'authenticated')
+)
+select
+  role.grantee,
+  expected.column_name,
+  case
+    when actual.column_name is null then 'missing'
+    else 'present'
+  end as status,
+  case
+    when actual.column_name is null then 'risk'
+    else 'keep'
+  end as suggested_status
+from client_roles role
+cross join expected_overlay_select_columns expected
+left join actual_column_grants actual
+  on actual.grantee = role.grantee
+ and actual.column_name = expected.column_name
+order by role.grantee, expected.column_name;
+
+select
+  lower(grantee) as grantee,
+  column_name,
+  'risk' as suggested_status,
+  'Unexpected public overlay column SELECT grant.' as reason
+from information_schema.column_privileges
+where table_schema = 'public'
+  and table_name = 'menu_availability_overlays'
+  and privilege_type = 'SELECT'
+  and lower(grantee) in ('anon', 'authenticated')
+  and column_name not in (
+    'menu_id',
+    'section_id',
+    'group_id',
+    'item_id',
+    'available_override'
+  )
+order by grantee, column_name;
+
+-- 06. RLS status for public project tables.
 select
   n.nspname as schema_name,
   c.relname as table_name,
@@ -144,7 +205,7 @@ where n.nspname in ('app_private', 'menu_content', 'public')
   and c.relkind = 'r'
 order by n.nspname, c.relname;
 
--- 06. Policies in project-relevant schemas.
+-- 07. Policies in project-relevant schemas.
 select
   schemaname,
   tablename,
@@ -157,7 +218,7 @@ from pg_policies
 where schemaname in ('app_private', 'menu_content', 'public')
 order by schemaname, tablename, policyname;
 
--- 07. Staff permission and operational edit functions.
+-- 08. Staff permission and operational edit functions.
 with expected_functions (function_name, identity_arguments, expectation) as (
   values
     ('is_active_staff', '', 'active staff membership check'),
@@ -198,7 +259,7 @@ left join actual_functions actual
  and actual.identity_arguments = expected.identity_arguments
 order by expected.function_name;
 
--- 08. Publish helper execute privileges.
+-- 09. Publish helper execute privileges.
 with expected_publish_helper_grants(function_name, identity_arguments) as (
   values
     ('reserve_menu_publish_request', 'user_id uuid, cooldown_seconds integer'),
@@ -248,7 +309,7 @@ left join actual_privileges privilege
 group by expected.function_name, expected.identity_arguments, actual.oid
 order by expected.function_name;
 
--- 09. Availability overlay targets that do not match possible menu targets.
+-- 10. Availability overlay targets that do not match possible menu targets.
 with possible_targets as (
   select profile.id as menu_id, 'menu-del-dia'::text as section_id, ''::text as group_id, item.item_id
   from menu_content.menu_profiles profile
@@ -284,7 +345,7 @@ where not exists (
 )
 order by overlay.menu_id, overlay.section_id, overlay.group_id, overlay.item_id;
 
--- 10. Image paths with invalid format in the active catalog.
+-- 11. Image paths with invalid format in the active catalog.
 select
   'menu_catalog_items' as object_name,
   section_id,
