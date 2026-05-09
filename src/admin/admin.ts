@@ -658,10 +658,11 @@ function renderAuthenticated(): void {
           <div>
             <p class="admin-kicker">Panel operativo</p>
             <h1 class="admin-title">Admin El Faraon</h1>
+            <p class="admin-header__copy">Gestion diaria de disponibilidad, precios y publicacion.</p>
           </div>
           <div class="admin-header__identity">
-            <span>${escapeHtml(currentState.staff.display_name)}</span>
-            <span>${escapeHtml(roleLabel(currentState.staff.role))}</span>
+            <span class="admin-user-name">${escapeHtml(currentState.staff.display_name)}</span>
+            <span class="admin-role-pill">${escapeHtml(roleLabel(currentState.staff.role))}</span>
             <button class="admin-button admin-button--secondary" type="button" data-admin-action="logout" ${isBusy ? "disabled" : ""}>Salir</button>
           </div>
         </div>
@@ -677,9 +678,11 @@ function renderAuthenticated(): void {
           `).join("")}
         </nav>
       </header>
-      ${renderPublishBanner(currentState)}
-      ${renderStatus()}
-      ${renderActiveTab(currentState)}
+      <div class="admin-main">
+        ${renderPublishBanner(currentState)}
+        ${renderStatus()}
+        ${renderActiveTab(currentState)}
+      </div>
     </section>
   `;
 }
@@ -753,13 +756,14 @@ function renderDailyTab(state: AdminOperationalState): string {
       <form class="admin-form-grid" data-admin-form="daily-menu">
         ${renderDailyFieldset("Menu regular", "regular", regular)}
         ${renderDailyFieldset("Menu vegetariano", "vegetarian", vegetarian)}
-        <div class="admin-row">
+        <div class="admin-row admin-callout">
           <div class="admin-row__main">
             <p class="admin-row__title">Opciones derivadas</p>
             <p class="admin-row__meta">
-              ${escapeHtml(regularDrink?.name ?? "Menu regular + bebida")} /
+              ${escapeHtml(regularDrink?.name ?? "Menu regular + bebida")} &middot;
               ${escapeHtml(vegetarianDrink?.name ?? "Menu vegetariano + bebida")}
             </p>
+            <p class="admin-row__meta">El contenido se actualiza desde los dos menus base.</p>
           </div>
           <div class="admin-row__actions">
             <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar menu del dia</button>
@@ -910,7 +914,13 @@ function renderAvailabilityRows(
     return renderEmpty("No hay items disponibles para este rol.");
   }
 
-  return `<div class="admin-grid">${targets.map((target) => renderAvailabilityRow(state, target)).join("")}</div>`;
+  return `
+    <div class="admin-list-header">
+      <span>${targets.length} items</span>
+      <span>Los cambios se aplican al instante.</span>
+    </div>
+    <div class="admin-grid">${targets.map((target) => renderAvailabilityRow(state, target)).join("")}</div>
+  `;
 }
 
 function renderAvailabilityRow(
@@ -926,8 +936,8 @@ function renderAvailabilityRow(
       <div class="admin-row__main">
         <p class="admin-row__title">${escapeHtml(target.name)}</p>
         <p class="admin-row__meta">
-          ${escapeHtml(target.profile_title)} · ${escapeHtml(target.section_title)}
-          ${target.group_title ? ` · ${escapeHtml(target.group_title)}` : ""}
+          ${escapeHtml(target.profile_title)} &middot; ${escapeHtml(target.section_title)}
+          ${target.group_title ? ` &middot; ${escapeHtml(target.group_title)}` : ""}
         </p>
         ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
         <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">${effectiveAvailable ? "Disponible" : "No disponible"}</span>
@@ -948,8 +958,8 @@ function renderDailyFieldset(
   item: DailyMenuState | undefined,
 ): string {
   return `
-    <fieldset class="admin-grid">
-      <legend class="admin-kicker">${escapeHtml(label)}</legend>
+    <fieldset class="admin-card">
+      <legend class="admin-card__legend">${escapeHtml(label)}</legend>
       <label class="admin-field">
         <span class="admin-label">Nombre</span>
         <input class="admin-input" name="${prefix}_name" value="${escapeHtml(item?.name ?? "")}" required />
@@ -977,7 +987,10 @@ function renderServiceKindForms(state: AdminOperationalState): string {
 
   return `
     <div class="admin-grid">
-      <p class="admin-kicker">Servicio activo por local</p>
+      <div class="admin-list-header">
+        <span>Servicio activo por local</span>
+        <span>Guardar requiere publicar.</span>
+      </div>
       ${state.profiles.map((profile) => {
         const currentService = findServiceKind(state, profile.id);
 
@@ -1006,12 +1019,16 @@ function renderFixedPriceRow(price: FixedPriceState): string {
   return `
     <form class="admin-row" data-admin-form="fixed-price">
       <div class="admin-row__main">
-        <p class="admin-row__title">${escapeHtml(price.pricing_key)}</p>
+        <p class="admin-row__title">${escapeHtml(formatPricingKey(price.pricing_key))}</p>
+        <p class="admin-row__meta">${escapeHtml(price.pricing_key)}</p>
         <p class="admin-row__meta">Actual: ${escapeHtml(formatAmount(price.amount))}</p>
       </div>
       <div class="admin-row__actions">
         <input type="hidden" name="pricing_key" value="${escapeHtml(price.pricing_key)}" />
-        <input class="admin-input" type="number" name="amount" min="0" step="1" value="${price.amount}" required />
+        <label class="admin-price-field">
+          <span class="admin-label">Importe</span>
+          <input class="admin-input" type="number" name="amount" min="0" step="1" value="${price.amount}" required />
+        </label>
         <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar</button>
       </div>
     </form>
@@ -1022,13 +1039,17 @@ function renderVariantPriceRow(variant: VariantPriceState): string {
   return `
     <form class="admin-row" data-admin-form="variant-price">
       <div class="admin-row__main">
-        <p class="admin-row__title">${escapeHtml(variant.pricing_key)} / ${escapeHtml(variant.name)}</p>
+        <p class="admin-row__title">${escapeHtml(formatPricingKey(variant.pricing_key))}</p>
+        <p class="admin-row__meta">${escapeHtml(variant.name)} &middot; ${escapeHtml(variant.pricing_key)}</p>
         <p class="admin-row__meta">Actual: ${escapeHtml(formatAmount(variant.amount))}</p>
       </div>
       <div class="admin-row__actions">
         <input type="hidden" name="pricing_key" value="${escapeHtml(variant.pricing_key)}" />
         <input type="hidden" name="variant_id" value="${escapeHtml(variant.variant_id)}" />
-        <input class="admin-input" type="number" name="amount" min="0" step="1" value="${variant.amount}" required />
+        <label class="admin-price-field">
+          <span class="admin-label">Importe</span>
+          <input class="admin-input" type="number" name="amount" min="0" step="1" value="${variant.amount}" required />
+        </label>
         <label class="admin-checkbox">
           <input type="checkbox" name="available" ${variant.available ? "checked" : ""} />
           Disponible
@@ -1040,7 +1061,7 @@ function renderVariantPriceRow(variant: VariantPriceState): string {
 }
 
 function renderEmpty(message: string): string {
-  return `<p class="admin-muted">${escapeHtml(message)}</p>`;
+  return `<p class="admin-empty">${escapeHtml(message)}</p>`;
 }
 
 function getAllowedTabs(state: AdminOperationalState): Array<{ id: AdminTabId; label: string }> {
@@ -1347,6 +1368,17 @@ function isStoredSession(value: unknown): value is AuthSession {
 
 function formatAmount(amount: number): string {
   return `$${new Intl.NumberFormat("es-AR").format(amount)}`;
+}
+
+function formatPricingKey(value: string): string {
+  return value
+    .replace(/^catalog:/, "")
+    .replace(/:group:/g, " / ")
+    .replace(/:item:/g, " / ")
+    .replace(/:price$/g, "")
+    .replace(/:/g, " / ")
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
 function getTrimmedValue(value: string | undefined): string | undefined {
