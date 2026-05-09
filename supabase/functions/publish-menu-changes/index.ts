@@ -207,182 +207,211 @@ Deno.serve(async (request: Request): Promise<Response> => {
   const allowedOrigins = parseAllowedOrigins(Deno.env.get("PUBLISH_ALLOWED_ORIGINS"));
   const origin = request.headers.get("Origin");
 
-  if (request.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: getCorsHeaders(request, allowedOrigins),
-    });
-  }
+  try {
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: getCorsHeaders(request, allowedOrigins),
+      });
+    }
 
-  if (!isOriginAllowed(origin, allowedOrigins)) {
-    return jsonResponse(
-      request,
-      allowedOrigins,
-      403,
-      createResponseBody(false, false, true, "cors_origin_not_allowed"),
-    );
-  }
+    if (!isOriginAllowed(origin, allowedOrigins)) {
+      return jsonResponse(
+        request,
+        allowedOrigins,
+        403,
+        createResponseBody(false, false, true, "cors_origin_not_allowed"),
+      );
+    }
 
-  if (request.method !== "POST") {
-    return jsonResponse(
-      request,
-      allowedOrigins,
-      405,
-      createResponseBody(false, false, true, "method_not_allowed"),
-    );
-  }
+    if (request.method !== "POST") {
+      return jsonResponse(
+        request,
+        allowedOrigins,
+        405,
+        createResponseBody(false, false, true, "method_not_allowed"),
+      );
+    }
 
-  const token = getBearerToken(request);
+    const token = getBearerToken(request);
 
-  if (!token) {
-    return jsonResponse(
-      request,
-      allowedOrigins,
-      401,
-      createResponseBody(false, false, true, "unauthorized"),
-    );
-  }
+    if (!token) {
+      return jsonResponse(
+        request,
+        allowedOrigins,
+        401,
+        createResponseBody(false, false, true, "unauthorized"),
+      );
+    }
 
-  const supabaseUrl = getRequiredEnv("SUPABASE_URL");
-  const supabaseAnonKey = getRequiredEnv("SUPABASE_ANON_KEY");
+    const supabaseUrl = getRequiredEnv("SUPABASE_URL");
+    const supabaseAnonKey = getRequiredEnv("SUPABASE_ANON_KEY");
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return jsonResponse(
-      request,
-      allowedOrigins,
-      500,
-      createResponseBody(false, false, true, "publish_not_configured"),
-    );
-  }
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return jsonResponse(
+        request,
+        allowedOrigins,
+        500,
+        createResponseBody(false, false, true, "publish_not_configured"),
+      );
+    }
 
-  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-    global: {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
       },
-    },
-  });
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    });
 
-  const {
-    data: { user },
-    error: userError,
-  } = await userClient.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await userClient.auth.getUser(token);
 
-  if (userError || !user) {
-    return jsonResponse(
-      request,
-      allowedOrigins,
-      401,
-      createResponseBody(false, false, true, "unauthorized"),
+    if (userError || !user) {
+      return jsonResponse(
+        request,
+        allowedOrigins,
+        401,
+        createResponseBody(false, false, true, "unauthorized"),
+      );
+    }
+
+    const { data: canPublish, error: permissionError } = await userClient.rpc(
+      "can_publish_menu",
     );
-  }
 
-  const { data: canPublish, error: permissionError } = await userClient.rpc(
-    "can_publish_menu",
-  );
+    if (permissionError || canPublish !== true) {
+      return jsonResponse(
+        request,
+        allowedOrigins,
+        403,
+        createResponseBody(false, false, true, "permission_denied"),
+      );
+    }
 
-  if (permissionError || canPublish !== true) {
-    return jsonResponse(
-      request,
-      allowedOrigins,
-      403,
-      createResponseBody(false, false, true, "permission_denied"),
+    const supabaseServiceRoleKey = getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY");
+    const deployHookUrl = getDeployHookUrl();
+    const cooldownSeconds = getCooldownSeconds();
+
+    if (!supabaseServiceRoleKey || !deployHookUrl || cooldownSeconds === null) {
+      return jsonResponse(
+        request,
+        allowedOrigins,
+        500,
+        createResponseBody(false, false, true, "publish_not_configured"),
+      );
+    }
+
+    const serviceClient = createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+
+    const { data: reserveData, error: reserveError } = await serviceClient.rpc(
+      "reserve_menu_publish_request",
+      {
+        user_id: user.id,
+        cooldown_seconds: cooldownSeconds,
+      },
     );
-  }
 
-  const supabaseServiceRoleKey = getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY");
-  const deployHookUrl = getDeployHookUrl();
-  const cooldownSeconds = getCooldownSeconds();
+    const reserveRow = Array.isArray(reserveData)
+      ? reserveData[0] as ReservePublishRow | undefined
+      : reserveData as ReservePublishRow | null;
 
-  if (!supabaseServiceRoleKey || !deployHookUrl || cooldownSeconds === null) {
-    return jsonResponse(
-      request,
-      allowedOrigins,
-      500,
-      createResponseBody(false, false, true, "publish_not_configured"),
-    );
-  }
+    if (reserveError || !reserveRow || reserveRow.request_id === null) {
+      return jsonResponse(
+        request,
+        allowedOrigins,
+        502,
+        createResponseBody(false, false, true, "publish_failed"),
+      );
+    }
 
-  const serviceClient = createClient(supabaseUrl, supabaseServiceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+    if (!reserveRow.reserved) {
+      return jsonResponse(
+        request,
+        allowedOrigins,
+        200,
+        createResponseBody(true, false, false, "publish_recently_queued"),
+      );
+    }
 
-  const { data: reserveData, error: reserveError } = await serviceClient.rpc(
-    "reserve_menu_publish_request",
-    {
-      user_id: user.id,
-      cooldown_seconds: cooldownSeconds,
-    },
-  );
+    let vercelResponse: Response;
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), vercelFetchTimeoutMs);
 
-  const reserveRow = Array.isArray(reserveData)
-    ? reserveData[0] as ReservePublishRow | undefined
-    : reserveData as ReservePublishRow | null;
+    try {
+      vercelResponse = await fetch(deployHookUrl, {
+        method: "POST",
+        signal: abortController.signal,
+      });
+    } catch {
+      await completePublishRequest(serviceClient, {
+        requestId: reserveRow.request_id,
+        publishStatus: "failed",
+        publishMessage: "publish_failed",
+        vercelStatusCode: null,
+        vercelJobId: null,
+        phase: "vercel_fetch_failed",
+      });
 
-  if (reserveError || !reserveRow || reserveRow.request_id === null) {
-    return jsonResponse(
-      request,
-      allowedOrigins,
-      502,
-      createResponseBody(false, false, true, "publish_failed"),
-    );
-  }
+      return jsonResponse(
+        request,
+        allowedOrigins,
+        502,
+        createResponseBody(false, false, true, "publish_failed"),
+      );
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
-  if (!reserveRow.reserved) {
+    const vercelJobId = await getVercelJobId(vercelResponse);
+
+    if (!vercelResponse.ok) {
+      await completePublishRequest(serviceClient, {
+        requestId: reserveRow.request_id,
+        publishStatus: "failed",
+        publishMessage: "publish_failed",
+        vercelStatusCode: vercelResponse.status,
+        vercelJobId: vercelJobId,
+        phase: "vercel_response_failed",
+      });
+
+      return jsonResponse(
+        request,
+        allowedOrigins,
+        502,
+        createResponseBody(false, false, true, "publish_failed"),
+      );
+    }
+
+    await completePublishRequest(serviceClient, {
+      requestId: reserveRow.request_id,
+      publishStatus: "succeeded",
+      publishMessage: "publish_queued",
+      vercelStatusCode: vercelResponse.status,
+      vercelJobId: vercelJobId,
+      phase: "vercel_response_succeeded",
+    });
+
     return jsonResponse(
       request,
       allowedOrigins,
       200,
-      createResponseBody(true, false, false, "publish_recently_queued"),
+      createResponseBody(true, true, false, "publish_queued"),
     );
-  }
-
-  let vercelResponse: Response;
-  const abortController = new AbortController();
-  const timeoutId = setTimeout(() => abortController.abort(), vercelFetchTimeoutMs);
-
-  try {
-    vercelResponse = await fetch(deployHookUrl, {
-      method: "POST",
-      signal: abortController.signal,
-    });
-  } catch {
-    await completePublishRequest(serviceClient, {
-      requestId: reserveRow.request_id,
-      publishStatus: "failed",
-      publishMessage: "publish_failed",
-      vercelStatusCode: null,
-      vercelJobId: null,
-      phase: "vercel_fetch_failed",
-    });
-
-    return jsonResponse(
-      request,
-      allowedOrigins,
-      502,
-      createResponseBody(false, false, true, "publish_failed"),
-    );
-  } finally {
-    clearTimeout(timeoutId);
-  }
-
-  const vercelJobId = await getVercelJobId(vercelResponse);
-
-  if (!vercelResponse.ok) {
-    await completePublishRequest(serviceClient, {
-      requestId: reserveRow.request_id,
-      publishStatus: "failed",
-      publishMessage: "publish_failed",
-      vercelStatusCode: vercelResponse.status,
-      vercelJobId: vercelJobId,
-      phase: "vercel_response_failed",
+  } catch (error) {
+    console.error("publish_menu_changes unexpected error", {
+      error_name: error instanceof Error ? error.name : "unknown",
     });
 
     return jsonResponse(
@@ -392,20 +421,4 @@ Deno.serve(async (request: Request): Promise<Response> => {
       createResponseBody(false, false, true, "publish_failed"),
     );
   }
-
-  await completePublishRequest(serviceClient, {
-    requestId: reserveRow.request_id,
-    publishStatus: "succeeded",
-    publishMessage: "publish_queued",
-    vercelStatusCode: vercelResponse.status,
-    vercelJobId: vercelJobId,
-    phase: "vercel_response_succeeded",
-  });
-
-  return jsonResponse(
-    request,
-    allowedOrigins,
-    200,
-    createResponseBody(true, true, false, "publish_queued"),
-  );
 });

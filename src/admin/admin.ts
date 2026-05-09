@@ -494,6 +494,7 @@ async function publishChanges(): Promise<void> {
       headers: {
         apikey: configuredSupabaseAnonKey,
         Authorization: `Bearer ${session.accessToken}`,
+        "Content-Type": "application/json",
       },
       credentials: "omit",
     });
@@ -1184,7 +1185,11 @@ async function runBusy(action: () => Promise<void>): Promise<void> {
 }
 
 function handleUnexpectedError(error: unknown): void {
-  const message = error instanceof Error ? error.message : "Ocurrio un error inesperado.";
+  const message = error instanceof TypeError && error.message === "Failed to fetch"
+    ? "No se pudo conectar con publicacion. Revisa conexion y origen autorizado."
+    : error instanceof Error
+      ? error.message
+      : "Ocurrio un error inesperado.";
   currentStatus = { text: message, tone: "danger" };
 
   if (currentSession && currentState) {
