@@ -26,9 +26,12 @@ const getOverlayKey = (sectionId: string, groupId: string, itemId: string) =>
 
 const getTrimmedEnvValue = (value: string | undefined) => value?.trim() || undefined;
 
+const getSupabaseProjectUrl = (value: string) =>
+  value.replace(/\/+$/, "").replace(/\/(?:rest\/v1|auth\/v1|functions\/v1)$/, "");
+
 const getSupabaseRestUrl = (supabaseUrl: string, menuId: string) => {
   const url = new URL(
-    `${supabaseUrl.replace(/\/+$/, "")}/rest/v1/menu_availability_overlays`,
+    `${getSupabaseProjectUrl(supabaseUrl)}/rest/v1/menu_availability_overlays`,
   );
 
   url.searchParams.set("menu_id", `eq.${menuId}`);
