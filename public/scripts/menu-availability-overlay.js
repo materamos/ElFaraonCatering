@@ -1,19 +1,11 @@
-interface AvailabilityOverlayRow {
-  menu_id: unknown;
-  section_id: unknown;
-  group_id: unknown;
-  item_id: unknown;
-  available_override: unknown;
-}
-
 const technicalIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const availableText = "Disponible";
 const unavailableText = "No disponible";
 
-const getRequiredTechnicalId = (value: string | undefined) =>
+const getRequiredTechnicalId = (value) =>
   value && technicalIdPattern.test(value) ? value : undefined;
 
-const getOptionalTechnicalId = (value: string | null | undefined) => {
+const getOptionalTechnicalId = (value) => {
   if (!value) {
     return "";
   }
@@ -21,15 +13,15 @@ const getOptionalTechnicalId = (value: string | null | undefined) => {
   return technicalIdPattern.test(value) ? value : undefined;
 };
 
-const getOverlayKey = (sectionId: string, groupId: string, itemId: string) =>
+const getOverlayKey = (sectionId, groupId, itemId) =>
   `${sectionId}/${groupId}/${itemId}`;
 
-const getTrimmedEnvValue = (value: string | undefined) => value?.trim() || undefined;
+const getTrimmedValue = (value) => value?.trim() || undefined;
 
-const getSupabaseProjectUrl = (value: string) =>
+const getSupabaseProjectUrl = (value) =>
   value.replace(/\/+$/, "").replace(/\/(?:rest\/v1|auth\/v1|functions\/v1)$/, "");
 
-const getSupabaseRestUrl = (supabaseUrl: string, menuId: string) => {
+const getSupabaseRestUrl = (supabaseUrl, menuId) => {
   const url = new URL(
     `${getSupabaseProjectUrl(supabaseUrl)}/rest/v1/menu_availability_overlays`,
   );
@@ -43,7 +35,7 @@ const getSupabaseRestUrl = (supabaseUrl: string, menuId: string) => {
   return url;
 };
 
-const parseOverlayRow = (row: AvailabilityOverlayRow, menuId: string) => {
+const parseOverlayRow = (row, menuId) => {
   const rowMenuId = typeof row.menu_id === "string" ? row.menu_id : undefined;
   const sectionId = typeof row.section_id === "string" ? row.section_id : undefined;
   const groupId = row.group_id === null || typeof row.group_id === "string"
@@ -70,8 +62,8 @@ const parseOverlayRow = (row: AvailabilityOverlayRow, menuId: string) => {
   };
 };
 
-const applyAvailability = (item: HTMLElement, available: boolean) => {
-  const status = item.querySelector<HTMLElement>("[data-availability-status]");
+const applyAvailability = (item, available) => {
+  const status = item.querySelector("[data-availability-status]");
 
   if (!status) {
     return;
@@ -83,29 +75,24 @@ const applyAvailability = (item: HTMLElement, available: boolean) => {
 };
 
 const loadAvailabilityOverlays = async () => {
-  const supabaseUrl = getTrimmedEnvValue(import.meta.env.PUBLIC_SUPABASE_URL);
-  const supabaseAnonKey = getTrimmedEnvValue(import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return;
-  }
-
-  const root = document.querySelector<HTMLElement>("main[data-menu-id]");
+  const root = document.querySelector("main[data-menu-id]");
   const menuId = getRequiredTechnicalId(root?.dataset.menuId);
+  const supabaseUrl = getTrimmedValue(root?.dataset.supabaseUrl);
+  const supabaseAnonKey = getTrimmedValue(root?.dataset.supabaseAnonKey);
 
-  if (!menuId) {
+  if (!root || !menuId || !supabaseUrl || !supabaseAnonKey) {
     return;
   }
 
   const items = Array.from(
-    document.querySelectorAll<HTMLElement>("[data-section-id][data-item-id][data-available]"),
+    document.querySelectorAll("[data-section-id][data-item-id][data-available]"),
   ).filter((item) => item.dataset.menuId === menuId);
 
   if (items.length === 0) {
     return;
   }
 
-  const itemsByKey = new Map<string, HTMLElement>();
+  const itemsByKey = new Map();
 
   for (const item of items) {
     const sectionId = getRequiredTechnicalId(item.dataset.sectionId);
@@ -139,7 +126,7 @@ const loadAvailabilityOverlays = async () => {
     return;
   }
 
-  const rows: unknown = await response.json();
+  const rows = await response.json();
 
   if (!Array.isArray(rows)) {
     return;
@@ -150,7 +137,7 @@ const loadAvailabilityOverlays = async () => {
       continue;
     }
 
-    const overlay = parseOverlayRow(row as AvailabilityOverlayRow, menuId);
+    const overlay = parseOverlayRow(row, menuId);
 
     if (!overlay) {
       continue;
