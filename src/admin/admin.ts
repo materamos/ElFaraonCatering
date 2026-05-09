@@ -122,7 +122,7 @@ const regularDrinkDailyId = "menu-del-dia-con-bebida";
 const vegetarianDailyId = "menu-vegetariano-del-dia";
 const vegetarianDrinkDailyId = "menu-vegetariano-del-dia-con-bebida";
 
-const supabaseUrl = trimTrailingSlash(import.meta.env.PUBLIC_SUPABASE_URL);
+const supabaseUrl = normalizeSupabaseProjectUrl(import.meta.env.PUBLIC_SUPABASE_URL);
 const supabaseAnonKey = getTrimmedValue(import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
 const configuredSupabaseUrl = supabaseUrl ?? "";
 const configuredSupabaseAnonKey = supabaseAnonKey ?? "";
@@ -1356,6 +1356,10 @@ function getTrimmedValue(value: string | undefined): string | undefined {
 
 function trimTrailingSlash(value: string | undefined): string | undefined {
   return getTrimmedValue(value)?.replace(/\/+$/, "");
+}
+
+function normalizeSupabaseProjectUrl(value: string | undefined): string | undefined {
+  return trimTrailingSlash(value)?.replace(/\/(?:rest\/v1|auth\/v1|functions\/v1)$/, "");
 }
 
 function escapeHtml(value: unknown): string {
