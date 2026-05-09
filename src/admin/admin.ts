@@ -130,6 +130,7 @@ const configuredSupabaseAnonKey = supabaseAnonKey ?? "";
 let currentSession: AuthSession | null = null;
 let currentState: AdminOperationalState | null = null;
 let currentStatus: StatusMessage | null = null;
+let currentBusyText: string | null = null;
 let activeTab: AdminTabId = "availability";
 let hasPendingPublication = false;
 let isBusy = false;
@@ -218,7 +219,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
   if (action === "reload") {
     await runBusy(async () => {
       await loadAdminState("Estado actualizado.", "success");
-    });
+    }, "Actualizando estado...");
     return;
   }
 
@@ -328,7 +329,7 @@ async function login(form: HTMLFormElement): Promise<void> {
     currentSession = createSession(body);
     saveStoredSession(currentSession);
     await loadAdminState("Sesion iniciada.", "success");
-  });
+  }, "Iniciando sesion...");
 }
 
 async function logout(): Promise<void> {
@@ -382,7 +383,7 @@ async function saveAvailabilityOverlay(
     }
 
     await loadAdminState(result.changed ? "Disponibilidad actualizada." : "Sin cambios.", "success");
-  });
+  }, available ? "Marcando disponible..." : "Marcando no disponible...");
 }
 
 async function clearAvailabilityOverlay(target: AvailabilityTargetState): Promise<void> {
@@ -399,7 +400,7 @@ async function clearAvailabilityOverlay(target: AvailabilityTargetState): Promis
     }
 
     await loadAdminState(result.changed ? "Override eliminado." : "Sin cambios.", "success");
-  });
+  }, "Limpiando override...");
 }
 
 async function saveDailyMenu(form: HTMLFormElement): Promise<void> {
@@ -424,7 +425,7 @@ async function saveDailyMenu(form: HTMLFormElement): Promise<void> {
       result.changed ? "Guardado. Falta publicar para verlo en el menu." : "Sin cambios.",
       "success",
     );
-  });
+  }, "Guardando menu del dia...");
 }
 
 async function saveServiceKind(form: HTMLFormElement): Promise<void> {
@@ -443,7 +444,7 @@ async function saveServiceKind(form: HTMLFormElement): Promise<void> {
       result.changed ? "Servicio guardado. Falta publicar." : "Sin cambios.",
       "success",
     );
-  });
+  }, "Guardando servicio...");
 }
 
 async function saveFixedPrice(form: HTMLFormElement): Promise<void> {
@@ -462,7 +463,7 @@ async function saveFixedPrice(form: HTMLFormElement): Promise<void> {
       result.changed ? "Precio guardado. Falta publicar." : "Sin cambios.",
       "success",
     );
-  });
+  }, "Guardando precio...");
 }
 
 async function saveVariantPrice(form: HTMLFormElement): Promise<void> {
@@ -483,7 +484,7 @@ async function saveVariantPrice(form: HTMLFormElement): Promise<void> {
       result.changed ? "Variante guardada. Falta publicar." : "Sin cambios.",
       "success",
     );
-  });
+  }, "Guardando variante...");
 }
 
 async function publishChanges(): Promise<void> {
@@ -521,7 +522,7 @@ async function publishChanges(): Promise<void> {
     }
 
     await loadAdminState(resultMessage(result), "success");
-  });
+  }, "Publicando cambios...");
 }
 
 async function callMutation(name: string, body: Record<string, unknown>): Promise<RpcResult> {
@@ -625,7 +626,7 @@ function renderConfigurationError(): void {
 
 function renderLogin(): void {
   root.innerHTML = `
-    <section class="admin-login">
+    <section class="admin-login" aria-busy="${isBusy ? "true" : "false"}">
       <div>
         <p class="admin-kicker">Panel operativo</p>
         <h1 class="admin-title">Ingresar</h1>
@@ -656,7 +657,7 @@ function renderAuthenticated(): void {
   const tabs = getAllowedTabs(currentState);
 
   root.innerHTML = `
-    <section class="admin-shell">
+    <section class="admin-shell" aria-busy="${isBusy ? "true" : "false"}">
       <header class="admin-header">
         <div class="admin-header__main">
           <div>
@@ -697,7 +698,7 @@ function renderDenied(): void {
     : "No se pudo cargar el panel operativo.";
 
   root.innerHTML = `
-    <section class="admin-denied">
+    <section class="admin-denied" aria-busy="${isBusy ? "true" : "false"}">
       <p class="admin-kicker">Panel operativo</p>
       <h1 class="admin-title">Sin acceso</h1>
       ${renderStatus()}
@@ -857,13 +858,17 @@ function renderPublishBanner(state: AdminOperationalState): string {
 }
 
 function renderStatus(): string {
-  if (!currentStatus) {
+  const status: StatusMessage | null = currentBusyText
+    ? { text: currentBusyText, tone: "neutral" }
+    : currentStatus;
+
+  if (!status) {
     return "";
   }
 
   return `
-    <div class="admin-status" data-tone="${currentStatus.tone}" aria-live="polite">
-      <span>${escapeHtml(currentStatus.text)}</span>
+    <div class="admin-status" data-tone="${status.tone}" data-busy="${currentBusyText ? "true" : "false"}" aria-live="polite">
+      <span>${escapeHtml(status.text)}</span>
     </div>
   `;
 }
@@ -909,13 +914,18 @@ function renderAvailabilityRows(
 ): string {
   const profileFilter = kindLimit === "grill" ? grillProfileFilter : availabilityProfileFilter;
   const kindFilter = kindLimit ?? (availabilityKindFilter as TargetKind | "");
-  const targets = state.availability_targets.filter((target) =>
+  const scopeTargets = state.availability_targets.filter((target) => !kindLimit || target.target_kind === kindLimit);
+  const targets = scopeTargets.filter((target) =>
     (!profileFilter || target.menu_id === profileFilter)
     && (!kindFilter || target.target_kind === kindFilter)
   );
 
   if (targets.length === 0) {
-    return renderEmpty("No hay items disponibles para este rol.");
+    return renderEmpty(
+      scopeTargets.length > 0
+        ? "No hay items para los filtros seleccionados."
+        : "No hay items disponibles para este rol.",
+    );
   }
 
   return `
@@ -934,6 +944,8 @@ function renderAvailabilityRow(
   const overlay = findOverlay(state, target);
   const effectiveAvailable = overlay ? overlay.available_override : target.base_available;
   const key = getTargetKey(target);
+  const availableDisabled = isBusy || Boolean(overlay && effectiveAvailable);
+  const unavailableDisabled = isBusy || Boolean(overlay && !effectiveAvailable);
 
   return `
     <div class="admin-row">
@@ -948,9 +960,9 @@ function renderAvailabilityRow(
         ${overlay ? `<p class="admin-row__meta">Override activo.</p>` : `<p class="admin-row__meta">Usando disponibilidad base.</p>`}
       </div>
       <div class="admin-row__actions">
-        <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" ${isBusy ? "disabled" : ""}>Disponible</button>
-        <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="false" ${isBusy ? "disabled" : ""}>No disponible</button>
-        <button class="admin-button admin-button--secondary" type="button" data-admin-action="clear-overlay" data-target-key="${escapeHtml(key)}" ${isBusy || !overlay ? "disabled" : ""}>Limpiar</button>
+        <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" data-current="${overlay && effectiveAvailable ? "true" : "false"}" aria-pressed="${overlay && effectiveAvailable ? "true" : "false"}" ${availableDisabled ? "disabled" : ""}>Forzar disponible</button>
+        <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="false" data-current="${overlay && !effectiveAvailable ? "true" : "false"}" aria-pressed="${overlay && !effectiveAvailable ? "true" : "false"}" ${unavailableDisabled ? "disabled" : ""}>Forzar no disponible</button>
+        <button class="admin-button admin-button--secondary" type="button" data-admin-action="clear-overlay" data-target-key="${escapeHtml(key)}" ${isBusy || !overlay ? "disabled" : ""}>Usar base</button>
       </div>
     </div>
   `;
@@ -1163,8 +1175,9 @@ function setStatus(text: string, tone: StatusTone): void {
   }
 }
 
-async function runBusy(action: () => Promise<void>): Promise<void> {
+async function runBusy(action: () => Promise<void>, busyText = "Procesando..."): Promise<void> {
   isBusy = true;
+  currentBusyText = busyText;
 
   if (currentSession && currentState) {
     renderAuthenticated();
@@ -1175,9 +1188,11 @@ async function runBusy(action: () => Promise<void>): Promise<void> {
   try {
     await action();
   } catch (error) {
+    currentBusyText = null;
     handleUnexpectedError(error);
   } finally {
     isBusy = false;
+    currentBusyText = null;
 
     if (currentSession && currentState) {
       renderAuthenticated();
