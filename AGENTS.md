@@ -39,7 +39,7 @@ Current source of truth:
 - `public.staff_users` is the staff permission source for the operational CMS.
 - Operational CMS writes must go through explicit Supabase RPCs, not direct table grants.
 - `/admin/` is the active operational CMS surface, limited to availability, daily service, grill mode, prices, and publication.
-- The rollback to the previous file-backed content stage is the Git tag `yaml-rollback-2026-05-02`.
+- The historical rollback point to the previous file-backed content stage is the Git tag `yaml-rollback-2026-05-02`; YAML is not an active content source.
 
 ---
 
@@ -155,7 +155,7 @@ Build-time structural and operational content:
 - `docs/supabase/hardening.sql` hardens constraints and indexes idempotently.
 - `docs/supabase/audits/menu-schema-audit.sql` audits expected constraints and indexes.
 - `docs/supabase/audits/database-audit.sql` is a read-only inventory, exposure, unexpected-object, and data-finding audit.
-- `docs/supabase/README.md` documents the local-first Supabase workflow and remote-application rules.
+- `docs/supabase/README.md` documents the local-first Supabase workflow, real migration order, and remote-application rules.
 - `docs/supabase/schema-diagram.md` documents the Mermaid ERD for `menu_content` and the runtime overlay.
 - `docs/supabase/` keeps documentation, audits, snapshots, and explanatory SQL; do not place real migrations there.
 - Supabase CLI is installed as a dev dependency and should be run through npm scripts, for example `npm run supabase -- <args>`.
@@ -163,7 +163,7 @@ Build-time structural and operational content:
 - `SUPABASE_DB_URL` is required for build-time structural reads and menu validation.
 - Local development may define `SUPABASE_DB_URL` in `.env.local`; scripts load it only when an environment value is not already set.
 - Never expose `SUPABASE_DB_URL` to the client or any `PUBLIC_*` environment variable.
-- Menu del dia, notes, active service, prices, catalog, groups, sections, images, and structural text are build-time data even if a future CMS edits them.
+- Menu del dia, notes, active service, prices, catalog, groups, sections, images, and structural text are build-time data even when the operational admin or RPCs edit them.
 - Changes to build-time data require rebuild/deploy before affecting `/menu/corpo/` and `/menu/teleinde/`.
 - Legacy menu-content tables were removed by the explicit cleanup migration after flat-model deploy validation.
 
@@ -175,12 +175,13 @@ Runtime overlay:
 - `public.staff_users` defines operational staff roles: `availability_editor`, `menu_editor`, and `admin`.
 - `public.staff_users` and the `can_edit_availability(text)`, `can_manage_staff()`, and `can_publish_menu()` helpers are required before operational edit RPCs may be installed.
 - `can_edit_menu_content()` is introduced by the operational edit RPC phase; it is not a precondition of the `staff_users` migration.
-- `publish-menu-changes` is the only approved Supabase Edge Function. It may publish build-time operational changes by validating Supabase Auth, checking `can_publish_menu()`, logging privately in `app_private`, and calling the Vercel Deploy Hook from Supabase Function secrets.
+- `publish-menu-changes` is the only approved Supabase Edge Function. It may publish build-time operational changes by validating Supabase Auth, checking `can_publish_menu()`, reserving/completing publish requests through private helpers, logging privately in `app_private`, and calling the Vercel Deploy Hook from Supabase Function secrets.
+- Publish cooldown responses may include `cooldown_seconds_remaining`; keep that contract synchronized across the Edge Function, SQL helpers, and admin UI.
 - `public.editor_profiles` is legacy-only and must not back new policies.
 - The first `admin` staff row must be bootstrapped through privileged SQL or service role access, not browser RLS.
 - Public client variables are `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.
 - The overlay may only change visual availability through availability data.
-- Do not add `@supabase/supabase-js` for the current overlay unless explicitly justified.
+- Do not add `@supabase/supabase-js` to browser code for the current overlay/admin unless explicitly justified.
 
 Preserve the static-first model:
 

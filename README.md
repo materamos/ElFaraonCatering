@@ -1,6 +1,6 @@
 # El Faraon Catering
 
-Sistema de menu digital QR para los buffets operados por **El Faraon Catering** en los edificios de **Teleinde**.
+Sistema de menu digital QR para los buffets operados por **El Faraon Catering** en los dos edificios de **Telefe**.
 
 El proyecto esta orientado al uso cotidiano en contexto laboral, con una experiencia rapida, clara y mobile-first para tecnicos, produccion, oficinas y personal que consulta el menu desde el telefono.
 
@@ -10,17 +10,15 @@ La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuent
 
 - `/menu/corpo/` es el menu operativo principal.
 - `/menu/teleinde/` esta activo como parte del modelo multi-locacion.
-- `/menu/` sigue siendo un placeholder de entrada general para menus.
-- `/` sigue siendo un placeholder institucional futuro.
+- `/menu/` es un placeholder de entrada general para menus.
+- `/` es un placeholder institucional.
 - `/admin/` es el panel operativo estatico para empleados.
 - Supabase `menu_content` es la fuente estructural y operativa build-time del menu.
-- El sitio sigue siendo static-first y se genera como output `"static"` en Astro.
-- El overlay runtime de disponibilidad sigue separado y se consume desde JavaScript cliente.
-- La base de permisos del CMS operativo queda versionada en `public.staff_users`.
-- Las lecturas y escrituras operativas del admin pasan por RPCs Supabase controladas, sin grants directos sobre `menu_content`.
-- El CMS activo queda limitado a disponibilidad, servicio del dia, parrilla, precios y publicacion.
-
-El rollback a la etapa anterior con archivos YAML se hace desde Git usando el tag `yaml-rollback-2026-05-02`.
+- Astro usa output estatico por default y no hay adapter de servidor.
+- El overlay runtime de disponibilidad esta separado y se consume desde JavaScript cliente.
+- `public.staff_users` define empleados, roles y alcance operativo.
+- `/admin/` lee y escribe mediante RPCs Supabase controladas, sin grants directos sobre `menu_content`.
+- El admin activo queda limitado a disponibilidad, servicio del dia, parrilla, precios y publicacion.
 
 ## Stack tecnico
 
@@ -30,6 +28,7 @@ El rollback a la etapa anterior con archivos YAML se hace desde Git usando el ta
 - Node 20 LTS
 - npm
 - Supabase Postgres para contenido estructural y operativo build-time
+- Supabase Edge Function `publish-menu-changes` para publicacion operativa
 - Vercel static deployment
 
 ## Desarrollo local
@@ -48,15 +47,32 @@ npm install
 
 ### Variables de entorno locales
 
-El repo incluye `.env.local` para desarrollo y auditoria local. Ese archivo esta ignorado por Git.
+El repo puede usar `.env.local` para desarrollo y auditoria local. Ese archivo esta ignorado por Git.
 
-Completar la URL privada de Postgres en esta linea:
+Variables publicas usadas por el menu y el admin:
+
+```bash
+PUBLIC_SUPABASE_URL=
+PUBLIC_SUPABASE_ANON_KEY=
+```
+
+Variable privada de build y validacion:
 
 ```bash
 SUPABASE_DB_URL="postgresql://..."
 ```
 
 No usar prefijo `PUBLIC_` para `SUPABASE_DB_URL`. Los scripts Node cargan `.env.local` si existe y no pisan variables ya definidas en el entorno.
+
+Secretos de la Edge Function `publish-menu-changes`:
+
+```bash
+VERCEL_DEPLOY_HOOK_URL=
+PUBLISH_ALLOWED_ORIGINS=
+PUBLISH_COOLDOWN_SECONDS=60
+```
+
+Estos secretos se configuran en Supabase Functions, por ejemplo con `supabase secrets set`. No deben exponerse como variables `PUBLIC_*`.
 
 ### Servidor de desarrollo
 
@@ -91,9 +107,9 @@ npm run preview
 | `npm run supabase -- <args>` | Ejecuta Supabase CLI local del proyecto. |
 | `npm run supabase:link` | Vincula el checkout local con un proyecto Supabase remoto. Requiere project ref y credenciales. |
 | `npm run supabase:migrations` | Lista migraciones locales/remotas con Supabase CLI. Requiere proyecto vinculado o `-- --db-url`. |
-| `npm run supabase:functions:deploy` | Despliega solo la Edge Function aprobada `publish-menu-changes` usando el CLI y `--no-verify-jwt`. |
+| `npm run supabase:functions:deploy` | Despliega solo la Edge Function aprobada `publish-menu-changes` con `--no-verify-jwt`. |
 
-Validacion recomendada:
+Validacion recomendada para cambios de app, Supabase o contenido build-time:
 
 ```bash
 npm run menu:validate
@@ -102,12 +118,13 @@ npm run verify:dist-secrets
 npm run check
 ```
 
-`SUPABASE_DB_URL` es una variable privada de build/validacion. No debe exponerse al cliente ni formar parte de variables `PUBLIC_*`.
-
 ## Estructura del proyecto
 
 ```text
 src/
+  admin/
+    admin.css
+    admin.ts
   components/
     DishCard.astro
     MenuInfoPanel.astro
@@ -116,13 +133,12 @@ src/
   layouts/
     BaseLayout.astro
   pages/
+    admin/index.astro
     index.astro
     menu/
       index.astro
       corpo/index.astro
       teleinde/index.astro
-  scripts/
-    menuAvailabilityOverlay.ts
   styles/
     global.css
   types/
@@ -132,37 +148,38 @@ src/
     menuImage.ts
     menuPricing.ts
     menuSupabaseContent.ts
+    menuSupabaseSnapshot.mjs
 public/
-  admin/
-    index.html
   icons/
   scripts/
+    menu-availability-overlay.js
     menu-photo-sheet.js
   uploads/
 scripts/
+  load-local-env.mjs
   menu-content-supabase.mjs
   validate-menu-supabase.mjs
   verify-dist-secrets.mjs
+supabase/
+  config.toml
+  functions/
+    publish-menu-changes/
+  migrations/
 docs/
   supabase/
     README.md
-    availability-overlay.sql
-    daily-service-data.sql
-    hardening.sql
     schema-diagram.md
-    schema.sql
+    *.sql
     audits/
-      database-audit.sql
-      menu-schema-audit.sql
 ```
 
 Directorios generados como `dist/`, `.astro/` y `node_modules/` no forman parte de la estructura fuente documentada.
 
 ## Modelo de contenido
 
-El contenido estructural y operativo vive en el schema Supabase `menu_content` y se lee solo durante el build de Astro.
+El contenido estructural y operativo vive en el schema Supabase `menu_content` y se lee durante el build de Astro.
 
-El lector build-time arma la misma forma que consumen `MenuPage`, `MenuSection` y `DishCard`:
+El lector build-time arma la forma que consumen `MenuPage`, `MenuSection` y `DishCard`:
 
 - perfiles por menu
 - servicio del dia compartido
@@ -180,11 +197,11 @@ Reglas principales:
 - `menu_daily_items` define las cuatro opciones reales del menu del dia: menu comun, menu comun con bebida, menu vegetariano y menu vegetariano con bebida.
 - `menu_profile_service_settings` define por local si el servicio activo es `daily-menu` o `grill`.
 - Si `service_kind` es `daily-menu`, el local muestra las cuatro opciones de `menu_daily_items`.
-- Si `service_kind` es `grill`, el local aplica la variante de parrilla al servicio del dia y muestra `menu_grill_catalog_items`.
+- Si `service_kind` es `grill`, el local muestra la lista de `menu_grill_catalog_items`.
 - Cada local puede mostrar menu del dia o parrilla, nunca ambas a la vez.
 - `menu_grill_catalog_items` contiene la lista fija de parrilla, agrupada por `menu_grill_families`.
 - `menu_catalog_sections` contiene solo secciones del catalogo compartido; no modela el servicio diario por local.
-- Cuando ambos locales muestran menu del dia, el plato principal es el mismo para ambos.
+- Cuando ambos locales muestran menu del dia, comparten el mismo plato principal.
 - Los precios son globales para todos los locales.
 - La disponibilidad es individual por local/menu.
 - Las secciones definen `items` o `groups`, no ambos.
@@ -195,91 +212,57 @@ Reglas principales:
 - Las variantes son planas y sus montos son numericos.
 - Las imagenes deben ser paths locales bajo `/uploads/`.
 
-Frontera build-time/runtime:
+## Frontera build-time/runtime
 
 - Menu del dia, descripcion/nota, servicio activo por local, precios globales, catalogo, grupos, secciones, imagenes y textos estructurales son datos build-time.
-- Un CMS futuro puede editar esos datos en Supabase, pero cada cambio requiere rebuild/deploy para impactar el menu publico.
+- `/admin/` puede editar parte de esos datos en Supabase, pero cada cambio build-time requiere rebuild/deploy para impactar el menu publico.
 - El unico dato editable en runtime sin rebuild es la disponibilidad por local mediante `public.menu_availability_overlays`.
-- El cliente no debe consultar estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.
+- El cliente del menu no consulta estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.
 
 ## Supabase
 
-Hay tres superficies Supabase separadas:
+Superficies Supabase del proyecto:
 
 - `menu_content`: fuente estructural y operativa build-time del menu.
-- overlay runtime de disponibilidad: extension cliente no bloqueante para disponibilidad operativa.
-- `public.staff_users`: usuarios autenticados, roles y alcance por perfil para el futuro CMS operativo.
-- RPCs operativas: unica superficie prevista de escritura para disponibilidad, servicio activo, menu del dia y precios.
-- `publish-menu-changes`: Supabase Edge Function server-side para disparar redeploy con un Vercel Deploy Hook secreto.
+- `public.menu_availability_overlays`: overlay runtime de disponibilidad.
+- `public.staff_users`: empleados, roles y alcance por perfil para el admin operativo.
+- RPCs publicas controladas: lectura del admin y escrituras operativas.
+- `app_private.menu_publish_requests`: auditoria privada de publicaciones.
+- `publish-menu-changes`: Supabase Edge Function server-side que dispara el Vercel Deploy Hook.
 
 El overlay runtime no administra estructura, textos, precios, imagenes ni menu diario. Si el overlay falla, el menu estatico generado en build-time sigue disponible.
 
-Un CMS operativo futuro puede editar menu del dia, servicio activo por local y precios globales, pero esos cambios son build-time: requieren rebuild/deploy. CMS editable no implica runtime editable.
-
-Roles operativos previstos:
+Roles operativos:
 
 - `availability_editor`: edita disponibilidad, globalmente o con alcance a un perfil.
-- `menu_editor`: publica cambios build-time mediante un flujo seguro futuro.
-- `admin`: gestiona empleados y hereda los permisos operativos.
+- `menu_editor`: edita datos operativos build-time y puede publicar.
+- `admin`: hereda permisos operativos y puede gestionar empleados a nivel de base/RPC. El sitio no tiene una pantalla de gestion de empleados.
 
-El primer `admin` se crea por SQL privilegiado o service role; el panel futuro podra gestionar empleados despues de ese bootstrap.
+El primer `admin` se crea por SQL privilegiado o service role; no se bootstrapea desde browser RLS.
 
-Las RPCs operativas devuelven siempre `ok`, `changed`, `requires_redeploy`, `operation` y `message`. Disponibilidad no requiere redeploy; Parrilla, menu del dia y precios globales si lo requieren.
+RPCs y funciones relevantes:
 
-`public.staff_users` y sus helpers (`can_edit_availability(text)`, `can_manage_staff()`, `can_publish_menu()`) son precondicion obligatoria para instalar las RPCs operativas. `can_edit_menu_content()` se introduce en la fase de RPCs operativas; no es precondicion de la migracion de `staff_users`.
+- `get_admin_operational_state()`: lectura controlada para `/admin/`.
+- `set_menu_availability_overlay(...)` y `clear_menu_availability_overlay(...)`: cambios runtime de disponibilidad.
+- `set_daily_menu(...)`, `set_profile_service_kind(...)`, `set_global_fixed_price(...)` y `set_global_price_variant(...)`: cambios build-time que requieren publicacion.
+- `can_edit_availability(text)`, `can_edit_menu_content()`, `can_manage_staff()` y `can_publish_menu()`: helpers de permisos.
+- `reserve_menu_publish_request(...)` y `complete_menu_publish_request(...)`: helpers privados usados por la Edge Function.
 
-`get_admin_operational_state()` es la unica superficie de lectura estructural para `/admin/`. Devuelve estado operativo filtrado por `staff_users`; el browser no lee `menu_content` ni `app_private` directamente.
+Las RPCs operativas devuelven `ok`, `changed`, `requires_redeploy`, `operation` y `message`. Las respuestas de publicacion pueden incluir `cooldown_seconds_remaining`.
 
-`publish-menu-changes` valida la sesion Supabase Auth del empleado, verifica `can_publish_menu()`, aplica cooldown global y llama el Vercel Deploy Hook desde secretos de Supabase Functions. La URL del hook es credencial y nunca debe llegar al browser ni versionarse. No se usa `pg_net` para publicar.
-
-Variables publicas del overlay:
-
-```bash
-PUBLIC_SUPABASE_URL=
-PUBLIC_SUPABASE_ANON_KEY=
-```
-
-Variable privada de build/validacion:
-
-```bash
-SUPABASE_DB_URL=
-```
-
-En local puede definirse en `.env.local`; en Vercel debe configurarse como variable privada de build.
-
-Secretos de Supabase Edge Function:
-
-```bash
-VERCEL_DEPLOY_HOOK_URL=
-PUBLISH_ALLOWED_ORIGINS=
-PUBLISH_COOLDOWN_SECONDS=60
-```
-
-Estos secretos se cargan en Supabase, por ejemplo con `supabase secrets set`, no como variables `PUBLIC_*`.
-
-Supabase CLI esta instalado como dependencia de desarrollo y se ejecuta desde npm:
-
-```bash
-npm run supabase -- --version
-npm run supabase:link -- --project-ref <project-ref>
-npm run supabase:migrations
-npm run supabase:functions:deploy
-```
-
-El login y el link remotos requieren credenciales de Supabase. No versionar tokens, passwords, `.env.local` ni archivos temporales del CLI.
+`publish-menu-changes` valida la sesion Supabase Auth del empleado, verifica `can_publish_menu()`, aplica cooldown global, registra auditoria privada y llama el Vercel Deploy Hook desde secretos de Supabase Functions. La URL del hook es credencial y nunca debe llegar al browser ni versionarse. No se usa `pg_net` para publicar.
 
 SQL disponible:
 
 - `supabase/migrations/`: migraciones operativas aplicables a bases existentes y ubicacion canonica para Supabase CLI.
 - `docs/supabase/README.md`: flujo local-first, orden de ejecucion y reglas de aplicacion remota.
-- `docs/supabase/schema-diagram.md`: diagrama ERD Mermaid del schema estructural y overlay runtime.
-- `docs/supabase/schema.sql`: schema estructural `menu_content`.
-- `docs/supabase/daily-service-data.sql`: datos base para configuracion diaria y parrilla.
+- `docs/supabase/schema-diagram.md`: diagrama Mermaid del schema estructural y runtime operativo.
+- `docs/supabase/schema.sql`: snapshot limpio del schema `menu_content`.
+- `docs/supabase/daily-service-data.sql`: datos base para servicio diario y parrilla.
 - `docs/supabase/availability-overlay.sql`: base del overlay runtime de disponibilidad y roles de staff.
-- `docs/supabase/operational-edit-rpcs.sql`: RPCs de edicion operativa para el CMS.
+- `docs/supabase/operational-edit-rpcs.sql`: RPCs de edicion operativa.
 - `docs/supabase/hardening.sql`: hardening idempotente de constraints e indices.
-- `docs/supabase/audits/menu-schema-audit.sql`: auditoria read-only de constraints e indices esperados.
-- `docs/supabase/audits/database-audit.sql`: auditoria read-only de inventario, exposicion, objetos inesperados y hallazgos de datos.
+- `docs/supabase/audits/`: auditorias read-only.
 
 Flujo local-first para cambios de base:
 
@@ -289,13 +272,21 @@ Flujo local-first para cambios de base:
 4. Ejecutar `npm run menu:validate`, `npm run build`, `npm run verify:dist-secrets` y `npm run check`.
 5. Aplicar SQL mutante en Supabase remoto solo si los audits y validaciones pasan.
 
-## Estado operativo
+## Admin operativo
 
-`/admin/` es un CMS operativo estatico limitado a menu del dia, servicio activo por local, parrilla, precios globales, disponibilidad y publicacion. Supabase `menu_content` sigue siendo fuente build-time; el browser usa `get_admin_operational_state()` para lectura y RPCs operativas para escritura.
+`/admin/` es una ruta Astro estatica con cliente TypeScript. Usa Supabase Auth mediante `PUBLIC_SUPABASE_URL` y `PUBLIC_SUPABASE_ANON_KEY`.
 
-`public.staff_users` define empleados y roles, las RPCs operativas definen la superficie de escritura y `publish-menu-changes` define la frontera server-side para publicar cambios build-time. No existe administracion de empleados ni contenido editorial amplio dentro del sitio publico.
+El admin permite:
 
-Un CMS editorial amplio sigue fuera de alcance y requeriria una decision de arquitectura separada.
+- iniciar sesion y cerrar sesion
+- leer el estado operativo via `get_admin_operational_state()`
+- editar disponibilidad
+- editar el menu del dia base
+- cambiar el servicio activo por local entre `daily-menu` y `grill`
+- editar precios fijos y variantes globales
+- solicitar publicacion mediante `publish-menu-changes`
+
+No existe administracion de empleados en la UI actual. No existe CMS editorial amplio.
 
 ## Despliegue
 
@@ -311,6 +302,8 @@ Restricciones de esta etapa:
 - no hay escritura editorial amplia desde `/admin/` ni desde el sitio publico
 - no hay consultas directas desde el navegador a `menu_content` o `app_private`
 
+`vercel.json` define headers de seguridad y canonicaliza `/menu`, `/menu/corpo`, `/menu/teleinde` y `/admin` hacia sus rutas con slash final.
+
 ## Fuera de alcance
 
 No agregar estas capacidades salvo pedido explicito:
@@ -319,7 +312,7 @@ No agregar estas capacidades salvo pedido explicito:
 - checkout o pagos online
 - WhatsApp ordering
 - reservas
-- cuentas de usuario
+- cuentas de usuario publicas
 - carrito
 - SSR
 - Vercel serverless functions
@@ -334,6 +327,6 @@ No agregar estas capacidades salvo pedido explicito:
 - Supabase `menu_content` es la fuente estructural build-time.
 - El overlay runtime de disponibilidad queda separado de la estructura del menu.
 - `/admin/` es una ruta Astro estatica con cliente TypeScript y Supabase Auth.
-- `vercel.json` conserva la canonicalizacion de `/menu`, `/menu/corpo`, `/menu/teleinde` y `/admin`.
+- La publicacion operativa se concentra en la Supabase Edge Function `publish-menu-changes`.
 - Los nombres tecnicos, archivos y componentes estan en **ingles**.
 - El contenido visible para usuarios esta en **espanol**.
