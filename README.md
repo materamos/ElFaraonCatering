@@ -12,13 +12,13 @@ La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuent
 - `/menu/teleinde/` esta activo como parte del modelo multi-locacion.
 - `/menu/` sigue siendo un placeholder de entrada general para menus.
 - `/` sigue siendo un placeholder institucional futuro.
-- `/admin/` sigue siendo un placeholder estatico sin funcionalidad, servido desde `public/admin/index.html`.
+- `/admin/` es el panel operativo estatico para empleados.
 - Supabase `menu_content` es la fuente estructural y operativa build-time del menu.
 - El sitio sigue siendo static-first y se genera como output `"static"` en Astro.
 - El overlay runtime de disponibilidad sigue separado y se consume desde JavaScript cliente.
-- La base de permisos del CMS operativo queda versionada en `public.staff_users`, pero `/admin/` aun no implementa login ni escritura.
-- Las escrituras operativas quedan previstas mediante RPCs Supabase, sin grants directos sobre `menu_content`.
-- No hay CMS activo dentro del repo.
+- La base de permisos del CMS operativo queda versionada en `public.staff_users`.
+- Las lecturas y escrituras operativas del admin pasan por RPCs Supabase controladas, sin grants directos sobre `menu_content`.
+- El CMS activo queda limitado a disponibilidad, servicio del dia, parrilla, precios y publicacion.
 
 El rollback a la etapa anterior con archivos YAML se hace desde Git usando el tag `yaml-rollback-2026-05-02`.
 
@@ -228,6 +228,8 @@ Las RPCs operativas devuelven siempre `ok`, `changed`, `requires_redeploy`, `ope
 
 `public.staff_users` y sus helpers (`can_edit_availability(text)`, `can_manage_staff()`, `can_publish_menu()`) son precondicion obligatoria para instalar las RPCs operativas. `can_edit_menu_content()` se introduce en la fase de RPCs operativas; no es precondicion de la migracion de `staff_users`.
 
+`get_admin_operational_state()` es la unica superficie de lectura estructural para `/admin/`. Devuelve estado operativo filtrado por `staff_users`; el browser no lee `menu_content` ni `app_private` directamente.
+
 `publish-menu-changes` valida la sesion Supabase Auth del empleado, verifica `can_publish_menu()`, aplica cooldown global y llama el Vercel Deploy Hook desde secretos de Supabase Functions. La URL del hook es credencial y nunca debe llegar al browser ni versionarse. No se usa `pg_net` para publicar.
 
 Variables publicas del overlay:
@@ -274,7 +276,7 @@ SQL disponible:
 - `docs/supabase/schema.sql`: schema estructural `menu_content`.
 - `docs/supabase/daily-service-data.sql`: datos base para configuracion diaria y parrilla.
 - `docs/supabase/availability-overlay.sql`: base del overlay runtime de disponibilidad y roles de staff.
-- `docs/supabase/operational-edit-rpcs.sql`: RPCs de edicion operativa para el futuro CMS.
+- `docs/supabase/operational-edit-rpcs.sql`: RPCs de edicion operativa para el CMS.
 - `docs/supabase/hardening.sql`: hardening idempotente de constraints e indices.
 - `docs/supabase/audits/menu-schema-audit.sql`: auditoria read-only de constraints e indices esperados.
 - `docs/supabase/audits/database-audit.sql`: auditoria read-only de inventario, exposicion, objetos inesperados y hallazgos de datos.
@@ -289,9 +291,9 @@ Flujo local-first para cambios de base:
 
 ## Estado operativo
 
-No hay CMS activo dentro del repo en esta etapa. Supabase `menu_content` es la base prevista para un CMS operativo limitado a menu del dia, servicio activo por local y precios globales como datos build-time, mas disponibilidad como unico overlay runtime.
+`/admin/` es un CMS operativo estatico limitado a menu del dia, servicio activo por local, parrilla, precios globales, disponibilidad y publicacion. Supabase `menu_content` sigue siendo fuente build-time; el browser usa `get_admin_operational_state()` para lectura y RPCs operativas para escritura.
 
-`public.staff_users` define la base de empleados y roles para ese CMS, las RPCs operativas definen la superficie de escritura de base y `publish-menu-changes` define la frontera server-side para publicar cambios build-time. Todavia no existe UI de escritura desde `/admin/` ni administracion de contenido dentro del sitio publico.
+`public.staff_users` define empleados y roles, las RPCs operativas definen la superficie de escritura y `publish-menu-changes` define la frontera server-side para publicar cambios build-time. No existe administracion de empleados ni contenido editorial amplio dentro del sitio publico.
 
 Un CMS editorial amplio sigue fuera de alcance y requeriria una decision de arquitectura separada.
 
@@ -305,9 +307,9 @@ Restricciones de esta etapa:
 - no hay adapter de servidor
 - no hay Vercel Functions ni funciones server-side del sitio Astro
 - hay una Supabase Edge Function aislada para publicacion operativa
-- no hay CMS activo dentro del repo
-- no hay escritura editorial desde `/admin/` ni desde el sitio publico
-- no hay consultas estructurales desde el navegador
+- `/admin/` es estatico y no agrega SSR ni server output
+- no hay escritura editorial amplia desde `/admin/` ni desde el sitio publico
+- no hay consultas directas desde el navegador a `menu_content` o `app_private`
 
 ## Fuera de alcance
 
@@ -331,7 +333,7 @@ No agregar estas capacidades salvo pedido explicito:
 - El sitio sigue siendo **static-first** con extensiones cliente no bloqueantes.
 - Supabase `menu_content` es la fuente estructural build-time.
 - El overlay runtime de disponibilidad queda separado de la estructura del menu.
-- `/admin/` se mantiene como placeholder estatico en `public/admin/`.
+- `/admin/` es una ruta Astro estatica con cliente TypeScript y Supabase Auth.
 - `vercel.json` conserva la canonicalizacion de `/menu`, `/menu/corpo`, `/menu/teleinde` y `/admin`.
 - Los nombres tecnicos, archivos y componentes estan en **ingles**.
 - El contenido visible para usuarios esta en **espanol**.

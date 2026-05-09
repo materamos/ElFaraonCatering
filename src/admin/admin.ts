@@ -1,0 +1,1381 @@
+type StaffRole = "availability_editor" | "menu_editor" | "admin";
+type ServiceKind = "daily-menu" | "grill";
+type TargetKind = "daily-menu" | "grill" | "catalog";
+type AdminTabId = "availability" | "daily" | "grill" | "prices" | "publish";
+type StatusTone = "neutral" | "success" | "danger";
+
+interface AuthSession {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+  userEmail: string;
+}
+
+interface StaffState {
+  user_id: string;
+  display_name: string;
+  role: StaffRole;
+  profile_id: string | null;
+  active: boolean;
+}
+
+interface PermissionState {
+  can_edit_availability: boolean;
+  can_edit_menu_content: boolean;
+  can_publish_menu: boolean;
+  can_manage_staff: boolean;
+}
+
+interface ProfileState {
+  id: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  can_edit_availability: boolean;
+}
+
+interface ServiceSettingState {
+  profile_id: string;
+  service_kind: ServiceKind;
+}
+
+interface DailyMenuState {
+  item_id: string;
+  name: string;
+  description: string | null;
+  note: string | null;
+  available: boolean;
+  pricing_key: string;
+  order_index: number;
+}
+
+interface AvailabilityTargetState {
+  menu_id: string;
+  profile_title: string;
+  target_kind: TargetKind;
+  section_id: string;
+  section_title: string;
+  group_id: string;
+  group_title: string | null;
+  item_id: string;
+  name: string;
+  description: string | null;
+  base_available: boolean;
+}
+
+interface AvailabilityOverlayState {
+  menu_id: string;
+  section_id: string;
+  group_id: string;
+  item_id: string;
+  available_override: boolean;
+  updated_at: string;
+}
+
+interface FixedPriceState {
+  pricing_key: string;
+  amount: number;
+}
+
+interface VariantPriceState {
+  pricing_key: string;
+  variant_id: string;
+  name: string;
+  amount: number;
+  available: boolean;
+  order_index: number;
+}
+
+interface AdminOperationalState {
+  ok: boolean;
+  message: string;
+  staff: StaffState | null;
+  permissions: PermissionState;
+  profiles: ProfileState[];
+  service_settings: ServiceSettingState[];
+  daily_menu: DailyMenuState[];
+  availability_targets: AvailabilityTargetState[];
+  availability_overlays: AvailabilityOverlayState[];
+  prices: {
+    fixed: FixedPriceState[];
+    variants: VariantPriceState[];
+  };
+}
+
+interface RpcResult {
+  ok: boolean;
+  changed: boolean;
+  requires_redeploy: boolean;
+  operation: string;
+  message: string;
+}
+
+interface StatusMessage {
+  text: string;
+  tone: StatusTone;
+}
+
+const rootElement = document.querySelector<HTMLElement>("[data-admin-root]");
+const localStorageKey = "el-faraon-admin-session";
+const regularDailyId = "menu-del-dia";
+const regularDrinkDailyId = "menu-del-dia-con-bebida";
+const vegetarianDailyId = "menu-vegetariano-del-dia";
+const vegetarianDrinkDailyId = "menu-vegetariano-del-dia-con-bebida";
+
+const supabaseUrl = trimTrailingSlash(import.meta.env.PUBLIC_SUPABASE_URL);
+const supabaseAnonKey = getTrimmedValue(import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
+const configuredSupabaseUrl = supabaseUrl ?? "";
+const configuredSupabaseAnonKey = supabaseAnonKey ?? "";
+
+let currentSession: AuthSession | null = null;
+let currentState: AdminOperationalState | null = null;
+let currentStatus: StatusMessage | null = null;
+let activeTab: AdminTabId = "availability";
+let hasPendingPublication = false;
+let isBusy = false;
+let availabilityProfileFilter = "";
+let availabilityKindFilter = "";
+let grillProfileFilter = "";
+
+if (!rootElement) {
+  throw new Error("Admin root element was not found.");
+}
+
+const root: HTMLElement = rootElement;
+
+root.addEventListener("click", (event) => {
+  const target = event.target instanceof Element
+    ? event.target.closest<HTMLElement>("[data-admin-action]")
+    : null;
+
+  if (!target || !root.contains(target)) {
+    return;
+  }
+
+  event.preventDefault();
+  void handleAction(target).catch(handleUnexpectedError);
+});
+
+root.addEventListener("submit", (event) => {
+  const form = event.target instanceof HTMLFormElement ? event.target : null;
+
+  if (!form) {
+    return;
+  }
+
+  event.preventDefault();
+  void handleFormSubmit(form).catch(handleUnexpectedError);
+});
+
+root.addEventListener("change", (event) => {
+  const field = event.target instanceof HTMLSelectElement ? event.target : null;
+
+  if (!field?.dataset.adminFilter) {
+    return;
+  }
+
+  if (field.dataset.adminFilter === "availability-profile") {
+    availabilityProfileFilter = field.value;
+  }
+
+  if (field.dataset.adminFilter === "availability-kind") {
+    availabilityKindFilter = field.value;
+  }
+
+  if (field.dataset.adminFilter === "grill-profile") {
+    grillProfileFilter = field.value;
+  }
+
+  renderAuthenticated();
+});
+
+void startAdmin().catch(handleUnexpectedError);
+
+async function startAdmin(): Promise<void> {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    renderConfigurationError();
+    return;
+  }
+
+  currentSession = await getValidSession();
+
+  if (!currentSession) {
+    renderLogin();
+    return;
+  }
+
+  await loadAdminState();
+}
+
+async function handleAction(target: HTMLElement): Promise<void> {
+  const action = target.dataset.adminAction;
+
+  if (action === "logout") {
+    await logout();
+    return;
+  }
+
+  if (action === "reload") {
+    await runBusy(async () => {
+      await loadAdminState("Estado actualizado.", "success");
+    });
+    return;
+  }
+
+  if (action === "tab") {
+    const tab = target.dataset.adminTab as AdminTabId | undefined;
+
+    if (tab) {
+      activeTab = tab;
+      renderAuthenticated();
+    }
+
+    return;
+  }
+
+  if (action === "set-overlay") {
+    const targetKey = target.dataset.targetKey;
+    const available = target.dataset.available === "true";
+    const availabilityTarget = targetKey ? findAvailabilityTarget(targetKey) : undefined;
+
+    if (!availabilityTarget) {
+      setStatus("No se encontro el item seleccionado.", "danger");
+      return;
+    }
+
+    await saveAvailabilityOverlay(availabilityTarget, available);
+    return;
+  }
+
+  if (action === "clear-overlay") {
+    const targetKey = target.dataset.targetKey;
+    const availabilityTarget = targetKey ? findAvailabilityTarget(targetKey) : undefined;
+
+    if (!availabilityTarget) {
+      setStatus("No se encontro el item seleccionado.", "danger");
+      return;
+    }
+
+    await clearAvailabilityOverlay(availabilityTarget);
+    return;
+  }
+
+  if (action === "publish") {
+    await publishChanges();
+  }
+}
+
+async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
+  const formKind = form.dataset.adminForm;
+
+  if (formKind === "login") {
+    await login(form);
+    return;
+  }
+
+  if (!currentSession) {
+    renderLogin();
+    return;
+  }
+
+  if (formKind === "daily-menu") {
+    await saveDailyMenu(form);
+    return;
+  }
+
+  if (formKind === "service-kind") {
+    await saveServiceKind(form);
+    return;
+  }
+
+  if (formKind === "fixed-price") {
+    await saveFixedPrice(form);
+    return;
+  }
+
+  if (formKind === "variant-price") {
+    await saveVariantPrice(form);
+  }
+}
+
+async function login(form: HTMLFormElement): Promise<void> {
+  const email = getFormString(form, "email");
+  const password = getFormString(form, "password");
+
+  if (!email || !password) {
+    setStatus("Completa email y contrasena.", "danger");
+    renderLogin();
+    return;
+  }
+
+  await runBusy(async () => {
+    const response = await fetch(`${configuredSupabaseUrl}/auth/v1/token?grant_type=password`, {
+      method: "POST",
+      headers: {
+        apikey: configuredSupabaseAnonKey,
+        "Content-Type": "application/json",
+      },
+      credentials: "omit",
+      body: JSON.stringify({ email, password }),
+    });
+
+    const body = await readJsonBody(response);
+
+    if (!response.ok || !isAuthResponse(body)) {
+      throw new Error("No se pudo iniciar sesion.");
+    }
+
+    currentSession = createSession(body);
+    saveStoredSession(currentSession);
+    await loadAdminState("Sesion iniciada.", "success");
+  });
+}
+
+async function logout(): Promise<void> {
+  const session = currentSession;
+  clearStoredSession();
+  currentSession = null;
+  currentState = null;
+  hasPendingPublication = false;
+
+  if (session) {
+    await fetch(`${configuredSupabaseUrl}/auth/v1/logout`, {
+      method: "POST",
+      headers: {
+        apikey: configuredSupabaseAnonKey,
+        Authorization: `Bearer ${session.accessToken}`,
+      },
+      credentials: "omit",
+    }).catch(() => undefined);
+  }
+
+  currentStatus = { text: "Sesion cerrada.", tone: "success" };
+  renderLogin();
+}
+
+async function loadAdminState(
+  statusText?: string,
+  statusTone: StatusTone = "neutral",
+): Promise<void> {
+  const state = await callRpc<AdminOperationalState>("get_admin_operational_state", {});
+  currentState = normalizeAdminState(state);
+  currentStatus = statusText ? { text: statusText, tone: statusTone } : currentStatus;
+  ensureActiveTab();
+  renderAuthenticated();
+}
+
+async function saveAvailabilityOverlay(
+  target: AvailabilityTargetState,
+  available: boolean,
+): Promise<void> {
+  await runBusy(async () => {
+    const result = await callMutation("set_menu_availability_overlay", {
+      menu_id: target.menu_id,
+      section_id: target.section_id,
+      group_id: target.group_id || null,
+      item_id: target.item_id,
+      available_override: available,
+    });
+
+    if (!result.ok) {
+      throw new Error(resultMessage(result));
+    }
+
+    await loadAdminState(result.changed ? "Disponibilidad actualizada." : "Sin cambios.", "success");
+  });
+}
+
+async function clearAvailabilityOverlay(target: AvailabilityTargetState): Promise<void> {
+  await runBusy(async () => {
+    const result = await callMutation("clear_menu_availability_overlay", {
+      menu_id: target.menu_id,
+      section_id: target.section_id,
+      group_id: target.group_id || null,
+      item_id: target.item_id,
+    });
+
+    if (!result.ok) {
+      throw new Error(resultMessage(result));
+    }
+
+    await loadAdminState(result.changed ? "Override eliminado." : "Sin cambios.", "success");
+  });
+}
+
+async function saveDailyMenu(form: HTMLFormElement): Promise<void> {
+  await runBusy(async () => {
+    const result = await callMutation("set_daily_menu", {
+      regular_name: getFormString(form, "regular_name"),
+      regular_description: getNullableFormString(form, "regular_description"),
+      regular_note: getNullableFormString(form, "regular_note"),
+      regular_available: getFormCheckbox(form, "regular_available"),
+      vegetarian_name: getFormString(form, "vegetarian_name"),
+      vegetarian_description: getNullableFormString(form, "vegetarian_description"),
+      vegetarian_note: getNullableFormString(form, "vegetarian_note"),
+      vegetarian_available: getFormCheckbox(form, "vegetarian_available"),
+    });
+
+    if (!result.ok) {
+      throw new Error(resultMessage(result));
+    }
+
+    markPendingIfNeeded(result);
+    await loadAdminState(
+      result.changed ? "Guardado. Falta publicar para verlo en el menu." : "Sin cambios.",
+      "success",
+    );
+  });
+}
+
+async function saveServiceKind(form: HTMLFormElement): Promise<void> {
+  await runBusy(async () => {
+    const result = await callMutation("set_profile_service_kind", {
+      profile_id: getFormString(form, "profile_id"),
+      service_kind: getFormString(form, "service_kind"),
+    });
+
+    if (!result.ok) {
+      throw new Error(resultMessage(result));
+    }
+
+    markPendingIfNeeded(result);
+    await loadAdminState(
+      result.changed ? "Servicio guardado. Falta publicar." : "Sin cambios.",
+      "success",
+    );
+  });
+}
+
+async function saveFixedPrice(form: HTMLFormElement): Promise<void> {
+  await runBusy(async () => {
+    const result = await callMutation("set_global_fixed_price", {
+      pricing_key: getFormString(form, "pricing_key"),
+      amount: getFormInteger(form, "amount"),
+    });
+
+    if (!result.ok) {
+      throw new Error(resultMessage(result));
+    }
+
+    markPendingIfNeeded(result);
+    await loadAdminState(
+      result.changed ? "Precio guardado. Falta publicar." : "Sin cambios.",
+      "success",
+    );
+  });
+}
+
+async function saveVariantPrice(form: HTMLFormElement): Promise<void> {
+  await runBusy(async () => {
+    const result = await callMutation("set_global_price_variant", {
+      pricing_key: getFormString(form, "pricing_key"),
+      variant_id: getFormString(form, "variant_id"),
+      amount: getFormInteger(form, "amount"),
+      available: getFormCheckbox(form, "available"),
+    });
+
+    if (!result.ok) {
+      throw new Error(resultMessage(result));
+    }
+
+    markPendingIfNeeded(result);
+    await loadAdminState(
+      result.changed ? "Variante guardada. Falta publicar." : "Sin cambios.",
+      "success",
+    );
+  });
+}
+
+async function publishChanges(): Promise<void> {
+  await runBusy(async () => {
+    const session = await requireSession();
+    const response = await fetch(`${configuredSupabaseUrl}/functions/v1/publish-menu-changes`, {
+      method: "POST",
+      headers: {
+        apikey: configuredSupabaseAnonKey,
+        Authorization: `Bearer ${session.accessToken}`,
+      },
+      credentials: "omit",
+    });
+    const body = await readJsonBody(response);
+    const result = isRpcResult(body) ? body : null;
+
+    if (!response.ok || !result?.ok) {
+      throw new Error(result ? resultMessage(result) : "No se pudo publicar.");
+    }
+
+    if (result.message === "publish_queued") {
+      hasPendingPublication = false;
+      await loadAdminState("Publicacion solicitada. El deploy puede tardar unos minutos.", "success");
+      return;
+    }
+
+    if (result.message === "publish_recently_queued") {
+      hasPendingPublication = false;
+      await loadAdminState("Ya hay una publicacion reciente encolada.", "success");
+      return;
+    }
+
+    await loadAdminState(resultMessage(result), "success");
+  });
+}
+
+async function callMutation(name: string, body: Record<string, unknown>): Promise<RpcResult> {
+  const response = await callRpc<unknown>(name, body);
+  const result = Array.isArray(response) ? response[0] : response;
+
+  if (!isRpcResult(result)) {
+    throw new Error("Respuesta inesperada de Supabase.");
+  }
+
+  return result;
+}
+
+async function callRpc<T>(name: string, body: Record<string, unknown>): Promise<T> {
+  const session = await requireSession();
+  const response = await fetch(`${configuredSupabaseUrl}/rest/v1/rpc/${name}`, {
+    method: "POST",
+    headers: {
+      apikey: configuredSupabaseAnonKey,
+      Authorization: `Bearer ${session.accessToken}`,
+      "Content-Type": "application/json",
+    },
+    credentials: "omit",
+    body: JSON.stringify(body),
+  });
+  const responseBody = await readJsonBody(response);
+
+  if (response.status === 401) {
+    clearStoredSession();
+    currentSession = null;
+    currentState = null;
+    throw new Error("La sesion expiro. Volve a iniciar sesion.");
+  }
+
+  if (!response.ok) {
+    throw new Error(readErrorMessage(responseBody));
+  }
+
+  return responseBody as T;
+}
+
+async function requireSession(): Promise<AuthSession> {
+  const session = await getValidSession();
+
+  if (!session) {
+    renderLogin();
+    throw new Error("La sesion expiro. Volve a iniciar sesion.");
+  }
+
+  currentSession = session;
+  return session;
+}
+
+async function getValidSession(): Promise<AuthSession | null> {
+  const storedSession = readStoredSession();
+
+  if (!storedSession) {
+    return null;
+  }
+
+  if (storedSession.expiresAt - Date.now() > 60_000) {
+    return storedSession;
+  }
+
+  return refreshSession(storedSession);
+}
+
+async function refreshSession(session: AuthSession): Promise<AuthSession | null> {
+  const response = await fetch(`${configuredSupabaseUrl}/auth/v1/token?grant_type=refresh_token`, {
+    method: "POST",
+    headers: {
+      apikey: configuredSupabaseAnonKey,
+      "Content-Type": "application/json",
+    },
+    credentials: "omit",
+    body: JSON.stringify({ refresh_token: session.refreshToken }),
+  });
+  const body = await readJsonBody(response);
+
+  if (!response.ok || !isAuthResponse(body)) {
+    clearStoredSession();
+    return null;
+  }
+
+  const refreshedSession = createSession(body);
+  saveStoredSession(refreshedSession);
+  return refreshedSession;
+}
+
+function renderConfigurationError(): void {
+  root.innerHTML = `
+    <section class="admin-denied">
+      <p class="admin-kicker">Panel operativo</p>
+      <h1 class="admin-title">Configuracion incompleta</h1>
+      <div class="admin-denied__panel">
+        <p class="admin-muted">Faltan las variables publicas de Supabase para cargar el admin.</p>
+      </div>
+    </section>
+  `;
+}
+
+function renderLogin(): void {
+  root.innerHTML = `
+    <section class="admin-login">
+      <div>
+        <p class="admin-kicker">Panel operativo</p>
+        <h1 class="admin-title">Ingresar</h1>
+      </div>
+      ${renderStatus()}
+      <form class="admin-login__form" data-admin-form="login">
+        <label class="admin-field">
+          <span class="admin-label">Email</span>
+          <input class="admin-input" type="email" name="email" autocomplete="email" required />
+        </label>
+        <label class="admin-field">
+          <span class="admin-label">Contrasena</span>
+          <input class="admin-input" type="password" name="password" autocomplete="current-password" required />
+        </label>
+        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Iniciar sesion</button>
+      </form>
+    </section>
+  `;
+}
+
+function renderAuthenticated(): void {
+  if (!currentState?.ok || !currentState.staff) {
+    renderDenied();
+    return;
+  }
+
+  ensureActiveTab();
+  const tabs = getAllowedTabs(currentState);
+
+  root.innerHTML = `
+    <section class="admin-shell">
+      <header class="admin-header">
+        <div class="admin-header__main">
+          <div>
+            <p class="admin-kicker">Panel operativo</p>
+            <h1 class="admin-title">Admin El Faraon</h1>
+          </div>
+          <div class="admin-header__identity">
+            <span>${escapeHtml(currentState.staff.display_name)}</span>
+            <span>${escapeHtml(roleLabel(currentState.staff.role))}</span>
+            <button class="admin-button admin-button--secondary" type="button" data-admin-action="logout" ${isBusy ? "disabled" : ""}>Salir</button>
+          </div>
+        </div>
+        <nav class="admin-tabs" aria-label="Secciones del admin">
+          ${tabs.map((tab) => `
+            <button
+              class="admin-tab"
+              type="button"
+              data-admin-action="tab"
+              data-admin-tab="${tab.id}"
+              aria-selected="${activeTab === tab.id ? "true" : "false"}"
+            >${escapeHtml(tab.label)}</button>
+          `).join("")}
+        </nav>
+      </header>
+      ${renderPublishBanner(currentState)}
+      ${renderStatus()}
+      ${renderActiveTab(currentState)}
+    </section>
+  `;
+}
+
+function renderDenied(): void {
+  const message = currentState?.message === "staff_access_denied"
+    ? "Tu usuario no tiene acceso activo al panel operativo."
+    : "No se pudo cargar el panel operativo.";
+
+  root.innerHTML = `
+    <section class="admin-denied">
+      <p class="admin-kicker">Panel operativo</p>
+      <h1 class="admin-title">Sin acceso</h1>
+      ${renderStatus()}
+      <div class="admin-denied__panel">
+        <p class="admin-muted">${escapeHtml(message)}</p>
+        <div class="admin-row__actions">
+          <button class="admin-button admin-button--secondary" type="button" data-admin-action="reload" ${isBusy ? "disabled" : ""}>Reintentar</button>
+          <button class="admin-button" type="button" data-admin-action="logout" ${isBusy ? "disabled" : ""}>Salir</button>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderActiveTab(state: AdminOperationalState): string {
+  if (activeTab === "availability") {
+    return renderAvailabilityTab(state);
+  }
+
+  if (activeTab === "daily") {
+    return renderDailyTab(state);
+  }
+
+  if (activeTab === "grill") {
+    return renderGrillTab(state);
+  }
+
+  if (activeTab === "prices") {
+    return renderPricesTab(state);
+  }
+
+  return renderPublishTab(state);
+}
+
+function renderAvailabilityTab(state: AdminOperationalState): string {
+  return `
+    <section class="admin-section">
+      <div class="admin-section__header">
+        <h2 class="admin-section__title">Disponibilidad</h2>
+        <p class="admin-section__copy">Cambios runtime. Se aplican sin publicar.</p>
+      </div>
+      ${renderAvailabilityFilters(state, "availability")}
+      ${renderAvailabilityRows(state, undefined)}
+    </section>
+  `;
+}
+
+function renderDailyTab(state: AdminOperationalState): string {
+  const regular = findDailyItem(state, regularDailyId);
+  const regularDrink = findDailyItem(state, regularDrinkDailyId);
+  const vegetarian = findDailyItem(state, vegetarianDailyId);
+  const vegetarianDrink = findDailyItem(state, vegetarianDrinkDailyId);
+
+  return `
+    <section class="admin-section">
+      <div class="admin-section__header">
+        <h2 class="admin-section__title">Servicio del dia</h2>
+        <p class="admin-section__copy">Edita las bases del menu del dia. Las opciones con bebida se derivan automaticamente.</p>
+      </div>
+      <form class="admin-form-grid" data-admin-form="daily-menu">
+        ${renderDailyFieldset("Menu regular", "regular", regular)}
+        ${renderDailyFieldset("Menu vegetariano", "vegetarian", vegetarian)}
+        <div class="admin-row">
+          <div class="admin-row__main">
+            <p class="admin-row__title">Opciones derivadas</p>
+            <p class="admin-row__meta">
+              ${escapeHtml(regularDrink?.name ?? "Menu regular + bebida")} /
+              ${escapeHtml(vegetarianDrink?.name ?? "Menu vegetariano + bebida")}
+            </p>
+          </div>
+          <div class="admin-row__actions">
+            <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar menu del dia</button>
+          </div>
+        </div>
+      </form>
+    </section>
+  `;
+}
+
+function renderGrillTab(state: AdminOperationalState): string {
+  const serviceEditor = state.permissions.can_edit_menu_content;
+  const availabilityEditor = state.permissions.can_edit_availability;
+
+  return `
+    <section class="admin-section">
+      <div class="admin-section__header">
+        <h2 class="admin-section__title">Parrilla</h2>
+        <p class="admin-section__copy">Activar parrilla por local requiere publicar. La disponibilidad de items es runtime.</p>
+      </div>
+      ${serviceEditor ? renderServiceKindForms(state) : ""}
+      ${availabilityEditor ? `
+        ${renderAvailabilityFilters(state, "grill")}
+        ${renderAvailabilityRows(state, "grill")}
+      ` : ""}
+      ${!serviceEditor && !availabilityEditor ? renderEmpty("No hay acciones de parrilla disponibles para este rol.") : ""}
+    </section>
+  `;
+}
+
+function renderPricesTab(state: AdminOperationalState): string {
+  const fixedRows = state.prices.fixed;
+  const variantRows = state.prices.variants;
+
+  return `
+    <section class="admin-section">
+      <div class="admin-section__header">
+        <h2 class="admin-section__title">Precios</h2>
+        <p class="admin-section__copy">Precios globales. Guardar requiere publicar para verse en el menu publico.</p>
+      </div>
+      <div class="admin-price-grid">
+        <div class="admin-grid">
+          <p class="admin-kicker">Precios fijos</p>
+          ${fixedRows.length > 0 ? fixedRows.map(renderFixedPriceRow).join("") : renderEmpty("No hay precios fijos editables.")}
+        </div>
+        <div class="admin-grid">
+          <p class="admin-kicker">Variantes</p>
+          ${variantRows.length > 0 ? variantRows.map(renderVariantPriceRow).join("") : renderEmpty("No hay variantes editables.")}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderPublishTab(state: AdminOperationalState): string {
+  return `
+    <section class="admin-section">
+      <div class="admin-section__header">
+        <h2 class="admin-section__title">Publicacion</h2>
+        <p class="admin-section__copy">Publicar encola un deploy. No confirma que Vercel haya terminado.</p>
+      </div>
+      <div class="admin-row">
+        <div class="admin-row__main">
+          <p class="admin-row__title">${hasPendingPublication ? "Hay cambios guardados por publicar" : "Sin cambios pendientes detectados en esta sesion"}</p>
+          <p class="admin-row__meta">Despues de publicar, el menu publico puede tardar unos minutos en reflejar cambios build-time.</p>
+        </div>
+        <div class="admin-row__actions">
+          <button class="admin-button" type="button" data-admin-action="publish" ${isBusy || !state.permissions.can_publish_menu ? "disabled" : ""}>Publicar cambios</button>
+          <button class="admin-button admin-button--secondary" type="button" data-admin-action="reload" ${isBusy ? "disabled" : ""}>Actualizar estado</button>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderPublishBanner(state: AdminOperationalState): string {
+  if (!hasPendingPublication || !state.permissions.can_publish_menu) {
+    return "";
+  }
+
+  return `
+    <div class="admin-banner">
+      <span>Hay cambios guardados que requieren publicacion.</span>
+      <button class="admin-button" type="button" data-admin-action="publish" ${isBusy ? "disabled" : ""}>Publicar cambios</button>
+    </div>
+  `;
+}
+
+function renderStatus(): string {
+  if (!currentStatus) {
+    return "";
+  }
+
+  return `
+    <div class="admin-status" data-tone="${currentStatus.tone}" aria-live="polite">
+      <span>${escapeHtml(currentStatus.text)}</span>
+    </div>
+  `;
+}
+
+function renderAvailabilityFilters(
+  state: AdminOperationalState,
+  scope: "availability" | "grill",
+): string {
+  const profileFilter = scope === "grill" ? grillProfileFilter : availabilityProfileFilter;
+
+  return `
+    <div class="admin-toolbar">
+      <label class="admin-field">
+        <span class="admin-label">Local</span>
+        <select class="admin-select" data-admin-filter="${scope === "grill" ? "grill-profile" : "availability-profile"}">
+          <option value="">Todos</option>
+          ${state.profiles
+            .filter((profile) => profile.can_edit_availability)
+            .map((profile) => `<option value="${escapeHtml(profile.id)}" ${profileFilter === profile.id ? "selected" : ""}>${escapeHtml(profile.title)}</option>`)
+            .join("")}
+        </select>
+      </label>
+      ${scope === "availability" ? `
+        <label class="admin-field">
+          <span class="admin-label">Tipo</span>
+          <select class="admin-select" data-admin-filter="availability-kind">
+            ${[
+              ["", "Todos"],
+              ["daily-menu", "Menu del dia"],
+              ["grill", "Parrilla"],
+              ["catalog", "Catalogo"],
+            ].map(([value, label]) => `<option value="${value}" ${availabilityKindFilter === value ? "selected" : ""}>${label}</option>`).join("")}
+          </select>
+        </label>
+      ` : ""}
+    </div>
+  `;
+}
+
+function renderAvailabilityRows(
+  state: AdminOperationalState,
+  kindLimit: TargetKind | undefined,
+): string {
+  const profileFilter = kindLimit === "grill" ? grillProfileFilter : availabilityProfileFilter;
+  const kindFilter = kindLimit ?? (availabilityKindFilter as TargetKind | "");
+  const targets = state.availability_targets.filter((target) =>
+    (!profileFilter || target.menu_id === profileFilter)
+    && (!kindFilter || target.target_kind === kindFilter)
+  );
+
+  if (targets.length === 0) {
+    return renderEmpty("No hay items disponibles para este rol.");
+  }
+
+  return `<div class="admin-grid">${targets.map((target) => renderAvailabilityRow(state, target)).join("")}</div>`;
+}
+
+function renderAvailabilityRow(
+  state: AdminOperationalState,
+  target: AvailabilityTargetState,
+): string {
+  const overlay = findOverlay(state, target);
+  const effectiveAvailable = overlay ? overlay.available_override : target.base_available;
+  const key = getTargetKey(target);
+
+  return `
+    <div class="admin-row">
+      <div class="admin-row__main">
+        <p class="admin-row__title">${escapeHtml(target.name)}</p>
+        <p class="admin-row__meta">
+          ${escapeHtml(target.profile_title)} · ${escapeHtml(target.section_title)}
+          ${target.group_title ? ` · ${escapeHtml(target.group_title)}` : ""}
+        </p>
+        ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
+        <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">${effectiveAvailable ? "Disponible" : "No disponible"}</span>
+        ${overlay ? `<p class="admin-row__meta">Override activo.</p>` : `<p class="admin-row__meta">Usando disponibilidad base.</p>`}
+      </div>
+      <div class="admin-row__actions">
+        <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" ${isBusy ? "disabled" : ""}>Disponible</button>
+        <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="false" ${isBusy ? "disabled" : ""}>No disponible</button>
+        <button class="admin-button admin-button--secondary" type="button" data-admin-action="clear-overlay" data-target-key="${escapeHtml(key)}" ${isBusy || !overlay ? "disabled" : ""}>Limpiar</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderDailyFieldset(
+  label: string,
+  prefix: "regular" | "vegetarian",
+  item: DailyMenuState | undefined,
+): string {
+  return `
+    <fieldset class="admin-grid">
+      <legend class="admin-kicker">${escapeHtml(label)}</legend>
+      <label class="admin-field">
+        <span class="admin-label">Nombre</span>
+        <input class="admin-input" name="${prefix}_name" value="${escapeHtml(item?.name ?? "")}" required />
+      </label>
+      <label class="admin-field admin-field--wide">
+        <span class="admin-label">Descripcion</span>
+        <textarea class="admin-textarea" name="${prefix}_description">${escapeHtml(item?.description ?? "")}</textarea>
+      </label>
+      <label class="admin-field admin-field--wide">
+        <span class="admin-label">Nota</span>
+        <textarea class="admin-textarea" name="${prefix}_note">${escapeHtml(item?.note ?? "")}</textarea>
+      </label>
+      <label class="admin-checkbox">
+        <input type="checkbox" name="${prefix}_available" ${item?.available !== false ? "checked" : ""} />
+        Disponible
+      </label>
+    </fieldset>
+  `;
+}
+
+function renderServiceKindForms(state: AdminOperationalState): string {
+  if (state.profiles.length === 0) {
+    return renderEmpty("No hay locales para configurar.");
+  }
+
+  return `
+    <div class="admin-grid">
+      <p class="admin-kicker">Servicio activo por local</p>
+      ${state.profiles.map((profile) => {
+        const currentService = findServiceKind(state, profile.id);
+
+        return `
+          <form class="admin-row" data-admin-form="service-kind">
+            <div class="admin-row__main">
+              <p class="admin-row__title">${escapeHtml(profile.title)}</p>
+              <p class="admin-row__meta">Cambiar este valor requiere publicacion.</p>
+            </div>
+            <div class="admin-row__actions">
+              <input type="hidden" name="profile_id" value="${escapeHtml(profile.id)}" />
+              <select class="admin-select" name="service_kind">
+                <option value="daily-menu" ${currentService === "daily-menu" ? "selected" : ""}>Menu del dia</option>
+                <option value="grill" ${currentService === "grill" ? "selected" : ""}>Parrilla</option>
+              </select>
+              <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar</button>
+            </div>
+          </form>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function renderFixedPriceRow(price: FixedPriceState): string {
+  return `
+    <form class="admin-row" data-admin-form="fixed-price">
+      <div class="admin-row__main">
+        <p class="admin-row__title">${escapeHtml(price.pricing_key)}</p>
+        <p class="admin-row__meta">Actual: ${escapeHtml(formatAmount(price.amount))}</p>
+      </div>
+      <div class="admin-row__actions">
+        <input type="hidden" name="pricing_key" value="${escapeHtml(price.pricing_key)}" />
+        <input class="admin-input" type="number" name="amount" min="0" step="1" value="${price.amount}" required />
+        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar</button>
+      </div>
+    </form>
+  `;
+}
+
+function renderVariantPriceRow(variant: VariantPriceState): string {
+  return `
+    <form class="admin-row" data-admin-form="variant-price">
+      <div class="admin-row__main">
+        <p class="admin-row__title">${escapeHtml(variant.pricing_key)} / ${escapeHtml(variant.name)}</p>
+        <p class="admin-row__meta">Actual: ${escapeHtml(formatAmount(variant.amount))}</p>
+      </div>
+      <div class="admin-row__actions">
+        <input type="hidden" name="pricing_key" value="${escapeHtml(variant.pricing_key)}" />
+        <input type="hidden" name="variant_id" value="${escapeHtml(variant.variant_id)}" />
+        <input class="admin-input" type="number" name="amount" min="0" step="1" value="${variant.amount}" required />
+        <label class="admin-checkbox">
+          <input type="checkbox" name="available" ${variant.available ? "checked" : ""} />
+          Disponible
+        </label>
+        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar</button>
+      </div>
+    </form>
+  `;
+}
+
+function renderEmpty(message: string): string {
+  return `<p class="admin-muted">${escapeHtml(message)}</p>`;
+}
+
+function getAllowedTabs(state: AdminOperationalState): Array<{ id: AdminTabId; label: string }> {
+  const tabs: Array<{ id: AdminTabId; label: string }> = [];
+
+  if (state.permissions.can_edit_availability) {
+    tabs.push({ id: "availability", label: "Disponibilidad" });
+  }
+
+  if (state.permissions.can_edit_menu_content) {
+    tabs.push({ id: "daily", label: "Servicio del dia" });
+  }
+
+  if (state.permissions.can_edit_availability || state.permissions.can_edit_menu_content) {
+    tabs.push({ id: "grill", label: "Parrilla" });
+  }
+
+  if (state.permissions.can_edit_menu_content) {
+    tabs.push({ id: "prices", label: "Precios" });
+  }
+
+  if (state.permissions.can_publish_menu) {
+    tabs.push({ id: "publish", label: "Publicacion" });
+  }
+
+  return tabs;
+}
+
+function ensureActiveTab(): void {
+  if (!currentState) {
+    return;
+  }
+
+  const allowedTabs = getAllowedTabs(currentState);
+
+  if (!allowedTabs.some((tab) => tab.id === activeTab)) {
+    activeTab = allowedTabs[0]?.id ?? "availability";
+  }
+}
+
+function findDailyItem(
+  state: AdminOperationalState,
+  itemId: string,
+): DailyMenuState | undefined {
+  return state.daily_menu.find((item) => item.item_id === itemId);
+}
+
+function findServiceKind(state: AdminOperationalState, profileId: string): ServiceKind {
+  return state.service_settings.find((entry) => entry.profile_id === profileId)?.service_kind
+    ?? "daily-menu";
+}
+
+function findOverlay(
+  state: AdminOperationalState,
+  target: AvailabilityTargetState,
+): AvailabilityOverlayState | undefined {
+  return state.availability_overlays.find((overlay) => getOverlayKey(overlay) === getTargetKey(target));
+}
+
+function findAvailabilityTarget(key: string): AvailabilityTargetState | undefined {
+  return currentState?.availability_targets.find((target) => getTargetKey(target) === key);
+}
+
+function getTargetKey(target: {
+  menu_id: string;
+  section_id: string;
+  group_id: string;
+  item_id: string;
+}): string {
+  return `${target.menu_id}/${target.section_id}/${target.group_id}/${target.item_id}`;
+}
+
+function getOverlayKey(overlay: {
+  menu_id: string;
+  section_id: string;
+  group_id: string;
+  item_id: string;
+}): string {
+  return `${overlay.menu_id}/${overlay.section_id}/${overlay.group_id}/${overlay.item_id}`;
+}
+
+function markPendingIfNeeded(result: RpcResult): void {
+  if (result.ok && result.changed && result.requires_redeploy) {
+    hasPendingPublication = true;
+  }
+}
+
+function setStatus(text: string, tone: StatusTone): void {
+  currentStatus = { text, tone };
+
+  if (currentSession && currentState) {
+    renderAuthenticated();
+  } else {
+    renderLogin();
+  }
+}
+
+async function runBusy(action: () => Promise<void>): Promise<void> {
+  isBusy = true;
+
+  if (currentSession && currentState) {
+    renderAuthenticated();
+  } else {
+    renderLogin();
+  }
+
+  try {
+    await action();
+  } catch (error) {
+    handleUnexpectedError(error);
+  } finally {
+    isBusy = false;
+
+    if (currentSession && currentState) {
+      renderAuthenticated();
+    } else {
+      renderLogin();
+    }
+  }
+}
+
+function handleUnexpectedError(error: unknown): void {
+  const message = error instanceof Error ? error.message : "Ocurrio un error inesperado.";
+  currentStatus = { text: message, tone: "danger" };
+
+  if (currentSession && currentState) {
+    renderAuthenticated();
+  } else {
+    renderLogin();
+  }
+}
+
+function normalizeAdminState(state: AdminOperationalState): AdminOperationalState {
+  return {
+    ...state,
+    profiles: Array.isArray(state.profiles) ? state.profiles : [],
+    service_settings: Array.isArray(state.service_settings) ? state.service_settings : [],
+    daily_menu: Array.isArray(state.daily_menu) ? state.daily_menu : [],
+    availability_targets: Array.isArray(state.availability_targets) ? state.availability_targets : [],
+    availability_overlays: Array.isArray(state.availability_overlays) ? state.availability_overlays : [],
+    prices: {
+      fixed: Array.isArray(state.prices?.fixed) ? state.prices.fixed : [],
+      variants: Array.isArray(state.prices?.variants) ? state.prices.variants : [],
+    },
+  };
+}
+
+function roleLabel(role: StaffRole): string {
+  if (role === "admin") {
+    return "Admin";
+  }
+
+  if (role === "menu_editor") {
+    return "Editor de menu";
+  }
+
+  return "Editor de disponibilidad";
+}
+
+function resultMessage(result: RpcResult): string {
+  const messages: Record<string, string> = {
+    permission_denied: "No tenes permisos para esta accion.",
+    publish_queued: "Publicacion solicitada. El deploy puede tardar unos minutos.",
+    publish_recently_queued: "Ya hay una publicacion reciente encolada.",
+    publish_failed: "No se pudo publicar.",
+    invalid_amount: "El importe no es valido.",
+    daily_menu_name_required: "El nombre del menu es obligatorio.",
+    daily_menu_available_required: "La disponibilidad del menu es obligatoria.",
+    invalid_service_kind: "El servicio seleccionado no es valido.",
+  };
+
+  return messages[result.message] ?? result.message.replaceAll("_", " ");
+}
+
+function getFormString(form: HTMLFormElement, name: string): string {
+  const value = new FormData(form).get(name);
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function getNullableFormString(form: HTMLFormElement, name: string): string | null {
+  const value = getFormString(form, name);
+  return value.length > 0 ? value : null;
+}
+
+function getFormCheckbox(form: HTMLFormElement, name: string): boolean {
+  return new FormData(form).get(name) === "on";
+}
+
+function getFormInteger(form: HTMLFormElement, name: string): number {
+  const value = Number(getFormString(form, name));
+
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error("El importe no es valido.");
+  }
+
+  return value;
+}
+
+function readStoredSession(): AuthSession | null {
+  try {
+    const rawValue = localStorage.getItem(localStorageKey);
+
+    if (!rawValue) {
+      return null;
+    }
+
+    const parsedValue: unknown = JSON.parse(rawValue);
+
+    if (!isStoredSession(parsedValue)) {
+      return null;
+    }
+
+    return parsedValue;
+  } catch {
+    return null;
+  }
+}
+
+function saveStoredSession(session: AuthSession): void {
+  localStorage.setItem(localStorageKey, JSON.stringify(session));
+}
+
+function clearStoredSession(): void {
+  localStorage.removeItem(localStorageKey);
+}
+
+function createSession(body: AuthApiResponse): AuthSession {
+  return {
+    accessToken: body.access_token,
+    refreshToken: body.refresh_token,
+    expiresAt: Date.now() + body.expires_in * 1000,
+    userEmail: body.user.email ?? "",
+  };
+}
+
+async function readJsonBody(response: Response): Promise<unknown> {
+  const text = await response.text();
+
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
+function readErrorMessage(body: unknown): string {
+  if (body && typeof body === "object" && "message" in body) {
+    const message = (body as { message?: unknown }).message;
+
+    if (typeof message === "string" && message.trim()) {
+      return message;
+    }
+  }
+
+  return "No se pudo completar la operacion.";
+}
+
+function isRpcResult(value: unknown): value is RpcResult {
+  return Boolean(
+    value
+      && typeof value === "object"
+      && typeof (value as RpcResult).ok === "boolean"
+      && typeof (value as RpcResult).changed === "boolean"
+      && typeof (value as RpcResult).requires_redeploy === "boolean"
+      && typeof (value as RpcResult).operation === "string"
+      && typeof (value as RpcResult).message === "string",
+  );
+}
+
+interface AuthApiResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  user: {
+    email?: string;
+  };
+}
+
+function isAuthResponse(value: unknown): value is AuthApiResponse {
+  return Boolean(
+    value
+      && typeof value === "object"
+      && typeof (value as AuthApiResponse).access_token === "string"
+      && typeof (value as AuthApiResponse).refresh_token === "string"
+      && typeof (value as AuthApiResponse).expires_in === "number"
+      && typeof (value as AuthApiResponse).user === "object",
+  );
+}
+
+function isStoredSession(value: unknown): value is AuthSession {
+  return Boolean(
+    value
+      && typeof value === "object"
+      && typeof (value as AuthSession).accessToken === "string"
+      && typeof (value as AuthSession).refreshToken === "string"
+      && typeof (value as AuthSession).expiresAt === "number"
+      && typeof (value as AuthSession).userEmail === "string",
+  );
+}
+
+function formatAmount(amount: number): string {
+  return `$${new Intl.NumberFormat("es-AR").format(amount)}`;
+}
+
+function getTrimmedValue(value: string | undefined): string | undefined {
+  const trimmedValue = value?.trim();
+  return trimmedValue && trimmedValue.length > 0 ? trimmedValue : undefined;
+}
+
+function trimTrailingSlash(value: string | undefined): string | undefined {
+  return getTrimmedValue(value)?.replace(/\/+$/, "");
+}
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => {
+    if (character === "&") {
+      return "&amp;";
+    }
+
+    if (character === "<") {
+      return "&lt;";
+    }
+
+    if (character === ">") {
+      return "&gt;";
+    }
+
+    if (character === "\"") {
+      return "&quot;";
+    }
+
+    return "&#39;";
+  });
+}

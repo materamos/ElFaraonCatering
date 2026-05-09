@@ -20,7 +20,7 @@ Current routes:
 - `/menu/` -> future operational menu index placeholder
 - `/menu/corpo/` -> primary operational QR menu
 - `/menu/teleinde/` -> active operational QR menu in the multi-location model
-- `/admin/` -> static placeholder served from `public/admin/index.html`
+- `/admin/` -> static Astro operational admin for employees
 
 Current stack:
 
@@ -36,9 +36,9 @@ Current source of truth:
 
 - Supabase `menu_content` is the structural and operational source read at build time.
 - The runtime availability overlay is separate and progressive.
-- `public.staff_users` is the staff permission source for the future operational CMS.
+- `public.staff_users` is the staff permission source for the operational CMS.
 - Operational CMS writes must go through explicit Supabase RPCs, not direct table grants.
-- There is no active CMS in the repo.
+- `/admin/` is the active operational CMS surface, limited to availability, daily service, grill mode, prices, and publication.
 - The rollback to the previous file-backed content stage is the Git tag `yaml-rollback-2026-05-02`.
 
 ---
@@ -67,7 +67,7 @@ into customer accounts, broad editorial accounts, or public user features.
 CMS editable does not mean runtime editable. Except for availability, operational CMS
 changes require rebuild/deploy before they affect the public menu.
 
-Keep `/admin/` as a static placeholder under `public/admin/index.html`. Do not reintroduce an Astro page at the same route while it remains a placeholder.
+Keep `/admin/` as a static Astro route. Do not add SSR, server output, API routes, Vercel Functions, service role usage in browser, or broad editorial CMS behavior.
 
 Keep the project compatible with Node 20 and Astro 5 unless the runtime upgrade is explicitly requested.
 
@@ -171,6 +171,7 @@ Runtime overlay:
 
 - `docs/supabase/availability-overlay.sql` supports the availability overlay.
 - `docs/supabase/operational-edit-rpcs.sql` defines the approved RPC write surface for operational CMS edits.
+- `public.get_admin_operational_state()` is the approved read surface for the operational admin. Browser code must not query `menu_content` or `app_private` directly.
 - `public.staff_users` defines operational staff roles: `availability_editor`, `menu_editor`, and `admin`.
 - `public.staff_users` and the `can_edit_availability(text)`, `can_manage_staff()`, and `can_publish_menu()` helpers are required before operational edit RPCs may be installed.
 - `can_edit_menu_content()` is introduced by the operational edit RPC phase; it is not a precondition of the `staff_users` migration.
@@ -186,8 +187,9 @@ Preserve the static-first model:
 - stable menu content and build-time operational content may be read only at build time
 - availability is the only allowed runtime overlay
 - browser writes to operational data must use the approved RPCs and RLS helpers
+- browser reads for `/admin/` must use `get_admin_operational_state()` or other explicitly approved read RPCs
 - browser publish requests must use the `publish-menu-changes` Supabase Edge Function
-- do not add structural browser queries
+- do not add direct structural browser queries to `menu_content`
 - do not add runtime queries for daily menu, service kind, prices, catalog, groups, sections, images, or structural text
 - do not add SSR, server output, adapters, or Vercel Functions
 

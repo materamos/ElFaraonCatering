@@ -165,6 +165,7 @@ with expected_functions (function_name, identity_arguments, expectation) as (
     ('can_edit_menu_content', '', 'build-time menu edit role check'),
     ('can_manage_staff', '', 'staff administration role check'),
     ('can_publish_menu', '', 'build-time publish role check'),
+    ('get_admin_operational_state', '', 'operational admin read RPC'),
     ('menu_availability_target_exists', 'target_menu_id text, target_section_id text, target_group_id text, target_item_id text', 'availability target universe validation'),
     ('set_menu_availability_overlay', 'menu_id text, section_id text, group_id text, item_id text, available_override boolean', 'availability overlay upsert RPC'),
     ('clear_menu_availability_overlay', 'menu_id text, section_id text, group_id text, item_id text', 'availability overlay clear RPC'),

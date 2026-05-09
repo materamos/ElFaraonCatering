@@ -11,6 +11,7 @@ o reconstruir la base.
 - `public.menu_availability_overlays`: unico overlay runtime sin rebuild.
 - `public.staff_users`: usuarios autenticados, roles y alcance por perfil para el CMS operativo.
 - `public.editor_profiles`: tabla legacy temporal usada solo para backfill hacia `staff_users`.
+- `public.get_admin_operational_state()`: RPC de lectura controlada para `/admin/`.
 - RPCs operativas: unica superficie de escritura para disponibilidad, servicio activo, menu del dia y precios.
 - `publish-menu-changes`: Supabase Edge Function server-side para publicar cambios build-time sin exponer el Deploy Hook.
 
@@ -57,6 +58,7 @@ Permisos del CMS operativo:
 - `staff_users` y sus helpers (`can_edit_availability(text)`, `can_manage_staff()`, `can_publish_menu()`) son precondicion obligatoria para instalar `operational-edit-rpcs.sql`.
 - `can_edit_menu_content()` se introduce en la fase de RPCs operativas; no es precondicion de la migracion de `staff_users`.
 - `publish-menu-changes` usa `can_publish_menu()` para autorizar publicacion, registra auditoria minima privada en `app_private` y llama el Vercel Deploy Hook desde secretos de Supabase Functions. No usa `pg_net`.
+- `/admin/` lee estado operativo mediante `get_admin_operational_state()` y escribe solo mediante RPCs operativas; no hay grants client-facing sobre `menu_content` ni `app_private`.
 
 No implementar consultas runtime para menu del dia, precios, servicio activo,
 catalogo, grupos, secciones, imagenes ni textos estructurales.
@@ -73,7 +75,7 @@ Archivos que modifican schema o datos:
 
 Migraciones operativas:
 
-- `../../supabase/migrations/`: cambios incrementales aplicables a bases existentes y ubicacion canonica para Supabase CLI, incluyendo `20260508000000_add_staff_users.sql`, `20260508001000_add_operational_edit_rpcs.sql`, `20260508002000_harden_security_definer_search_path.sql` y `20260508003000_add_publish_menu_changes_support.sql`.
+- `../../supabase/migrations/`: cambios incrementales aplicables a bases existentes y ubicacion canonica para Supabase CLI, incluyendo `20260508000000_add_staff_users.sql`, `20260508001000_add_operational_edit_rpcs.sql`, `20260508002000_harden_security_definer_search_path.sql`, `20260508003000_add_publish_menu_changes_support.sql` y `20260508004000_add_admin_operational_state_rpc.sql`.
 
 Archivos read-only:
 
@@ -112,6 +114,7 @@ Para una base existente:
 11. Aplicar `../../supabase/migrations/20260508001000_add_operational_edit_rpcs.sql` para instalar las RPCs operativas y el modelo de cuatro opciones del menu del dia.
 12. Aplicar `../../supabase/migrations/20260508002000_harden_security_definer_search_path.sql` para endurecer el `search_path` de funciones `security definer` ya instaladas.
 13. Aplicar `../../supabase/migrations/20260508003000_add_publish_menu_changes_support.sql` para crear el log privado y helpers internos de `publish-menu-changes`.
+14. Aplicar `../../supabase/migrations/20260508004000_add_admin_operational_state_rpc.sql` para instalar la lectura controlada del admin operativo.
 
 ## Variables
 
@@ -171,5 +174,6 @@ o si `npm run menu:validate` falla.
 - Mantener nombres tecnicos ASCII/kebab-case donde corresponda.
 - Usar `staff_users` y funciones helper para permisos nuevos del CMS operativo; no reusar `editor_profiles` para nuevas policies.
 - Usar RPCs operativas para escrituras desde el browser; no otorgar grants directos sobre `menu_content`.
+- Usar `get_admin_operational_state()` para lectura del admin; no consultar `menu_content` ni `app_private` desde el browser.
 - Usar `publish-menu-changes` para publicacion; no exponer el Vercel Deploy Hook, no usar `pg_net` y no otorgar grants client-facing sobre `app_private`.
 - No agregar SSR, Vercel Functions, CMS editorial amplio, auth editorial ni queries estructurales desde el navegador por cambios en esta carpeta.

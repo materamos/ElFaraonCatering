@@ -1,0 +1,21 @@
+---
+import "../../admin/admin.css";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Admin operativo | El Faraon Catering"
+  description="Panel operativo para disponibilidad, menu del dia, parrilla, precios y publicacion."
+>
+  <main class="admin-root" data-admin-root>
+    <section class="admin-loading" aria-live="polite">
+      <p class="admin-kicker">Panel operativo</p>
+      <h1>Cargando admin</h1>
+      <p>Verificando sesion y permisos.</p>
+    </section>
+  </main>
+
+  <script>
+    import "../../admin/admin";
+  </script>
+</BaseLayout>
