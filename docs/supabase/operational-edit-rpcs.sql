@@ -125,12 +125,17 @@ begin
     return;
   end if;
 
-  if not public.menu_availability_target_exists(menu_id, section_id, normalized_group_id, item_id) then
+  if not public.menu_availability_target_exists(
+    set_menu_availability_overlay.menu_id,
+    set_menu_availability_overlay.section_id,
+    normalized_group_id,
+    set_menu_availability_overlay.item_id
+  ) then
     return query select false, false, false, 'set_menu_availability_overlay', 'invalid_availability_target';
     return;
   end if;
 
-  if not public.can_edit_availability(menu_id) then
+  if not public.can_edit_availability(set_menu_availability_overlay.menu_id) then
     return query select false, false, false, 'set_menu_availability_overlay', 'permission_denied';
     return;
   end if;
@@ -203,12 +208,17 @@ declare
   normalized_group_id text := nullif(btrim(clear_menu_availability_overlay.group_id), '');
   deleted_count integer := 0;
 begin
-  if not public.menu_availability_target_exists(menu_id, section_id, normalized_group_id, item_id) then
+  if not public.menu_availability_target_exists(
+    clear_menu_availability_overlay.menu_id,
+    clear_menu_availability_overlay.section_id,
+    normalized_group_id,
+    clear_menu_availability_overlay.item_id
+  ) then
     return query select false, false, false, 'clear_menu_availability_overlay', 'invalid_availability_target';
     return;
   end if;
 
-  if not public.can_edit_availability(menu_id) then
+  if not public.can_edit_availability(clear_menu_availability_overlay.menu_id) then
     return query select false, false, false, 'clear_menu_availability_overlay', 'permission_denied';
     return;
   end if;
