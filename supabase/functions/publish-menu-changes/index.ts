@@ -26,12 +26,14 @@ interface PublishResponse {
   requires_redeploy: boolean;
   operation: typeof operation;
   message: PublishMessage;
+  cooldown_seconds_remaining?: number;
 }
 
 interface ReservePublishRow {
   request_id: number | null;
   reserved: boolean;
   message: string;
+  cooldown_remaining_seconds: number | null;
 }
 
 interface CompletePublishRow {
@@ -44,13 +46,22 @@ const createResponseBody = (
   changed: boolean,
   requiresRedeploy: boolean,
   message: PublishMessage,
-): PublishResponse => ({
-  ok,
-  changed,
-  requires_redeploy: requiresRedeploy,
-  operation,
-  message,
-});
+  cooldownSecondsRemaining?: number,
+): PublishResponse => {
+  const response: PublishResponse = {
+    ok,
+    changed,
+    requires_redeploy: requiresRedeploy,
+    operation,
+    message,
+  };
+
+  if (typeof cooldownSecondsRemaining === "number") {
+    response.cooldown_seconds_remaining = cooldownSecondsRemaining;
+  }
+
+  return response;
+};
 
 const jsonResponse = (
   request: Request,
@@ -337,11 +348,21 @@ Deno.serve(async (request: Request): Promise<Response> => {
     }
 
     if (!reserveRow.reserved) {
+      const cooldownSecondsRemaining = Number.isSafeInteger(reserveRow.cooldown_remaining_seconds)
+        ? Math.max(0, reserveRow.cooldown_remaining_seconds ?? 0)
+        : undefined;
+
       return jsonResponse(
         request,
         allowedOrigins,
         200,
-        createResponseBody(true, false, false, "publish_recently_queued"),
+        createResponseBody(
+          true,
+          false,
+          false,
+          "publish_recently_queued",
+          cooldownSecondsRemaining,
+        ),
       );
     }
 

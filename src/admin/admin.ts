@@ -108,6 +108,7 @@ interface RpcResult {
   requires_redeploy: boolean;
   operation: string;
   message: string;
+  cooldown_seconds_remaining?: number;
 }
 
 interface StatusMessage {
@@ -514,7 +515,7 @@ async function publishChanges(): Promise<void> {
     if (result.message === "publish_recently_queued") {
       hasPendingPublication = true;
       await loadAdminState(
-        "Ya hay una publicacion reciente encolada. El cambio queda guardado; volve a publicar cuando termine el cooldown.",
+        `Ya hay una publicacion reciente encolada${formatCooldownSuffix(result)}. El cambio queda guardado; volve a publicar cuando termine el cooldown.`,
         "neutral",
       );
       return;
@@ -1242,6 +1243,16 @@ function resultMessage(result: RpcResult): string {
   };
 
   return messages[result.message] ?? result.message.replaceAll("_", " ");
+}
+
+function formatCooldownSuffix(result: RpcResult): string {
+  const seconds = result.cooldown_seconds_remaining;
+
+  if (typeof seconds !== "number" || !Number.isSafeInteger(seconds) || seconds < 0) {
+    return "";
+  }
+
+  return ` (${seconds} segundos restantes)`;
 }
 
 function getFormString(form: HTMLFormElement, name: string): string {
