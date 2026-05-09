@@ -130,9 +130,14 @@ Para una base nueva:
 - `SUPABASE_DB_URL`: conexion privada Postgres para build y validacion. Puede vivir en `.env.local` y nunca debe ser `PUBLIC_*`.
 - `PUBLIC_SUPABASE_URL`: URL publica del proyecto Supabase para overlay runtime y admin.
 - `PUBLIC_SUPABASE_ANON_KEY`: anon key publica para overlay runtime, Auth y RPCs controladas.
+- `SUPABASE_URL`: variable de runtime disponible para Supabase Functions; `publish-menu-changes` la usa server-side.
+- `SUPABASE_ANON_KEY`: variable de runtime disponible para Supabase Functions; `publish-menu-changes` la usa para validar la sesion del empleado.
+- `SUPABASE_SERVICE_ROLE_KEY`: variable de runtime disponible para Supabase Functions; `publish-menu-changes` la usa solo server-side para helpers privados de publicacion.
 - `VERCEL_DEPLOY_HOOK_URL`: secreto de Supabase Functions para `publish-menu-changes`; es credencial.
 - `PUBLISH_ALLOWED_ORIGINS`: origins permitidos por CORS para la Edge Function, separados por coma.
 - `PUBLISH_COOLDOWN_SECONDS`: cooldown global de publicacion; default recomendado `60`.
+
+En este proyecto remoto, `npm run supabase -- secrets list` confirma esos nombres para el runtime de Functions. No exponer `SUPABASE_SERVICE_ROLE_KEY` ni `VERCEL_DEPLOY_HOOK_URL` como `PUBLIC_*`.
 
 ## Supabase CLI
 

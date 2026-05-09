@@ -177,6 +177,7 @@ Runtime overlay:
 - `can_edit_menu_content()` is introduced by the operational edit RPC phase; it is not a precondition of the `staff_users` migration.
 - `publish-menu-changes` is the only approved Supabase Edge Function. It may publish build-time operational changes by validating Supabase Auth, checking `can_publish_menu()`, reserving/completing publish requests through private helpers, logging privately in `app_private`, and calling the Vercel Deploy Hook from Supabase Function secrets.
 - Publish cooldown responses may include `cooldown_seconds_remaining`; keep that contract synchronized across the Edge Function, SQL helpers, and admin UI.
+- The Edge Function runtime uses `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VERCEL_DEPLOY_HOOK_URL`, `PUBLISH_ALLOWED_ORIGINS`, and `PUBLISH_COOLDOWN_SECONDS`. Never expose the service role key or deploy hook to browser code or `PUBLIC_*` variables.
 - `public.editor_profiles` is legacy-only and must not back new policies.
 - The first `admin` staff row must be bootstrapped through privileged SQL or service role access, not browser RLS.
 - Public client variables are `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.

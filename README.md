@@ -72,7 +72,15 @@ PUBLISH_ALLOWED_ORIGINS=
 PUBLISH_COOLDOWN_SECONDS=60
 ```
 
-Estos secretos se configuran en Supabase Functions, por ejemplo con `supabase secrets set`. No deben exponerse como variables `PUBLIC_*`.
+La funcion tambien lee variables de runtime de Supabase Functions:
+
+```bash
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
+En el proyecto remoto, `npm run supabase -- secrets list` confirma que esos nombres estan disponibles junto con los secretos custom de publicacion. No deben exponerse como variables `PUBLIC_*` ni usarse desde el browser.
 
 ### Servidor de desarrollo
 

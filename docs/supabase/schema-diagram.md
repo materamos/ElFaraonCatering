@@ -217,8 +217,9 @@ flowchart LR
   STAFF -. "helpers de permisos" .-> READ_RPC
   STAFF -. "helpers de permisos" .-> WRITE_RPCS
   STAFF -. "can_publish_menu" .-> EDGE
+  ADMIN_UI -->|"leer estado"| READ_RPC
+  ADMIN_UI -->|"acciones del admin"| WRITE_RPCS
   READ_RPC -->|"estado operativo filtrado"| ADMIN_UI
-  WRITE_RPCS -->|"acciones del admin"| ADMIN_UI
   WRITE_RPCS -->|"writes controlados"| OVERLAYS
   WRITE_RPCS -->|"writes build-time"| MENU_CONTENT["menu_content"]
   EDGE -->|"reserve/complete"| PRIVATE
