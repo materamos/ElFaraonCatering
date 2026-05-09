@@ -512,8 +512,11 @@ async function publishChanges(): Promise<void> {
     }
 
     if (result.message === "publish_recently_queued") {
-      hasPendingPublication = false;
-      await loadAdminState("Ya hay una publicacion reciente encolada.", "success");
+      hasPendingPublication = true;
+      await loadAdminState(
+        "Ya hay una publicacion reciente encolada. El cambio queda guardado; volve a publicar cuando termine el cooldown.",
+        "neutral",
+      );
       return;
     }
 
