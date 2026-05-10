@@ -671,10 +671,11 @@ function renderAuthenticated(): void {
             <button class="admin-button admin-button--secondary" type="button" data-admin-action="logout" ${isBusy ? "disabled" : ""}>Salir</button>
           </div>
         </div>
-        <nav class="admin-tabs" aria-label="Secciones del admin">
+        <nav class="admin-tabs" role="tablist" aria-label="Secciones del admin">
           ${tabs.map((tab) => `
             <button
               class="admin-tab"
+              role="tab"
               type="button"
               data-admin-action="tab"
               data-admin-tab="${tab.id}"
@@ -956,8 +957,10 @@ function renderAvailabilityRow(
           ${target.group_title ? ` &middot; ${escapeHtml(target.group_title)}` : ""}
         </p>
         ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
-        <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">${effectiveAvailable ? "Disponible" : "No disponible"}</span>
-        ${overlay ? `<p class="admin-row__meta">Override activo.</p>` : `<p class="admin-row__meta">Usando disponibilidad base.</p>`}
+        <div class="admin-row__status">
+          <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">${effectiveAvailable ? "Disponible" : "No disponible"}</span>
+          <span class="admin-row__state-note">${overlay ? "Override activo" : "Base"}</span>
+        </div>
       </div>
       <div class="admin-row__actions">
         <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" data-current="${overlay && effectiveAvailable ? "true" : "false"}" aria-pressed="${overlay && effectiveAvailable ? "true" : "false"}" ${availableDisabled ? "disabled" : ""}>Forzar disponible</button>
@@ -1043,7 +1046,7 @@ function renderFixedPriceRow(price: FixedPriceState): string {
         <input type="hidden" name="pricing_key" value="${escapeHtml(price.pricing_key)}" />
         <label class="admin-price-field">
           <span class="admin-label">Importe</span>
-          <input class="admin-input" type="number" name="amount" min="0" step="1" value="${price.amount}" required />
+          <input class="admin-input" type="number" name="amount" min="0" step="1" inputmode="numeric" value="${price.amount}" required />
         </label>
         <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar</button>
       </div>
@@ -1064,7 +1067,7 @@ function renderVariantPriceRow(variant: VariantPriceState): string {
         <input type="hidden" name="variant_id" value="${escapeHtml(variant.variant_id)}" />
         <label class="admin-price-field">
           <span class="admin-label">Importe</span>
-          <input class="admin-input" type="number" name="amount" min="0" step="1" value="${variant.amount}" required />
+          <input class="admin-input" type="number" name="amount" min="0" step="1" inputmode="numeric" value="${variant.amount}" required />
         </label>
         <label class="admin-checkbox">
           <input type="checkbox" name="available" ${variant.available ? "checked" : ""} />
@@ -1084,23 +1087,23 @@ function getAllowedTabs(state: AdminOperationalState): Array<{ id: AdminTabId; l
   const tabs: Array<{ id: AdminTabId; label: string }> = [];
 
   if (state.permissions.can_edit_menu_content) {
-    tabs.push({ id: "daily", label: "menu del dia" });
+    tabs.push({ id: "daily", label: "Menu del dia" });
   }
 
   if (state.permissions.can_edit_availability || state.permissions.can_edit_menu_content) {
-    tabs.push({ id: "grill", label: "parrilla" });
+    tabs.push({ id: "grill", label: "Parrilla" });
   }
 
   if (state.permissions.can_edit_availability) {
-    tabs.push({ id: "availability", label: "disponibilidad" });
+    tabs.push({ id: "availability", label: "Disponibilidad" });
   }
 
   if (state.permissions.can_edit_menu_content) {
-    tabs.push({ id: "prices", label: "precios" });
+    tabs.push({ id: "prices", label: "Precios" });
   }
 
   if (state.permissions.can_publish_menu) {
-    tabs.push({ id: "publish", label: "publicacion" });
+    tabs.push({ id: "publish", label: "Publicacion" });
   }
 
   return tabs;

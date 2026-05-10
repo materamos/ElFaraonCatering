@@ -3,7 +3,7 @@
     display: grid;
     place-items: center;
     min-height: 100vh;
-    background: #f3f1ec;
+    background: #f5f3ee;
     color: #1c211d;
     font-family: var(--font-body);
   }
@@ -15,7 +15,7 @@
     box-sizing: border-box;
     width: calc(100% - 2rem);
     margin-inline: auto;
-    padding-block: 1.25rem;
+    padding-block: 1rem;
   }
 
   .admin-loading,
@@ -47,25 +47,22 @@
     background: #ffffff;
     border: 1px solid #ded8cd;
     border-radius: 0.5rem;
-    box-shadow: 0 1.25rem 3rem rgb(41 34 26 / 0.08);
+    box-shadow: 0 1rem 2rem rgb(41 34 26 / 0.06);
   }
 
   .admin-shell {
     display: grid;
-    gap: 1.25rem;
+    gap: 1rem;
   }
 
   .admin-header {
     display: grid;
-    gap: 1rem;
-    position: sticky;
-    top: 0.75rem;
-    z-index: 2;
-    padding: 1rem;
+    gap: 0.85rem;
+    padding: 0.9rem;
     background: #ffffff;
     border: 1px solid #ded8cd;
     border-radius: 0.5rem;
-    box-shadow: 0 1rem 2.5rem rgb(41 34 26 / 0.07);
+    box-shadow: 0 0.65rem 1.5rem rgb(41 34 26 / 0.05);
   }
 
   .admin-header__main {
@@ -126,17 +123,17 @@
 
   .admin-tabs {
     display: flex;
-    gap: 0.4rem;
+    gap: 0.3rem;
     overflow-x: auto;
     padding: 0.25rem;
-    background: #f4f2ed;
+    background: #f6f4ef;
     border: 1px solid #e3ded4;
     border-radius: 0.5rem;
   }
 
   .admin-tab {
-    min-height: 2.6rem;
-    padding: 0.55rem 0.85rem;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.8rem;
     color: #4e4a42;
     font: inherit;
     font-size: 0.92rem;
@@ -178,7 +175,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    padding: 0.85rem 1rem;
+    padding: 0.75rem 0.9rem;
     background: #ffffff;
     border: 1px solid #ded8cd;
     border-radius: 0.5rem;
@@ -195,6 +192,7 @@
     color: #5f5a50;
     font-size: 0.92rem;
     justify-content: flex-start;
+    background: #fbfaf7;
   }
 
   .admin-status[data-tone="success"] {
@@ -213,12 +211,12 @@
 
   .admin-section {
     display: grid;
-    gap: 1.1rem;
-    padding: 1rem;
+    gap: 1rem;
+    padding: 0.9rem;
     background: #ffffff;
     border: 1px solid #ded8cd;
     border-radius: 0.5rem;
-    box-shadow: 0 1rem 2.5rem rgb(41 34 26 / 0.06);
+    box-shadow: 0 0.6rem 1.6rem rgb(41 34 26 / 0.04);
   }
 
   .admin-section__header {
@@ -242,10 +240,10 @@
   .admin-toolbar {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 0.65rem;
     align-items: end;
-    padding: 0.85rem;
-    background: #f7f5f1;
+    padding: 0.75rem;
+    background: #fbfaf7;
     border: 1px solid #e4ded4;
     border-radius: 0.5rem;
   }
@@ -309,7 +307,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 2.75rem;
+    min-height: 2.65rem;
     padding: 0.55rem 0.9rem;
     color: #ffffff;
     font: inherit;
@@ -375,14 +373,14 @@
 
   .admin-grid {
     display: grid;
-    gap: 0.75rem;
+    gap: 0.65rem;
   }
 
   .admin-row {
     display: grid;
-    gap: 0.75rem;
-    padding: 0.9rem;
-    background: #ffffff;
+    gap: 0.7rem;
+    padding: 0.85rem;
+    background: #fffefa;
     border: 1px solid #e4ded4;
     border-radius: 0.5rem;
   }
@@ -393,7 +391,7 @@
 
   .admin-row__main {
     display: grid;
-    gap: 0.25rem;
+    gap: 0.3rem;
     min-width: 0;
   }
 
@@ -414,16 +412,31 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    align-items: center;
+    align-items: flex-end;
     justify-content: flex-start;
+  }
+
+  .admin-row__status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+    margin-top: 0.1rem;
+  }
+
+  .admin-row__state-note {
+    color: #777166;
+    font-size: 0.82rem;
+    font-weight: 650;
+    line-height: 1.35;
   }
 
   .admin-pill {
     display: inline-flex;
     width: fit-content;
     align-items: center;
-    min-height: 1.8rem;
-    padding-inline: 0.55rem;
+    min-height: 1.65rem;
+    padding-inline: 0.5rem;
     color: #2f6b4f;
     font-size: 0.78rem;
     font-weight: 750;
@@ -438,12 +451,12 @@
 
   .admin-form-grid {
     display: grid;
-    gap: 0.8rem;
+    gap: 0.75rem;
   }
 
   .admin-price-grid {
     display: grid;
-    gap: 1rem;
+    gap: 0.9rem;
   }
 
   .admin-list-header {
@@ -460,11 +473,11 @@
 
   .admin-card {
     display: grid;
-    gap: 0.85rem;
+    gap: 0.8rem;
     min-width: 0;
     margin: 0;
-    padding: 1rem;
-    background: #fdfcf9;
+    padding: 0.9rem;
+    background: #fffefa;
     border: 1px solid #e4ded4;
     border-radius: 0.5rem;
   }
@@ -534,5 +547,11 @@
   .admin-section,
   .admin-header {
     padding: 1.25rem;
+  }
+
+  .admin-header {
+    position: sticky;
+    top: 0.75rem;
+    z-index: 2;
   }
 }
