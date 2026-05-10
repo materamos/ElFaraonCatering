@@ -131,7 +131,7 @@ let currentSession: AuthSession | null = null;
 let currentState: AdminOperationalState | null = null;
 let currentStatus: StatusMessage | null = null;
 let currentBusyText: string | null = null;
-let activeTab: AdminTabId = "availability";
+let activeTab: AdminTabId = "daily";
 let hasPendingPublication = false;
 let isBusy = false;
 let availabilityProfileFilter = "";
@@ -663,7 +663,7 @@ function renderAuthenticated(): void {
           <div>
             <p class="admin-kicker">Panel operativo</p>
             <h1 class="admin-title">Admin El Faraon</h1>
-            <p class="admin-header__copy">Gestion diaria de disponibilidad, precios y publicacion.</p>
+            <p class="admin-header__copy">Gestion diaria de menu del dia, parrilla, disponibilidad, precios y publicacion.</p>
           </div>
           <div class="admin-header__identity">
             <span class="admin-user-name">${escapeHtml(currentState.staff.display_name)}</span>
@@ -755,7 +755,7 @@ function renderDailyTab(state: AdminOperationalState): string {
   return `
     <section class="admin-section">
       <div class="admin-section__header">
-        <h2 class="admin-section__title">Servicio del dia</h2>
+        <h2 class="admin-section__title">Menu del dia</h2>
         <p class="admin-section__copy">Edita las bases del menu del dia. Las opciones con bebida se derivan automaticamente.</p>
       </div>
       <form class="admin-form-grid" data-admin-form="daily-menu">
@@ -1083,24 +1083,24 @@ function renderEmpty(message: string): string {
 function getAllowedTabs(state: AdminOperationalState): Array<{ id: AdminTabId; label: string }> {
   const tabs: Array<{ id: AdminTabId; label: string }> = [];
 
-  if (state.permissions.can_edit_availability) {
-    tabs.push({ id: "availability", label: "Disponibilidad" });
-  }
-
   if (state.permissions.can_edit_menu_content) {
-    tabs.push({ id: "daily", label: "Servicio del dia" });
+    tabs.push({ id: "daily", label: "menu del dia" });
   }
 
   if (state.permissions.can_edit_availability || state.permissions.can_edit_menu_content) {
-    tabs.push({ id: "grill", label: "Parrilla" });
+    tabs.push({ id: "grill", label: "parrilla" });
+  }
+
+  if (state.permissions.can_edit_availability) {
+    tabs.push({ id: "availability", label: "disponibilidad" });
   }
 
   if (state.permissions.can_edit_menu_content) {
-    tabs.push({ id: "prices", label: "Precios" });
+    tabs.push({ id: "prices", label: "precios" });
   }
 
   if (state.permissions.can_publish_menu) {
-    tabs.push({ id: "publish", label: "Publicacion" });
+    tabs.push({ id: "publish", label: "publicacion" });
   }
 
   return tabs;
