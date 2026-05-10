@@ -1,0 +1,76 @@
+---
+import type { MenuItem, MenuPricing, MenuPricingVariant } from "../types/menu";
+import { getPricingText, getVariantPricingText } from "../utils/menuPricing";
+
+interface Props {
+  menuId: string;
+  sectionId: string;
+  groupId?: string;
+  item: MenuItem;
+}
+
+const { menuId, sectionId, groupId, item } = Astro.props;
+const getDirectPricingText = (pricing?: MenuPricing) =>
+  pricing && pricing.kind !== "variants" ? getPricingText(pricing) : null;
+const directPricingText = getDirectPricingText(item.pricing);
+const variants = item.pricing?.kind === "variants" ? item.pricing.variants : [];
+---
+
+<li
+  class="compact-item"
+  data-menu-id={menuId}
+  data-section-id={sectionId}
+  data-group-id={groupId}
+  data-item-id={item.itemId}
+  data-available={item.available ? "true" : "false"}
+>
+  <div class="compact-item__content">
+    <div class="compact-item__header">
+      <h3 class="compact-item__title">
+        {item.name}
+      </h3>
+      <span
+        class="compact-availability-status"
+        data-availability-status
+        data-state={item.available ? "available" : "unavailable"}
+      >
+        {item.available ? "Disponible" : "No disponible"}
+      </span>
+    </div>
+
+    {item.description && (
+      <p class="compact-item__description">
+        {item.description}
+      </p>
+    )}
+    {item.note && (
+      <p class="compact-item__note">{item.note}</p>
+    )}
+
+    {variants.length > 0 && (
+      <ul class="compact-item__variants">
+        {variants.map((variant: MenuPricingVariant) => (
+          <li class="compact-item__variant">
+            <span>
+              {variant.name}
+              {variant.available === false && (
+                <span class="dish-card__variant-status">
+                  No disponible
+                </span>
+              )}
+            </span>
+            <strong class="compact-item__variant-price">
+              {getVariantPricingText(variant)}
+            </strong>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+
+  {directPricingText && (
+    <strong class="compact-item__price">
+      {directPricingText}
+    </strong>
+  )}
+</li>

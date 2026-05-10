@@ -19,6 +19,7 @@ export const loadRows = async (sql) => {
     catalogGroups,
     catalogItems,
     catalogItemOptions,
+    grillFamilies,
     grillItems,
   ] = await Promise.all([
     sql`select * from menu_content.menu_profiles order by id`,
@@ -33,6 +34,7 @@ export const loadRows = async (sql) => {
     sql`select * from menu_content.menu_catalog_groups order by section_id, order_index`,
     sql`select * from menu_content.menu_catalog_items order by section_id, group_id, order_index`,
     sql`select * from menu_content.menu_catalog_item_options order by catalog_item_id, order_index`,
+    sql`select * from menu_content.menu_grill_families order by order_index`,
     sql`select * from menu_content.menu_grill_catalog_items order by order_index`,
   ]);
 
@@ -49,6 +51,7 @@ export const loadRows = async (sql) => {
     catalogGroups,
     catalogItems,
     catalogItemOptions,
+    grillFamilies,
     grillItems,
   };
 };
@@ -64,6 +67,7 @@ export const createSnapshot = (rows, options = {}) => {
   const catalogItemsBySection = groupByStringKey(rows.catalogItems, "section_id");
   const catalogGroupsBySection = groupByStringKey(rows.catalogGroups, "section_id");
   const optionsByCatalogItem = groupByNumberKey(rows.catalogItemOptions, "catalog_item_id");
+  const grillItemsByFamily = groupByStringKey(rows.grillItems, "family_id");
 
   const profiles = rows.profiles.map((profile) => {
     const payment = requireMapValue(paymentByProfile, profile.id);
@@ -126,9 +130,18 @@ export const createSnapshot = (rows, options = {}) => {
         "Productos de parrilla. La disponibilidad puede variar durante el dia.",
       order: 10,
       presentation: "compact-list",
-      items: rows.grillItems.map((item) =>
-        createFlatItem(item, [], priceMap, transformImage),
-      ),
+      groups: rows.grillFamilies
+        .map((family) =>
+          cleanOptional({
+            groupId: family.family_id,
+            availabilityGroupId: "",
+            title: family.title,
+            items: (grillItemsByFamily.get(family.family_id) ?? []).map((item) =>
+              createFlatItem(item, [], priceMap, transformImage),
+            ),
+          }),
+        )
+        .filter((group) => group.items.length > 0),
     },
   };
 };

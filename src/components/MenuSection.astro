@@ -2,12 +2,10 @@
 import type {
   MenuGroup,
   MenuItem,
-  MenuPricing,
-  MenuPricingVariant,
   MenuSectionPresentation,
 } from "../types/menu";
+import CompactMenuItem from "./CompactMenuItem.astro";
 import DishCard from "./DishCard.astro";
-import { getPricingText, getVariantPricingText } from "../utils/menuPricing";
 
 interface Props {
   menuId: string;
@@ -35,8 +33,6 @@ const hasSingleItemMatchingSection =
   items?.length === 1 &&
   normalizeHeadingText(items[0].name) === normalizeHeadingText(title) &&
   Boolean(items[0].description || items[0].note || items[0].options?.length || items[0].image);
-const getDirectPricingText = (pricing?: MenuPricing) =>
-  pricing && pricing.kind !== "variants" ? getPricingText(pricing) : null;
 ---
 
 <section class="menu-section">
@@ -55,70 +51,13 @@ const getDirectPricingText = (pricing?: MenuPricing) =>
   {items && presentation === "compact-list" && (
     <section class="menu-section__compact">
       <ul class="compact-list">
-        {items.map((item) => {
-          const directPricingText = getDirectPricingText(item.pricing);
-          const variants = item.pricing?.kind === "variants" ? item.pricing.variants : [];
-
-          return (
-            <li
-              class="compact-item"
-              data-menu-id={menuId}
-              data-section-id={sectionId}
-              data-item-id={item.itemId}
-              data-available={item.available ? "true" : "false"}
-            >
-              <div class="compact-item__content">
-                <div class="compact-item__header">
-                  <h3 class="compact-item__title">
-                    {item.name}
-                  </h3>
-                  <span
-                    class="compact-availability-status"
-                    data-availability-status
-                    data-state={item.available ? "available" : "unavailable"}
-                  >
-                    {item.available ? "Disponible" : "No disponible"}
-                  </span>
-                </div>
-
-                {item.description && (
-                  <p class="compact-item__description">
-                    {item.description}
-                  </p>
-                )}
-                {item.note && (
-                  <p class="compact-item__note">{item.note}</p>
-                )}
-
-                {variants.length > 0 && (
-                  <ul class="compact-item__variants">
-                    {variants.map((variant: MenuPricingVariant) => (
-                      <li class="compact-item__variant">
-                        <span>
-                          {variant.name}
-                          {variant.available === false && (
-                            <span class="dish-card__variant-status">
-                              No disponible
-                            </span>
-                          )}
-                        </span>
-                        <strong class="compact-item__variant-price">
-                          {getVariantPricingText(variant)}
-                        </strong>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              {directPricingText && (
-                <strong class="compact-item__price">
-                  {directPricingText}
-                </strong>
-              )}
-            </li>
-          );
-        })}
+        {items.map((item) => (
+          <CompactMenuItem
+            menuId={menuId}
+            sectionId={sectionId}
+            item={item}
+          />
+        ))}
       </ul>
     </section>
   )}
@@ -145,40 +84,60 @@ const getDirectPricingText = (pricing?: MenuPricing) =>
 
   {groups && (
     <div class="menu-section__groups">
-      {groups.map((group) => (
-        <section class="menu-group">
-          <div class="menu-group__header">
-            <h3 class="menu-group__title">{group.title}</h3>
-            {group.description && (
-              <p class="menu-group__description">{group.description}</p>
-            )}
-            {group.note && (
-              <p class="menu-group__note">
-                {group.note}
-              </p>
-            )}
-          </div>
+      {groups.map((group) => {
+        const itemGroupId =
+          group.availabilityGroupId === undefined
+            ? group.groupId
+            : group.availabilityGroupId;
 
-          <div class="menu-group__items">
-            {group.items.map((item: MenuItem) => (
-              <DishCard
-                menuId={menuId}
-                sectionId={sectionId}
-                groupId={group.groupId}
-                itemId={item.itemId}
-                name={item.name}
-                description={item.description}
-                note={item.note}
-                available={item.available}
-                pricing={item.pricing}
-                inheritedPricing={group.pricing}
-                options={item.options}
-                image={item.image}
-              />
-            ))}
-          </div>
-        </section>
-      ))}
+        return (
+          <section class="menu-group">
+            <div class="menu-group__header">
+              <h3 class="menu-group__title">{group.title}</h3>
+              {group.description && (
+                <p class="menu-group__description">{group.description}</p>
+              )}
+              {group.note && (
+                <p class="menu-group__note">
+                  {group.note}
+                </p>
+              )}
+            </div>
+
+            {presentation === "compact-list" ? (
+              <ul class="compact-list">
+                {group.items.map((item: MenuItem) => (
+                  <CompactMenuItem
+                    menuId={menuId}
+                    sectionId={sectionId}
+                    groupId={itemGroupId}
+                    item={item}
+                  />
+                ))}
+              </ul>
+            ) : (
+              <div class="menu-group__items">
+                {group.items.map((item: MenuItem) => (
+                  <DishCard
+                    menuId={menuId}
+                    sectionId={sectionId}
+                    groupId={itemGroupId}
+                    itemId={item.itemId}
+                    name={item.name}
+                    description={item.description}
+                    note={item.note}
+                    available={item.available}
+                    pricing={item.pricing}
+                    inheritedPricing={group.pricing}
+                    options={item.options}
+                    image={item.image}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
     </div>
   )}
 </section>

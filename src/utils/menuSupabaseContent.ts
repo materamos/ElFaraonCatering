@@ -2,9 +2,9 @@ import postgres from "postgres";
 import type {
   MenuCatalogSectionData,
   MenuDailyMenuData,
-  MenuItemsSectionData,
   MenuProfileData,
   MenuProfileServiceSettings,
+  MenuSectionData,
 } from "../types/menu";
 import { getSafeMenuImagePath } from "./menuImage";
 import { createSnapshot, loadRows } from "./menuSupabaseSnapshot.mjs";
@@ -19,7 +19,7 @@ interface MenuContentSnapshot {
   catalogSections: MenuCatalogSectionData[];
   dailyMenu: MenuDailyMenuData;
   profileServiceSettings: MenuProfileServiceSettings[];
-  grillSection: MenuItemsSectionData;
+  grillSection: MenuSectionData;
 }
 
 export const loadSupabaseMenuContentSnapshot = async (): Promise<MenuContentSnapshot> => {

@@ -2,7 +2,6 @@ import type {
   MenuCatalogSectionData,
   MenuDailyMenuData,
   MenuItem,
-  MenuItemsSectionData,
   MenuProfileServiceSettings,
   MenuProfileData,
   MenuSectionData,
@@ -19,7 +18,7 @@ interface MenuContentSnapshot {
   catalogSections: MenuCatalogSectionData[];
   dailyMenu: MenuDailyMenuData;
   profileServiceSettings: MenuProfileServiceSettings[];
-  grillSection: MenuItemsSectionData;
+  grillSection: MenuSectionData;
 }
 
 let supabaseMenuContentSnapshot: Promise<MenuContentSnapshot> | undefined;

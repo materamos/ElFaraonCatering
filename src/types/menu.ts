@@ -53,6 +53,7 @@ export interface MenuGroup {
   description?: string;
   note?: string;
   pricing?: MenuPricing;
+  availabilityGroupId?: string;
   items: MenuItem[];
 }
 
