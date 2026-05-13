@@ -129,8 +129,7 @@ interface GrillFamilyGroup {
 
 interface PricingLabel {
   title: string;
-  context: string;
-  tag: string;
+  tags: string[];
 }
 
 const rootElement = document.querySelector<HTMLElement>("[data-admin-root]");
@@ -1191,8 +1190,7 @@ function renderVariantPriceRow(variant: VariantPriceState): string {
 function renderPriceTags(label: PricingLabel): string {
   return `
     <div class="admin-price-tags">
-      <span class="admin-price-tag">${escapeHtml(label.context)}</span>
-      <span class="admin-price-tag">${escapeHtml(label.tag)}</span>
+      ${label.tags.map((tag) => `<span class="admin-price-tag">${escapeHtml(tag)}</span>`).join("")}
     </div>
   `;
 }
@@ -1586,31 +1584,27 @@ function formatPricingLabel(value: string, fallbackTag: string): PricingLabel {
 
     return {
       title: formatIdLabel(labelPart ?? value),
-      context: section,
-      tag: "Catalogo",
+      tags: ["Catalogo", section, fallbackTag],
     };
   }
 
   if (value.startsWith("parrilla-")) {
     return {
       title: formatIdLabel(value.replace(/^parrilla-/, "")),
-      context: "Parrilla",
-      tag: fallbackTag,
+      tags: ["Parrilla", fallbackTag],
     };
   }
 
   if (value.startsWith("menu-")) {
     return {
       title: formatIdLabel(value),
-      context: "Menu del dia",
-      tag: fallbackTag,
+      tags: ["Menu del dia", fallbackTag],
     };
   }
 
   return {
     title: formatIdLabel(value.replace(/:price$/, "")),
-    context: "Precio",
-    tag: fallbackTag,
+    tags: ["Precio", fallbackTag],
   };
 }
 
