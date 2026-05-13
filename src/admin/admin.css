@@ -197,10 +197,14 @@
 
   .admin-status[data-tone="success"] {
     color: #2f6b4f;
+    background: #edf4ef;
+    border-color: #cddfcf;
   }
 
   .admin-status[data-tone="danger"] {
     color: #9a3f3b;
+    background: #f9eeee;
+    border-color: #e2c2be;
   }
 
   .admin-status[data-busy="true"] {

@@ -411,8 +411,8 @@ async function clearAvailabilityOverlay(target: AvailabilityTargetState): Promis
       throw new Error(resultMessage(result));
     }
 
-    await loadAdminState(result.changed ? "Override eliminado." : "Sin cambios.", "success");
-  }, "Limpiando override...");
+    await loadAdminState(result.changed ? "Ajuste eliminado." : "Sin cambios.", "success");
+  }, "Limpiando ajuste...");
 }
 
 async function saveDailyMenu(form: HTMLFormElement): Promise<void> {
@@ -969,7 +969,7 @@ function renderGrillAvailabilityRows(state: AdminOperationalState): string {
   return `
     <div class="admin-list-header">
       <span>${targets.length} variantes</span>
-      <span>${overrideCount} overrides activos. Los cambios se aplican al instante.</span>
+      <span>${overrideCount} ajustes activos. Los cambios se aplican al instante.</span>
     </div>
     <div class="admin-grill-groups">
       ${groupGrillTargets(targets).map((profileGroup) => `
@@ -1016,7 +1016,7 @@ function renderGrillAvailabilityVariant(
         ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
         <div class="admin-row__status">
           <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">${effectiveAvailable ? "Disponible" : "No disponible"}</span>
-          <span class="admin-row__state-note">${overlay ? "Override activo" : "Base"}</span>
+          <span class="admin-row__state-note">${overlay ? "Ajuste activo" : "Base del menu"}</span>
         </div>
       </div>
       <div class="admin-row__actions">
@@ -1049,7 +1049,7 @@ function renderAvailabilityRow(
         ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
         <div class="admin-row__status">
           <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">${effectiveAvailable ? "Disponible" : "No disponible"}</span>
-          <span class="admin-row__state-note">${overlay ? "Override activo" : "Base"}</span>
+          <span class="admin-row__state-note">${overlay ? "Ajuste activo" : "Base del menu"}</span>
         </div>
       </div>
       <div class="admin-row__actions">
@@ -1297,7 +1297,7 @@ async function runBusy(action: () => Promise<void>, busyText = "Procesando..."):
 
 function handleUnexpectedError(error: unknown): void {
   const message = error instanceof TypeError && error.message === "Failed to fetch"
-    ? "No se pudo conectar con publicacion. Revisa conexion y origen autorizado."
+    ? "No se pudo conectar. Revisa conexion y origen autorizado."
     : error instanceof Error
       ? error.message
       : "Ocurrio un error inesperado.";
