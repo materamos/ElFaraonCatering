@@ -106,6 +106,8 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260509002000_revoke_staff_users_trigger_helper_execute.sql` | Revoca execute client-facing del trigger helper de staff. |
 | `20260509003000_add_publish_cooldown_remaining.sql` | Agrega segundos restantes al contrato de cooldown de publicacion. |
 | `20260509004000_limit_availability_overlay_public_select.sql` | Limita la lectura publica del overlay a las columnas que consume el cliente. |
+| `20260512000000_add_grill_variant_names.sql` | Agrega etiquetas cortas de variantes de parrilla. |
+| `20260513000000_update_admin_grill_variant_targets.sql` | Expone nombres cortos y precios de variantes de parrilla en el RPC admin. |
 
 ## Orden recomendado
 
