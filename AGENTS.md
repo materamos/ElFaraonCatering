@@ -184,6 +184,15 @@ Runtime overlay:
 - The overlay may only change visual availability through availability data.
 - Do not add `@supabase/supabase-js` to browser code for the current overlay/admin unless explicitly justified.
 
+Data API grants:
+
+- Do not rely on Supabase default grants for tables, views, or functions in `public`.
+- Any migration that creates or changes a `public` object used through PostgREST, GraphQL, supabase-js, or direct `/rest/v1/` calls must include explicit `revoke` and `grant` statements in the same migration.
+- Prefer the narrowest grant that supports the browser contract. Column-level grants are acceptable for public reads, as with `public.menu_availability_overlays`.
+- Keep RLS enabled for Data API tables and define policies for the exact roles that need access.
+- For `public` objects that are not part of the Data API contract, explicitly revoke access from `anon` and `authenticated`.
+- After changing Data API permissions, verify the deployed project with the anon key and the exact browser query shape; a `42501` response means a required grant is missing or intentionally blocked.
+
 Preserve the static-first model:
 
 - stable menu content and build-time operational content may be read only at build time
