@@ -541,7 +541,12 @@
     gap: 0.9rem;
   }
 
+  .admin-price-grid > .admin-grid {
+    align-content: start;
+  }
+
   .admin-price-row {
+    align-self: start;
     background: #ffffff;
   }
 
