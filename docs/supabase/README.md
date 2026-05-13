@@ -25,7 +25,7 @@ El modelo activo de `menu_content` es plano y orientado al dominio real:
 - `menu_daily_items` contiene las cuatro opciones reales del menu del dia: comun, comun con bebida, vegetariano y vegetariano con bebida.
 - `menu_profile_service_settings.service_kind` define por local `daily-menu` o `grill`.
 - `menu_catalog_sections`, `menu_catalog_groups`, `menu_catalog_items` y `menu_catalog_item_options` contienen el catalogo estable.
-- `menu_grill_families` y `menu_grill_catalog_items` contienen la lista fija de parrilla.
+- `menu_grill_families` contiene los items visibles de parrilla y `menu_grill_catalog_items` contiene sus variantes con precio y disponibilidad.
 - `menu_prices` y `menu_price_variants` contienen precios globales build-time.
 
 Las tablas legacy del modelo anterior fueron eliminadas por `20260506002000_drop_legacy_menu_content_model.sql` despues de validar que el loader activo ya no dependia de ellas. El tag historico `yaml-rollback-2026-05-02` existe solo como rollback al estado file-backed anterior; YAML no es fuente activa.

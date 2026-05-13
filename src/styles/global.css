@@ -424,6 +424,10 @@
     font-weight: 650;
   }
 
+  .dish-card__variant-status[data-state="available"] {
+    display: none;
+  }
+
   .dish-card__price-row {
     display: flex;
     align-items: baseline;

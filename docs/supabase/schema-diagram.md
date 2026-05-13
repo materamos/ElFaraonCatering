@@ -167,6 +167,7 @@ erDiagram
     text family_id FK
     text item_id
     text name
+    text variant_name
     text description
     text note
     text image_path

@@ -84,13 +84,7 @@ const hasSingleItemMatchingSection =
 
   {groups && (
     <div class="menu-section__groups">
-      {groups.map((group) => {
-        const itemGroupId =
-          group.availabilityGroupId === undefined
-            ? group.groupId
-            : group.availabilityGroupId;
-
-        return (
+      {groups.map((group) => (
           <section class="menu-group">
             <div class="menu-group__header">
               <h3 class="menu-group__title">{group.title}</h3>
@@ -110,7 +104,7 @@ const hasSingleItemMatchingSection =
                   <CompactMenuItem
                     menuId={menuId}
                     sectionId={sectionId}
-                    groupId={itemGroupId}
+                    groupId={group.groupId}
                     item={item}
                   />
                 ))}
@@ -121,7 +115,7 @@ const hasSingleItemMatchingSection =
                   <DishCard
                     menuId={menuId}
                     sectionId={sectionId}
-                    groupId={itemGroupId}
+                    groupId={group.groupId}
                     itemId={item.itemId}
                     name={item.name}
                     description={item.description}
@@ -136,8 +130,7 @@ const hasSingleItemMatchingSection =
               </div>
             )}
           </section>
-        );
-      })}
+      ))}
     </div>
   )}
 </section>
