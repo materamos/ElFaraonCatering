@@ -242,7 +242,7 @@ flowchart LR
 
 - `menu_content` se lee para el menu publico solo durante build/validacion con `SUPABASE_DB_URL`.
 - Menu del dia, notas, servicio activo por local, catalogo, secciones, grupos, imagenes y precios son datos build-time.
-- `menu_daily_items` modela cuatro opciones planas: comun, comun con bebida, vegetariano y vegetariano con bebida.
+- `menu_daily_items` modela dos opciones planas: comun y vegetariano.
 - `/admin/` puede editar datos operativos build-time, pero esos cambios requieren rebuild/deploy para impactar el menu publico.
 - `public.menu_availability_overlays` es el unico dato editable en runtime sin rebuild.
 - `public.staff_users` define roles operativos (`availability_editor`, `menu_editor`, `admin`) y alcance por perfil.

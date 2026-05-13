@@ -9,7 +9,7 @@ with expected_tables (table_name, expectation) as (
     ('menu_profile_payment_methods', 'profile payment methods read at build time'),
     ('menu_prices', 'global build-time prices'),
     ('menu_price_variants', 'global build-time variant prices'),
-    ('menu_daily_items', 'four build-time daily menu options'),
+    ('menu_daily_items', 'two build-time daily menu options'),
     ('menu_profile_service_settings', 'active build-time service per profile'),
     ('menu_catalog_sections', 'flat build-time catalog sections'),
     ('menu_catalog_groups', 'flat build-time catalog groups'),
@@ -131,14 +131,12 @@ select
   'menu_daily_items_count_invalid' as diagnostic,
   count(*) as daily_item_count
 from menu_content.menu_daily_items
-having count(*) <> 4;
+having count(*) <> 2;
 
 with expected_daily_items (item_id, order_index) as (
   values
     ('menu-del-dia', 0),
-    ('menu-del-dia-con-bebida', 1),
-    ('menu-vegetariano-del-dia', 2),
-    ('menu-vegetariano-del-dia-con-bebida', 3)
+    ('menu-vegetariano-del-dia', 1)
 )
 select
   'menu_daily_item_missing' as diagnostic,

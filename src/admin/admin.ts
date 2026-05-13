@@ -130,9 +130,7 @@ interface GrillFamilyGroup {
 const rootElement = document.querySelector<HTMLElement>("[data-admin-root]");
 const localStorageKey = "el-faraon-admin-session";
 const regularDailyId = "menu-del-dia";
-const regularDrinkDailyId = "menu-del-dia-con-bebida";
 const vegetarianDailyId = "menu-vegetariano-del-dia";
-const vegetarianDrinkDailyId = "menu-vegetariano-del-dia-con-bebida";
 
 const supabaseUrl = normalizeSupabaseProjectUrl(import.meta.env.PUBLIC_SUPABASE_URL);
 const supabaseAnonKey = getTrimmedValue(import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
@@ -761,9 +759,7 @@ function renderAvailabilityTab(state: AdminOperationalState): string {
 
 function renderDailyTab(state: AdminOperationalState): string {
   const regular = findDailyItem(state, regularDailyId);
-  const regularDrink = findDailyItem(state, regularDrinkDailyId);
   const vegetarian = findDailyItem(state, vegetarianDailyId);
-  const vegetarianDrink = findDailyItem(state, vegetarianDrinkDailyId);
   const serviceEditor = state.permissions.can_edit_menu_content;
   const availabilityEditor = state.permissions.can_edit_availability;
 
@@ -779,12 +775,8 @@ function renderDailyTab(state: AdminOperationalState): string {
           ${renderDailyFieldset("Menu vegetariano", "vegetarian", vegetarian)}
           <div class="admin-row admin-callout">
             <div class="admin-row__main">
-              <p class="admin-row__title">Opciones derivadas</p>
-              <p class="admin-row__meta">
-                ${escapeHtml(regularDrink?.name ?? "Menu regular + bebida")} &middot;
-                ${escapeHtml(vegetarianDrink?.name ?? "Menu vegetariano + bebida")}
-              </p>
-              <p class="admin-row__meta">El contenido se actualiza desde los dos menus base.</p>
+              <p class="admin-row__title">Guardar menu del dia</p>
+              <p class="admin-row__meta">Actualiza las dos opciones visibles del servicio diario.</p>
             </div>
             <div class="admin-row__actions">
               <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar menu del dia</button>

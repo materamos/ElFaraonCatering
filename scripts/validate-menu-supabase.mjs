@@ -10,9 +10,7 @@ const allowedMenuImageExtensions = [".avif", ".jpeg", ".jpg", ".png", ".svg", ".
 
 const expectedDailyItemIds = [
   "menu-del-dia",
-  "menu-del-dia-con-bebida",
   "menu-vegetariano-del-dia",
-  "menu-vegetariano-del-dia-con-bebida",
 ];
 
 const expectedConstraints = [
@@ -157,7 +155,7 @@ function validateDailyMenu(dailyMenu, errors) {
   }
 
   if (!Array.isArray(dailyMenu.items) || dailyMenu.items.length !== expectedDailyItemIds.length) {
-    errors.push("Current daily menu must define the four daily menu options.");
+    errors.push("Current daily menu must define the two daily menu options.");
     return;
   }
 

@@ -202,9 +202,9 @@ El lector build-time arma la forma que consumen `MenuPage`, `MenuSection` y `Dis
 Reglas principales:
 
 - Los IDs tecnicos son ASCII/kebab-case y estables.
-- `menu_daily_items` define las cuatro opciones reales del menu del dia: menu comun, menu comun con bebida, menu vegetariano y menu vegetariano con bebida.
+- `menu_daily_items` define las dos opciones reales del menu del dia: menu comun y menu vegetariano.
 - `menu_profile_service_settings` define por local si el servicio activo es `daily-menu` o `grill`.
-- Si `service_kind` es `daily-menu`, el local muestra las cuatro opciones de `menu_daily_items`.
+- Si `service_kind` es `daily-menu`, el local muestra las dos opciones de `menu_daily_items`.
 - Si `service_kind` es `grill`, el local muestra `menu_grill_families` como items visibles con variantes de `menu_grill_catalog_items`.
 - Cada local puede mostrar menu del dia o parrilla, nunca ambas a la vez.
 - `menu_grill_catalog_items` conserva precios y disponibilidad por variante de parrilla; `variant_name` define la etiqueta visible de cada variante.

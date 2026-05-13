@@ -22,7 +22,7 @@ Supabase respalda un admin operativo, pero "editable" no significa "runtime edit
 El modelo activo de `menu_content` es plano y orientado al dominio real:
 
 - Perfiles, facts y pagos se leen en build-time.
-- `menu_daily_items` contiene las cuatro opciones reales del menu del dia: comun, comun con bebida, vegetariano y vegetariano con bebida.
+- `menu_daily_items` contiene las dos opciones reales del menu del dia: comun y vegetariano.
 - `menu_profile_service_settings.service_kind` define por local `daily-menu` o `grill`.
 - `menu_catalog_sections`, `menu_catalog_groups`, `menu_catalog_items` y `menu_catalog_item_options` contienen el catalogo estable.
 - `menu_grill_families` contiene los items visibles de parrilla y `menu_grill_catalog_items` contiene sus variantes con precio y disponibilidad.
@@ -96,7 +96,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260506003000_remove_menu_override_pricing.sql` | Elimina pricing override no usado por el modelo actual. |
 | `20260507000000_dedupe_menu_content_indexes.sql` | Quita indices redundantes del modelo activo. |
 | `20260508000000_add_staff_users.sql` | Agrega `staff_users`, helpers y overlay runtime. |
-| `20260508001000_add_operational_edit_rpcs.sql` | Agrega RPCs operativas y modelo de cuatro opciones del menu del dia. |
+| `20260508001000_add_operational_edit_rpcs.sql` | Agrega RPCs operativas y modelo operativo del menu del dia. |
 | `20260508002000_harden_security_definer_search_path.sql` | Endurece `search_path` de funciones `security definer`. |
 | `20260508003000_add_publish_menu_changes_support.sql` | Agrega `app_private` y helpers privados de publicacion. |
 | `20260508004000_add_admin_operational_state_rpc.sql` | Agrega lectura controlada del admin operativo. |
@@ -108,6 +108,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260509004000_limit_availability_overlay_public_select.sql` | Limita la lectura publica del overlay a las columnas que consume el cliente. |
 | `20260512000000_add_grill_variant_names.sql` | Agrega etiquetas cortas de variantes de parrilla. |
 | `20260513000000_update_admin_grill_variant_targets.sql` | Expone nombres cortos y precios de variantes de parrilla en el RPC admin. |
+| `20260513001000_remove_daily_menu_drink_options.sql` | Elimina las opciones con bebida del menu del dia y actualiza el RPC de edicion. |
 
 ## Orden recomendado
 
