@@ -5,9 +5,7 @@
 insert into menu_content.menu_prices (pricing_key, kind, amount)
 values
   ('menu-del-dia', 'fixed', 7500),
-  ('menu-del-dia-con-bebida', 'fixed', 9900),
-  ('menu-vegetariano-del-dia', 'fixed', 7500),
-  ('menu-vegetariano-del-dia-con-bebida', 'fixed', 9900)
+  ('menu-vegetariano-del-dia', 'fixed', 7500)
 on conflict (pricing_key) do nothing;
 
 insert into menu_content.menu_daily_items (
@@ -21,9 +19,7 @@ insert into menu_content.menu_daily_items (
 )
 values
   ('menu-del-dia', 'Menu del dia', null, null, true, 'menu-del-dia', 0),
-  ('menu-del-dia-con-bebida', 'Menu del dia + bebida', null, null, true, 'menu-del-dia-con-bebida', 1),
-  ('menu-vegetariano-del-dia', 'Menu del dia vegetariano', null, null, true, 'menu-vegetariano-del-dia', 2),
-  ('menu-vegetariano-del-dia-con-bebida', 'Menu del dia vegetariano + bebida', null, null, true, 'menu-vegetariano-del-dia-con-bebida', 3)
+  ('menu-vegetariano-del-dia', 'Menu del dia vegetariano', null, null, true, 'menu-vegetariano-del-dia', 1)
 on conflict (item_id) do nothing;
 
 with settings (profile_id, service_kind) as (

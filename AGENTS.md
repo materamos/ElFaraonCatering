@@ -106,11 +106,11 @@ Required content surfaces:
 
 Daily service rules:
 
-- `menu_daily_items` defines the four daily-menu options: regular menu, regular menu with drink, vegetarian menu, and vegetarian menu with drink.
+- `menu_daily_items` defines the two daily-menu options: regular menu and vegetarian menu.
 - `menu_daily_items` must define name, availability, pricing, and may define description and note.
 - `menu_profile_service_settings` must define one settings row per profile.
 - `service_kind` is the per-profile property that selects `daily-menu` or `grill`.
-- When `service_kind` is `daily-menu`, the profile shows the four daily-menu options.
+- When `service_kind` is `daily-menu`, the profile shows the two daily-menu options.
 - When `service_kind` is `grill`, the profile shows one visible item per `menu_grill_families` row, with `menu_grill_catalog_items` as pricing and availability variants.
 - A profile may show either menu del dia or grill, never both.
 - `menu_grill_catalog_items.variant_name` defines the visible label for each grill variant.

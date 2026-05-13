@@ -393,12 +393,10 @@ begin
   from menu_content.menu_daily_items item
   where item.item_id in (
     'menu-del-dia',
-    'menu-del-dia-con-bebida',
-    'menu-vegetariano-del-dia',
-    'menu-vegetariano-del-dia-con-bebida'
+    'menu-vegetariano-del-dia'
   );
 
-  if expected_item_count <> 4 then
+  if expected_item_count <> 2 then
     return query select false, false, true, 'set_daily_menu', 'daily_menu_model_incomplete';
     return;
   end if;
@@ -412,9 +410,7 @@ begin
   ) as (
     values
       ('menu-del-dia', regular_name_value, regular_description_value, regular_note_value, regular_available),
-      ('menu-del-dia-con-bebida', regular_name_value || ' + bebida', regular_description_value, regular_note_value, regular_available),
-      ('menu-vegetariano-del-dia', vegetarian_name_value, vegetarian_description_value, vegetarian_note_value, vegetarian_available),
-      ('menu-vegetariano-del-dia-con-bebida', vegetarian_name_value || ' + bebida', vegetarian_description_value, vegetarian_note_value, vegetarian_available)
+      ('menu-vegetariano-del-dia', vegetarian_name_value, vegetarian_description_value, vegetarian_note_value, vegetarian_available)
   )
   select exists (
     select 1
@@ -442,9 +438,7 @@ begin
   ) as (
     values
       ('menu-del-dia', regular_name_value, regular_description_value, regular_note_value, regular_available),
-      ('menu-del-dia-con-bebida', regular_name_value || ' + bebida', regular_description_value, regular_note_value, regular_available),
-      ('menu-vegetariano-del-dia', vegetarian_name_value, vegetarian_description_value, vegetarian_note_value, vegetarian_available),
-      ('menu-vegetariano-del-dia-con-bebida', vegetarian_name_value || ' + bebida', vegetarian_description_value, vegetarian_note_value, vegetarian_available)
+      ('menu-vegetariano-del-dia', vegetarian_name_value, vegetarian_description_value, vegetarian_note_value, vegetarian_available)
   )
   update menu_content.menu_daily_items item
   set
