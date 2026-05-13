@@ -978,12 +978,10 @@ function renderGrillAvailabilityRows(state: AdminOperationalState): string {
     );
   }
 
-  const overrideCount = targets.filter((target) => findOverlay(state, target)).length;
-
   return `
     <div class="admin-list-header">
       <span>${targets.length} variantes</span>
-      <span>${overrideCount} ajustes activos. Los cambios se aplican al instante.</span>
+      <span>Los cambios se aplican al instante.</span>
     </div>
     <div class="admin-grill-groups">
       ${groupGrillTargets(targets).map((profileGroup) => `
@@ -1016,8 +1014,8 @@ function renderGrillAvailabilityVariant(
   const overlay = findOverlay(state, target);
   const effectiveAvailable = overlay ? overlay.available_override : target.base_available;
   const key = getTargetKey(target);
-  const availableDisabled = isBusy || Boolean(overlay && effectiveAvailable);
-  const unavailableDisabled = isBusy || Boolean(overlay && !effectiveAvailable);
+  const availableDisabled = isBusy || effectiveAvailable;
+  const unavailableDisabled = isBusy || !effectiveAvailable;
   const priceText = formatOptionalAmount(target.price_amount);
 
   return `
@@ -1030,13 +1028,11 @@ function renderGrillAvailabilityVariant(
         ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
         <div class="admin-row__status">
           <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">${effectiveAvailable ? "Disponible" : "No disponible"}</span>
-          <span class="admin-row__state-note">${overlay ? "Ajuste activo" : "Base del menu"}</span>
         </div>
       </div>
       <div class="admin-row__actions">
-        <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" data-current="${overlay && effectiveAvailable ? "true" : "false"}" aria-pressed="${overlay && effectiveAvailable ? "true" : "false"}" ${availableDisabled ? "disabled" : ""}>Forzar disponible</button>
-        <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="false" data-current="${overlay && !effectiveAvailable ? "true" : "false"}" aria-pressed="${overlay && !effectiveAvailable ? "true" : "false"}" ${unavailableDisabled ? "disabled" : ""}>Forzar no disponible</button>
-        <button class="admin-button admin-button--secondary" type="button" data-admin-action="clear-overlay" data-target-key="${escapeHtml(key)}" ${isBusy || !overlay ? "disabled" : ""}>Usar base</button>
+        <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" data-current="${effectiveAvailable ? "true" : "false"}" aria-pressed="${effectiveAvailable ? "true" : "false"}" ${availableDisabled ? "disabled" : ""}>Disponible</button>
+        <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="false" data-current="${!effectiveAvailable ? "true" : "false"}" aria-pressed="${!effectiveAvailable ? "true" : "false"}" ${unavailableDisabled ? "disabled" : ""}>No disponible</button>
       </div>
     </div>
   `;
@@ -1049,8 +1045,8 @@ function renderAvailabilityRow(
   const overlay = findOverlay(state, target);
   const effectiveAvailable = overlay ? overlay.available_override : target.base_available;
   const key = getTargetKey(target);
-  const availableDisabled = isBusy || Boolean(overlay && effectiveAvailable);
-  const unavailableDisabled = isBusy || Boolean(overlay && !effectiveAvailable);
+  const availableDisabled = isBusy || effectiveAvailable;
+  const unavailableDisabled = isBusy || !effectiveAvailable;
 
   return `
     <div class="admin-row">
@@ -1063,13 +1059,11 @@ function renderAvailabilityRow(
         ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
         <div class="admin-row__status">
           <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">${effectiveAvailable ? "Disponible" : "No disponible"}</span>
-          <span class="admin-row__state-note">${overlay ? "Ajuste activo" : "Base del menu"}</span>
         </div>
       </div>
       <div class="admin-row__actions">
-        <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" data-current="${overlay && effectiveAvailable ? "true" : "false"}" aria-pressed="${overlay && effectiveAvailable ? "true" : "false"}" ${availableDisabled ? "disabled" : ""}>Forzar disponible</button>
-        <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="false" data-current="${overlay && !effectiveAvailable ? "true" : "false"}" aria-pressed="${overlay && !effectiveAvailable ? "true" : "false"}" ${unavailableDisabled ? "disabled" : ""}>Forzar no disponible</button>
-        <button class="admin-button admin-button--secondary" type="button" data-admin-action="clear-overlay" data-target-key="${escapeHtml(key)}" ${isBusy || !overlay ? "disabled" : ""}>Usar base</button>
+        <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" data-current="${effectiveAvailable ? "true" : "false"}" aria-pressed="${effectiveAvailable ? "true" : "false"}" ${availableDisabled ? "disabled" : ""}>Disponible</button>
+        <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="false" data-current="${!effectiveAvailable ? "true" : "false"}" aria-pressed="${!effectiveAvailable ? "true" : "false"}" ${unavailableDisabled ? "disabled" : ""}>No disponible</button>
       </div>
     </div>
   `;
