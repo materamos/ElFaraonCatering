@@ -147,7 +147,7 @@ let activeTab: AdminTabId = "daily";
 let hasPendingPublication = false;
 let isBusy = false;
 let availabilityProfileFilter = "";
-let availabilityKindFilter = "";
+let dailyProfileFilter = "";
 let grillProfileFilter = "";
 
 if (!rootElement) {
@@ -191,8 +191,8 @@ root.addEventListener("change", (event) => {
     availabilityProfileFilter = field.value;
   }
 
-  if (field.dataset.adminFilter === "availability-kind") {
-    availabilityKindFilter = field.value;
+  if (field.dataset.adminFilter === "daily-profile") {
+    dailyProfileFilter = field.value;
   }
 
   if (field.dataset.adminFilter === "grill-profile") {
@@ -751,10 +751,10 @@ function renderAvailabilityTab(state: AdminOperationalState): string {
     <section class="admin-section">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Disponibilidad</h2>
-        <p class="admin-section__copy">Cambios runtime. Se aplican sin publicar.</p>
+        <p class="admin-section__copy">Disponibilidad runtime del catalogo general. Se aplica sin publicar.</p>
       </div>
       ${renderAvailabilityFilters(state, "availability")}
-      ${renderAvailabilityRows(state, undefined)}
+      ${renderAvailabilityRows(state, "catalog")}
     </section>
   `;
 }
@@ -764,30 +764,39 @@ function renderDailyTab(state: AdminOperationalState): string {
   const regularDrink = findDailyItem(state, regularDrinkDailyId);
   const vegetarian = findDailyItem(state, vegetarianDailyId);
   const vegetarianDrink = findDailyItem(state, vegetarianDrinkDailyId);
+  const serviceEditor = state.permissions.can_edit_menu_content;
+  const availabilityEditor = state.permissions.can_edit_availability;
 
   return `
     <section class="admin-section">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Menu del dia</h2>
-        <p class="admin-section__copy">Edita las bases del menu del dia. Las opciones con bebida se derivan automaticamente.</p>
+        <p class="admin-section__copy">Contenido build-time del menu del dia y disponibilidad runtime de sus opciones.</p>
       </div>
-      <form class="admin-form-grid" data-admin-form="daily-menu">
-        ${renderDailyFieldset("Menu regular", "regular", regular)}
-        ${renderDailyFieldset("Menu vegetariano", "vegetarian", vegetarian)}
-        <div class="admin-row admin-callout">
-          <div class="admin-row__main">
-            <p class="admin-row__title">Opciones derivadas</p>
-            <p class="admin-row__meta">
-              ${escapeHtml(regularDrink?.name ?? "Menu regular + bebida")} &middot;
-              ${escapeHtml(vegetarianDrink?.name ?? "Menu vegetariano + bebida")}
-            </p>
-            <p class="admin-row__meta">El contenido se actualiza desde los dos menus base.</p>
+      ${serviceEditor ? `
+        <form class="admin-form-grid" data-admin-form="daily-menu">
+          ${renderDailyFieldset("Menu regular", "regular", regular)}
+          ${renderDailyFieldset("Menu vegetariano", "vegetarian", vegetarian)}
+          <div class="admin-row admin-callout">
+            <div class="admin-row__main">
+              <p class="admin-row__title">Opciones derivadas</p>
+              <p class="admin-row__meta">
+                ${escapeHtml(regularDrink?.name ?? "Menu regular + bebida")} &middot;
+                ${escapeHtml(vegetarianDrink?.name ?? "Menu vegetariano + bebida")}
+              </p>
+              <p class="admin-row__meta">El contenido se actualiza desde los dos menus base.</p>
+            </div>
+            <div class="admin-row__actions">
+              <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar menu del dia</button>
+            </div>
           </div>
-          <div class="admin-row__actions">
-            <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar menu del dia</button>
-          </div>
-        </div>
-      </form>
+        </form>
+      ` : ""}
+      ${availabilityEditor ? `
+        ${renderAvailabilityFilters(state, "daily")}
+        ${renderAvailabilityRows(state, "daily-menu")}
+      ` : ""}
+      ${!serviceEditor && !availabilityEditor ? renderEmpty("No hay acciones de menu del dia disponibles para este rol.") : ""}
     </section>
   `;
 }
@@ -888,15 +897,15 @@ function renderStatus(): string {
 
 function renderAvailabilityFilters(
   state: AdminOperationalState,
-  scope: "availability" | "grill",
+  scope: "availability" | "daily" | "grill",
 ): string {
-  const profileFilter = scope === "grill" ? grillProfileFilter : availabilityProfileFilter;
+  const profileFilter = getAvailabilityProfileFilter(scope);
 
   return `
     <div class="admin-toolbar">
       <label class="admin-field">
         <span class="admin-label">Local</span>
-        <select class="admin-select" data-admin-filter="${scope === "grill" ? "grill-profile" : "availability-profile"}">
+        <select class="admin-select" data-admin-filter="${getAvailabilityProfileFilterName(scope)}">
           <option value="">Todos</option>
           ${state.profiles
             .filter((profile) => profile.can_edit_availability)
@@ -904,33 +913,46 @@ function renderAvailabilityFilters(
             .join("")}
         </select>
       </label>
-      ${scope === "availability" ? `
-        <label class="admin-field">
-          <span class="admin-label">Tipo</span>
-          <select class="admin-select" data-admin-filter="availability-kind">
-            ${[
-              ["", "Todos"],
-              ["daily-menu", "Menu del dia"],
-              ["grill", "Parrilla"],
-              ["catalog", "Catalogo"],
-            ].map(([value, label]) => `<option value="${value}" ${availabilityKindFilter === value ? "selected" : ""}>${label}</option>`).join("")}
-          </select>
-        </label>
-      ` : ""}
     </div>
   `;
+}
+
+function getAvailabilityProfileFilter(scope: "availability" | "daily" | "grill"): string {
+  if (scope === "daily") {
+    return dailyProfileFilter;
+  }
+
+  if (scope === "grill") {
+    return grillProfileFilter;
+  }
+
+  return availabilityProfileFilter;
+}
+
+function getAvailabilityProfileFilterName(scope: "availability" | "daily" | "grill"): string {
+  if (scope === "daily") {
+    return "daily-profile";
+  }
+
+  if (scope === "grill") {
+    return "grill-profile";
+  }
+
+  return "availability-profile";
 }
 
 function renderAvailabilityRows(
   state: AdminOperationalState,
   kindLimit: TargetKind | undefined,
 ): string {
-  const profileFilter = kindLimit === "grill" ? grillProfileFilter : availabilityProfileFilter;
-  const kindFilter = kindLimit ?? (availabilityKindFilter as TargetKind | "");
+  const profileFilter = kindLimit === "daily-menu"
+    ? dailyProfileFilter
+    : kindLimit === "grill"
+      ? grillProfileFilter
+      : availabilityProfileFilter;
   const scopeTargets = state.availability_targets.filter((target) => !kindLimit || target.target_kind === kindLimit);
   const targets = scopeTargets.filter((target) =>
     (!profileFilter || target.menu_id === profileFilter)
-    && (!kindFilter || target.target_kind === kindFilter)
   );
 
   if (targets.length === 0) {
@@ -1176,7 +1198,7 @@ function renderEmpty(message: string): string {
 function getAllowedTabs(state: AdminOperationalState): Array<{ id: AdminTabId; label: string }> {
   const tabs: Array<{ id: AdminTabId; label: string }> = [];
 
-  if (state.permissions.can_edit_menu_content) {
+  if (state.permissions.can_edit_menu_content || state.permissions.can_edit_availability) {
     tabs.push({ id: "daily", label: "Menu del dia" });
   }
 
