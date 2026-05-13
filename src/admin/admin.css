@@ -376,6 +376,64 @@
     gap: 0.65rem;
   }
 
+  .admin-grill-groups,
+  .admin-grill-profile,
+  .admin-family,
+  .admin-family__variants {
+    display: grid;
+  }
+
+  .admin-grill-groups,
+  .admin-grill-profile {
+    gap: 0.9rem;
+  }
+
+  .admin-grill-profile__header {
+    display: grid;
+    gap: 0.2rem;
+    padding-inline: 0.15rem;
+  }
+
+  .admin-grill-profile__title {
+    color: #1c211d;
+    font-size: 1.05rem;
+    line-height: 1.25;
+  }
+
+  .admin-family {
+    gap: 0.65rem;
+    padding: 0.75rem;
+    background: #fbfaf7;
+    border: 1px solid #e4ded4;
+    border-radius: 0.5rem;
+  }
+
+  .admin-family__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .admin-family__title {
+    color: #26392e;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .admin-family__count {
+    color: #777166;
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .admin-family__variants {
+    gap: 0.5rem;
+  }
+
   .admin-row {
     display: grid;
     gap: 0.7rem;
@@ -383,6 +441,10 @@
     background: #fffefa;
     border: 1px solid #e4ded4;
     border-radius: 0.5rem;
+  }
+
+  .admin-variant-row {
+    background: #ffffff;
   }
 
   .admin-row:last-child {
@@ -400,6 +462,22 @@
     font-size: 1rem;
     font-weight: 750;
     line-height: 1.35;
+  }
+
+  .admin-variant-heading {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 0.75rem;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .admin-variant-price {
+    color: #1c211d;
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1.35;
+    white-space: nowrap;
   }
 
   .admin-row__meta {

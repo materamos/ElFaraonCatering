@@ -60,6 +60,7 @@ interface AvailabilityTargetState {
   name: string;
   description: string | null;
   base_available: boolean;
+  price_amount: number | null;
 }
 
 interface AvailabilityOverlayState {
@@ -113,6 +114,17 @@ interface RpcResult {
 interface StatusMessage {
   text: string;
   tone: StatusTone;
+}
+
+interface GrillProfileGroup {
+  menuId: string;
+  profileTitle: string;
+  families: GrillFamilyGroup[];
+}
+
+interface GrillFamilyGroup {
+  title: string;
+  targets: AvailabilityTargetState[];
 }
 
 const rootElement = document.querySelector<HTMLElement>("[data-admin-root]");
@@ -793,7 +805,7 @@ function renderGrillTab(state: AdminOperationalState): string {
       ${serviceEditor ? renderServiceKindForms(state) : ""}
       ${availabilityEditor ? `
         ${renderAvailabilityFilters(state, "grill")}
-        ${renderAvailabilityRows(state, "grill")}
+        ${renderGrillAvailabilityRows(state)}
       ` : ""}
       ${!serviceEditor && !availabilityEditor ? renderEmpty("No hay acciones de parrilla disponibles para este rol.") : ""}
     </section>
@@ -935,6 +947,84 @@ function renderAvailabilityRows(
       <span>Los cambios se aplican al instante.</span>
     </div>
     <div class="admin-grid">${targets.map((target) => renderAvailabilityRow(state, target)).join("")}</div>
+  `;
+}
+
+function renderGrillAvailabilityRows(state: AdminOperationalState): string {
+  const scopeTargets = state.availability_targets.filter((target) => target.target_kind === "grill");
+  const targets = scopeTargets.filter((target) =>
+    !grillProfileFilter || target.menu_id === grillProfileFilter
+  );
+
+  if (targets.length === 0) {
+    return renderEmpty(
+      scopeTargets.length > 0
+        ? "No hay variantes para los filtros seleccionados."
+        : "No hay variantes de parrilla disponibles para este rol.",
+    );
+  }
+
+  const overrideCount = targets.filter((target) => findOverlay(state, target)).length;
+
+  return `
+    <div class="admin-list-header">
+      <span>${targets.length} variantes</span>
+      <span>${overrideCount} overrides activos. Los cambios se aplican al instante.</span>
+    </div>
+    <div class="admin-grill-groups">
+      ${groupGrillTargets(targets).map((profileGroup) => `
+        <section class="admin-grill-profile">
+          <div class="admin-grill-profile__header">
+            <p class="admin-kicker">Local</p>
+            <h3 class="admin-grill-profile__title">${escapeHtml(profileGroup.profileTitle)}</h3>
+          </div>
+          ${profileGroup.families.map((family) => `
+            <section class="admin-family">
+              <div class="admin-family__header">
+                <h4 class="admin-family__title">${escapeHtml(family.title)}</h4>
+                <span class="admin-family__count">${family.targets.length} variantes</span>
+              </div>
+              <div class="admin-family__variants">
+                ${family.targets.map((target) => renderGrillAvailabilityVariant(state, target)).join("")}
+              </div>
+            </section>
+          `).join("")}
+        </section>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderGrillAvailabilityVariant(
+  state: AdminOperationalState,
+  target: AvailabilityTargetState,
+): string {
+  const overlay = findOverlay(state, target);
+  const effectiveAvailable = overlay ? overlay.available_override : target.base_available;
+  const key = getTargetKey(target);
+  const availableDisabled = isBusy || Boolean(overlay && effectiveAvailable);
+  const unavailableDisabled = isBusy || Boolean(overlay && !effectiveAvailable);
+  const priceText = formatOptionalAmount(target.price_amount);
+
+  return `
+    <div class="admin-row admin-variant-row">
+      <div class="admin-row__main">
+        <div class="admin-variant-heading">
+          <p class="admin-row__title">${escapeHtml(target.name)}</p>
+          ${priceText ? `<span class="admin-variant-price">${escapeHtml(priceText)}</span>` : ""}
+        </div>
+        ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
+        <div class="admin-row__status">
+          <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">${effectiveAvailable ? "Disponible" : "No disponible"}</span>
+          <span class="admin-row__state-note">${overlay ? "Override activo" : "Base"}</span>
+        </div>
+      </div>
+      <div class="admin-row__actions">
+        <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" data-current="${overlay && effectiveAvailable ? "true" : "false"}" aria-pressed="${overlay && effectiveAvailable ? "true" : "false"}" ${availableDisabled ? "disabled" : ""}>Forzar disponible</button>
+        <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="false" data-current="${overlay && !effectiveAvailable ? "true" : "false"}" aria-pressed="${overlay && !effectiveAvailable ? "true" : "false"}" ${unavailableDisabled ? "disabled" : ""}>Forzar no disponible</button>
+        <button class="admin-button admin-button--secondary" type="button" data-admin-action="clear-overlay" data-target-key="${escapeHtml(key)}" ${isBusy || !overlay ? "disabled" : ""}>Usar base</button>
+      </div>
+    </div>
   `;
 }
 
@@ -1226,13 +1316,58 @@ function normalizeAdminState(state: AdminOperationalState): AdminOperationalStat
     profiles: Array.isArray(state.profiles) ? state.profiles : [],
     service_settings: Array.isArray(state.service_settings) ? state.service_settings : [],
     daily_menu: Array.isArray(state.daily_menu) ? state.daily_menu : [],
-    availability_targets: Array.isArray(state.availability_targets) ? state.availability_targets : [],
+    availability_targets: Array.isArray(state.availability_targets)
+      ? state.availability_targets.map(normalizeAvailabilityTarget)
+      : [],
     availability_overlays: Array.isArray(state.availability_overlays) ? state.availability_overlays : [],
     prices: {
       fixed: Array.isArray(state.prices?.fixed) ? state.prices.fixed : [],
       variants: Array.isArray(state.prices?.variants) ? state.prices.variants : [],
     },
   };
+}
+
+function normalizeAvailabilityTarget(target: AvailabilityTargetState): AvailabilityTargetState {
+  const priceAmount = (target as { price_amount?: unknown }).price_amount;
+
+  return {
+    ...target,
+    price_amount:
+      typeof priceAmount === "number" && Number.isSafeInteger(priceAmount) && priceAmount >= 0
+        ? priceAmount
+        : null,
+  };
+}
+
+function groupGrillTargets(targets: AvailabilityTargetState[]): GrillProfileGroup[] {
+  const profiles: GrillProfileGroup[] = [];
+  const profileMap = new Map<string, GrillProfileGroup>();
+
+  for (const target of targets) {
+    let profileGroup = profileMap.get(target.menu_id);
+
+    if (!profileGroup) {
+      profileGroup = {
+        menuId: target.menu_id,
+        profileTitle: target.profile_title,
+        families: [],
+      };
+      profileMap.set(target.menu_id, profileGroup);
+      profiles.push(profileGroup);
+    }
+
+    const familyTitle = target.group_title ?? "Sin familia";
+    let family = profileGroup.families.find((entry) => entry.title === familyTitle);
+
+    if (!family) {
+      family = { title: familyTitle, targets: [] };
+      profileGroup.families.push(family);
+    }
+
+    family.targets.push(target);
+  }
+
+  return profiles;
 }
 
 function roleLabel(role: StaffRole): string {
@@ -1400,6 +1535,12 @@ function isStoredSession(value: unknown): value is AuthSession {
 
 function formatAmount(amount: number): string {
   return `$${new Intl.NumberFormat("es-AR").format(amount)}`;
+}
+
+function formatOptionalAmount(amount: number | null): string {
+  return typeof amount === "number" && Number.isSafeInteger(amount) && amount >= 0
+    ? formatAmount(amount)
+    : "";
 }
 
 function formatPricingKey(value: string): string {
