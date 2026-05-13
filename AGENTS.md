@@ -111,9 +111,9 @@ Daily service rules:
 - `menu_profile_service_settings` must define one settings row per profile.
 - `service_kind` is the per-profile property that selects `daily-menu` or `grill`.
 - When `service_kind` is `daily-menu`, the profile shows the four daily-menu options.
-- When `service_kind` is `grill`, the profile shows `menu_grill_catalog_items` as the daily service variant.
+- When `service_kind` is `grill`, the profile shows one visible item per `menu_grill_families` row, with `menu_grill_catalog_items` as pricing and availability variants.
 - A profile may show either menu del dia or grill, never both.
-- `menu_grill_catalog_items` is the fixed grill list grouped by `menu_grill_families`.
+- `menu_grill_catalog_items.variant_name` defines the visible label for each grill variant.
 - `menu_catalog_sections` contains only shared catalog sections; do not model daily service as profile-specific sections.
 - When multiple profiles show menu del dia, they share the same current main dish.
 - Prices are global across profiles; do not implement profile/menu-specific prices.

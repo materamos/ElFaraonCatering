@@ -144,6 +144,7 @@ create table if not exists menu_content.menu_grill_catalog_items (
   family_id text not null references menu_content.menu_grill_families(family_id),
   item_id text not null unique check (item_id ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'),
   name text not null check (length(btrim(name)) > 0),
+  variant_name text null,
   description text null,
   note text null,
   image_path text null,

@@ -26,6 +26,7 @@ export interface MenuPricingVariant {
   name: string;
   price: MenuPrice;
   available: boolean;
+  availabilityItemId?: string;
 }
 
 export interface MenuOption {
@@ -53,7 +54,6 @@ export interface MenuGroup {
   description?: string;
   note?: string;
   pricing?: MenuPricing;
-  availabilityGroupId?: string;
   items: MenuItem[];
 }
 

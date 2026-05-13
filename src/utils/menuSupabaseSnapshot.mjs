@@ -130,20 +130,47 @@ export const createSnapshot = (rows, options = {}) => {
         "Productos de parrilla. La disponibilidad puede variar durante el dia.",
       order: 10,
       presentation: "compact-list",
-      groups: rows.grillFamilies
+      items: rows.grillFamilies
         .map((family) =>
-          cleanOptional({
-            groupId: family.family_id,
-            availabilityGroupId: "",
-            title: family.title,
-            items: (grillItemsByFamily.get(family.family_id) ?? []).map((item) =>
-              createFlatItem(item, [], priceMap, transformImage),
-            ),
-          }),
+          createGrillFamilyItem(
+            family,
+            grillItemsByFamily.get(family.family_id) ?? [],
+            priceMap,
+          ),
         )
-        .filter((group) => group.items.length > 0),
+        .filter((item) => item.pricing.variants.length > 0),
     },
   };
+};
+
+const createGrillFamilyItem = (family, items, priceMap) => {
+  const variants = items.map((item) => createGrillPricingVariant(item, priceMap));
+
+  return {
+    itemId: family.family_id,
+    name: family.title,
+    available: variants.some((variant) => variant.available),
+    pricing: {
+      kind: "variants",
+      variants,
+    },
+  };
+};
+
+const createGrillPricingVariant = (item, priceMap) => {
+  const pricing = requireMapValue(priceMap, item.pricing_key);
+
+  if (pricing.kind !== "fixed") {
+    throw new Error(`Grill item ${item.item_id} must use fixed pricing.`);
+  }
+
+  return cleanOptional({
+    id: item.item_id,
+    name: item.variant_name ?? item.name,
+    price: pricing.price,
+    available: item.available,
+    availabilityItemId: item.item_id,
+  });
 };
 
 const createCatalogSection = ({

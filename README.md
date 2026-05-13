@@ -192,7 +192,7 @@ El lector build-time arma la forma que consumen `MenuPage`, `MenuSection` y `Dis
 - perfiles por menu
 - servicio del dia compartido
 - servicio activo por local con `service_kind`
-- lista fija de parrilla
+- familias de parrilla con variantes
 - catalogo compartido
 - grupos e items
 - precios `fixed`, `included` y `variants`
@@ -205,9 +205,9 @@ Reglas principales:
 - `menu_daily_items` define las cuatro opciones reales del menu del dia: menu comun, menu comun con bebida, menu vegetariano y menu vegetariano con bebida.
 - `menu_profile_service_settings` define por local si el servicio activo es `daily-menu` o `grill`.
 - Si `service_kind` es `daily-menu`, el local muestra las cuatro opciones de `menu_daily_items`.
-- Si `service_kind` es `grill`, el local muestra la lista de `menu_grill_catalog_items`.
+- Si `service_kind` es `grill`, el local muestra `menu_grill_families` como items visibles con variantes de `menu_grill_catalog_items`.
 - Cada local puede mostrar menu del dia o parrilla, nunca ambas a la vez.
-- `menu_grill_catalog_items` contiene la lista fija de parrilla, agrupada por `menu_grill_families`.
+- `menu_grill_catalog_items` conserva precios y disponibilidad por variante de parrilla; `variant_name` define la etiqueta visible de cada variante.
 - `menu_catalog_sections` contiene solo secciones del catalogo compartido; no modela el servicio diario por local.
 - Cuando ambos locales muestran menu del dia, comparten el mismo plato principal.
 - Los precios son globales para todos los locales.

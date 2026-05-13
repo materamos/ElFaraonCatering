@@ -14,28 +14,31 @@ const getDirectPricingText = (pricing?: MenuPricing) =>
   pricing && pricing.kind !== "variants" ? getPricingText(pricing) : null;
 const directPricingText = getDirectPricingText(item.pricing);
 const variants = item.pricing?.kind === "variants" ? item.pricing.variants : [];
+const hasOperationalVariants = variants.some((variant) => variant.availabilityItemId);
 ---
 
 <li
   class="compact-item"
-  data-menu-id={menuId}
-  data-section-id={sectionId}
-  data-group-id={groupId}
-  data-item-id={item.itemId}
-  data-available={item.available ? "true" : "false"}
+  data-menu-id={hasOperationalVariants ? undefined : menuId}
+  data-section-id={hasOperationalVariants ? undefined : sectionId}
+  data-group-id={hasOperationalVariants ? undefined : groupId}
+  data-item-id={hasOperationalVariants ? undefined : item.itemId}
+  data-available={hasOperationalVariants ? undefined : item.available ? "true" : "false"}
 >
   <div class="compact-item__content">
     <div class="compact-item__header">
       <h3 class="compact-item__title">
         {item.name}
       </h3>
-      <span
-        class="compact-availability-status"
-        data-availability-status
-        data-state={item.available ? "available" : "unavailable"}
-      >
-        {item.available ? "Disponible" : "No disponible"}
-      </span>
+      {!hasOperationalVariants && (
+        <span
+          class="compact-availability-status"
+          data-availability-status
+          data-state={item.available ? "available" : "unavailable"}
+        >
+          {item.available ? "Disponible" : "No disponible"}
+        </span>
+      )}
     </div>
 
     {item.description && (
@@ -50,10 +53,29 @@ const variants = item.pricing?.kind === "variants" ? item.pricing.variants : [];
     {variants.length > 0 && (
       <ul class="compact-item__variants">
         {variants.map((variant: MenuPricingVariant) => (
-          <li class="compact-item__variant">
+          <li
+            class="compact-item__variant"
+            data-menu-id={variant.availabilityItemId ? menuId : undefined}
+            data-section-id={variant.availabilityItemId ? sectionId : undefined}
+            data-group-id={variant.availabilityItemId ? "" : undefined}
+            data-item-id={variant.availabilityItemId}
+            data-available={
+              variant.availabilityItemId
+                ? variant.available ? "true" : "false"
+                : undefined
+            }
+          >
             <span>
               {variant.name}
-              {variant.available === false && (
+              {variant.availabilityItemId ? (
+                <span
+                  class="dish-card__variant-status"
+                  data-availability-status
+                  data-state={variant.available ? "available" : "unavailable"}
+                >
+                  {variant.available ? "Disponible" : "No disponible"}
+                </span>
+              ) : variant.available === false && (
                 <span class="dish-card__variant-status">
                   No disponible
                 </span>

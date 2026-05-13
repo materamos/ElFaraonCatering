@@ -127,6 +127,7 @@ function validateSnapshot(snapshot, errors) {
 
   validateDailyMenu(snapshot.dailyMenu, errors);
   validateSection("grill service", snapshot.grillSection, errors);
+  validateGrillService(snapshot.grillSection, errors);
 
   for (const settings of snapshot.profileServiceSettings) {
     if (!profileIdSet.has(settings.menuId)) {
@@ -336,6 +337,38 @@ function validateItem(scope, item, errors) {
   }
 }
 
+function validateGrillService(section, errors) {
+  if (!Array.isArray(section.items) || section.items.length === 0) {
+    errors.push("Grill service must render families as direct items.");
+    return;
+  }
+
+  if (section.groups !== undefined) {
+    errors.push("Grill service must not render families as groups.");
+    return;
+  }
+
+  for (const item of section.items) {
+    if (item.pricing?.kind !== "variants") {
+      errors.push(`Grill family ${item.itemId} must define variants pricing.`);
+      continue;
+    }
+
+    for (const variant of item.pricing.variants) {
+      if (!variant.availabilityItemId) {
+        errors.push(`Grill family ${item.itemId} variant ${variant.id} must define availabilityItemId.`);
+        continue;
+      }
+
+      validateTechnicalId(
+        variant.availabilityItemId,
+        `grill family ${item.itemId} variant ${variant.id} availabilityItemId`,
+        errors,
+      );
+    }
+  }
+}
+
 function validatePricing(pricing, scope, errors) {
   if (!pricing) {
     return;
@@ -373,6 +406,14 @@ function validatePricing(pricing, scope, errors) {
 
     if (typeof variant.available !== "boolean") {
       errors.push(`${scope} variant ${variant.id} available must be boolean.`);
+    }
+
+    if (variant.availabilityItemId !== undefined) {
+      validateTechnicalId(
+        variant.availabilityItemId,
+        `${scope} variant ${variant.id} availabilityItemId`,
+        errors,
+      );
     }
   }
 }
