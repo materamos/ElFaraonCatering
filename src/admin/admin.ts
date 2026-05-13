@@ -127,6 +127,12 @@ interface GrillFamilyGroup {
   targets: AvailabilityTargetState[];
 }
 
+interface PricingLabel {
+  title: string;
+  context: string;
+  tag: string;
+}
+
 const rootElement = document.querySelector<HTMLElement>("[data-admin-root]");
 const localStorageKey = "el-faraon-admin-session";
 const regularDailyId = "menu-del-dia";
@@ -1133,11 +1139,13 @@ function renderServiceKindForms(state: AdminOperationalState): string {
 }
 
 function renderFixedPriceRow(price: FixedPriceState): string {
+  const label = formatPricingLabel(price.pricing_key, "Precio fijo");
+
   return `
-    <form class="admin-row" data-admin-form="fixed-price">
+    <form class="admin-row admin-price-row" data-admin-form="fixed-price">
       <div class="admin-row__main">
-        <p class="admin-row__title">${escapeHtml(formatPricingKey(price.pricing_key))}</p>
-        <p class="admin-row__meta">${escapeHtml(price.pricing_key)}</p>
+        <p class="admin-row__title">${escapeHtml(label.title)}</p>
+        ${renderPriceTags(label)}
         <p class="admin-row__meta">Actual: ${escapeHtml(formatAmount(price.amount))}</p>
       </div>
       <div class="admin-row__actions">
@@ -1153,11 +1161,14 @@ function renderFixedPriceRow(price: FixedPriceState): string {
 }
 
 function renderVariantPriceRow(variant: VariantPriceState): string {
+  const label = formatPricingLabel(variant.pricing_key, "Variantes");
+
   return `
-    <form class="admin-row" data-admin-form="variant-price">
+    <form class="admin-row admin-price-row" data-admin-form="variant-price">
       <div class="admin-row__main">
-        <p class="admin-row__title">${escapeHtml(formatPricingKey(variant.pricing_key))}</p>
-        <p class="admin-row__meta">${escapeHtml(variant.name)} &middot; ${escapeHtml(variant.pricing_key)}</p>
+        <p class="admin-row__title">${escapeHtml(label.title)}</p>
+        ${renderPriceTags(label)}
+        <p class="admin-row__meta">Variante: ${escapeHtml(variant.name)}</p>
         <p class="admin-row__meta">Actual: ${escapeHtml(formatAmount(variant.amount))}</p>
       </div>
       <div class="admin-row__actions">
@@ -1174,6 +1185,15 @@ function renderVariantPriceRow(variant: VariantPriceState): string {
         <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar</button>
       </div>
     </form>
+  `;
+}
+
+function renderPriceTags(label: PricingLabel): string {
+  return `
+    <div class="admin-price-tags">
+      <span class="admin-price-tag">${escapeHtml(label.context)}</span>
+      <span class="admin-price-tag">${escapeHtml(label.tag)}</span>
+    </div>
   `;
 }
 
@@ -1551,13 +1571,53 @@ function formatOptionalAmount(amount: number | null): string {
     : "";
 }
 
-function formatPricingKey(value: string): string {
+function formatPricingLabel(value: string, fallbackTag: string): PricingLabel {
+  const parts = value.split(":").filter(Boolean);
+
+  if (parts[0] === "catalog") {
+    const section = formatIdLabel(parts[1] ?? "Catalogo");
+    const groupIndex = parts.indexOf("group");
+    const itemIndex = parts.indexOf("item");
+    const labelPart = groupIndex >= 0
+      ? parts[groupIndex + 1]
+      : itemIndex >= 0
+        ? parts[itemIndex + 1]
+        : parts[1];
+
+    return {
+      title: formatIdLabel(labelPart ?? value),
+      context: section,
+      tag: "Catalogo",
+    };
+  }
+
+  if (value.startsWith("parrilla-")) {
+    return {
+      title: formatIdLabel(value.replace(/^parrilla-/, "")),
+      context: "Parrilla",
+      tag: fallbackTag,
+    };
+  }
+
+  if (value.startsWith("menu-")) {
+    return {
+      title: formatIdLabel(value),
+      context: "Menu del dia",
+      tag: fallbackTag,
+    };
+  }
+
+  return {
+    title: formatIdLabel(value.replace(/:price$/, "")),
+    context: "Precio",
+    tag: fallbackTag,
+  };
+}
+
+function formatIdLabel(value: string): string {
   return value
-    .replace(/^catalog:/, "")
-    .replace(/:group:/g, " / ")
-    .replace(/:item:/g, " / ")
     .replace(/:price$/g, "")
-    .replace(/:/g, " / ")
+    .replace(/:/g, " ")
     .replace(/-/g, " ")
     .replace(/\b\w/g, (character) => character.toUpperCase());
 }

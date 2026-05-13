@@ -541,6 +541,32 @@
     gap: 0.9rem;
   }
 
+  .admin-price-row {
+    background: #ffffff;
+  }
+
+  .admin-price-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+  }
+
+  .admin-price-tag {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    min-height: 1.55rem;
+    padding-inline: 0.5rem;
+    color: #4e4a42;
+    font-size: 0.76rem;
+    font-weight: 750;
+    line-height: 1.2;
+    background: #f4f2ed;
+    border: 1px solid #e2dbd0;
+    border-radius: 999px;
+  }
+
   .admin-list-header {
     display: flex;
     flex-wrap: wrap;
