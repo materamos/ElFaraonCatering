@@ -420,15 +420,28 @@ async function clearAvailabilityOverlay(target: AvailabilityTargetState): Promis
 
 async function saveDailyMenu(form: HTMLFormElement): Promise<void> {
   await runBusy(async () => {
+    const state = currentState;
+
+    if (!state) {
+      throw new Error("El estado del menu del dia no esta disponible.");
+    }
+
+    const regular = findDailyItem(state, regularDailyId);
+    const vegetarian = findDailyItem(state, vegetarianDailyId);
+
+    if (!regular || !vegetarian) {
+      throw new Error("El estado del menu del dia no esta disponible.");
+    }
+
     const result = await callMutation("set_daily_menu", {
       regular_name: getFormString(form, "regular_name"),
       regular_description: getNullableFormString(form, "regular_description"),
       regular_note: getNullableFormString(form, "regular_note"),
-      regular_available: getFormCheckbox(form, "regular_available"),
+      regular_available: regular.available,
       vegetarian_name: getFormString(form, "vegetarian_name"),
       vegetarian_description: getNullableFormString(form, "vegetarian_description"),
       vegetarian_note: getNullableFormString(form, "vegetarian_note"),
-      vegetarian_available: getFormCheckbox(form, "vegetarian_available"),
+      vegetarian_available: vegetarian.available,
     });
 
     if (!result.ok) {
@@ -772,7 +785,7 @@ function renderDailyTab(state: AdminOperationalState): string {
     <section class="admin-section">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Menu del dia</h2>
-        <p class="admin-section__copy">Contenido build-time del menu del dia y disponibilidad runtime de sus opciones.</p>
+        <p class="admin-section__copy">Contenido build-time del menu del dia.</p>
       </div>
       ${serviceEditor ? `
         <form class="admin-form-grid" data-admin-form="daily-menu">
@@ -1093,10 +1106,6 @@ function renderDailyFieldset(
       <label class="admin-field admin-field--wide">
         <span class="admin-label">Nota</span>
         <textarea class="admin-textarea" name="${prefix}_note">${escapeHtml(item?.note ?? "")}</textarea>
-      </label>
-      <label class="admin-checkbox">
-        <input type="checkbox" name="${prefix}_available" ${item?.available !== false ? "checked" : ""} />
-        Disponible
       </label>
     </fieldset>
   `;
