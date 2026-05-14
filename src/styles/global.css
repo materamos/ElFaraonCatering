@@ -403,7 +403,6 @@
   }
 
   .dish-card__option-label,
-  .dish-card__price-label,
   .dish-card__variant-label {
     color: var(--color-muted);
     font-size: 0.82rem;

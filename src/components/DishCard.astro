@@ -36,7 +36,6 @@ const {
 } = Astro.props;
 const photoImage = getMenuPhotoImagePath(image);
 const effectivePricing = pricing ?? inheritedPricing;
-const pricingLabel = "Precio";
 const variants = effectivePricing?.kind === "variants" ? effectivePricing.variants : [];
 const hasOperationalVariants = variants.some((variant) => variant.availabilityItemId);
 
@@ -125,7 +124,6 @@ const directPricingText =
 
     {directPricingText && (
       <div class="dish-card__price-row">
-        <span class="dish-card__price-label">{pricingLabel}</span>
         <strong class="dish-card__price">
           {directPricingText}
         </strong>
