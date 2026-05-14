@@ -110,6 +110,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260513000000_update_admin_grill_variant_targets.sql` | Expone nombres cortos y precios de variantes de parrilla en el RPC admin. |
 | `20260513001000_remove_daily_menu_drink_options.sql` | Elimina las opciones con bebida del menu del dia y actualiza el RPC de edicion. |
 | `20260513002000_order_admin_availability_targets.sql` | Ordena disponibilidad del admin por orden editorial de secciones, grupos, familias e items. |
+| `20260514000000_remove_empty_grill_family_otros.sql` | Elimina la familia vacia `otros` de parrilla. |
 
 ## Orden recomendado
 

@@ -49,8 +49,7 @@ values
   ('matambre', 'Matambre', 3),
   ('entrana', 'Entrana', 4),
   ('lomo', 'Lomo', 5),
-  ('bife-chorizo', 'Bife de chorizo', 6),
-  ('otros', 'Otros', 7)
+  ('bife-chorizo', 'Bife de chorizo', 6)
 on conflict (family_id) do nothing;
 
 with grill_items (
