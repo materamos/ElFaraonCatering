@@ -496,11 +496,21 @@ async function saveFixedPrice(form: HTMLFormElement): Promise<void> {
 
 async function saveVariantPrice(form: HTMLFormElement): Promise<void> {
   await runBusy(async () => {
+    const pricingKey = getFormString(form, "pricing_key");
+    const variantId = getFormString(form, "variant_id");
+    const variant = currentState?.prices.variants.find((priceVariant) =>
+      priceVariant.pricing_key === pricingKey && priceVariant.variant_id === variantId
+    );
+
+    if (!variant) {
+      throw new Error("El estado de la variante no esta disponible.");
+    }
+
     const result = await callMutation("set_global_price_variant", {
-      pricing_key: getFormString(form, "pricing_key"),
-      variant_id: getFormString(form, "variant_id"),
+      pricing_key: pricingKey,
+      variant_id: variantId,
       amount: getFormInteger(form, "amount"),
-      available: getFormCheckbox(form, "available"),
+      available: variant.available,
     });
 
     if (!result.ok) {
@@ -1186,10 +1196,6 @@ function renderVariantPriceRow(variant: VariantPriceState): string {
           <span class="admin-label">Importe</span>
           <input class="admin-input" type="number" name="amount" min="0" step="1" inputmode="numeric" value="${variant.amount}" required />
         </label>
-        <label class="admin-checkbox">
-          <input type="checkbox" name="available" ${variant.available ? "checked" : ""} />
-          Disponible
-        </label>
         <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar</button>
       </div>
     </form>
@@ -1450,10 +1456,6 @@ function getFormString(form: HTMLFormElement, name: string): string {
 function getNullableFormString(form: HTMLFormElement, name: string): string | null {
   const value = getFormString(form, name);
   return value.length > 0 ? value : null;
-}
-
-function getFormCheckbox(form: HTMLFormElement, name: string): boolean {
-  return new FormData(form).get(name) === "on";
 }
 
 function getFormInteger(form: HTMLFormElement, name: string): number {
