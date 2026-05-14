@@ -21,7 +21,7 @@ Supabase respalda un admin operativo, pero "editable" no significa "runtime edit
 
 El modelo activo de `menu_content` es plano y orientado al dominio real:
 
-- Perfiles, facts y pagos se leen en build-time.
+- Perfiles y facts se leen en build-time. Pagos se modela como el fact `pagos`.
 - `menu_daily_items` contiene las dos opciones reales del menu del dia: comun y vegetariano.
 - `menu_profile_service_settings.service_kind` define por local `daily-menu` o `grill`.
 - `menu_catalog_sections`, `menu_catalog_groups`, `menu_catalog_items` y `menu_catalog_item_options` contienen el catalogo estable.
@@ -54,13 +54,17 @@ No implementar consultas runtime para menu del dia, precios, servicio activo, ca
 - `editor_profiles` no debe usarse para policies nuevas; queda solo como origen de migracion.
 - El primer `admin` debe crearse por SQL privilegiado o service role; no se bootstrapea desde browser RLS.
 - `/admin/` lee estado operativo mediante `get_admin_operational_state()` y escribe solo mediante RPCs operativas.
-- No hay grants client-facing sobre `menu_content` ni `app_private`.
+- No hay grants client-facing sobre `menu_content` ni tablas de `app_private`.
 
 Las RPCs operativas devuelven `ok`, `changed`, `requires_redeploy`, `operation` y `message`. La publicacion puede devolver `cooldown_seconds_remaining`.
+
+Las funciones publicas del admin deben quedar como wrappers `security invoker`. Los cuerpos `security definer` que necesitan leer o escribir datos protegidos viven en `app_private`, fuera de los schemas expuestos por PostgREST.
 
 `staff_users` y sus helpers (`can_edit_availability(text)`, `can_manage_staff()`, `can_publish_menu()`) son precondicion obligatoria para instalar las RPCs operativas. `can_edit_menu_content()` se introduce en la fase de RPCs operativas; no es precondicion de la migracion de `staff_users`.
 
 `publish-menu-changes` usa `can_publish_menu()` para autorizar publicacion, reserva/completa solicitudes mediante helpers privados, registra auditoria en `app_private` y llama el Vercel Deploy Hook desde secretos de Supabase Functions. No usa `pg_net`.
+
+La alerta `auth_leaked_password_protection` no se resuelve con SQL del repo: se habilita en la configuracion de Supabase Auth del proyecto, si el plan lo soporta.
 
 ## Archivos en esta carpeta
 
@@ -111,6 +115,8 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260513001000_remove_daily_menu_drink_options.sql` | Elimina las opciones con bebida del menu del dia y actualiza el RPC de edicion. |
 | `20260513002000_order_admin_availability_targets.sql` | Ordena disponibilidad del admin por orden editorial de secciones, grupos, familias e items. |
 | `20260514000000_remove_empty_grill_family_otros.sql` | Elimina la familia vacia `otros` de parrilla. |
+| `20260514001000_fold_profile_payments_into_facts.sql` | Migra pagos de perfiles a `menu_profile_facts` y elimina las tablas especiales de pagos. |
+| `20260514002000_wrap_security_definer_admin_rpcs.sql` | Mueve cuerpos `security definer` del admin a `app_private` y deja wrappers publicos `security invoker`. |
 
 ## Orden recomendado
 
@@ -191,5 +197,5 @@ No aplicar SQL mutante en Supabase remoto si los audits muestran bloqueos conoci
 - Usar `staff_users` y funciones helper para permisos nuevos del admin operativo; no reusar `editor_profiles` para nuevas policies.
 - Usar RPCs operativas para escrituras desde el browser; no otorgar grants directos sobre `menu_content`.
 - Usar `get_admin_operational_state()` para lectura del admin; no consultar `menu_content` ni `app_private` desde el browser.
-- Usar `publish-menu-changes` para publicacion; no exponer el Vercel Deploy Hook, no usar `pg_net` y no otorgar grants client-facing sobre `app_private`.
+- Usar `publish-menu-changes` para publicacion; no exponer el Vercel Deploy Hook, no usar `pg_net`, no exponer `app_private` por PostgREST y no otorgar grants sobre sus tablas.
 - No agregar SSR, Vercel Functions, CMS editorial amplio, auth editorial ni queries estructurales desde el navegador por cambios en esta carpeta.

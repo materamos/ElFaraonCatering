@@ -53,8 +53,6 @@ with documented_relations(schema_name, object_name, object_type, status) as (
     ('app_private', 'menu_publish_requests', 'table', 'active'),
     ('menu_content', 'menu_profiles', 'table', 'active'),
     ('menu_content', 'menu_profile_facts', 'table', 'active'),
-    ('menu_content', 'menu_profile_payments', 'table', 'active'),
-    ('menu_content', 'menu_profile_payment_methods', 'table', 'active'),
     ('menu_content', 'menu_prices', 'table', 'active'),
     ('menu_content', 'menu_price_variants', 'table', 'active'),
     ('menu_content', 'menu_daily_items', 'table', 'active'),
@@ -258,6 +256,35 @@ left join actual_functions actual
   on actual.function_name = expected.function_name
  and actual.identity_arguments = expected.identity_arguments
 order by expected.function_name;
+
+-- 08b. Security definer functions still executable from exposed API schemas.
+select
+  n.nspname as schema_name,
+  p.proname as function_name,
+  pg_get_function_identity_arguments(p.oid) as identity_arguments,
+  pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE') as anon_can_execute,
+  pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE') as authenticated_can_execute,
+  'risk' as suggested_status
+from pg_proc p
+join pg_namespace n on n.oid = p.pronamespace
+where p.prosecdef = true
+  and (
+    pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+    or pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+  )
+  and (
+    (
+      current_setting('pgrst.db_schemas', true) is null
+      and n.nspname = 'public'
+    )
+    or n.nspname = any (
+      array(
+        select btrim(exposed_schema.schema_name)
+        from unnest(string_to_array(current_setting('pgrst.db_schemas', true), ',')) as exposed_schema(schema_name)
+      )
+    )
+  )
+order by n.nspname, p.proname, pg_get_function_identity_arguments(p.oid);
 
 -- 09. Publish helper execute privileges.
 with expected_publish_helper_grants(function_name, identity_arguments) as (
