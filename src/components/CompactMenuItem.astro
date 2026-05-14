@@ -30,13 +30,13 @@ const hasOperationalVariants = variants.some((variant) => variant.availabilityIt
       <h3 class="compact-item__title">
         {item.name}
       </h3>
-      {!hasOperationalVariants && (
+      {!hasOperationalVariants && !item.available && (
         <span
           class="compact-availability-status"
           data-availability-status
-          data-state={item.available ? "available" : "unavailable"}
+          data-state="unavailable"
         >
-          {item.available ? "Disponible" : "No disponible"}
+          No disponible
         </span>
       )}
     </div>
@@ -68,13 +68,15 @@ const hasOperationalVariants = variants.some((variant) => variant.availabilityIt
             <span>
               {variant.name}
               {variant.availabilityItemId ? (
-                <span
-                  class="dish-card__variant-status"
-                  data-availability-status
-                  data-state={variant.available ? "available" : "unavailable"}
-                >
-                  {variant.available ? "Disponible" : "No disponible"}
-                </span>
+                !variant.available && (
+                  <span
+                    class="dish-card__variant-status"
+                    data-availability-status
+                    data-state="unavailable"
+                  >
+                    No disponible
+                  </span>
+                )
               ) : variant.available === false && (
                 <span class="dish-card__variant-status">
                   No disponible

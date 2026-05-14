@@ -5,8 +5,6 @@ with expected_tables (table_name, expectation) as (
   values
     ('menu_profiles', 'profile metadata read at build time'),
     ('menu_profile_facts', 'profile fact rows read at build time'),
-    ('menu_profile_payments', 'profile payment metadata read at build time'),
-    ('menu_profile_payment_methods', 'profile payment methods read at build time'),
     ('menu_prices', 'global build-time prices'),
     ('menu_price_variants', 'global build-time variant prices'),
     ('menu_daily_items', 'two build-time daily menu options'),

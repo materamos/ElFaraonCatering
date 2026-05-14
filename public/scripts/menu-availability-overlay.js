@@ -1,5 +1,4 @@
 const technicalIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const availableText = "Disponible";
 const unavailableText = "No disponible";
 
 const getRequiredTechnicalId = (value) =>
@@ -62,16 +61,45 @@ const parseOverlayRow = (row, menuId) => {
   };
 };
 
-const applyAvailability = (item, available) => {
-  const status = item.querySelector("[data-availability-status]");
+const createAvailabilityStatus = (item) => {
+  const status = document.createElement("span");
+  status.dataset.availabilityStatus = "";
 
-  if (!status) {
+  if (item.classList.contains("dish-row")) {
+    status.className = "status-pill";
+    item.querySelector(".dish-card__header")?.append(status);
+
+    return status;
+  }
+
+  if (item.classList.contains("compact-item")) {
+    status.className = "compact-availability-status";
+    item.querySelector(".compact-item__header")?.append(status);
+
+    return status;
+  }
+
+  status.className = "dish-card__variant-status";
+  item.querySelector("span")?.append(status);
+
+  return status;
+};
+
+const applyAvailability = (item, available) => {
+  const existingStatus = item.querySelector("[data-availability-status]");
+
+  if (available) {
+    existingStatus?.remove();
+    item.dataset.available = "true";
+
     return;
   }
 
-  item.dataset.available = available ? "true" : "false";
-  status.dataset.state = available ? "available" : "unavailable";
-  status.textContent = available ? availableText : unavailableText;
+  const status = existingStatus ?? createAvailabilityStatus(item);
+
+  item.dataset.available = "false";
+  status.dataset.state = "unavailable";
+  status.textContent = unavailableText;
 };
 
 const loadAvailabilityOverlays = async () => {

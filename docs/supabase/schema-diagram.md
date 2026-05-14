@@ -22,7 +22,7 @@ flowchart TD
 
   DB --> MC["menu_content<br/>estructura y operacion build-time"]
   DB --> PUB["public<br/>overlay runtime, staff y RPCs"]
-  DB --> PRIV["app_private<br/>auditoria privada de publicacion"]
+  DB --> PRIV["app_private<br/>auditoria privada e implementaciones definer"]
   DB --> AUTH["auth<br/>Supabase-managed"]
 
   MC --> BUILD["Astro build<br/>SUPABASE_DB_URL"]
@@ -65,18 +65,6 @@ erDiagram
     text link_text
     text link_href
     int order_index
-  }
-
-  MENU_PROFILE_PAYMENTS {
-    text profile_id PK,FK
-    text payment_id
-    text label
-  }
-
-  MENU_PROFILE_PAYMENT_METHODS {
-    text profile_id PK,FK
-    text method
-    int order_index PK
   }
 
   MENU_PRICES {
@@ -177,8 +165,6 @@ erDiagram
   }
 
   MENU_PROFILES ||--o{ MENU_PROFILE_FACTS : physical
-  MENU_PROFILES ||--|| MENU_PROFILE_PAYMENTS : physical
-  MENU_PROFILE_PAYMENTS ||--o{ MENU_PROFILE_PAYMENT_METHODS : physical
   MENU_PROFILES ||--|| MENU_PROFILE_SERVICE_SETTINGS : physical
 
   MENU_PRICES ||--o{ MENU_PRICE_VARIANTS : physical
@@ -205,7 +191,7 @@ flowchart LR
   READ_RPC["get_admin_operational_state()<br/>lectura admin"]
   WRITE_RPCS["RPCs operativas<br/>edicion controlada"]
   EDGE["Supabase Edge Function<br/>publish-menu-changes"]
-  PRIVATE["app_private.menu_publish_requests<br/>auditoria privada"]
+  PRIVATE["app_private<br/>auditoria privada e implementaciones definer"]
   VERCEL["Vercel Deploy Hook<br/>secreto en Functions"]
   ADMIN_UI["/admin/ estatico<br/>cliente TypeScript"]
   STATIC["HTML estatico<br/>data-menu-id / data-section-id / data-item-id"]
@@ -247,6 +233,7 @@ flowchart LR
 - `public.menu_availability_overlays` es el unico dato editable en runtime sin rebuild.
 - `public.staff_users` define roles operativos (`availability_editor`, `menu_editor`, `admin`) y alcance por perfil.
 - Las escrituras del admin deben pasar por RPCs operativas con respuesta `ok`, `changed`, `requires_redeploy`, `operation` y `message`.
+- Las RPCs publicas del admin son wrappers `security invoker`; las implementaciones privilegiadas viven en `app_private`, que no debe exponerse por PostgREST.
 - `publish-menu-changes` es la frontera server-side para publicar cambios build-time: valida Auth, usa `can_publish_menu()`, registra auditoria privada y llama el Deploy Hook desde secretos.
 - `public.editor_profiles` es legacy temporal y no debe respaldar nuevas policies.
 - El cliente no debe consultar estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.

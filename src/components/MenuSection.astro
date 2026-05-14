@@ -28,11 +28,6 @@ const {
   groups,
   presentation = "cards",
 } = Astro.props;
-const normalizeHeadingText = (value: string) => value.trim().toLowerCase();
-const hasSingleItemMatchingSection =
-  items?.length === 1 &&
-  normalizeHeadingText(items[0].name) === normalizeHeadingText(title) &&
-  Boolean(items[0].description || items[0].note || items[0].options?.length || items[0].image);
 ---
 
 <section class="menu-section" id={sectionId}>
@@ -76,7 +71,6 @@ const hasSingleItemMatchingSection =
           pricing={item.pricing}
           options={item.options}
           image={item.image}
-          hideHeading={hasSingleItemMatchingSection}
         />
       ))}
     </div>

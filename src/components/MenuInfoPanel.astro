@@ -8,18 +8,12 @@ interface MenuInfoFact {
   };
 }
 
-interface MenuInfoPayment {
-  label: string;
-  methods: string[];
-}
-
 interface Props {
   title: string;
   facts: MenuInfoFact[];
-  payment: MenuInfoPayment;
 }
 
-const { title, facts, payment } = Astro.props;
+const { title, facts } = Astro.props;
 ---
 
 <aside class="menu-info-panel">
@@ -47,18 +41,4 @@ const { title, facts, payment } = Astro.props;
       </div>
     ))}
   </dl>
-
-  <section class="menu-info-panel__payment" aria-labelledby="menu-payment-title">
-    <h2 class="menu-info-panel__label menu-info-panel__label--strong" id="menu-payment-title">
-      {payment.label}
-    </h2>
-
-    <div class="menu-info-panel__chips" role="list" aria-label={payment.label}>
-      {payment.methods.map((method) => (
-        <span class="menu-info-chip" role="listitem">
-          {method}
-        </span>
-      ))}
-    </div>
-  </section>
 </aside>

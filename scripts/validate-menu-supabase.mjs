@@ -38,8 +38,6 @@ const expectedIndexes = [
 const expectedTables = [
   "menu_profiles",
   "menu_profile_facts",
-  "menu_profile_payments",
-  "menu_profile_payment_methods",
   "menu_prices",
   "menu_price_variants",
   "menu_daily_items",
@@ -50,6 +48,11 @@ const expectedTables = [
   "menu_catalog_item_options",
   "menu_grill_families",
   "menu_grill_catalog_items",
+];
+
+const retiredTables = [
+  "menu_profile_payments",
+  "menu_profile_payment_methods",
 ];
 
 if (!databaseUrl) {
@@ -189,6 +192,12 @@ function validateProfile(profile, errors) {
   if (!Array.isArray(profile.facts) || profile.facts.length === 0) {
     errors.push(`Profile ${profile.id} must have at least one fact.`);
   } else {
+    const paymentFact = profile.facts.find((fact) => fact.id === "pagos");
+
+    if (!paymentFact) {
+      errors.push(`Profile ${profile.id} must define pagos fact.`);
+    }
+
     assertUnique(
       profile.facts.map((fact) => fact.id),
       `profile ${profile.id} fact id`,
@@ -205,23 +214,6 @@ function validateProfile(profile, errors) {
         validateNonEmptyString(fact.link.href, `profile ${profile.id} fact ${fact.id} link href`, errors);
       }
     }
-  }
-
-  if (!profile.payment) {
-    errors.push(`Profile ${profile.id} must have payment data.`);
-    return;
-  }
-
-  validateTechnicalId(profile.payment.id, `profile ${profile.id} payment`, errors);
-  validateNonEmptyString(profile.payment.label, `profile ${profile.id} payment label`, errors);
-
-  if (!Array.isArray(profile.payment.methods) || profile.payment.methods.length === 0) {
-    errors.push(`Profile ${profile.id} must have at least one payment method.`);
-    return;
-  }
-
-  for (const method of profile.payment.methods) {
-    validateNonEmptyString(method, `profile ${profile.id} payment method`, errors);
   }
 }
 
@@ -430,6 +422,18 @@ async function validateSchema(sql, errors) {
     if (!presentTables.has(tableName)) {
       errors.push(`Missing active menu_content table: ${tableName}`);
     }
+  }
+
+  const retiredTableRows = await sql`
+    select table_name
+    from information_schema.tables
+    where table_schema = 'menu_content'
+      and table_type = 'BASE TABLE'
+      and table_name in ${sql(retiredTables)}
+  `;
+
+  for (const row of retiredTableRows) {
+    errors.push(`Retired menu_content table is still present: ${row.table_name}`);
   }
 
   const constraintRows = await sql`

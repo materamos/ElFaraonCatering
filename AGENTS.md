@@ -172,6 +172,7 @@ Runtime overlay:
 - `docs/supabase/availability-overlay.sql` supports the availability overlay.
 - `docs/supabase/operational-edit-rpcs.sql` defines the approved RPC write surface for operational CMS edits.
 - `public.get_admin_operational_state()` is the approved read surface for the operational admin. Browser code must not query `menu_content` or `app_private` directly.
+- Public admin RPCs and permission helpers must remain `security invoker` wrappers when they are executable by `authenticated`; privileged `security definer` bodies must live outside exposed API schemas, currently in `app_private`.
 - `public.staff_users` defines operational staff roles: `availability_editor`, `menu_editor`, and `admin`.
 - `public.staff_users` and the `can_edit_availability(text)`, `can_manage_staff()`, and `can_publish_menu()` helpers are required before operational edit RPCs may be installed.
 - `can_edit_menu_content()` is introduced by the operational edit RPC phase; it is not a precondition of the `staff_users` migration.
@@ -191,6 +192,7 @@ Data API grants:
 - Prefer the narrowest grant that supports the browser contract. Column-level grants are acceptable for public reads, as with `public.menu_availability_overlays`.
 - Keep RLS enabled for Data API tables and define policies for the exact roles that need access.
 - For `public` objects that are not part of the Data API contract, explicitly revoke access from `anon` and `authenticated`.
+- Do not leave `SECURITY DEFINER` functions executable by `authenticated` or `anon` in exposed API schemas. Use a public `SECURITY INVOKER` wrapper plus a non-exposed privileged implementation when elevated access is required.
 - After changing Data API permissions, verify the deployed project with the anon key and the exact browser query shape; a `42501` response means a required grant is missing or intentionally blocked.
 
 Preserve the static-first model:

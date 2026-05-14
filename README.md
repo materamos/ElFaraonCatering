@@ -258,7 +258,11 @@ RPCs y funciones relevantes:
 
 Las RPCs operativas devuelven `ok`, `changed`, `requires_redeploy`, `operation` y `message`. Las respuestas de publicacion pueden incluir `cooldown_seconds_remaining`.
 
+Las funciones publicas del admin son wrappers `security invoker`; los cuerpos `security definer` viven en `app_private`, fuera de los schemas expuestos por PostgREST.
+
 `publish-menu-changes` valida la sesion Supabase Auth del empleado, verifica `can_publish_menu()`, aplica cooldown global, registra auditoria privada y llama el Vercel Deploy Hook desde secretos de Supabase Functions. La URL del hook es credencial y nunca debe llegar al browser ni versionarse. No se usa `pg_net` para publicar.
+
+La proteccion contra passwords filtradas se habilita en Supabase Auth settings del proyecto, no por migracion SQL.
 
 SQL disponible:
 

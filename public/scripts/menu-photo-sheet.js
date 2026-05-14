@@ -1,37 +1,31 @@
 const dialog = document.querySelector("[data-photo-sheet]");
 const photoTitle = document.querySelector("[data-photo-title]");
-const photoImage = document.querySelector("[data-photo-image]");
-const photoError = document.querySelector("[data-photo-error]");
+const photoFrame = document.querySelector("[data-photo-frame]");
 const closeButton = document.querySelector("[data-photo-close]");
 
 if (
   dialog instanceof HTMLDialogElement &&
   typeof dialog.showModal === "function" &&
   photoTitle instanceof HTMLElement &&
-  photoImage instanceof HTMLImageElement &&
-  photoError instanceof HTMLElement &&
+  photoFrame instanceof HTMLElement &&
   closeButton instanceof HTMLButtonElement
 ) {
   let lastTrigger = null;
+  let currentImage = null;
+
+  const setPhotoMessage = (message) => {
+    const paragraph = document.createElement("p");
+    paragraph.className = "photo-sheet__message";
+    paragraph.textContent = message;
+    photoFrame.replaceChildren(paragraph);
+  };
 
   const resetPhotoState = () => {
-    photoImage.hidden = true;
-    photoImage.removeAttribute("src");
-    photoImage.alt = "";
-    photoError.hidden = true;
+    currentImage = null;
+    photoFrame.replaceChildren();
   };
 
   const closeSheet = () => dialog.close();
-
-  photoImage.addEventListener("load", () => {
-    photoError.hidden = true;
-    photoImage.hidden = false;
-  });
-
-  photoImage.addEventListener("error", () => {
-    photoImage.hidden = true;
-    photoError.hidden = false;
-  });
 
   document.addEventListener("click", (event) => {
     const target = event.target;
@@ -55,14 +49,30 @@ if (
     event.preventDefault();
 
     const photoName = trigger.dataset.photoName?.trim() || "plato";
+    const image = new Image();
+
+    image.className = "photo-frame__image";
+    image.decoding = "async";
+    image.alt = `Foto de ${photoName}`;
+
+    image.addEventListener("load", () => {
+      if (currentImage === image) {
+        photoFrame.replaceChildren(image);
+      }
+    });
+
+    image.addEventListener("error", () => {
+      if (currentImage === image) {
+        setPhotoMessage("No se pudo cargar la foto.");
+      }
+    });
 
     lastTrigger = trigger;
+    currentImage = image;
     photoTitle.textContent = photoName;
-    photoError.hidden = true;
-    photoImage.hidden = true;
-    photoImage.alt = `Foto de ${photoName}`;
-    photoImage.src = photoSrc;
+    setPhotoMessage("Cargando foto...");
     dialog.showModal();
+    image.src = photoSrc;
   });
 
   closeButton.addEventListener("click", closeSheet);

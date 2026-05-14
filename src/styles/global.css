@@ -207,10 +207,6 @@
     text-transform: uppercase;
   }
 
-  .menu-info-panel__label--strong {
-    font-size: 0.76rem;
-  }
-
   .menu-info-panel__value {
     color: var(--color-ink);
     font-size: 0.98rem;
@@ -221,26 +217,6 @@
   .menu-info-panel__link {
     text-decoration: underline;
     text-underline-offset: 0.18em;
-  }
-
-  .menu-info-panel__payment {
-    display: grid;
-    gap: 0.5rem;
-    padding-top: 0.85rem;
-    border-top: 1px solid var(--color-line-soft);
-  }
-
-  .menu-info-panel__chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem 1rem;
-  }
-
-  .menu-info-chip {
-    color: var(--color-ink);
-    font-size: 0.92rem;
-    font-weight: 600;
-    line-height: 1.45;
   }
 
   .menu-section {
@@ -454,10 +430,6 @@
     font-weight: 650;
   }
 
-  .dish-card__variant-status[data-state="available"] {
-    display: none;
-  }
-
   .dish-card__price-row {
     display: flex;
     align-items: baseline;
@@ -478,29 +450,20 @@
   }
 
   .status-pill {
-    display: none;
+    display: inline-flex;
     flex-shrink: 0;
-    color: var(--color-success);
+    color: var(--color-danger);
     font-size: 0.78rem;
     font-weight: 650;
     line-height: 1.35;
-  }
-
-  .status-pill[data-state="unavailable"] {
-    display: inline-flex;
-    color: var(--color-danger);
   }
 
   .compact-availability-status {
-    display: none;
+    display: inline-flex;
     color: var(--color-danger);
     font-size: 0.78rem;
     font-weight: 650;
     line-height: 1.35;
-  }
-
-  .compact-availability-status[data-state="unavailable"] {
-    display: inline-flex;
   }
 
   .photo-button {
@@ -592,7 +555,7 @@
     object-fit: cover;
   }
 
-  .photo-sheet__error {
+  .photo-sheet__message {
     padding-inline: 1.5rem;
     color: var(--color-muted);
     font-size: 0.95rem;
