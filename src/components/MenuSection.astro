@@ -35,7 +35,7 @@ const hasSingleItemMatchingSection =
   Boolean(items[0].description || items[0].note || items[0].options?.length || items[0].image);
 ---
 
-<section class="menu-section">
+<section class="menu-section" id={sectionId}>
   <div class="menu-section__header">
     <h2 class="menu-section__title">{title}</h2>
     {description && (

@@ -41,6 +41,19 @@ const publicSupabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
       />
     </section>
 
+    <nav class="menu-index" aria-labelledby="menu-index-title">
+      <h2 class="menu-index__title" id="menu-index-title">Secciones</h2>
+      <ul class="menu-index__list">
+        {sections.map((section) => (
+          <li class="menu-index__item">
+            <a class="menu-index__link" href={`#${section.sectionId}`}>
+              {section.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
     <div class="menu-page__sections">
       {sections.map((section) => (
         <MenuSection
