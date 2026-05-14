@@ -292,6 +292,10 @@
     gap: 0.35rem;
   }
 
+  .compact-item__content:last-child {
+    grid-column: 1 / -1;
+  }
+
   .compact-item__header {
     display: flex;
     flex-wrap: wrap;
@@ -433,7 +437,7 @@
   .dish-card__price-row {
     display: flex;
     align-items: baseline;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 1rem;
   }
 
@@ -593,24 +597,10 @@
     align-items: start;
   }
 
-  .compact-list {
-    max-width: 44rem;
-  }
-
-  .dish-card__variants {
-    max-width: 36rem;
-  }
-
   .compact-item__variant,
   .dish-card__variant {
     display: grid;
-    grid-template-columns: minmax(0, max-content) max-content;
-    justify-content: start;
-    column-gap: 2.5rem;
-  }
-
-  .compact-item__variant-price,
-  .dish-card__variant-price {
-    text-align: left;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    column-gap: 1rem;
   }
 }
