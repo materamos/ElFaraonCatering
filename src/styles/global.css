@@ -637,4 +637,17 @@
   .dish-card__variants {
     max-width: 36rem;
   }
+
+  .compact-item__variant,
+  .dish-card__variant {
+    display: grid;
+    grid-template-columns: minmax(0, max-content) max-content;
+    justify-content: start;
+    column-gap: 2.5rem;
+  }
+
+  .compact-item__variant-price,
+  .dish-card__variant-price {
+    text-align: left;
+  }
 }
