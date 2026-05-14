@@ -26,19 +26,6 @@ create table if not exists menu_content.menu_profile_facts (
     check ((link_text is null and link_href is null) or (link_text is not null and link_href is not null))
 );
 
-create table if not exists menu_content.menu_profile_payments (
-  profile_id text primary key references menu_content.menu_profiles(id) on delete cascade,
-  payment_id text not null check (payment_id ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'),
-  label text not null check (length(btrim(label)) > 0)
-);
-
-create table if not exists menu_content.menu_profile_payment_methods (
-  profile_id text not null references menu_content.menu_profile_payments(profile_id) on delete cascade,
-  method text not null check (length(btrim(method)) > 0),
-  order_index integer not null check (order_index >= 0),
-  primary key (profile_id, order_index)
-);
-
 create table if not exists menu_content.menu_prices (
   pricing_key text primary key check (length(btrim(pricing_key)) > 0),
   kind text not null check (kind in ('fixed', 'included', 'variants')),

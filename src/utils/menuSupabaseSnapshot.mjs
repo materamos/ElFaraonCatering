@@ -9,8 +9,6 @@ export const loadRows = async (sql) => {
   const [
     profiles,
     facts,
-    payments,
-    paymentMethods,
     prices,
     priceVariants,
     dailyItems,
@@ -24,8 +22,6 @@ export const loadRows = async (sql) => {
   ] = await Promise.all([
     sql`select * from menu_content.menu_profiles order by id`,
     sql`select * from menu_content.menu_profile_facts order by profile_id, order_index`,
-    sql`select * from menu_content.menu_profile_payments order by profile_id`,
-    sql`select * from menu_content.menu_profile_payment_methods order by profile_id, order_index`,
     sql`select pricing_key, kind, amount from menu_content.menu_prices order by pricing_key`,
     sql`select * from menu_content.menu_price_variants order by pricing_key, order_index`,
     sql`select * from menu_content.menu_daily_items order by order_index`,
@@ -41,8 +37,6 @@ export const loadRows = async (sql) => {
   return {
     profiles,
     facts,
-    payments,
-    paymentMethods,
     prices,
     priceVariants,
     dailyItems,
@@ -60,47 +54,32 @@ export const createSnapshot = (rows, options = {}) => {
   const transformImage = options.transformImage ?? identity;
   const priceMap = createPriceMap(rows.prices, rows.priceVariants);
   const factsByProfile = groupByStringKey(rows.facts, "profile_id");
-  const paymentByProfile = new Map(
-    rows.payments.map((payment) => [payment.profile_id, payment]),
-  );
-  const paymentMethodsByProfile = groupByStringKey(rows.paymentMethods, "profile_id");
   const catalogItemsBySection = groupByStringKey(rows.catalogItems, "section_id");
   const catalogGroupsBySection = groupByStringKey(rows.catalogGroups, "section_id");
   const optionsByCatalogItem = groupByNumberKey(rows.catalogItemOptions, "catalog_item_id");
   const grillItemsByFamily = groupByStringKey(rows.grillItems, "family_id");
 
-  const profiles = rows.profiles.map((profile) => {
-    const payment = requireMapValue(paymentByProfile, profile.id);
-
-    return {
+  const profiles = rows.profiles.map((profile) => ({
+    id: profile.id,
+    data: {
       id: profile.id,
-      data: {
-        id: profile.id,
-        eyebrow: profile.eyebrow,
-        title: profile.title,
-        description: profile.description,
-        infoTitle: profile.info_title,
-        facts: (factsByProfile.get(profile.id) ?? []).map((fact) =>
-          cleanOptional({
-            id: fact.fact_id,
-            label: fact.label,
-            value: fact.value,
-            link:
-              fact.link_text && fact.link_href
-                ? { text: fact.link_text, href: fact.link_href }
-                : undefined,
-          }),
-        ),
-        payment: {
-          id: payment.payment_id,
-          label: payment.label,
-          methods: (paymentMethodsByProfile.get(profile.id) ?? []).map(
-            (method) => method.method,
-          ),
-        },
-      },
-    };
-  });
+      eyebrow: profile.eyebrow,
+      title: profile.title,
+      description: profile.description,
+      infoTitle: profile.info_title,
+      facts: (factsByProfile.get(profile.id) ?? []).map((fact) =>
+        cleanOptional({
+          id: fact.fact_id,
+          label: fact.label,
+          value: fact.value,
+          link:
+            fact.link_text && fact.link_href
+              ? { text: fact.link_text, href: fact.link_href }
+              : undefined,
+        }),
+      ),
+    },
+  }));
 
   return {
     profiles,

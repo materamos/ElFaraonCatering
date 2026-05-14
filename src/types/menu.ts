@@ -105,12 +105,6 @@ export interface MenuProfileFact {
   link?: MenuProfileFactLink;
 }
 
-export interface MenuProfilePayment {
-  id: string;
-  label: string;
-  methods: string[];
-}
-
 export interface MenuProfileData {
   id: string;
   eyebrow: string;
@@ -118,5 +112,4 @@ export interface MenuProfileData {
   description: string;
   infoTitle: string;
   facts: MenuProfileFact[];
-  payment: MenuProfilePayment;
 }
