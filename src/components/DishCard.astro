@@ -16,7 +16,6 @@ interface Props {
   inheritedPricing?: MenuPricing;
   options?: MenuOption[];
   image?: MenuItem["image"];
-  hideHeading?: boolean;
 }
 
 const {
@@ -32,7 +31,6 @@ const {
   inheritedPricing,
   options,
   image,
-  hideHeading = false,
 } = Astro.props;
 const photoImage = getMenuPhotoImagePath(image);
 const effectivePricing = pricing ?? inheritedPricing;
@@ -55,7 +53,7 @@ const directPricingText =
 >
   <div class="dish-card__header">
     <div class="dish-card__main">
-      {!hideHeading && <h3 class="dish-card__title">{name}</h3>}
+      <h3 class="dish-card__title">{name}</h3>
       {description && (
         <p class="dish-card__description">
           {description}
@@ -67,13 +65,13 @@ const directPricingText =
         </p>
       )}
     </div>
-    {!hasOperationalVariants && (
+    {!hasOperationalVariants && !available && (
       <span
         class="status-pill"
         data-availability-status
-        data-state={available ? "available" : "unavailable"}
+        data-state="unavailable"
       >
-        {available ? "Disponible" : "No disponible"}
+        No disponible
       </span>
     )}
   </div>
@@ -150,13 +148,15 @@ const directPricingText =
               <span>
                 {variant.name}
                 {variant.availabilityItemId ? (
-                  <span
-                    class="dish-card__variant-status"
-                    data-availability-status
-                    data-state={variant.available ? "available" : "unavailable"}
-                  >
-                    {variant.available ? "Disponible" : "No disponible"}
-                  </span>
+                  !variant.available && (
+                    <span
+                      class="dish-card__variant-status"
+                      data-availability-status
+                      data-state="unavailable"
+                    >
+                      No disponible
+                    </span>
+                  )
                 ) : variant.available === false && (
                   <span class="dish-card__variant-status">
                     No disponible

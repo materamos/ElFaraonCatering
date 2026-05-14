@@ -27,6 +27,7 @@ const publicSupabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
   >
     <section class="menu-page__hero">
       <div class="menu-page__intro">
+        <p class="eyebrow">{profile.eyebrow}</p>
         <h1 class="menu-page__title">{profile.title}</h1>
         <p class="body-copy menu-page__description">
           {profile.description}
@@ -36,7 +37,6 @@ const publicSupabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
       <MenuInfoPanel
         title={profile.infoTitle}
         facts={profile.facts}
-        payment={profile.payment}
       />
     </section>
 
@@ -82,16 +82,7 @@ const publicSupabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
         Foto del plato
       </h2>
 
-      <div class="photo-frame">
-        <img
-          class="photo-frame__image"
-          data-photo-image
-          alt=""
-          decoding="async"
-          hidden
-        />
-        <p class="photo-sheet__error" data-photo-error hidden>No se pudo cargar la foto.</p>
-      </div>
+      <div class="photo-frame" data-photo-frame></div>
     </div>
   </dialog>
   <script is:inline type="module" src="/scripts/menu-photo-sheet.js"></script>
