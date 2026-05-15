@@ -111,13 +111,13 @@ Daily service rules:
 - `menu_profile_service_settings` must define one settings row per profile.
 - `service_kind` is the per-profile property that selects `daily-menu` or `grill`.
 - When `service_kind` is `daily-menu`, the profile shows the two daily-menu options.
-- When `service_kind` is `grill`, the profile shows one visible item per `menu_grill_families` row, with `menu_grill_catalog_items` as pricing and availability variants.
+- When `service_kind` is `grill`, the profile shows one visible item per `menu_grill_families` row, with `menu_grill_catalog_items` as pricing variants.
 - A profile may show either menu del dia or grill, never both.
 - `menu_grill_catalog_items.variant_name` defines the visible label for each grill variant.
 - `menu_catalog_sections` contains only shared catalog sections; do not model daily service as profile-specific sections.
 - When multiple profiles show menu del dia, they share the same current main dish.
 - Prices are global across profiles; do not implement profile/menu-specific prices.
-- Availability is profile/menu-specific.
+- Operational availability is profile/menu-specific and must be represented only by `public.menu_availability_overlays`.
 
 Pricing rules:
 
@@ -164,6 +164,7 @@ Build-time structural and operational content:
 - Local development may define `SUPABASE_DB_URL` in `.env.local`; scripts load it only when an environment value is not already set.
 - Never expose `SUPABASE_DB_URL` to the client or any `PUBLIC_*` environment variable.
 - Menu del dia, notes, active service, prices, catalog, groups, sections, images, and structural text are build-time data even when the operational admin or RPCs edit them.
+- Build-time `available` columns are compatibility fields and must remain `true`; do not use them to represent operational unavailability.
 - Changes to build-time data require rebuild/deploy before affecting `/menu/corpo/` and `/menu/teleinde/`.
 - Legacy menu-content tables were removed by the explicit cleanup migration after flat-model deploy validation.
 
@@ -183,6 +184,7 @@ Runtime overlay:
 - The first `admin` staff row must be bootstrapped through privileged SQL or service role access, not browser RLS.
 - Public client variables are `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.
 - The overlay may only change visual availability through availability data.
+- A missing overlay means available; marking an item available in admin should clear the overlay, not write an explicit `true` override.
 - Do not add `@supabase/supabase-js` to browser code for the current overlay/admin unless explicitly justified.
 
 Data API grants:

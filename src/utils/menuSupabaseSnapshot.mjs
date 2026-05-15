@@ -128,7 +128,7 @@ const createGrillFamilyItem = (family, items, priceMap) => {
   return {
     itemId: family.family_id,
     name: family.title,
-    available: variants.some((variant) => variant.available),
+    available: true,
     pricing: {
       kind: "variants",
       variants,
@@ -147,7 +147,7 @@ const createGrillPricingVariant = (item, priceMap) => {
     id: item.item_id,
     name: item.variant_name ?? item.name,
     price: pricing.price,
-    available: item.available,
+    available: true,
     availabilityItemId: item.item_id,
   });
 };
@@ -219,7 +219,7 @@ const createFlatItem = (item, options, priceMap, transformImage) =>
     name: item.name,
     description: item.description ?? undefined,
     note: item.note ?? undefined,
-    available: item.available,
+    available: true,
     pricing: readPricing(priceMap, item.pricing_key),
     options:
       options.length > 0
@@ -229,7 +229,7 @@ const createFlatItem = (item, options, priceMap, transformImage) =>
               name: option.name,
               description: option.description ?? undefined,
               note: option.note ?? undefined,
-              available: option.available,
+              available: true,
             }),
           )
         : undefined,
@@ -261,7 +261,7 @@ const createPriceMap = (prices, variants) => {
             id: variant.variant_id,
             name: variant.name,
             price: { amount: Number(variant.amount) },
-            available: variant.available,
+            available: true,
           })),
         },
       ];

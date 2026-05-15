@@ -207,11 +207,11 @@ Reglas principales:
 - Si `service_kind` es `daily-menu`, el local muestra las dos opciones de `menu_daily_items`.
 - Si `service_kind` es `grill`, el local muestra `menu_grill_families` como items visibles con variantes de `menu_grill_catalog_items`.
 - Cada local puede mostrar menu del dia o parrilla, nunca ambas a la vez.
-- `menu_grill_catalog_items` conserva precios y disponibilidad por variante de parrilla; `variant_name` define la etiqueta visible de cada variante.
+- `menu_grill_catalog_items` conserva las variantes de parrilla; `variant_name` define la etiqueta visible de cada variante.
 - `menu_catalog_sections` contiene solo secciones del catalogo compartido; no modela el servicio diario por local.
 - Cuando ambos locales muestran menu del dia, comparten el mismo plato principal.
 - Los precios son globales para todos los locales.
-- La disponibilidad es individual por local/menu.
+- La disponibilidad operativa es individual por local/menu y vive solo en `public.menu_availability_overlays`.
 - Las secciones definen `items` o `groups`, no ambos.
 - Los items directos deben definir precio.
 - Un grupo puede definir precio compartido.
@@ -225,6 +225,7 @@ Reglas principales:
 - Menu del dia, descripcion/nota, servicio activo por local, precios globales, catalogo, grupos, secciones, imagenes y textos estructurales son datos build-time.
 - `/admin/` puede editar parte de esos datos en Supabase, pero cada cambio build-time requiere rebuild/deploy para impactar el menu publico.
 - El unico dato editable en runtime sin rebuild es la disponibilidad por local mediante `public.menu_availability_overlays`.
+- Las columnas build-time `available` se conservan solo por compatibilidad interna y deben permanecer en `true`; "No disponible" nace como overlay runtime.
 - El cliente del menu no consulta estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.
 
 ## Supabase
@@ -238,7 +239,7 @@ Superficies Supabase del proyecto:
 - `app_private.menu_publish_requests`: auditoria privada de publicaciones.
 - `publish-menu-changes`: Supabase Edge Function server-side que dispara el Vercel Deploy Hook.
 
-El overlay runtime no administra estructura, textos, precios, imagenes ni menu diario. Si el overlay falla, el menu estatico generado en build-time sigue disponible.
+El overlay runtime no administra estructura, textos, precios, imagenes ni menu diario. Si no existe overlay para un item, el menu estatico generado en build-time lo trata como disponible.
 
 Roles operativos:
 
@@ -252,7 +253,7 @@ RPCs y funciones relevantes:
 
 - `get_admin_operational_state()`: lectura controlada para `/admin/`.
 - `set_menu_availability_overlay(...)` y `clear_menu_availability_overlay(...)`: cambios runtime de disponibilidad.
-- `set_daily_menu(...)`, `set_profile_service_kind(...)`, `set_global_fixed_price(...)` y `set_global_price_variant(...)`: cambios build-time que requieren publicacion.
+- `set_daily_menu(...)`, `set_profile_service_kind(...)`, `set_global_fixed_price(...)` y `set_global_price_variant(...)`: cambios build-time que requieren publicacion y no editan disponibilidad.
 - `can_edit_availability(text)`, `can_edit_menu_content()`, `can_manage_staff()` y `can_publish_menu()`: helpers de permisos.
 - `reserve_menu_publish_request(...)` y `complete_menu_publish_request(...)`: helpers privados usados por la Edge Function.
 

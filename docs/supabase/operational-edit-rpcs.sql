@@ -130,6 +130,18 @@ begin
     return;
   end if;
 
+  if target_available_override is true then
+    return query
+    select *
+    from public.clear_menu_availability_overlay(
+      target_menu_id,
+      target_section_id,
+      target_group_id,
+      target_item_id
+    );
+    return;
+  end if;
+
   if not public.menu_availability_target_exists(
     target_menu_id,
     target_section_id,
@@ -153,14 +165,14 @@ begin
     and coalesce(overlay.group_id, '') = coalesce(target_group_id, '')
     and overlay.item_id = target_item_id;
 
-  if coalesce(row_exists, false) and previous_override = target_available_override then
+  if coalesce(row_exists, false) and previous_override is false then
     return query select true, false, false, 'set_menu_availability_overlay', 'availability_overlay_unchanged';
     return;
   end if;
 
   update public.menu_availability_overlays overlay
   set
-    available_override = target_available_override,
+    available_override = false,
     updated_at = now(),
     updated_by = (select auth.uid())
   where overlay.menu_id = target_menu_id
@@ -186,7 +198,7 @@ begin
         target_section_id,
         target_group_id,
         target_item_id,
-        target_available_override,
+        false,
         now(),
         (select auth.uid())
       );
@@ -194,7 +206,7 @@ begin
       when unique_violation then
         update public.menu_availability_overlays overlay
         set
-          available_override = target_available_override,
+          available_override = false,
           updated_at = now(),
           updated_by = (select auth.uid())
         where overlay.menu_id = target_menu_id
@@ -346,11 +358,9 @@ create or replace function public.set_daily_menu(
   regular_name text,
   regular_description text,
   regular_note text,
-  regular_available boolean,
   vegetarian_name text,
   vegetarian_description text,
-  vegetarian_note text,
-  vegetarian_available boolean
+  vegetarian_note text
 )
 returns table (
   ok boolean,
@@ -383,11 +393,6 @@ begin
     return;
   end if;
 
-  if regular_available is null or vegetarian_available is null then
-    return query select false, false, true, 'set_daily_menu', 'daily_menu_available_required';
-    return;
-  end if;
-
   select count(*)
   into expected_item_count
   from menu_content.menu_daily_items item
@@ -405,12 +410,11 @@ begin
     item_id,
     name,
     description,
-    note,
-    available
+    note
   ) as (
     values
-      ('menu-del-dia', regular_name_value, regular_description_value, regular_note_value, regular_available),
-      ('menu-vegetariano-del-dia', vegetarian_name_value, vegetarian_description_value, vegetarian_note_value, vegetarian_available)
+      ('menu-del-dia', regular_name_value, regular_description_value, regular_note_value),
+      ('menu-vegetariano-del-dia', vegetarian_name_value, vegetarian_description_value, vegetarian_note_value)
   )
   select exists (
     select 1
@@ -420,7 +424,7 @@ begin
     where item.name is distinct from desired.name
       or item.description is distinct from desired.description
       or item.note is distinct from desired.note
-      or item.available is distinct from desired.available
+      or item.available is distinct from true
   )
   into has_changes;
 
@@ -433,19 +437,18 @@ begin
     item_id,
     name,
     description,
-    note,
-    available
+    note
   ) as (
     values
-      ('menu-del-dia', regular_name_value, regular_description_value, regular_note_value, regular_available),
-      ('menu-vegetariano-del-dia', vegetarian_name_value, vegetarian_description_value, vegetarian_note_value, vegetarian_available)
+      ('menu-del-dia', regular_name_value, regular_description_value, regular_note_value),
+      ('menu-vegetariano-del-dia', vegetarian_name_value, vegetarian_description_value, vegetarian_note_value)
   )
   update menu_content.menu_daily_items item
   set
     name = desired.name,
     description = desired.description,
     note = desired.note,
-    available = desired.available
+    available = true
   from desired_items desired
   where item.item_id = desired.item_id;
 
@@ -520,8 +523,7 @@ $$;
 create or replace function public.set_global_price_variant(
   pricing_key text,
   variant_id text,
-  amount integer,
-  available boolean
+  amount integer
 )
 returns table (
   ok boolean,
@@ -555,11 +557,6 @@ begin
     return;
   end if;
 
-  if available is null then
-    return query select false, false, true, 'set_global_price_variant', 'available_required';
-    return;
-  end if;
-
   select variant.amount, variant.available
   into current_amount, current_available
   from menu_content.menu_price_variants variant
@@ -571,7 +568,7 @@ begin
     return;
   end if;
 
-  if current_amount = amount and current_available = available then
+  if current_amount = amount and current_available is true then
     return query select true, false, true, 'set_global_price_variant', 'price_variant_unchanged';
     return;
   end if;
@@ -579,7 +576,7 @@ begin
   update menu_content.menu_price_variants variant
   set
     amount = set_global_price_variant.amount,
-    available = set_global_price_variant.available
+    available = true
   where variant.pricing_key = pricing_key_value
     and variant.variant_id = variant_id_value;
 
@@ -601,17 +598,17 @@ revoke all on function public.menu_availability_target_exists(text, text, text, 
 revoke all on function public.set_menu_availability_overlay(text, text, text, text, boolean) from public, anon, authenticated;
 revoke all on function public.clear_menu_availability_overlay(text, text, text, text) from public, anon, authenticated;
 revoke all on function public.set_profile_service_kind(text, text) from public, anon, authenticated;
-revoke all on function public.set_daily_menu(text, text, text, boolean, text, text, text, boolean) from public, anon, authenticated;
+revoke all on function public.set_daily_menu(text, text, text, text, text, text) from public, anon, authenticated;
 revoke all on function public.set_global_fixed_price(text, integer) from public, anon, authenticated;
-revoke all on function public.set_global_price_variant(text, text, integer, boolean) from public, anon, authenticated;
+revoke all on function public.set_global_price_variant(text, text, integer) from public, anon, authenticated;
 
 grant execute on function public.can_edit_menu_content() to authenticated;
 grant execute on function public.set_menu_availability_overlay(text, text, text, text, boolean) to authenticated;
 grant execute on function public.clear_menu_availability_overlay(text, text, text, text) to authenticated;
 grant execute on function public.set_profile_service_kind(text, text) to authenticated;
-grant execute on function public.set_daily_menu(text, text, text, boolean, text, text, text, boolean) to authenticated;
+grant execute on function public.set_daily_menu(text, text, text, text, text, text) to authenticated;
 grant execute on function public.set_global_fixed_price(text, integer) to authenticated;
-grant execute on function public.set_global_price_variant(text, text, integer, boolean) to authenticated;
+grant execute on function public.set_global_price_variant(text, text, integer) to authenticated;
 
 drop policy if exists "Staff can insert menu availability overlays"
   on public.menu_availability_overlays;
