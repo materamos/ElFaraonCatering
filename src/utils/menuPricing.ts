@@ -1,6 +1,6 @@
 import type { MenuPricing, MenuPricingVariant } from "../types/menu";
 
-export const formatMenuAmount = (amount: number) =>
+const formatMenuAmount = (amount: number) =>
   new Intl.NumberFormat("es-AR", {
     style: "currency",
     currency: "ARS",

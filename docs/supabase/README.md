@@ -121,6 +121,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260514000000_remove_empty_grill_family_otros.sql` | Elimina la familia vacia `otros` de parrilla. |
 | `20260514001000_fold_profile_payments_into_facts.sql` | Migra pagos de perfiles a `menu_profile_facts` y elimina las tablas especiales de pagos. |
 | `20260514002000_wrap_security_definer_admin_rpcs.sql` | Mueve cuerpos `security definer` del admin a `app_private` y deja wrappers publicos `security invoker`. |
+| `20260514003000_add_teleinde_whatsapp_link.sql` | Agrega el link de WhatsApp al perfil `teleinde`. |
 | `20260514004000_make_availability_runtime_only.sql` | Normaliza disponibilidad build-time a `true` y deja la disponibilidad operativa solo como overlay runtime. |
 
 ## Orden recomendado

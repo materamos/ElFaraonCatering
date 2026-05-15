@@ -298,15 +298,6 @@
     resize: vertical;
   }
 
-  .admin-checkbox {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    min-height: 2.75rem;
-    color: #1c211d;
-    font-weight: 650;
-  }
-
   .admin-button {
     display: inline-flex;
     align-items: center;
@@ -381,27 +372,13 @@
   }
 
   .admin-grill-groups,
-  .admin-grill-profile,
   .admin-family,
   .admin-family__variants {
     display: grid;
   }
 
-  .admin-grill-groups,
-  .admin-grill-profile {
+  .admin-grill-groups {
     gap: 0.9rem;
-  }
-
-  .admin-grill-profile__header {
-    display: grid;
-    gap: 0.2rem;
-    padding-inline: 0.15rem;
-  }
-
-  .admin-grill-profile__title {
-    color: #1c211d;
-    font-size: 1.05rem;
-    line-height: 1.25;
   }
 
   .admin-family {
