@@ -1,5 +1,10 @@
 create extension if not exists pgcrypto;
 
+create schema if not exists app_private;
+
+revoke all on schema app_private from public, anon, authenticated;
+grant usage on schema app_private to authenticated;
+
 create table if not exists public.editor_profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   active boolean not null default true,
@@ -72,7 +77,8 @@ before update on public.staff_users
 for each row
 execute function public.set_staff_users_updated_at();
 
-create or replace function public.is_active_staff()
+-- Privileged permission checks live outside exposed API schemas.
+create or replace function app_private.is_active_staff()
 returns boolean
 language sql
 stable
@@ -87,7 +93,7 @@ as $$
   );
 $$;
 
-create or replace function public.can_edit_availability(target_profile_id text)
+create or replace function app_private.can_edit_availability(target_profile_id text)
 returns boolean
 language sql
 stable
@@ -109,7 +115,7 @@ as $$
     );
 $$;
 
-create or replace function public.can_manage_staff()
+create or replace function app_private.can_manage_staff()
 returns boolean
 language sql
 stable
@@ -125,7 +131,7 @@ as $$
   );
 $$;
 
-create or replace function public.can_publish_menu()
+create or replace function app_private.can_publish_menu()
 returns boolean
 language sql
 stable
@@ -139,6 +145,47 @@ as $$
       and staff.active = true
       and staff.role in ('menu_editor', 'admin')
   );
+$$;
+
+-- Public client-facing helpers are security-invoker wrappers.
+create or replace function public.is_active_staff()
+returns boolean
+language sql
+stable
+security invoker
+set search_path = public, app_private, pg_temp
+as $$
+  select app_private.is_active_staff();
+$$;
+
+create or replace function public.can_edit_availability(target_profile_id text)
+returns boolean
+language sql
+stable
+security invoker
+set search_path = public, app_private, pg_temp
+as $$
+  select app_private.can_edit_availability($1);
+$$;
+
+create or replace function public.can_manage_staff()
+returns boolean
+language sql
+stable
+security invoker
+set search_path = public, app_private, pg_temp
+as $$
+  select app_private.can_manage_staff();
+$$;
+
+create or replace function public.can_publish_menu()
+returns boolean
+language sql
+stable
+security invoker
+set search_path = public, app_private, pg_temp
+as $$
+  select app_private.can_publish_menu();
 $$;
 
 revoke all on public.staff_users from anon, authenticated;
@@ -157,10 +204,20 @@ revoke all on function public.is_active_staff() from public, anon, authenticated
 revoke all on function public.can_edit_availability(text) from public, anon, authenticated;
 revoke all on function public.can_manage_staff() from public, anon, authenticated;
 revoke all on function public.can_publish_menu() from public, anon, authenticated;
+revoke all on function public.set_staff_users_updated_at() from public, anon, authenticated;
 grant execute on function public.is_active_staff() to authenticated;
 grant execute on function public.can_edit_availability(text) to authenticated;
 grant execute on function public.can_manage_staff() to authenticated;
 grant execute on function public.can_publish_menu() to authenticated;
+
+revoke all on function app_private.is_active_staff() from public, anon, authenticated;
+revoke all on function app_private.can_edit_availability(text) from public, anon, authenticated;
+revoke all on function app_private.can_manage_staff() from public, anon, authenticated;
+revoke all on function app_private.can_publish_menu() from public, anon, authenticated;
+grant execute on function app_private.is_active_staff() to authenticated;
+grant execute on function app_private.can_edit_availability(text) to authenticated;
+grant execute on function app_private.can_manage_staff() to authenticated;
+grant execute on function app_private.can_publish_menu() to authenticated;
 
 alter table public.editor_profiles enable row level security;
 alter table public.staff_users enable row level security;
