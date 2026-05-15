@@ -353,6 +353,14 @@ with possible_targets as (
   select profile.id, item.section_id, item.group_id, item.item_id
   from menu_content.menu_profiles profile
   cross join menu_content.menu_catalog_items item
+
+  union all
+
+  select profile.id, item.section_id, item.group_id, item.item_id || '-' || option.option_id
+  from menu_content.menu_profiles profile
+  cross join menu_content.menu_catalog_items item
+  join menu_content.menu_catalog_item_options option
+    on option.catalog_item_id = item.id
 )
 select
   overlay.menu_id,

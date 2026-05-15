@@ -185,6 +185,7 @@ Runtime overlay:
 - Public client variables are `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.
 - The overlay may only change visual availability through availability data.
 - A missing overlay means available; marking an item available in admin should clear the overlay, not write an explicit `true` override.
+- Catalog item options use composed runtime target IDs in the form `item-id-option-id`; keep that contract synchronized between admin RPC targets and public menu `data-item-id` attributes.
 - Do not add `@supabase/supabase-js` to browser code for the current overlay/admin unless explicitly justified.
 
 Data API grants:

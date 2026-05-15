@@ -36,6 +36,7 @@ const photoImage = getMenuPhotoImagePath(image);
 const effectivePricing = pricing ?? inheritedPricing;
 const variants = effectivePricing?.kind === "variants" ? effectivePricing.variants : [];
 const hasOperationalVariants = variants.some((variant) => variant.availabilityItemId);
+const getOptionAvailabilityItemId = (option: MenuOption) => `${itemId}-${option.id}`;
 
 const directPricingText =
   effectivePricing && effectivePricing.kind !== "variants"
@@ -83,7 +84,14 @@ const directPricingText =
       </p>
       <ul class="dish-card__option-list">
         {options.map((option) => (
-          <li class="dish-card__option">
+          <li
+            class="dish-card__option"
+            data-menu-id={menuId}
+            data-section-id={sectionId}
+            data-group-id={groupId}
+            data-item-id={getOptionAvailabilityItemId(option)}
+            data-available={option.available ? "true" : "false"}
+          >
             <span>
               {option.name}
               {option.description && (
