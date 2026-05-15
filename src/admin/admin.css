@@ -531,6 +531,11 @@
     background: #f5e9e8;
   }
 
+  .admin-pill[data-tone="neutral"] {
+    color: #5f5a50;
+    background: #f4f2ed;
+  }
+
   .admin-form-grid {
     display: grid;
     gap: 0.75rem;
@@ -606,6 +611,52 @@
     background: #f7f5f1;
   }
 
+  .admin-daily {
+    gap: 1.15rem;
+  }
+
+  .admin-daily-panel {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .admin-daily-panel__header {
+    display: grid;
+    gap: 0.25rem;
+    padding-inline: 0.15rem;
+  }
+
+  .admin-daily-panel__title {
+    color: #1c211d;
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .admin-daily-form {
+    align-items: start;
+  }
+
+  .admin-daily-submit {
+    align-self: stretch;
+  }
+
+  .admin-daily-toolbar {
+    align-items: center;
+  }
+
+  .admin-daily-context {
+    display: grid;
+    gap: 0.25rem;
+    color: #1c211d;
+    font-size: 0.95rem;
+  }
+
+  .admin-daily-context strong {
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
   .admin-price-field {
     display: grid;
     gap: 0.35rem;
@@ -633,6 +684,14 @@
   .admin-price-field {
     flex: 1 1 100%;
   }
+
+  .admin-daily-card {
+    gap: 0.65rem;
+  }
+
+  .admin-daily-card .admin-textarea {
+    min-height: 4.25rem;
+  }
 }
 
 @media (min-width: 760px) {
@@ -655,6 +714,10 @@
   .admin-form-grid,
   .admin-price-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-daily-submit {
+    grid-column: 1 / -1;
   }
 
   .admin-section,
