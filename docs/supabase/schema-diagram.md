@@ -235,7 +235,7 @@ flowchart LR
 - `/admin/` puede editar datos operativos build-time, pero esos cambios requieren rebuild/deploy para impactar el menu publico.
 - `public.menu_availability_overlays` es el unico dato editable en runtime sin rebuild.
 - La ausencia de overlay equivale a disponible; marcar disponible en admin debe limpiar el overlay.
-- Las opciones de catalogo usan IDs compuestos `item-id-option-id` como `item_id` del overlay.
+- Los items con opciones exponen target padre y targets de opcion; las opciones usan IDs compuestos `item-id-option-id` como `item_id` del overlay.
 - `public.staff_users` define roles operativos (`availability_editor`, `menu_editor`, `admin`) y alcance por perfil.
 - Las escrituras del admin deben pasar por RPCs operativas con respuesta `ok`, `changed`, `requires_redeploy`, `operation` y `message`.
 - Las RPCs publicas del admin son wrappers `security invoker`; las implementaciones privilegiadas viven en `app_private`, que no debe exponerse por PostgREST.
