@@ -915,11 +915,12 @@ function renderAvailabilityFilters(
   state: AdminOperationalState,
   scope: AvailabilityScope,
 ): string {
-  const profileFilter = getAvailabilityProfileFilter(scope);
+  const profileFilter = getEffectiveAvailabilityProfileFilter(state, scope);
   const groupFilter = getAvailabilityGroupFilter(scope);
+  const profileOptions = getEditableAvailabilityProfiles(state);
   const groupOptions = getAvailabilityGroupOptions(
     getAvailabilityScopeTargets(state, getAvailabilityKindLimit(scope)).filter((target) =>
-      !profileFilter || target.menu_id === profileFilter
+      target.menu_id === profileFilter
     ),
   );
 
@@ -928,9 +929,7 @@ function renderAvailabilityFilters(
       <label class="admin-field">
         <span class="admin-label">Local</span>
         <select class="admin-select" data-admin-filter="${getAvailabilityProfileFilterName(scope)}">
-          <option value="">Todos</option>
-          ${state.profiles
-            .filter((profile) => profile.can_edit_availability)
+          ${profileOptions
             .map((profile) => `<option value="${escapeHtml(profile.id)}" ${profileFilter === profile.id ? "selected" : ""}>${escapeHtml(profile.title)}</option>`)
             .join("")}
         </select>
@@ -958,6 +957,24 @@ function getAvailabilityProfileFilter(scope: AvailabilityScope): string {
   }
 
   return availabilityProfileFilter;
+}
+
+function getEditableAvailabilityProfiles(state: AdminOperationalState): ProfileState[] {
+  return state.profiles.filter((profile) => profile.can_edit_availability);
+}
+
+function getEffectiveAvailabilityProfileFilter(
+  state: AdminOperationalState,
+  scope: AvailabilityScope,
+): string {
+  const profileFilter = getAvailabilityProfileFilter(scope);
+  const editableProfiles = getEditableAvailabilityProfiles(state);
+
+  if (editableProfiles.some((profile) => profile.id === profileFilter)) {
+    return profileFilter;
+  }
+
+  return editableProfiles[0]?.id ?? "";
 }
 
 function getAvailabilityProfileFilterName(scope: AvailabilityScope): string {
@@ -1005,7 +1022,19 @@ function getAvailabilityKindLimit(scope: AvailabilityScope): TargetKind | undefi
     return "grill";
   }
 
-  return undefined;
+  return "catalog";
+}
+
+function getAvailabilityScopeForKindLimit(kindLimit: TargetKind | undefined): AvailabilityScope {
+  if (kindLimit === "daily-menu") {
+    return "daily";
+  }
+
+  if (kindLimit === "grill") {
+    return "grill";
+  }
+
+  return "availability";
 }
 
 function getAvailabilityScopeTargets(
@@ -1051,11 +1080,10 @@ function renderAvailabilityRows(
   state: AdminOperationalState,
   kindLimit: TargetKind | undefined,
 ): string {
-  const profileFilter = kindLimit === "daily-menu"
-    ? dailyProfileFilter
-    : kindLimit === "grill"
-      ? grillProfileFilter
-      : availabilityProfileFilter;
+  const profileFilter = getEffectiveAvailabilityProfileFilter(
+    state,
+    getAvailabilityScopeForKindLimit(kindLimit),
+  );
   const groupFilter = kindLimit === "daily-menu"
     ? dailyGroupFilter
     : kindLimit === "grill"
@@ -1063,7 +1091,7 @@ function renderAvailabilityRows(
       : availabilityGroupFilter;
   const scopeTargets = getAvailabilityScopeTargets(state, kindLimit);
   const targets = scopeTargets.filter((target) =>
-    (!profileFilter || target.menu_id === profileFilter)
+    target.menu_id === profileFilter
     && (!groupFilter || getAvailabilityGroupKey(target) === groupFilter)
   );
 
@@ -1085,9 +1113,10 @@ function renderAvailabilityRows(
 }
 
 function renderGrillAvailabilityRows(state: AdminOperationalState): string {
+  const profileFilter = getEffectiveAvailabilityProfileFilter(state, "grill");
   const scopeTargets = getAvailabilityScopeTargets(state, "grill");
   const targets = scopeTargets.filter((target) =>
-    !grillProfileFilter || target.menu_id === grillProfileFilter
+    target.menu_id === profileFilter
   ).filter((target) =>
     !grillGroupFilter || getAvailabilityGroupKey(target) === grillGroupFilter
   );
