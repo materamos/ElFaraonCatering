@@ -3,6 +3,7 @@ type ServiceKind = "daily-menu" | "grill";
 type TargetKind = "daily-menu" | "grill" | "catalog";
 type AdminTabId = "availability" | "daily" | "grill" | "prices" | "publish";
 type StatusTone = "neutral" | "success" | "danger";
+type AvailabilityScope = "availability" | "daily" | "grill";
 
 interface AuthSession {
   accessToken: string;
@@ -150,6 +151,9 @@ let isBusy = false;
 let availabilityProfileFilter = "";
 let dailyProfileFilter = "";
 let grillProfileFilter = "";
+let availabilityGroupFilter = "";
+let dailyGroupFilter = "";
+let grillGroupFilter = "";
 
 if (!rootElement) {
   throw new Error("Admin root element was not found.");
@@ -192,12 +196,24 @@ root.addEventListener("change", (event) => {
     availabilityProfileFilter = field.value;
   }
 
+  if (field.dataset.adminFilter === "availability-group") {
+    availabilityGroupFilter = field.value;
+  }
+
   if (field.dataset.adminFilter === "daily-profile") {
     dailyProfileFilter = field.value;
   }
 
+  if (field.dataset.adminFilter === "daily-group") {
+    dailyGroupFilter = field.value;
+  }
+
   if (field.dataset.adminFilter === "grill-profile") {
     grillProfileFilter = field.value;
+  }
+
+  if (field.dataset.adminFilter === "grill-group") {
+    grillGroupFilter = field.value;
   }
 
   renderAuthenticated();
@@ -897,9 +913,15 @@ function renderStatus(): string {
 
 function renderAvailabilityFilters(
   state: AdminOperationalState,
-  scope: "availability" | "daily" | "grill",
+  scope: AvailabilityScope,
 ): string {
   const profileFilter = getAvailabilityProfileFilter(scope);
+  const groupFilter = getAvailabilityGroupFilter(scope);
+  const groupOptions = getAvailabilityGroupOptions(
+    getAvailabilityScopeTargets(state, getAvailabilityKindLimit(scope)).filter((target) =>
+      !profileFilter || target.menu_id === profileFilter
+    ),
+  );
 
   return `
     <div class="admin-toolbar">
@@ -913,11 +935,20 @@ function renderAvailabilityFilters(
             .join("")}
         </select>
       </label>
+      <label class="admin-field">
+        <span class="admin-label">Familia / grupo</span>
+        <select class="admin-select" data-admin-filter="${getAvailabilityGroupFilterName(scope)}">
+          <option value="">Todos</option>
+          ${groupOptions
+            .map((option) => `<option value="${escapeHtml(option.key)}" ${groupFilter === option.key ? "selected" : ""}>${escapeHtml(option.label)}</option>`)
+            .join("")}
+        </select>
+      </label>
     </div>
   `;
 }
 
-function getAvailabilityProfileFilter(scope: "availability" | "daily" | "grill"): string {
+function getAvailabilityProfileFilter(scope: AvailabilityScope): string {
   if (scope === "daily") {
     return dailyProfileFilter;
   }
@@ -929,7 +960,7 @@ function getAvailabilityProfileFilter(scope: "availability" | "daily" | "grill")
   return availabilityProfileFilter;
 }
 
-function getAvailabilityProfileFilterName(scope: "availability" | "daily" | "grill"): string {
+function getAvailabilityProfileFilterName(scope: AvailabilityScope): string {
   if (scope === "daily") {
     return "daily-profile";
   }
@@ -941,6 +972,81 @@ function getAvailabilityProfileFilterName(scope: "availability" | "daily" | "gri
   return "availability-profile";
 }
 
+function getAvailabilityGroupFilter(scope: AvailabilityScope): string {
+  if (scope === "daily") {
+    return dailyGroupFilter;
+  }
+
+  if (scope === "grill") {
+    return grillGroupFilter;
+  }
+
+  return availabilityGroupFilter;
+}
+
+function getAvailabilityGroupFilterName(scope: AvailabilityScope): string {
+  if (scope === "daily") {
+    return "daily-group";
+  }
+
+  if (scope === "grill") {
+    return "grill-group";
+  }
+
+  return "availability-group";
+}
+
+function getAvailabilityKindLimit(scope: AvailabilityScope): TargetKind | undefined {
+  if (scope === "daily") {
+    return "daily-menu";
+  }
+
+  if (scope === "grill") {
+    return "grill";
+  }
+
+  return undefined;
+}
+
+function getAvailabilityScopeTargets(
+  state: AdminOperationalState,
+  kindLimit: TargetKind | undefined,
+): AvailabilityTargetState[] {
+  return state.availability_targets.filter((target) => !kindLimit || target.target_kind === kindLimit);
+}
+
+function getAvailabilityGroupKey(target: AvailabilityTargetState): string {
+  if (target.group_title) {
+    return `group:${target.section_id}:${target.group_id}`;
+  }
+
+  return `section:${target.section_id}`;
+}
+
+function getAvailabilityGroupLabel(target: AvailabilityTargetState): string {
+  return target.group_title ?? target.section_title;
+}
+
+function getAvailabilityGroupOptions(
+  targets: AvailabilityTargetState[],
+): Array<{ key: string; label: string }> {
+  const options: Array<{ key: string; label: string }> = [];
+  const seenKeys = new Set<string>();
+
+  for (const target of targets) {
+    const key = getAvailabilityGroupKey(target);
+
+    if (seenKeys.has(key)) {
+      continue;
+    }
+
+    seenKeys.add(key);
+    options.push({ key, label: getAvailabilityGroupLabel(target) });
+  }
+
+  return options;
+}
+
 function renderAvailabilityRows(
   state: AdminOperationalState,
   kindLimit: TargetKind | undefined,
@@ -950,9 +1056,15 @@ function renderAvailabilityRows(
     : kindLimit === "grill"
       ? grillProfileFilter
       : availabilityProfileFilter;
-  const scopeTargets = state.availability_targets.filter((target) => !kindLimit || target.target_kind === kindLimit);
+  const groupFilter = kindLimit === "daily-menu"
+    ? dailyGroupFilter
+    : kindLimit === "grill"
+      ? grillGroupFilter
+      : availabilityGroupFilter;
+  const scopeTargets = getAvailabilityScopeTargets(state, kindLimit);
   const targets = scopeTargets.filter((target) =>
     (!profileFilter || target.menu_id === profileFilter)
+    && (!groupFilter || getAvailabilityGroupKey(target) === groupFilter)
   );
 
   if (targets.length === 0) {
@@ -973,9 +1085,11 @@ function renderAvailabilityRows(
 }
 
 function renderGrillAvailabilityRows(state: AdminOperationalState): string {
-  const scopeTargets = state.availability_targets.filter((target) => target.target_kind === "grill");
+  const scopeTargets = getAvailabilityScopeTargets(state, "grill");
   const targets = scopeTargets.filter((target) =>
     !grillProfileFilter || target.menu_id === grillProfileFilter
+  ).filter((target) =>
+    !grillGroupFilter || getAvailabilityGroupKey(target) === grillGroupFilter
   );
 
   if (targets.length === 0) {
