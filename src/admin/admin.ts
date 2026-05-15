@@ -788,30 +788,34 @@ function renderDailyTab(state: AdminOperationalState): string {
   const availabilityEditor = state.permissions.can_edit_availability;
 
   return `
-    <section class="admin-section">
+    <section class="admin-section admin-daily">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Menu del dia</h2>
-        <p class="admin-section__copy">Contenido build-time del menu del dia.</p>
+        <p class="admin-section__copy">Gestion diaria de platos, locales activos y disponibilidad runtime.</p>
       </div>
       ${serviceEditor ? `
-        <form class="admin-form-grid" data-admin-form="daily-menu">
-          ${renderDailyFieldset("Menu regular", "regular", regular)}
-          ${renderDailyFieldset("Menu vegetariano", "vegetarian", vegetarian)}
-          <div class="admin-row admin-callout">
-            <div class="admin-row__main">
-              <p class="admin-row__title">Guardar menu del dia</p>
-              <p class="admin-row__meta">Actualiza las dos opciones visibles del servicio diario.</p>
-            </div>
-            <div class="admin-row__actions">
-              <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar menu del dia</button>
-            </div>
+        <section class="admin-daily-panel">
+          <div class="admin-daily-panel__header">
+            <h3 class="admin-daily-panel__title">Editar platos del dia</h3>
+            <p class="admin-row__meta">Guardar actualiza contenido build-time y requiere publicar.</p>
           </div>
-        </form>
+          <form class="admin-form-grid admin-daily-form" data-admin-form="daily-menu">
+            ${renderDailyFieldset("Menu regular", "regular", regular)}
+            ${renderDailyFieldset("Menu vegetariano", "vegetarian", vegetarian)}
+            <div class="admin-row admin-callout admin-daily-submit">
+              <div class="admin-row__main">
+                <p class="admin-row__title">Guardar platos</p>
+                <p class="admin-row__meta">Actualiza las dos opciones visibles del servicio diario.</p>
+              </div>
+              <div class="admin-row__actions">
+                <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar menu del dia</button>
+              </div>
+            </div>
+          </form>
+        </section>
+        ${renderDailyServiceForms(state)}
       ` : ""}
-      ${availabilityEditor ? `
-        ${renderAvailabilityFilters(state, "daily")}
-        ${renderAvailabilityRows(state, "daily-menu")}
-      ` : ""}
+      ${availabilityEditor ? renderDailyAvailabilitySection(state) : ""}
       ${!serviceEditor && !availabilityEditor ? renderEmpty("No hay acciones de menu del dia disponibles para este rol.") : ""}
     </section>
   `;
@@ -1112,6 +1116,155 @@ function renderAvailabilityRows(
   `;
 }
 
+function getDailyServiceProfiles(state: AdminOperationalState): ProfileState[] {
+  return state.profiles.filter((profile) => findServiceKind(state, profile.id) === "daily-menu");
+}
+
+function getDailyAvailabilityTargets(state: AdminOperationalState): AvailabilityTargetState[] {
+  const profileIds = new Set(
+    getDailyServiceProfiles(state)
+      .filter((profile) => profile.can_edit_availability)
+      .map((profile) => profile.id),
+  );
+
+  return state.availability_targets.filter((target) =>
+    target.target_kind === "daily-menu" && profileIds.has(target.menu_id)
+  );
+}
+
+function renderDailyServiceForms(state: AdminOperationalState): string {
+  if (state.profiles.length === 0) {
+    return `
+      <section class="admin-daily-panel">
+        <div class="admin-daily-panel__header">
+          <h3 class="admin-daily-panel__title">Locales con menu del dia</h3>
+          <p class="admin-row__meta">Cambiar el servicio requiere publicar.</p>
+        </div>
+        ${renderEmpty("No hay locales para configurar.")}
+      </section>
+    `;
+  }
+
+  return `
+    <section class="admin-daily-panel">
+      <div class="admin-daily-panel__header">
+        <h3 class="admin-daily-panel__title">Locales con menu del dia</h3>
+        <p class="admin-row__meta">Cambiar el servicio activo requiere publicar.</p>
+      </div>
+      <div class="admin-grid">
+        ${state.profiles.map((profile) => {
+          const currentService = findServiceKind(state, profile.id);
+          const serviceLabel = currentService === "daily-menu" ? "Menu del dia activo" : "Parrilla activa";
+
+          return `
+            <form class="admin-row admin-daily-service-row" data-admin-form="service-kind">
+              <div class="admin-row__main">
+                <p class="admin-row__title">${escapeHtml(profile.title)}</p>
+                <div class="admin-row__status">
+                  <span class="admin-pill" data-tone="${currentService === "daily-menu" ? "success" : "neutral"}">${escapeHtml(serviceLabel)}</span>
+                  <span class="admin-row__state-note">Requiere publicar si cambia.</span>
+                </div>
+              </div>
+              <div class="admin-row__actions">
+                <input type="hidden" name="profile_id" value="${escapeHtml(profile.id)}" />
+                <select class="admin-select" name="service_kind" aria-label="Servicio activo para ${escapeHtml(profile.title)}">
+                  <option value="daily-menu" ${currentService === "daily-menu" ? "selected" : ""}>Menu del dia</option>
+                  <option value="grill" ${currentService === "grill" ? "selected" : ""}>Parrilla</option>
+                </select>
+                <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar</button>
+              </div>
+            </form>
+          `;
+        }).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderDailyAvailabilitySection(state: AdminOperationalState): string {
+  const profiles = getDailyServiceProfiles(state).filter((profile) => profile.can_edit_availability);
+  const targets = getDailyAvailabilityTargets(state);
+
+  if (profiles.length === 0) {
+    return `
+      <section class="admin-daily-panel">
+        <div class="admin-daily-panel__header">
+          <h3 class="admin-daily-panel__title">Disponibilidad de hoy</h3>
+          <p class="admin-row__meta">La disponibilidad se aplica al instante.</p>
+        </div>
+        ${renderEmpty("No hay locales con menu del dia activo.")}
+      </section>
+    `;
+  }
+
+  const profileFilter = profiles.some((profile) => profile.id === dailyProfileFilter)
+    ? dailyProfileFilter
+    : profiles[0]?.id ?? "";
+  const visibleTargets = targets.filter((target) => target.menu_id === profileFilter);
+  const selectedProfile = profiles.find((profile) => profile.id === profileFilter);
+
+  return `
+    <section class="admin-daily-panel">
+      <div class="admin-daily-panel__header">
+        <h3 class="admin-daily-panel__title">Disponibilidad de hoy</h3>
+        <p class="admin-row__meta">Estos cambios son runtime y se aplican al instante.</p>
+      </div>
+      <div class="admin-toolbar admin-daily-toolbar">
+        ${profiles.length > 1 ? `
+          <label class="admin-field">
+            <span class="admin-label">Local</span>
+            <select class="admin-select" data-admin-filter="daily-profile">
+              ${profiles
+                .map((profile) => `<option value="${escapeHtml(profile.id)}" ${profileFilter === profile.id ? "selected" : ""}>${escapeHtml(profile.title)}</option>`)
+                .join("")}
+            </select>
+          </label>
+        ` : `
+          <div class="admin-daily-context">
+            <span class="admin-label">Local</span>
+            <strong>${escapeHtml(selectedProfile?.title ?? "Menu del dia")}</strong>
+          </div>
+        `}
+      </div>
+      ${visibleTargets.length === 0 ? renderEmpty("No hay items de menu del dia para este local.") : `
+        <div class="admin-list-header">
+          <span>${visibleTargets.length} items</span>
+          <span>Los cambios se aplican al instante.</span>
+        </div>
+        <div class="admin-grid">${visibleTargets.map((target) => renderDailyAvailabilityRow(state, target)).join("")}</div>
+      `}
+    </section>
+  `;
+}
+
+function renderDailyAvailabilityRow(
+  state: AdminOperationalState,
+  target: AvailabilityTargetState,
+): string {
+  const overlay = findOverlay(state, target);
+  const effectiveAvailable = overlay ? overlay.available_override : target.base_available;
+  const key = getTargetKey(target);
+  const availableDisabled = isBusy || effectiveAvailable;
+  const unavailableDisabled = isBusy || !effectiveAvailable;
+
+  return `
+    <div class="admin-row admin-daily-availability-row">
+      <div class="admin-row__main">
+        <p class="admin-row__title">${escapeHtml(target.name)}</p>
+        ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
+        <div class="admin-row__status">
+          <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">${effectiveAvailable ? "Disponible" : "No disponible"}</span>
+          <span class="admin-row__state-note">${overlay ? "Ajuste manual activo" : "Sin ajuste manual"}</span>
+        </div>
+      </div>
+      <div class="admin-row__actions">
+        <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" data-current="${effectiveAvailable ? "true" : "false"}" aria-pressed="${effectiveAvailable ? "true" : "false"}" ${availableDisabled ? "disabled" : ""}>Marcar disponible</button>
+        <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="false" data-current="${!effectiveAvailable ? "true" : "false"}" aria-pressed="${!effectiveAvailable ? "true" : "false"}" ${unavailableDisabled ? "disabled" : ""}>Marcar no disponible</button>
+      </div>
+    </div>
+  `;
+}
+
 function renderGrillAvailabilityRows(state: AdminOperationalState): string {
   const profileFilter = getEffectiveAvailabilityProfileFilter(state, "grill");
   const scopeTargets = getAvailabilityScopeTargets(state, "grill");
@@ -1225,19 +1378,21 @@ function renderDailyFieldset(
   prefix: "regular" | "vegetarian",
   item: DailyMenuState | undefined,
 ): string {
+  const fieldLabel = prefix === "regular" ? "menu regular" : "menu vegetariano";
+
   return `
-    <fieldset class="admin-card">
+    <fieldset class="admin-card admin-daily-card">
       <legend class="admin-card__legend">${escapeHtml(label)}</legend>
       <label class="admin-field">
-        <span class="admin-label">Nombre</span>
+        <span class="admin-label">Nombre del ${fieldLabel}</span>
         <input class="admin-input" name="${prefix}_name" value="${escapeHtml(item?.name ?? "")}" required />
       </label>
       <label class="admin-field admin-field--wide">
-        <span class="admin-label">Descripcion</span>
+        <span class="admin-label">Descripcion del ${fieldLabel}</span>
         <textarea class="admin-textarea" name="${prefix}_description">${escapeHtml(item?.description ?? "")}</textarea>
       </label>
       <label class="admin-field admin-field--wide">
-        <span class="admin-label">Nota</span>
+        <span class="admin-label">Nota del ${fieldLabel}</span>
         <textarea class="admin-textarea" name="${prefix}_note">${escapeHtml(item?.note ?? "")}</textarea>
       </label>
     </fieldset>
