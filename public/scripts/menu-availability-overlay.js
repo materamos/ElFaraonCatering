@@ -79,6 +79,13 @@ const createAvailabilityStatus = (item) => {
     return status;
   }
 
+  if (item.classList.contains("dish-card__option")) {
+    status.className = "dish-card__option-status";
+    item.querySelector("span")?.append(status);
+
+    return status;
+  }
+
   status.className = "dish-card__variant-status";
   item.querySelector("span")?.append(status);
 

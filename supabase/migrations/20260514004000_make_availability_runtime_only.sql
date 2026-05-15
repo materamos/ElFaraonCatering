@@ -28,6 +28,58 @@ drop function if exists public.set_global_price_variant(text, text, integer, boo
 drop function if exists app_private.set_daily_menu(text, text, text, boolean, text, text, text, boolean);
 drop function if exists app_private.set_global_price_variant(text, text, integer, boolean);
 
+create or replace function app_private.menu_availability_target_exists(
+  target_menu_id text,
+  target_section_id text,
+  target_group_id text,
+  target_item_id text
+)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, menu_content, pg_temp
+as $$
+  select exists (
+    select 1
+    from menu_content.menu_profiles profile
+    cross join menu_content.menu_daily_items item
+    where profile.id = target_menu_id
+      and target_section_id = 'menu-del-dia'
+      and coalesce(nullif(btrim(target_group_id), ''), '') = ''
+      and item.item_id = target_item_id
+  )
+  or exists (
+    select 1
+    from menu_content.menu_profiles profile
+    cross join menu_content.menu_grill_catalog_items item
+    where profile.id = target_menu_id
+      and target_section_id = 'parrilla'
+      and coalesce(nullif(btrim(target_group_id), ''), '') = ''
+      and item.item_id = target_item_id
+  )
+  or exists (
+    select 1
+    from menu_content.menu_profiles profile
+    cross join menu_content.menu_catalog_items item
+    where profile.id = target_menu_id
+      and item.section_id = target_section_id
+      and item.group_id = coalesce(nullif(btrim(target_group_id), ''), '')
+      and item.item_id = target_item_id
+  )
+  or exists (
+    select 1
+    from menu_content.menu_profiles profile
+    cross join menu_content.menu_catalog_items item
+    join menu_content.menu_catalog_item_options option
+      on option.catalog_item_id = item.id
+    where profile.id = target_menu_id
+      and item.section_id = target_section_id
+      and item.group_id = coalesce(nullif(btrim(target_group_id), ''), '')
+      and item.item_id || '-' || option.option_id = target_item_id
+  );
+$$;
+
 create or replace function app_private.set_menu_availability_overlay(
   menu_id text,
   section_id text,
@@ -509,12 +561,43 @@ begin
      and group_entry.group_id = item.group_id
     where public.can_edit_availability(profile.id)
   ),
+  catalog_option_targets as (
+    select
+      profile.id as menu_id,
+      profile.title as profile_title,
+      'catalog'::text as target_kind,
+      item.section_id,
+      section.title as section_title,
+      item.group_id,
+      group_entry.title as group_title,
+      item.item_id || '-' || option.option_id as item_id,
+      item.name || ' - ' || option.name as name,
+      option.description,
+      true as base_available,
+      null::integer as price_amount,
+      2 as target_kind_order,
+      section.order_index as section_order_index,
+      group_entry.order_index as group_order_index,
+      (item.order_index * 1000) + option.order_index + 1 as item_order_index
+    from visible_profiles profile
+    cross join menu_content.menu_catalog_items item
+    join menu_content.menu_catalog_item_options option
+      on option.catalog_item_id = item.id
+    join menu_content.menu_catalog_sections section
+      on section.section_id = item.section_id
+    left join menu_content.menu_catalog_groups group_entry
+      on group_entry.section_id = item.section_id
+     and group_entry.group_id = item.group_id
+    where public.can_edit_availability(profile.id)
+  ),
   availability_targets as (
     select * from daily_targets
     union all
     select * from grill_targets
     union all
     select * from catalog_targets
+    union all
+    select * from catalog_option_targets
   )
   select jsonb_build_object(
     'ok', true,
@@ -650,12 +733,14 @@ revoke all on function public.set_daily_menu(text, text, text, text, text, text)
 revoke all on function public.set_global_price_variant(text, text, integer) from public, anon, authenticated;
 revoke all on function app_private.set_daily_menu(text, text, text, text, text, text) from public, anon, authenticated;
 revoke all on function app_private.set_global_price_variant(text, text, integer) from public, anon, authenticated;
+revoke all on function app_private.menu_availability_target_exists(text, text, text, text) from public, anon, authenticated;
 revoke all on function app_private.get_admin_operational_state() from public, anon, authenticated;
 
 grant execute on function public.set_daily_menu(text, text, text, text, text, text) to authenticated;
 grant execute on function public.set_global_price_variant(text, text, integer) to authenticated;
 grant execute on function app_private.set_daily_menu(text, text, text, text, text, text) to authenticated;
 grant execute on function app_private.set_global_price_variant(text, text, integer) to authenticated;
+grant execute on function app_private.menu_availability_target_exists(text, text, text, text) to authenticated;
 grant execute on function app_private.get_admin_operational_state() to authenticated;
 
 commit;

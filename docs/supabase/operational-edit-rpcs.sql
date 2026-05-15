@@ -94,6 +94,17 @@ as $$
       and item.section_id = target_section_id
       and item.group_id = coalesce(nullif(btrim(target_group_id), ''), '')
       and item.item_id = target_item_id
+  )
+  or exists (
+    select 1
+    from menu_content.menu_profiles profile
+    cross join menu_content.menu_catalog_items item
+    join menu_content.menu_catalog_item_options option
+      on option.catalog_item_id = item.id
+    where profile.id = target_menu_id
+      and item.section_id = target_section_id
+      and item.group_id = coalesce(nullif(btrim(target_group_id), ''), '')
+      and item.item_id || '-' || option.option_id = target_item_id
   );
 $$;
 

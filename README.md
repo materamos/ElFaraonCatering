@@ -226,6 +226,7 @@ Reglas principales:
 - `/admin/` puede editar parte de esos datos en Supabase, pero cada cambio build-time requiere rebuild/deploy para impactar el menu publico.
 - El unico dato editable en runtime sin rebuild es la disponibilidad por local mediante `public.menu_availability_overlays`.
 - Las columnas build-time `available` se conservan solo por compatibilidad interna y deben permanecer en `true`; "No disponible" nace como overlay runtime.
+- Las opciones de catalogo usan targets runtime compuestos como `item-id-option-id`, por ejemplo `tortilla-con-cebolla`.
 - El cliente del menu no consulta estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.
 
 ## Supabase

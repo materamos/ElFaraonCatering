@@ -45,6 +45,8 @@ Editable runtime sin rebuild:
 
 Las columnas build-time `available` se conservan solo por compatibilidad interna y deben permanecer en `true`. La ausencia de overlay significa disponible; `No disponible` se expresa con una fila runtime en `public.menu_availability_overlays`.
 
+Las opciones de catalogo se exponen al overlay con IDs compuestos `item-id-option-id`, por ejemplo `tortilla-con-cebolla`, sin agregar columnas al schema runtime.
+
 No implementar consultas runtime para menu del dia, precios, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.
 
 ## Permisos y admin
