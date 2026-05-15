@@ -43,7 +43,6 @@ interface DailyMenuState {
   name: string;
   description: string | null;
   note: string | null;
-  available: boolean;
   pricing_key: string;
   order_index: number;
 }
@@ -82,7 +81,6 @@ interface VariantPriceState {
   variant_id: string;
   name: string;
   amount: number;
-  available: boolean;
   order_index: number;
 }
 
@@ -259,7 +257,12 @@ async function handleAction(target: HTMLElement): Promise<void> {
       return;
     }
 
-    await saveAvailabilityOverlay(availabilityTarget, available);
+    if (available) {
+      await clearAvailabilityOverlay(availabilityTarget);
+    } else {
+      await saveAvailabilityOverlay(availabilityTarget, false);
+    }
+
     return;
   }
 
@@ -420,28 +423,13 @@ async function clearAvailabilityOverlay(target: AvailabilityTargetState): Promis
 
 async function saveDailyMenu(form: HTMLFormElement): Promise<void> {
   await runBusy(async () => {
-    const state = currentState;
-
-    if (!state) {
-      throw new Error("El estado del menu del dia no esta disponible.");
-    }
-
-    const regular = findDailyItem(state, regularDailyId);
-    const vegetarian = findDailyItem(state, vegetarianDailyId);
-
-    if (!regular || !vegetarian) {
-      throw new Error("El estado del menu del dia no esta disponible.");
-    }
-
     const result = await callMutation("set_daily_menu", {
       regular_name: getFormString(form, "regular_name"),
       regular_description: getNullableFormString(form, "regular_description"),
       regular_note: getNullableFormString(form, "regular_note"),
-      regular_available: regular.available,
       vegetarian_name: getFormString(form, "vegetarian_name"),
       vegetarian_description: getNullableFormString(form, "vegetarian_description"),
       vegetarian_note: getNullableFormString(form, "vegetarian_note"),
-      vegetarian_available: vegetarian.available,
     });
 
     if (!result.ok) {
@@ -498,19 +486,11 @@ async function saveVariantPrice(form: HTMLFormElement): Promise<void> {
   await runBusy(async () => {
     const pricingKey = getFormString(form, "pricing_key");
     const variantId = getFormString(form, "variant_id");
-    const variant = currentState?.prices.variants.find((priceVariant) =>
-      priceVariant.pricing_key === pricingKey && priceVariant.variant_id === variantId
-    );
-
-    if (!variant) {
-      throw new Error("El estado de la variante no esta disponible.");
-    }
 
     const result = await callMutation("set_global_price_variant", {
       pricing_key: pricingKey,
       variant_id: variantId,
       amount: getFormInteger(form, "amount"),
-      available: variant.available,
     });
 
     if (!result.ok) {

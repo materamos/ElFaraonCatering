@@ -229,9 +229,9 @@ with expected_functions (function_name, identity_arguments, expectation) as (
     ('set_menu_availability_overlay', 'menu_id text, section_id text, group_id text, item_id text, available_override boolean', 'availability overlay upsert RPC'),
     ('clear_menu_availability_overlay', 'menu_id text, section_id text, group_id text, item_id text', 'availability overlay clear RPC'),
     ('set_profile_service_kind', 'profile_id text, service_kind text', 'active service edit RPC'),
-    ('set_daily_menu', 'regular_name text, regular_description text, regular_note text, regular_available boolean, vegetarian_name text, vegetarian_description text, vegetarian_note text, vegetarian_available boolean', 'daily menu edit RPC'),
+    ('set_daily_menu', 'regular_name text, regular_description text, regular_note text, vegetarian_name text, vegetarian_description text, vegetarian_note text', 'daily menu edit RPC'),
     ('set_global_fixed_price', 'pricing_key text, amount integer', 'fixed price edit RPC'),
-    ('set_global_price_variant', 'pricing_key text, variant_id text, amount integer, available boolean', 'variant price edit RPC'),
+    ('set_global_price_variant', 'pricing_key text, variant_id text, amount integer', 'variant price edit RPC'),
     ('reserve_menu_publish_request', 'user_id uuid, cooldown_seconds integer', 'private publish reservation helper'),
     ('complete_menu_publish_request', 'request_id bigint, publish_status text, publish_message text, vercel_status_code integer, vercel_job_id text', 'private publish completion helper')
 ),

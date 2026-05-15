@@ -2,6 +2,8 @@
 
 Este mapa documenta el modelo activo del menu QR. Supabase se usa como fuente estructural y operativa build-time; la unica superficie runtime sin rebuild es el overlay de disponibilidad.
 
+Las columnas `available` dentro de `menu_content` son compatibilidad interna y deben permanecer en `true`. La disponibilidad operativa real se modela solo como excepcion runtime en `public.menu_availability_overlays`.
+
 Fuentes versionadas:
 
 - `schema.sql`: snapshot limpio esperado del schema privado `menu_content`.
@@ -228,9 +230,11 @@ flowchart LR
 
 - `menu_content` se lee para el menu publico solo durante build/validacion con `SUPABASE_DB_URL`.
 - Menu del dia, notas, servicio activo por local, catalogo, secciones, grupos, imagenes y precios son datos build-time.
+- Las columnas build-time `available` no representan faltantes operativos; se conservan siempre `true` por compatibilidad.
 - `menu_daily_items` modela dos opciones planas: comun y vegetariano.
 - `/admin/` puede editar datos operativos build-time, pero esos cambios requieren rebuild/deploy para impactar el menu publico.
 - `public.menu_availability_overlays` es el unico dato editable en runtime sin rebuild.
+- La ausencia de overlay equivale a disponible; marcar disponible en admin debe limpiar el overlay.
 - `public.staff_users` define roles operativos (`availability_editor`, `menu_editor`, `admin`) y alcance por perfil.
 - Las escrituras del admin deben pasar por RPCs operativas con respuesta `ok`, `changed`, `requires_redeploy`, `operation` y `message`.
 - Las RPCs publicas del admin son wrappers `security invoker`; las implementaciones privilegiadas viven en `app_private`, que no debe exponerse por PostgREST.

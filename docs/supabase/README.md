@@ -25,7 +25,7 @@ El modelo activo de `menu_content` es plano y orientado al dominio real:
 - `menu_daily_items` contiene las dos opciones reales del menu del dia: comun y vegetariano.
 - `menu_profile_service_settings.service_kind` define por local `daily-menu` o `grill`.
 - `menu_catalog_sections`, `menu_catalog_groups`, `menu_catalog_items` y `menu_catalog_item_options` contienen el catalogo estable.
-- `menu_grill_families` contiene los items visibles de parrilla y `menu_grill_catalog_items` contiene sus variantes con precio y disponibilidad.
+- `menu_grill_families` contiene los items visibles de parrilla y `menu_grill_catalog_items` contiene sus variantes con precio.
 - `menu_prices` y `menu_price_variants` contienen precios globales build-time.
 
 Las tablas legacy del modelo anterior fueron eliminadas por `20260506002000_drop_legacy_menu_content_model.sql` despues de validar que el loader activo ya no dependia de ellas. El tag historico `yaml-rollback-2026-05-02` existe solo como rollback al estado file-backed anterior; YAML no es fuente activa.
@@ -42,6 +42,8 @@ Editables build-time con rebuild requerido:
 Editable runtime sin rebuild:
 
 - disponibilidad por local usando exclusivamente `public.menu_availability_overlays`
+
+Las columnas build-time `available` se conservan solo por compatibilidad interna y deben permanecer en `true`. La ausencia de overlay significa disponible; `No disponible` se expresa con una fila runtime en `public.menu_availability_overlays`.
 
 No implementar consultas runtime para menu del dia, precios, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.
 
@@ -117,6 +119,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260514000000_remove_empty_grill_family_otros.sql` | Elimina la familia vacia `otros` de parrilla. |
 | `20260514001000_fold_profile_payments_into_facts.sql` | Migra pagos de perfiles a `menu_profile_facts` y elimina las tablas especiales de pagos. |
 | `20260514002000_wrap_security_definer_admin_rpcs.sql` | Mueve cuerpos `security definer` del admin a `app_private` y deja wrappers publicos `security invoker`. |
+| `20260514004000_make_availability_runtime_only.sql` | Normaliza disponibilidad build-time a `true` y deja la disponibilidad operativa solo como overlay runtime. |
 
 ## Orden recomendado
 
