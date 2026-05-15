@@ -438,6 +438,53 @@
     gap: 0.5rem;
   }
 
+  .admin-grill {
+    gap: 1.15rem;
+  }
+
+  .admin-grill-panel {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .admin-grill-panel__header {
+    display: grid;
+    gap: 0.25rem;
+    padding-inline: 0.15rem;
+  }
+
+  .admin-grill-panel__title {
+    color: #1c211d;
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .admin-grill-toolbar {
+    align-items: center;
+  }
+
+  .admin-grill-context {
+    display: grid;
+    gap: 0.25rem;
+    color: #1c211d;
+    font-size: 0.95rem;
+  }
+
+  .admin-grill-context strong {
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  .admin-grill-family {
+    gap: 0.5rem;
+  }
+
+  .admin-grill-variant-row {
+    gap: 0.55rem;
+    padding: 0.7rem;
+  }
+
   .admin-row {
     display: grid;
     gap: 0.7rem;
@@ -691,6 +738,35 @@
 
   .admin-daily-card .admin-textarea {
     min-height: 4.25rem;
+  }
+
+  .admin-grill-family {
+    padding: 0.65rem;
+  }
+
+  .admin-grill-variant-row {
+    gap: 0.5rem;
+    padding: 0.65rem;
+  }
+
+  .admin-grill-variant-row .admin-variant-heading {
+    gap: 0.2rem 0.65rem;
+  }
+
+  .admin-grill-variant-row .admin-row__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .admin-grill-variant-row .admin-row__actions .admin-button {
+    min-height: 2.3rem;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.86rem;
+  }
+
+  .admin-grill-variant-row .admin-row__status {
+    gap: 0.25rem 0.35rem;
   }
 }
 
