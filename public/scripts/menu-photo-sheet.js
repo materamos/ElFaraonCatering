@@ -49,11 +49,12 @@ if (
     event.preventDefault();
 
     const photoName = trigger.dataset.photoName?.trim() || "plato";
+    const photoAlt = trigger.dataset.photoAlt?.trim() || `Imagen de ${photoName}`;
     const image = new Image();
 
     image.className = "photo-frame__image";
     image.decoding = "async";
-    image.alt = `Foto de ${photoName}`;
+    image.alt = photoAlt;
 
     image.addEventListener("load", () => {
       if (currentImage === image) {

@@ -1,6 +1,9 @@
 ---
 import type { MenuItem, MenuOption, MenuPricing, MenuPricingVariant } from "../types/menu";
-import { getMenuPhotoImagePath } from "../utils/menuImage";
+import {
+  getSafeMenuImagePath,
+  isMenuPlaceholderImagePath,
+} from "../utils/menuImage";
 import { getPricingText, getVariantPricingText } from "../utils/menuPricing";
 
 interface Props {
@@ -32,7 +35,13 @@ const {
   options,
   image,
 } = Astro.props;
-const photoImage = getMenuPhotoImagePath(image);
+const displayImage = getSafeMenuImagePath(image);
+const displayImageLabel = isMenuPlaceholderImagePath(displayImage)
+  ? "Ver imagen"
+  : "Ver foto";
+const displayImageAltPrefix = isMenuPlaceholderImagePath(displayImage)
+  ? "Imagen de"
+  : "Foto de";
 const effectivePricing = pricing ?? inheritedPricing;
 const variants = effectivePricing?.kind === "variants" ? effectivePricing.variants : [];
 const hasOperationalVariants = variants.some((variant) => variant.availabilityItemId);
@@ -113,18 +122,19 @@ const directPricingText =
   )}
 
   <div class="dish-card__footer">
-    {photoImage && (
+    {displayImage && (
       <a
         class="photo-button"
-        href={photoImage}
+        href={displayImage}
         target="_blank"
         rel="noopener noreferrer"
         aria-haspopup="dialog"
         data-photo-trigger
         data-photo-name={name}
-        data-photo-src={photoImage}
+        data-photo-src={displayImage}
+        data-photo-alt={`${displayImageAltPrefix} ${name}`}
       >
-        Ver foto
+        {displayImageLabel}
       </a>
     )}
 
