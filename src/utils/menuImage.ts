@@ -55,3 +55,9 @@ export const getMenuPhotoImagePath = (value?: string): string | undefined => {
 
   return safeImagePath;
 };
+
+export const isMenuPlaceholderImagePath = (value?: string): boolean => {
+  const safeImagePath = getSafeMenuImagePath(value);
+
+  return safeImagePath?.startsWith(menuPlaceholderBasePath) ?? false;
+};
