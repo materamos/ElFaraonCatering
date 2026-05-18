@@ -441,6 +441,11 @@
     gap: 1rem;
   }
 
+  .dish-card__price-row--with-image {
+    align-items: center;
+    justify-content: space-between;
+  }
+
   .dish-card__variants {
     display: grid;
     gap: 0.45rem;
@@ -472,6 +477,7 @@
 
   .photo-button {
     display: inline-flex;
+    flex-shrink: 0;
     width: fit-content;
     align-items: center;
     justify-content: center;
