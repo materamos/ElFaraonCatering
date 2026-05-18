@@ -43,6 +43,7 @@ const displayImageAltPrefix = isMenuPlaceholderImagePath(displayImage)
   ? "Imagen de"
   : "Foto de";
 const effectivePricing = pricing ?? inheritedPricing;
+const hasVariantPricing = effectivePricing?.kind === "variants";
 const variants = effectivePricing?.kind === "variants" ? effectivePricing.variants : [];
 const hasOperationalVariants = variants.some((variant) => variant.availabilityItemId);
 const getOptionAvailabilityItemId = (option: MenuOption) => `${itemId}-${option.id}`;
@@ -122,31 +123,35 @@ const directPricingText =
   )}
 
   <div class="dish-card__footer">
-    {displayImage && (
-      <a
-        class="photo-button"
-        href={displayImage}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-haspopup="dialog"
-        data-photo-trigger
-        data-photo-name={name}
-        data-photo-src={displayImage}
-        data-photo-alt={`${displayImageAltPrefix} ${name}`}
+    {(directPricingText || (displayImage && !hasVariantPricing)) && (
+      <div
+        class={`dish-card__price-row${displayImage ? " dish-card__price-row--with-image" : ""}`}
       >
-        {displayImageLabel}
-      </a>
-    )}
+        {displayImage && !hasVariantPricing && (
+          <a
+            class="photo-button"
+            href={displayImage}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-haspopup="dialog"
+            data-photo-trigger
+            data-photo-name={name}
+            data-photo-src={displayImage}
+            data-photo-alt={`${displayImageAltPrefix} ${name}`}
+          >
+            {displayImageLabel}
+          </a>
+        )}
 
-    {directPricingText && (
-      <div class="dish-card__price-row">
-        <strong class="dish-card__price">
-          {directPricingText}
-        </strong>
+        {directPricingText && (
+          <strong class="dish-card__price">
+            {directPricingText}
+          </strong>
+        )}
       </div>
     )}
 
-    {effectivePricing?.kind === "variants" && (
+    {hasVariantPricing && (
       <section class="dish-card__variants">
         <p class="dish-card__variant-label">Modalidades</p>
         <ul class="dish-card__variant-list">
@@ -188,6 +193,22 @@ const directPricingText =
           ))}
         </ul>
       </section>
+    )}
+
+    {displayImage && hasVariantPricing && (
+      <a
+        class="photo-button"
+        href={displayImage}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-haspopup="dialog"
+        data-photo-trigger
+        data-photo-name={name}
+        data-photo-src={displayImage}
+        data-photo-alt={`${displayImageAltPrefix} ${name}`}
+      >
+        {displayImageLabel}
+      </a>
     )}
   </div>
 </article>
