@@ -38,7 +38,7 @@ Current source of truth:
 - The runtime availability overlay is separate and progressive.
 - `public.staff_users` is the staff permission source for the operational CMS.
 - Operational CMS writes must go through explicit Supabase RPCs, not direct table grants.
-- `/admin/` is the active operational CMS surface, limited to availability, daily service, grill mode, prices, and publication.
+- `/admin/` is the active operational CMS surface, limited to availability, daily service, grill mode, measured fixed-menu item edits, prices, and publication.
 - The historical rollback point to the previous file-backed content stage is the Git tag `yaml-rollback-2026-05-02`; YAML is not an active content source.
 
 ---
@@ -58,14 +58,19 @@ Do not add these capabilities unless explicitly requested:
 - serverless functions, except the explicitly approved Supabase Edge Function `publish-menu-changes`
 - broad editorial CMS code, auth, or repo-writing admin flows
 
-Operational CMS work is limited to menu del dia, active service, availability, and global
-prices unless a broader admin scope is explicitly requested.
+Operational CMS work is limited to menu del dia, active service, availability,
+measured fixed-menu item edits, and global prices unless a broader admin scope is
+explicitly requested.
 
 Operational staff auth and roles may support that CMS surface. Do not expand them
 into customer accounts, broad editorial accounts, or public user features.
 
 CMS editable does not mean runtime editable. Except for availability, operational CMS
 changes require rebuild/deploy before they affect the public menu.
+
+Fixed-menu admin edits may add or delete individual catalog items only within
+existing sections or groups. Do not allow creating, deleting, renaming, or
+reordering catalog sections or groups from `/admin/`.
 
 Keep `/admin/` as a static Astro route. Do not add SSR, server output, API routes, Vercel Functions, service role usage in browser, or broad editorial CMS behavior.
 
@@ -143,9 +148,9 @@ Image rules:
 
 ## Supabase Rules
 
-Supabase may back an operational CMS for daily menu, grill mode, availability, and
-global prices. It must not become a broad editorial CMS without an explicit
-architecture decision.
+Supabase may back an operational CMS for daily menu, grill mode, availability,
+measured fixed-menu item edits, and global prices. It must not become a broad
+editorial CMS without an explicit architecture decision.
 
 Build-time structural and operational content:
 

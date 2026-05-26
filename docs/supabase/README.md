@@ -11,7 +11,7 @@ Las migraciones operativas reales viven en `../../supabase/migrations/`. No agre
 - `public.staff_users`: empleados, roles y alcance por perfil para el admin operativo.
 - `public.editor_profiles`: tabla legacy usada solo como origen de backfill hacia `staff_users`.
 - `public.get_admin_operational_state()`: RPC de lectura controlada para `/admin/`.
-- RPCs operativas: unica superficie de escritura browser para disponibilidad, servicio activo, menu del dia y precios.
+- RPCs operativas: unica superficie de escritura browser para disponibilidad, servicio activo, menu del dia, menu fijo medido y precios.
 - `app_private.menu_publish_requests`: log privado y reserva de publicaciones.
 - `publish-menu-changes`: Supabase Edge Function server-side para publicar cambios build-time sin exponer el Deploy Hook.
 
@@ -52,12 +52,13 @@ No implementar consultas runtime para menu del dia, precios, servicio activo, ca
 ## Permisos y admin
 
 - `staff_users.role = 'availability_editor'`: puede editar disponibilidad; si `profile_id` es null, aplica a todos los perfiles; si no, solo a ese perfil.
-- `staff_users.role = 'menu_editor'`: puede editar datos operativos build-time y publicar cambios.
+- `staff_users.role = 'menu_editor'`: puede editar datos operativos build-time, incluyendo items puntuales del menu fijo, y publicar cambios.
 - `staff_users.role = 'admin'`: hereda permisos operativos y puede gestionar staff a nivel de base/RPC.
 - El sitio actual no tiene pantalla de gestion de empleados.
 - `editor_profiles` no debe usarse para policies nuevas; queda solo como origen de migracion.
 - El primer `admin` debe crearse por SQL privilegiado o service role; no se bootstrapea desde browser RLS.
 - `/admin/` lee estado operativo mediante `get_admin_operational_state()` y escribe solo mediante RPCs operativas.
+- La edicion de menu fijo solo puede agregar o eliminar items dentro de secciones o grupos existentes; no crea, elimina, renombra ni reordena secciones o grupos.
 - No hay grants client-facing sobre `menu_content` ni tablas de `app_private`.
 
 Las RPCs operativas devuelven `ok`, `changed`, `requires_redeploy`, `operation` y `message`. La publicacion puede devolver `cooldown_seconds_remaining`.
@@ -77,7 +78,7 @@ Snapshots y SQL de referencia:
 - `schema.sql`: estado limpio esperado del schema privado `menu_content`.
 - `daily-service-data.sql`: defaults del servicio diario y parrilla fija para bases nuevas o reconstrucciones controladas.
 - `availability-overlay.sql`: tablas, funciones, indices y policies del overlay runtime y roles de staff.
-- `operational-edit-rpcs.sql`: RPCs de edicion operativa para disponibilidad, servicio activo, menu del dia y precios.
+- `operational-edit-rpcs.sql`: RPCs de edicion operativa para disponibilidad, servicio activo, menu del dia, menu fijo medido y precios.
 - `hardening.sql`: constraints e indices idempotentes del modelo activo.
 
 Auditorias read-only:
@@ -123,6 +124,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260514002000_wrap_security_definer_admin_rpcs.sql` | Mueve cuerpos `security definer` del admin a `app_private` y deja wrappers publicos `security invoker`. |
 | `20260514003000_add_teleinde_whatsapp_link.sql` | Agrega el link de WhatsApp al perfil `teleinde`. |
 | `20260514004000_make_availability_runtime_only.sql` | Normaliza disponibilidad build-time a `true` y deja la disponibilidad operativa solo como overlay runtime. |
+| `20260526000000_add_fixed_menu_item_admin.sql` | Agrega estado y RPCs para alta/baja medida de items del menu fijo desde `/admin/`. |
 
 ## Orden recomendado
 
