@@ -220,7 +220,7 @@ order by schemaname, tablename, policyname;
 with expected_functions (function_name, identity_arguments, expectation) as (
   values
     ('is_active_staff', '', 'active staff membership check'),
-    ('can_edit_availability', 'target_profile_id text', 'availability edit scope check'),
+    ('can_edit_availability', 'target_profile_id text', 'operator availability edit check'),
     ('can_edit_menu_content', '', 'build-time menu edit role check'),
     ('can_manage_staff', '', 'staff administration role check'),
     ('can_publish_menu', '', 'build-time publish role check'),

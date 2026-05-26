@@ -187,7 +187,7 @@ erDiagram
 ```mermaid
 flowchart LR
   AUTH_USERS["auth.users<br/>Supabase-managed"]
-  STAFF["public.staff_users<br/>roles y alcance"]
+  STAFF["public.staff_users<br/>roles operativos"]
   EDITORS["public.editor_profiles<br/>legacy backfill"]
   OVERLAYS["public.menu_availability_overlays<br/>disponibilidad runtime"]
   READ_RPC["get_admin_operational_state()<br/>lectura admin"]
@@ -237,7 +237,7 @@ flowchart LR
 - `public.menu_availability_overlays` es el unico dato editable en runtime sin rebuild.
 - La ausencia de overlay equivale a disponible; marcar disponible en admin debe limpiar el overlay.
 - Los items con opciones exponen target padre y targets de opcion; las opciones usan IDs compuestos `item-id-option-id` como `item_id` del overlay.
-- `public.staff_users` define roles operativos (`availability_editor`, `menu_editor`, `admin`) y alcance por perfil.
+- `public.staff_users` define roles operativos (`operator`, `admin`); `operator` puede editar todos los perfiles y publicar.
 - Las escrituras del admin deben pasar por RPCs operativas con respuesta `ok`, `changed`, `requires_redeploy`, `operation` y `message`.
 - Las RPCs publicas del admin son wrappers `security invoker`; las implementaciones privilegiadas viven en `app_private`, que no debe exponerse por PostgREST.
 - `publish-menu-changes` es la frontera server-side para publicar cambios build-time: valida Auth, usa `can_publish_menu()`, registra auditoria privada y llama el Deploy Hook desde secretos.

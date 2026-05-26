@@ -16,7 +16,7 @@ La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuent
 - Supabase `menu_content` es la fuente estructural y operativa build-time del menu.
 - Astro usa output estatico por default y no hay adapter de servidor.
 - El overlay runtime de disponibilidad esta separado y se consume desde JavaScript cliente.
-- `public.staff_users` define empleados, roles y alcance operativo.
+- `public.staff_users` define empleados y roles operativos.
 - `/admin/` lee y escribe mediante RPCs Supabase controladas, sin grants directos sobre `menu_content`.
 - El admin activo queda limitado a disponibilidad, servicio del dia, parrilla, menu fijo medido, precios y publicacion.
 
@@ -235,7 +235,7 @@ Superficies Supabase del proyecto:
 
 - `menu_content`: fuente estructural y operativa build-time del menu.
 - `public.menu_availability_overlays`: overlay runtime de disponibilidad.
-- `public.staff_users`: empleados, roles y alcance por perfil para el admin operativo.
+- `public.staff_users`: empleados y roles para el admin operativo.
 - RPCs publicas controladas: lectura del admin y escrituras operativas.
 - `app_private.menu_publish_requests`: auditoria privada de publicaciones.
 - `publish-menu-changes`: Supabase Edge Function server-side que dispara el Vercel Deploy Hook.
@@ -244,8 +244,7 @@ El overlay runtime no administra estructura, textos, precios, imagenes ni menu d
 
 Roles operativos:
 
-- `availability_editor`: edita disponibilidad, globalmente o con alcance a un perfil.
-- `menu_editor`: edita datos operativos build-time y puede publicar.
+- `operator`: edita todo lo que permite `/admin/`, para todos los locales, y puede publicar cambios.
 - `admin`: hereda permisos operativos y puede gestionar empleados a nivel de base/RPC. El sitio no tiene una pantalla de gestion de empleados.
 
 El primer `admin` se crea por SQL privilegiado o service role; no se bootstrapea desde browser RLS.
