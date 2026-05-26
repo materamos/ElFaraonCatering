@@ -296,6 +296,10 @@ async function handleAction(target: HTMLElement): Promise<void> {
   }
 
   if (action === "publish") {
+    if (!confirmPublishChanges()) {
+      return;
+    }
+
     await publishChanges();
   }
 }
@@ -319,6 +323,10 @@ async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
   }
 
   if (formKind === "service-kind") {
+    if (!confirmServiceChange(form)) {
+      return;
+    }
+
     await saveServiceKind(form);
     return;
   }
@@ -416,8 +424,11 @@ async function saveAvailabilityOverlay(
       throw new Error(resultMessage(result));
     }
 
-    await loadAdminState(result.changed ? "Disponibilidad actualizada." : "Sin cambios.", "success");
-  }, available ? "Marcando disponible..." : "Marcando no disponible...");
+    await loadAdminState(
+      result.changed ? "Disponibilidad actualizada. Ya se ve en el menu publico." : "Sin cambios.",
+      "success",
+    );
+  }, available ? "Mostrando item..." : "Ocultando item...");
 }
 
 async function clearAvailabilityOverlay(target: AvailabilityTargetState): Promise<void> {
@@ -433,8 +444,11 @@ async function clearAvailabilityOverlay(target: AvailabilityTargetState): Promis
       throw new Error(resultMessage(result));
     }
 
-    await loadAdminState(result.changed ? "Ajuste eliminado." : "Sin cambios.", "success");
-  }, "Limpiando ajuste...");
+    await loadAdminState(
+      result.changed ? "Ajuste quitado. Ya se ve en el menu publico." : "Sin cambios.",
+      "success",
+    );
+  }, "Quitando ajuste...");
 }
 
 async function saveDailyMenu(form: HTMLFormElement): Promise<void> {
@@ -454,7 +468,7 @@ async function saveDailyMenu(form: HTMLFormElement): Promise<void> {
 
     markPendingIfNeeded(result);
     await loadAdminState(
-      result.changed ? "Guardado. Falta publicar para verlo en el menu." : "Sin cambios.",
+      result.changed ? "Menu guardado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
       "success",
     );
   }, "Guardando menu del dia...");
@@ -473,7 +487,7 @@ async function saveServiceKind(form: HTMLFormElement): Promise<void> {
 
     markPendingIfNeeded(result);
     await loadAdminState(
-      result.changed ? "Servicio guardado. Falta publicar." : "Sin cambios.",
+      result.changed ? "Servicio guardado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
       "success",
     );
   }, "Guardando servicio...");
@@ -492,7 +506,7 @@ async function saveFixedPrice(form: HTMLFormElement): Promise<void> {
 
     markPendingIfNeeded(result);
     await loadAdminState(
-      result.changed ? "Precio guardado. Falta publicar." : "Sin cambios.",
+      result.changed ? "Precio guardado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
       "success",
     );
   }, "Guardando precio...");
@@ -515,7 +529,7 @@ async function saveVariantPrice(form: HTMLFormElement): Promise<void> {
 
     markPendingIfNeeded(result);
     await loadAdminState(
-      result.changed ? "Variante guardada. Falta publicar." : "Sin cambios.",
+      result.changed ? "Variante guardada. Para verla en el menu publico, publica los cambios." : "Sin cambios.",
       "success",
     );
   }, "Guardando variante...");
@@ -542,14 +556,14 @@ async function publishChanges(): Promise<void> {
 
     if (result.message === "publish_queued") {
       hasPendingPublication = false;
-      await loadAdminState("Publicacion solicitada. El deploy puede tardar unos minutos.", "success");
+      await loadAdminState("Publicacion solicitada. El menu publico puede tardar unos minutos en actualizarse.", "success");
       return;
     }
 
     if (result.message === "publish_recently_queued") {
       hasPendingPublication = true;
       await loadAdminState(
-        `Ya hay una publicacion reciente encolada${formatCooldownSuffix(result)}. El cambio queda guardado; volve a publicar cuando termine el cooldown.`,
+        `Ya se pidio una publicacion hace poco${formatCooldownSuffix(result)}. Los cambios quedan guardados; volve a publicar cuando este disponible.`,
         "neutral",
       );
       return;
@@ -564,7 +578,7 @@ async function callMutation(name: string, body: Record<string, unknown>): Promis
   const result = Array.isArray(response) ? response[0] : response;
 
   if (!isRpcResult(result)) {
-    throw new Error("Respuesta inesperada de Supabase.");
+    throw new Error("El panel recibio una respuesta inesperada. Actualiza e intenta de nuevo.");
   }
 
   return result;
@@ -652,7 +666,7 @@ function renderConfigurationError(): void {
       <p class="admin-kicker">Panel operativo</p>
       <h1 class="admin-title">Configuracion incompleta</h1>
       <div class="admin-denied__panel">
-        <p class="admin-muted">Faltan las variables publicas de Supabase para cargar el admin.</p>
+        <p class="admin-muted">Falta configurar el acceso publico necesario para cargar el panel. Avisale a quien administra el sitio.</p>
       </div>
     </section>
   `;
@@ -697,7 +711,7 @@ function renderAuthenticated(): void {
           <div>
             <p class="admin-kicker">Panel operativo</p>
             <h1 class="admin-title">Admin El Faraon</h1>
-            <p class="admin-header__copy">Gestion diaria de menu del dia, parrilla, disponibilidad, precios y publicacion.</p>
+            <p class="admin-header__copy">Prepara el servicio diario. La disponibilidad se aplica al instante; platos, parrilla y precios necesitan publicar cambios.</p>
           </div>
           <div class="admin-header__identity">
             <span class="admin-user-name">${escapeHtml(currentState.staff.display_name)}</span>
@@ -773,7 +787,7 @@ function renderAvailabilityTab(state: AdminOperationalState): string {
     <section class="admin-section">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Disponibilidad</h2>
-        <p class="admin-section__copy">Disponibilidad runtime del catalogo general. Se aplica sin publicar.</p>
+        <p class="admin-section__copy">Oculta o vuelve a mostrar items del catalogo general. Estos cambios se ven al instante y no necesitan publicacion.</p>
       </div>
       ${renderAvailabilityFilters(state, "availability")}
       ${renderAvailabilityRows(state, "catalog")}
@@ -791,13 +805,13 @@ function renderDailyTab(state: AdminOperationalState): string {
     <section class="admin-section admin-daily">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Menu del dia</h2>
-        <p class="admin-section__copy">Gestion diaria de platos, locales activos y disponibilidad runtime.</p>
+        <p class="admin-section__copy">Primero carga los platos y confirma que locales usan menu del dia. Despues ajusta disponibilidad si algo se agota.</p>
       </div>
       ${serviceEditor ? `
         <section class="admin-daily-panel">
           <div class="admin-daily-panel__header">
             <h3 class="admin-daily-panel__title">Editar platos del dia</h3>
-            <p class="admin-row__meta">Guardar actualiza contenido build-time y requiere publicar.</p>
+            <p class="admin-row__meta">Guardar deja los platos preparados, pero se veran en el menu publico despues de publicar cambios.</p>
           </div>
           <form class="admin-form-grid admin-daily-form" data-admin-form="daily-menu">
             ${renderDailyFieldset("Menu regular", "regular", regular)}
@@ -829,7 +843,7 @@ function renderGrillTab(state: AdminOperationalState): string {
     <section class="admin-section admin-grill">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Parrilla</h2>
-        <p class="admin-section__copy">Activar parrilla por local requiere publicar. La disponibilidad de items es runtime.</p>
+        <p class="admin-section__copy">Activa parrilla por local cuando corresponda. Ese cambio necesita publicacion; ocultar o mostrar items se ve al instante.</p>
       </div>
       ${serviceEditor ? renderGrillServiceForms(state) : ""}
       ${availabilityEditor ? renderGrillAvailabilitySection(state) : ""}
@@ -846,7 +860,7 @@ function renderPricesTab(state: AdminOperationalState): string {
     <section class="admin-section">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Precios</h2>
-        <p class="admin-section__copy">Precios globales. Guardar requiere publicar para verse en el menu publico.</p>
+        <p class="admin-section__copy">Ajusta precios globales. Guardar no cambia el menu publico hasta que publiques cambios.</p>
       </div>
       <div class="admin-price-grid">
         <div class="admin-grid">
@@ -867,15 +881,15 @@ function renderPublishTab(state: AdminOperationalState): string {
     <section class="admin-section">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Publicacion</h2>
-        <p class="admin-section__copy">Publicar encola un deploy. No confirma que Vercel haya terminado.</p>
+        <p class="admin-section__copy">Publicar envia al menu publico los cambios guardados de platos, servicio activo y precios. Puede tardar unos minutos.</p>
       </div>
       <div class="admin-row">
         <div class="admin-row__main">
           <p class="admin-row__title">${hasPendingPublication ? "Hay cambios guardados por publicar" : "Sin cambios pendientes detectados en esta sesion"}</p>
-          <p class="admin-row__meta">Despues de publicar, el menu publico puede tardar unos minutos en reflejar cambios build-time.</p>
+          <p class="admin-row__meta">La disponibilidad no pasa por este paso porque se aplica al instante.</p>
         </div>
         <div class="admin-row__actions">
-          <button class="admin-button" type="button" data-admin-action="publish" ${isBusy || !state.permissions.can_publish_menu ? "disabled" : ""}>Publicar cambios</button>
+          <button class="admin-button" type="button" data-admin-action="publish" ${isBusy || !state.permissions.can_publish_menu ? "disabled" : ""}>Publicar ahora</button>
           <button class="admin-button admin-button--secondary" type="button" data-admin-action="reload" ${isBusy ? "disabled" : ""}>Actualizar estado</button>
         </div>
       </div>
@@ -890,8 +904,8 @@ function renderPublishBanner(state: AdminOperationalState): string {
 
   return `
     <div class="admin-banner">
-      <span>Hay cambios guardados que requieren publicacion.</span>
-      <button class="admin-button" type="button" data-admin-action="publish" ${isBusy ? "disabled" : ""}>Publicar cambios</button>
+      <span>Falta publicar: hay cambios guardados que todavia no se ven en el menu publico.</span>
+      <button class="admin-button" type="button" data-admin-action="publish" ${isBusy ? "disabled" : ""}>Publicar ahora</button>
     </div>
   `;
 }
@@ -1135,7 +1149,7 @@ function renderDailyServiceForms(state: AdminOperationalState): string {
       <section class="admin-daily-panel">
         <div class="admin-daily-panel__header">
           <h3 class="admin-daily-panel__title">Locales con menu del dia</h3>
-          <p class="admin-row__meta">Cambiar el servicio requiere publicar.</p>
+          <p class="admin-row__meta">Cambiar entre menu del dia y parrilla se vera en el menu publico despues de publicar.</p>
         </div>
         ${renderEmpty("No hay locales para configurar.")}
       </section>
@@ -1146,7 +1160,7 @@ function renderDailyServiceForms(state: AdminOperationalState): string {
     <section class="admin-daily-panel">
       <div class="admin-daily-panel__header">
         <h3 class="admin-daily-panel__title">Locales con menu del dia</h3>
-        <p class="admin-row__meta">Cambiar el servicio activo requiere publicar.</p>
+        <p class="admin-row__meta">Elegir el servicio activo cambia que ve cada local. Se vera en el menu publico despues de publicar.</p>
       </div>
       <div class="admin-grid">
         ${state.profiles.map((profile) => {
@@ -1154,12 +1168,12 @@ function renderDailyServiceForms(state: AdminOperationalState): string {
           const serviceLabel = currentService === "daily-menu" ? "Menu del dia activo" : "Parrilla activa";
 
           return `
-            <form class="admin-row admin-daily-service-row" data-admin-form="service-kind">
+            <form class="admin-row admin-daily-service-row" data-admin-form="service-kind" data-current-service="${currentService}" data-profile-title="${escapeHtml(profile.title)}">
               <div class="admin-row__main">
                 <p class="admin-row__title">${escapeHtml(profile.title)}</p>
                 <div class="admin-row__status">
                   <span class="admin-pill" data-tone="${currentService === "daily-menu" ? "success" : "neutral"}">${escapeHtml(serviceLabel)}</span>
-                  <span class="admin-row__state-note">Requiere publicar si cambia.</span>
+                  <span class="admin-row__state-note">Se vera despues de publicar si cambia.</span>
                 </div>
               </div>
               <div class="admin-row__actions">
@@ -1187,7 +1201,7 @@ function renderDailyAvailabilitySection(state: AdminOperationalState): string {
       <section class="admin-daily-panel">
         <div class="admin-daily-panel__header">
           <h3 class="admin-daily-panel__title">Disponibilidad de hoy</h3>
-          <p class="admin-row__meta">La disponibilidad se aplica al instante.</p>
+          <p class="admin-row__meta">Ocultar o mostrar se ve al instante en el menu publico.</p>
         </div>
         ${renderEmpty("No hay locales con menu del dia activo.")}
       </section>
@@ -1204,7 +1218,7 @@ function renderDailyAvailabilitySection(state: AdminOperationalState): string {
     <section class="admin-daily-panel">
       <div class="admin-daily-panel__header">
         <h3 class="admin-daily-panel__title">Disponibilidad de hoy</h3>
-        <p class="admin-row__meta">Estos cambios son runtime y se aplican al instante.</p>
+        <p class="admin-row__meta">Usa esto cuando una opcion se agota o vuelve a estar disponible. No hace falta publicar.</p>
       </div>
       <div class="admin-toolbar admin-daily-toolbar">
         ${profiles.length > 1 ? `
@@ -1241,8 +1255,6 @@ function renderDailyAvailabilityRow(
   const overlay = findOverlay(state, target);
   const effectiveAvailable = overlay ? overlay.available_override : target.base_available;
   const key = getTargetKey(target);
-  const availableDisabled = isBusy || effectiveAvailable;
-  const unavailableDisabled = isBusy || !effectiveAvailable;
 
   return `
     <div class="admin-row admin-daily-availability-row">
@@ -1250,14 +1262,10 @@ function renderDailyAvailabilityRow(
         <p class="admin-row__title">${escapeHtml(target.name)}</p>
         ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
         <div class="admin-row__status">
-          <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">${effectiveAvailable ? "Disponible" : "No disponible"}</span>
-          <span class="admin-row__state-note">${overlay ? "Ajuste manual activo" : "Sin ajuste manual"}</span>
+          ${renderAvailabilityStatus(effectiveAvailable, overlay)}
         </div>
       </div>
-      <div class="admin-row__actions">
-        <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" data-current="${effectiveAvailable ? "true" : "false"}" aria-pressed="${effectiveAvailable ? "true" : "false"}" ${availableDisabled ? "disabled" : ""}>Disponible</button>
-        <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="false" data-current="${!effectiveAvailable ? "true" : "false"}" aria-pressed="${!effectiveAvailable ? "true" : "false"}" ${unavailableDisabled ? "disabled" : ""}>No disponible</button>
-      </div>
+      ${renderAvailabilityActions(key, effectiveAvailable, overlay)}
     </div>
   `;
 }
@@ -1326,7 +1334,7 @@ function renderGrillServiceForms(state: AdminOperationalState): string {
       <section class="admin-grill-panel">
         <div class="admin-grill-panel__header">
           <h3 class="admin-grill-panel__title">Locales con parrilla</h3>
-          <p class="admin-row__meta">Cambiar el servicio requiere publicar.</p>
+          <p class="admin-row__meta">Cambiar entre menu del dia y parrilla se vera en el menu publico despues de publicar.</p>
         </div>
         ${renderEmpty("No hay locales para configurar.")}
       </section>
@@ -1337,7 +1345,7 @@ function renderGrillServiceForms(state: AdminOperationalState): string {
     <section class="admin-grill-panel">
       <div class="admin-grill-panel__header">
         <h3 class="admin-grill-panel__title">Locales con parrilla</h3>
-        <p class="admin-row__meta">Cambiar el servicio activo requiere publicar.</p>
+        <p class="admin-row__meta">Elegir parrilla activa ese servicio para el local. Se vera en el menu publico despues de publicar.</p>
       </div>
       <div class="admin-grid">
         ${state.profiles.map((profile) => {
@@ -1345,12 +1353,12 @@ function renderGrillServiceForms(state: AdminOperationalState): string {
           const serviceLabel = currentService === "grill" ? "Parrilla activa" : "Menu del dia activo";
 
           return `
-            <form class="admin-row admin-grill-service-row" data-admin-form="service-kind">
+            <form class="admin-row admin-grill-service-row" data-admin-form="service-kind" data-current-service="${currentService}" data-profile-title="${escapeHtml(profile.title)}">
               <div class="admin-row__main">
                 <p class="admin-row__title">${escapeHtml(profile.title)}</p>
                 <div class="admin-row__status">
                   <span class="admin-pill" data-tone="${currentService === "grill" ? "success" : "neutral"}">${escapeHtml(serviceLabel)}</span>
-                  <span class="admin-row__state-note">Requiere publicar si cambia.</span>
+                  <span class="admin-row__state-note">Se vera despues de publicar si cambia.</span>
                 </div>
               </div>
               <div class="admin-row__actions">
@@ -1378,7 +1386,7 @@ function renderGrillAvailabilitySection(state: AdminOperationalState): string {
       <section class="admin-grill-panel">
         <div class="admin-grill-panel__header">
           <h3 class="admin-grill-panel__title">Disponibilidad de parrilla</h3>
-          <p class="admin-row__meta">La disponibilidad se aplica al instante.</p>
+          <p class="admin-row__meta">Ocultar o mostrar variantes se ve al instante en el menu publico.</p>
         </div>
         ${renderEmpty("No hay locales con parrilla activa.")}
       </section>
@@ -1395,7 +1403,7 @@ function renderGrillAvailabilitySection(state: AdminOperationalState): string {
     <section class="admin-grill-panel">
       <div class="admin-grill-panel__header">
         <h3 class="admin-grill-panel__title">Disponibilidad de parrilla</h3>
-        <p class="admin-row__meta">Estos cambios son runtime y se aplican al instante.</p>
+        <p class="admin-row__meta">Usa esto cuando una variante se agota o vuelve a estar disponible. No hace falta publicar.</p>
       </div>
       <div class="admin-toolbar admin-grill-toolbar">
         ${profiles.length > 1 ? `
@@ -1473,8 +1481,6 @@ function renderGrillAvailabilityVariant(
   const overlay = findOverlay(state, target);
   const effectiveAvailable = overlay ? overlay.available_override : target.base_available;
   const key = getTargetKey(target);
-  const availableDisabled = isBusy || effectiveAvailable;
-  const unavailableDisabled = isBusy || !effectiveAvailable;
   const priceText = formatOptionalAmount(target.price_amount);
 
   return `
@@ -1486,14 +1492,10 @@ function renderGrillAvailabilityVariant(
         </div>
         ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
         <div class="admin-row__status">
-          <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">${effectiveAvailable ? "Disponible" : "No disponible"}</span>
-          <span class="admin-row__state-note">${overlay ? "Ajuste manual activo" : "Sin ajuste manual"}</span>
+          ${renderAvailabilityStatus(effectiveAvailable, overlay)}
         </div>
       </div>
-      <div class="admin-row__actions">
-        <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" data-current="${effectiveAvailable ? "true" : "false"}" aria-pressed="${effectiveAvailable ? "true" : "false"}" ${availableDisabled ? "disabled" : ""}>Disponible</button>
-        <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="false" data-current="${!effectiveAvailable ? "true" : "false"}" aria-pressed="${!effectiveAvailable ? "true" : "false"}" ${unavailableDisabled ? "disabled" : ""}>No disponible</button>
-      </div>
+      ${renderAvailabilityActions(key, effectiveAvailable, overlay)}
     </div>
   `;
 }
@@ -1505,8 +1507,6 @@ function renderAvailabilityRow(
   const overlay = findOverlay(state, target);
   const effectiveAvailable = overlay ? overlay.available_override : target.base_available;
   const key = getTargetKey(target);
-  const availableDisabled = isBusy || effectiveAvailable;
-  const unavailableDisabled = isBusy || !effectiveAvailable;
 
   return `
     <div class="admin-row">
@@ -1518,13 +1518,57 @@ function renderAvailabilityRow(
         </p>
         ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
         <div class="admin-row__status">
-          <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">${effectiveAvailable ? "Disponible" : "No disponible"}</span>
+          ${renderAvailabilityStatus(effectiveAvailable, overlay)}
         </div>
       </div>
-      <div class="admin-row__actions">
-        <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" data-current="${effectiveAvailable ? "true" : "false"}" aria-pressed="${effectiveAvailable ? "true" : "false"}" ${availableDisabled ? "disabled" : ""}>Disponible</button>
-        <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="false" data-current="${!effectiveAvailable ? "true" : "false"}" aria-pressed="${!effectiveAvailable ? "true" : "false"}" ${unavailableDisabled ? "disabled" : ""}>No disponible</button>
-      </div>
+      ${renderAvailabilityActions(key, effectiveAvailable, overlay)}
+    </div>
+  `;
+}
+
+function renderAvailabilityStatus(
+  effectiveAvailable: boolean,
+  overlay: AvailabilityOverlayState | undefined,
+): string {
+  return `
+    <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">
+      ${effectiveAvailable ? "Se muestra en el menu" : "Oculto en el menu"}
+    </span>
+    <span class="admin-row__state-note">
+      ${overlay ? "Cambio manual activo" : "Sin cambio manual"}
+    </span>
+  `;
+}
+
+function renderAvailabilityActions(
+  key: string,
+  effectiveAvailable: boolean,
+  overlay: AvailabilityOverlayState | undefined,
+): string {
+  const mainButton = effectiveAvailable
+    ? `
+      <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="false" ${isBusy ? "disabled" : ""}>
+        Ocultar ahora
+      </button>
+    `
+    : `
+      <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" ${isBusy ? "disabled" : ""}>
+        Volver a mostrar
+      </button>
+    `;
+
+  const clearButton = overlay && effectiveAvailable
+    ? `
+      <button class="admin-button admin-button--secondary" type="button" data-admin-action="clear-overlay" data-target-key="${escapeHtml(key)}" ${isBusy ? "disabled" : ""}>
+        Quitar ajuste
+      </button>
+    `
+    : "";
+
+  return `
+    <div class="admin-row__actions admin-row__actions--availability">
+      ${mainButton}
+      ${clearButton}
     </div>
   `;
 }
@@ -1698,6 +1742,28 @@ function markPendingIfNeeded(result: RpcResult): void {
   }
 }
 
+function confirmPublishChanges(): boolean {
+  return window.confirm(
+    "Vas a publicar los cambios guardados de platos, servicio activo y precios. La disponibilidad ya se aplica al instante. Continuar?",
+  );
+}
+
+function confirmServiceChange(form: HTMLFormElement): boolean {
+  const currentService = form.dataset.currentService;
+  const nextService = getFormString(form, "service_kind");
+
+  if (!currentService || currentService === nextService) {
+    return true;
+  }
+
+  const profileTitle = form.dataset.profileTitle ?? "este local";
+  const nextLabel = nextService === "grill" ? "parrilla" : "menu del dia";
+
+  return window.confirm(
+    `Vas a cambiar ${profileTitle} a ${nextLabel}. El menu publico se actualiza despues de publicar cambios. Continuar?`,
+  );
+}
+
 function setStatus(text: string, tone: StatusTone): void {
   currentStatus = { text, tone };
 
@@ -1737,9 +1803,9 @@ async function runBusy(action: () => Promise<void>, busyText = "Procesando..."):
 
 function handleUnexpectedError(error: unknown): void {
   const message = error instanceof TypeError && error.message === "Failed to fetch"
-    ? "No se pudo conectar. Revisa conexion y origen autorizado."
+    ? "No se pudo conectar. Revisa la conexion e intenta de nuevo."
     : error instanceof Error
-      ? error.message
+      ? toOperationalErrorMessage(error.message)
       : "Ocurrio un error inesperado.";
   currentStatus = { text: message, tone: "danger" };
 
@@ -1825,8 +1891,8 @@ function roleLabel(role: StaffRole): string {
 function resultMessage(result: RpcResult): string {
   const messages: Record<string, string> = {
     permission_denied: "No tenes permisos para esta accion.",
-    publish_queued: "Publicacion solicitada. El deploy puede tardar unos minutos.",
-    publish_recently_queued: "Ya hay una publicacion reciente encolada.",
+    publish_queued: "Publicacion solicitada. El menu publico puede tardar unos minutos en actualizarse.",
+    publish_recently_queued: "Ya se pidio una publicacion hace poco.",
     publish_failed: "No se pudo publicar.",
     invalid_amount: "El importe no es valido.",
     daily_menu_name_required: "El nombre del menu es obligatorio.",
@@ -1922,11 +1988,59 @@ function readErrorMessage(body: unknown): string {
     const message = (body as { message?: unknown }).message;
 
     if (typeof message === "string" && message.trim()) {
-      return message;
+      return toOperationalErrorMessage(message);
     }
   }
 
   return "No se pudo completar la operacion.";
+}
+
+function toOperationalErrorMessage(message: string): string {
+  const trimmedMessage = message.trim();
+  const lowerMessage = trimmedMessage.toLowerCase();
+
+  if (!trimmedMessage) {
+    return "No se pudo completar la operacion.";
+  }
+
+  if (
+    lowerMessage.includes("jwt")
+    || lowerMessage.includes("token")
+    || lowerMessage.includes("session")
+    || lowerMessage.includes("expired")
+  ) {
+    return "La sesion expiro. Volve a iniciar sesion.";
+  }
+
+  if (
+    lowerMessage.includes("permission denied")
+    || lowerMessage.includes("42501")
+    || lowerMessage.includes("row-level")
+    || lowerMessage.includes("not authorized")
+    || lowerMessage.includes("unauthorized")
+  ) {
+    return "No tenes permisos para esta accion.";
+  }
+
+  if (
+    lowerMessage.includes("invalid input")
+    || lowerMessage.includes("violates")
+    || lowerMessage.includes("constraint")
+  ) {
+    return "Hay un dato invalido. Revisalo e intenta guardar de nuevo.";
+  }
+
+  if (
+    lowerMessage.includes("supabase")
+    || lowerMessage.includes("pgrst")
+    || lowerMessage.includes("rpc")
+    || lowerMessage.includes("schema")
+    || lowerMessage.includes("function")
+  ) {
+    return "No se pudo completar la operacion. Actualiza el panel e intenta de nuevo.";
+  }
+
+  return trimmedMessage;
 }
 
 function isRpcResult(value: unknown): value is RpcResult {

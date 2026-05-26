@@ -182,10 +182,11 @@
   }
 
   .admin-banner {
-    color: #243a2d;
+    color: #6a3f0f;
     font-weight: 700;
-    background: #edf4ef;
-    border-color: #cddfcf;
+    background: #fff4d6;
+    border-color: #e2bf6f;
+    box-shadow: 0 0.65rem 1.5rem rgb(106 63 15 / 0.08);
   }
 
   .admin-status {
@@ -522,6 +523,10 @@
     justify-content: flex-start;
   }
 
+  .admin-row__actions--availability {
+    align-items: stretch;
+  }
+
   .admin-row__status {
     display: flex;
     flex-wrap: wrap;
@@ -734,6 +739,10 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.4rem;
+  }
+
+  .admin-grill-variant-row .admin-row__actions--availability {
+    grid-template-columns: 1fr;
   }
 
   .admin-grill-variant-row .admin-row__actions .admin-button {
