@@ -271,6 +271,13 @@
     text-transform: uppercase;
   }
 
+  .admin-help {
+    color: #777166;
+    font-size: 0.82rem;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
   .admin-input,
   .admin-textarea,
   .admin-select {
@@ -726,6 +733,10 @@
     background: #ffffff;
   }
 
+  .admin-fixed-delete-note {
+    max-width: 14rem;
+  }
+
   .admin-price-field {
     display: grid;
     gap: 0.35rem;
@@ -752,6 +763,11 @@
   .admin-row__actions .admin-select,
   .admin-price-field {
     flex: 1 1 100%;
+  }
+
+  .admin-fixed-delete-note {
+    max-width: none;
+    width: 100%;
   }
 
   .admin-daily-card {

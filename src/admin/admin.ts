@@ -270,6 +270,16 @@ root.addEventListener("change", (event) => {
   renderAuthenticated();
 });
 
+root.addEventListener("input", (event) => {
+  const field = event.target instanceof HTMLInputElement ? event.target : null;
+
+  if (!field) {
+    return;
+  }
+
+  handleCatalogItemInput(field);
+});
+
 void startAdmin().catch(handleUnexpectedError);
 
 async function startAdmin(): Promise<void> {
@@ -985,7 +995,7 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
       <section class="admin-section">
         <div class="admin-section__header">
           <h2 class="admin-section__title">Menu fijo</h2>
-          <p class="admin-section__copy">No hay acciones de menu fijo disponibles para este rol.</p>
+          <p class="admin-section__copy">Tu usuario no tiene permiso para agregar o eliminar items del menu fijo.</p>
         </div>
       </section>
     `;
@@ -996,9 +1006,9 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
       <section class="admin-section">
         <div class="admin-section__header">
           <h2 class="admin-section__title">Menu fijo</h2>
-          <p class="admin-section__copy">Agrega o elimina items dentro de secciones existentes. Las secciones, grupos y orden no se editan desde esta pantalla.</p>
+          <p class="admin-section__copy">Agrega o elimina items dentro de secciones existentes. Para crear secciones o cambiar el orden, avisale a quien administra el sitio.</p>
         </div>
-        ${renderEmpty("No hay secciones de catalogo disponibles.")}
+        ${renderEmpty("No hay secciones del menu fijo disponibles.")}
       </section>
     `;
   }
@@ -1011,7 +1021,13 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
     <section class="admin-section admin-fixed">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Menu fijo</h2>
-        <p class="admin-section__copy">Agrega o elimina items puntuales dentro de una seccion existente. Guardar necesita publicacion para verse en el menu publico.</p>
+        <p class="admin-section__copy">Agrega o elimina items puntuales del catalogo estable. Los cambios quedan guardados, pero el menu publico se actualiza despues de publicar.</p>
+      </div>
+      <div class="admin-row admin-callout admin-fixed-guide">
+        <div class="admin-row__main">
+          <p class="admin-row__title">Como usar esta pantalla</p>
+          <p class="admin-row__meta">Elegi la ubicacion, completa el nombre visible y agrega el item. El codigo se propone automaticamente y solo sirve para evitar duplicados.</p>
+        </div>
       </div>
       <div class="admin-toolbar admin-fixed-toolbar">
         <label class="admin-field">
@@ -1034,7 +1050,7 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
         ` : ""}
       </div>
       ${section.content_kind === "groups" && !group
-        ? renderEmpty("La seccion seleccionada no tiene grupos para agregar items.")
+        ? renderEmpty("La seccion seleccionada no tiene grupos disponibles para agregar items.")
         : renderCatalogItemForm(section, group)}
       ${renderCatalogItemList(items)}
     </section>
@@ -1798,40 +1814,45 @@ function renderCatalogItemForm(
   return `
     <form class="admin-card admin-fixed-form" data-admin-form="catalog-item">
       <div class="admin-fixed-form__header">
-        <h3 class="admin-card__legend">Agregar item</h3>
-        <p class="admin-row__meta">Se agrega al final de ${escapeHtml(locationTitle)}. No cambia secciones, grupos ni orden existente.</p>
+        <h3 class="admin-card__legend">Agregar item nuevo</h3>
+        <p class="admin-row__meta">Se agrega al final de ${escapeHtml(locationTitle)}. Para cambiar el orden, avisale a quien administra el sitio.</p>
       </div>
       <input type="hidden" name="section_id" value="${escapeHtml(section.section_id)}" />
       <input type="hidden" name="group_id" value="${escapeHtml(group?.group_id ?? "")}" />
       <label class="admin-field">
-        <span class="admin-label">ID tecnico</span>
-        <input class="admin-input" name="item_id" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="ejemplo-item" required />
+        <span class="admin-label">Nombre visible</span>
+        <input class="admin-input" name="name" data-catalog-name required />
+        <span class="admin-help">Es el nombre que va a leer el cliente en el menu.</span>
       </label>
       <label class="admin-field">
-        <span class="admin-label">Nombre visible</span>
-        <input class="admin-input" name="name" required />
+        <span class="admin-label">Codigo del item</span>
+        <input class="admin-input" name="item_id" data-catalog-id pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="se-completa-solo" autocomplete="off" required />
+        <span class="admin-help">Se completa solo desde el nombre. Editalo solo si el panel avisa que ya existe.</span>
       </label>
       ${requiresPrice ? `
         <label class="admin-field">
           <span class="admin-label">Precio</span>
           <input class="admin-input" type="number" name="amount" min="0" step="1" inputmode="numeric" required />
+          <span class="admin-help">Usa numeros sin simbolo de peso.</span>
         </label>
       ` : `
         <div class="admin-fixed-form__note">
           <span class="admin-label">Precio</span>
-          <p>Hereda el precio del grupo.</p>
+          <p>Usa el precio compartido de este grupo.</p>
         </div>
       `}
       <label class="admin-field admin-field--wide">
         <span class="admin-label">Descripcion</span>
         <textarea class="admin-textarea" name="description"></textarea>
+        <span class="admin-help">Texto corto debajo del nombre. Dejalo vacio si no hace falta.</span>
       </label>
       <label class="admin-field admin-field--wide">
         <span class="admin-label">Nota</span>
         <textarea class="admin-textarea" name="note"></textarea>
+        <span class="admin-help">Aclaracion breve para el cliente, si corresponde.</span>
       </label>
       <div class="admin-row__actions admin-fixed-form__actions">
-        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Agregar item</button>
+        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Agregar al menu fijo</button>
       </div>
     </form>
   `;
@@ -1839,13 +1860,13 @@ function renderCatalogItemForm(
 
 function renderCatalogItemList(items: CatalogItemState[]): string {
   if (items.length === 0) {
-    return renderEmpty("No hay items en esta ubicacion.");
+    return renderEmpty("No hay items en esta ubicacion. Agrega el primero con el formulario de arriba.");
   }
 
   return `
     <div class="admin-list-header">
       <span>${items.length} items</span>
-      <span>No se puede eliminar el ultimo item de una seccion o grupo.</span>
+      <span>Eliminar tambien requiere publicar cambios.</span>
     </div>
     <div class="admin-grid">
       ${items.map((item) => renderCatalogItemRow(item, items.length > 1)).join("")}
@@ -1858,13 +1879,15 @@ function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean): strin
   const optionText = item.option_count > 0
     ? `${item.option_count} opciones asociadas`
     : "Sin opciones";
+  const deleteHelp = canDelete
+    ? "Se quitara del menu publico despues de publicar."
+    : "No se puede eliminar porque debe quedar al menos un item en esta ubicacion.";
 
   return `
     <div class="admin-row admin-fixed-row">
       <div class="admin-row__main">
         <p class="admin-row__title">${escapeHtml(item.name)}</p>
         <div class="admin-price-tags">
-          <span class="admin-price-tag">${escapeHtml(item.item_id)}</span>
           <span class="admin-price-tag">${escapeHtml(priceText)}</span>
           <span class="admin-price-tag">${escapeHtml(optionText)}</span>
         </div>
@@ -1883,6 +1906,7 @@ function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean): strin
         >
           Eliminar
         </button>
+        <span class="admin-row__state-note admin-fixed-delete-note">${escapeHtml(deleteHelp)}</span>
       </div>
     </div>
   `;
@@ -2083,6 +2107,43 @@ function markPendingIfNeeded(result: RpcResult): void {
   if (result.ok && result.changed && result.requires_redeploy) {
     hasPendingPublication = true;
   }
+}
+
+function handleCatalogItemInput(field: HTMLInputElement): void {
+  const form = field.closest<HTMLFormElement>('form[data-admin-form="catalog-item"]');
+
+  if (!form) {
+    return;
+  }
+
+  if (field.name === "item_id") {
+    field.dataset.manual = "true";
+    return;
+  }
+
+  if (field.name !== "name") {
+    return;
+  }
+
+  const itemIdField = form.elements.namedItem("item_id");
+
+  if (!(itemIdField instanceof HTMLInputElement) || itemIdField.dataset.manual === "true") {
+    return;
+  }
+
+  itemIdField.value = createCatalogItemId(field.value);
+}
+
+function createCatalogItemId(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\u00f1/g, "n")
+    .replace(/\u00d1/g, "n")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-{2,}/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function confirmPublishChanges(): boolean {
@@ -2293,15 +2354,15 @@ function resultMessage(result: RpcResult): string {
     daily_menu_name_required: "El nombre del menu es obligatorio.",
     daily_menu_available_required: "La disponibilidad del menu es obligatoria.",
     invalid_service_kind: "El servicio seleccionado no es valido.",
-    catalog_item_id_required: "El ID tecnico del item es obligatorio.",
-    invalid_catalog_item_id: "El ID tecnico debe usar minusculas, numeros y guiones.",
+    catalog_item_id_required: "El codigo del item es obligatorio.",
+    invalid_catalog_item_id: "El codigo del item debe usar minusculas, numeros y guiones.",
     catalog_item_name_required: "El nombre del item es obligatorio.",
     catalog_section_not_found: "La seccion seleccionada no existe.",
     invalid_catalog_group: "La seccion seleccionada no acepta grupo.",
     catalog_group_required: "Selecciona un grupo existente.",
     catalog_group_not_found: "El grupo seleccionado no existe.",
-    catalog_item_exists: "Ya existe un item con ese ID en esta ubicacion.",
-    catalog_price_key_conflict: "Ya existe un precio incompatible para ese ID.",
+    catalog_item_exists: "Ya existe un item con ese codigo en esta ubicacion.",
+    catalog_price_key_conflict: "Ya existe un precio incompatible para ese codigo.",
     catalog_item_not_found: "El item seleccionado ya no existe.",
     catalog_location_must_keep_item: "No se puede eliminar el ultimo item de una seccion o grupo.",
   };
