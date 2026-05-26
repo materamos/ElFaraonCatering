@@ -181,12 +181,13 @@ Runtime overlay:
 - `docs/supabase/operational-edit-rpcs.sql` defines the approved RPC write surface for operational CMS edits.
 - `public.get_admin_operational_state()` is the approved read surface for the operational admin. Browser code must not query `menu_content` or `app_private` directly.
 - Public admin RPCs and permission helpers must remain `security invoker` wrappers when they are executable by `authenticated`; privileged `security definer` bodies must live outside exposed API schemas, currently in `app_private`.
+- Current publish helper exception: `public.reserve_menu_publish_request(...)` and `public.complete_menu_publish_request(...)` are `security definer` helpers for the `publish-menu-changes` Edge Function, revoked from `anon` and `authenticated`, and executable only by `service_role`. They are not browser/admin RPCs; moving them to `app_private` requires an explicit refactor or the pre-launch baseline.
 - `public.staff_users` defines operational staff roles: `operator` and `admin`.
 - `operator` can edit everything currently exposed by `/admin/` for every profile, including publishing changes.
 - `admin` has operator permissions and may manage staff through privileged SQL/RPC surfaces.
 - `public.staff_users` and the `can_edit_availability(text)`, `can_manage_staff()`, and `can_publish_menu()` helpers are required before operational edit RPCs may be installed.
 - `can_edit_menu_content()` is introduced by the operational edit RPC phase; it is not a precondition of the `staff_users` migration.
-- `publish-menu-changes` is the only approved Supabase Edge Function. It may publish build-time operational changes by validating Supabase Auth, checking `can_publish_menu()`, reserving/completing publish requests through private helpers, logging privately in `app_private`, and calling the Vercel Deploy Hook from Supabase Function secrets.
+- `publish-menu-changes` is the only approved Supabase Edge Function. It may publish build-time operational changes by validating Supabase Auth, checking `can_publish_menu()`, reserving/completing publish requests through service-role-only helpers, logging privately in `app_private`, and calling the Vercel Deploy Hook from Supabase Function secrets.
 - Publish cooldown responses may include `cooldown_seconds_remaining`; keep that contract synchronized across the Edge Function, SQL helpers, and admin UI.
 - The Edge Function runtime uses `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VERCEL_DEPLOY_HOOK_URL`, `PUBLISH_ALLOWED_ORIGINS`, and `PUBLISH_COOLDOWN_SECONDS`. Never expose the service role key or deploy hook to browser code or `PUBLIC_*` variables.
 - `public.editor_profiles` is legacy-only and must not back new policies.

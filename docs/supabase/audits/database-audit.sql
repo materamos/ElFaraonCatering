@@ -418,3 +418,41 @@ where image_path is not null
     and image_path !~ '(^|/)\.\.?(/|$)'
     and lower(image_path) ~ '\.(avif|jpeg|jpg|png|svg|webp)$'
   );
+
+-- 12. Build-time availability must stay normalized to true.
+select
+  table_name,
+  false_count,
+  'risk' as suggested_status,
+  'Build-time available columns must remain true; runtime unavailability belongs in public.menu_availability_overlays.' as reason
+from (
+  select 'menu_daily_items' as table_name, count(*)::integer as false_count
+  from menu_content.menu_daily_items
+  where available is distinct from true
+
+  union all
+
+  select 'menu_price_variants', count(*)::integer
+  from menu_content.menu_price_variants
+  where available is distinct from true
+
+  union all
+
+  select 'menu_catalog_items', count(*)::integer
+  from menu_content.menu_catalog_items
+  where available is distinct from true
+
+  union all
+
+  select 'menu_catalog_item_options', count(*)::integer
+  from menu_content.menu_catalog_item_options
+  where available is distinct from true
+
+  union all
+
+  select 'menu_grill_catalog_items', count(*)::integer
+  from menu_content.menu_grill_catalog_items
+  where available is distinct from true
+) availability_counts
+where false_count > 0
+order by table_name;

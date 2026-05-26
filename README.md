@@ -255,11 +255,11 @@ RPCs y funciones relevantes:
 - `set_menu_availability_overlay(...)` y `clear_menu_availability_overlay(...)`: cambios runtime de disponibilidad.
 - `set_daily_menu(...)`, `set_profile_service_kind(...)`, `add_catalog_item(...)`, `delete_catalog_item(...)`, `set_global_fixed_price(...)` y `set_global_price_variant(...)`: cambios build-time que requieren publicacion y no editan disponibilidad.
 - `can_edit_availability(text)`, `can_edit_menu_content()`, `can_manage_staff()` y `can_publish_menu()`: helpers de permisos.
-- `reserve_menu_publish_request(...)` y `complete_menu_publish_request(...)`: helpers privados usados por la Edge Function.
+- `reserve_menu_publish_request(...)` y `complete_menu_publish_request(...)`: helpers `security definer` service-role-only usados por la Edge Function.
 
 Las RPCs operativas devuelven `ok`, `changed`, `requires_redeploy`, `operation` y `message`. Las respuestas de publicacion pueden incluir `cooldown_seconds_remaining`.
 
-Las funciones publicas del admin son wrappers `security invoker`; los cuerpos `security definer` viven en `app_private`, fuera de los schemas expuestos por PostgREST.
+Las funciones publicas del admin son wrappers `security invoker`; los cuerpos `security definer` viven en `app_private`, fuera de los schemas expuestos por PostgREST. La excepcion actual son los helpers publicos de publicacion `reserve_menu_publish_request(...)` y `complete_menu_publish_request(...)`, revocados para `anon` y `authenticated` y ejecutables solo por `service_role`; no son RPCs del browser ni del admin.
 
 `publish-menu-changes` valida la sesion Supabase Auth del empleado, verifica `can_publish_menu()`, aplica cooldown global, registra auditoria privada y llama el Vercel Deploy Hook desde secretos de Supabase Functions. La URL del hook es credencial y nunca debe llegar al browser ni versionarse. No se usa `pg_net` para publicar.
 

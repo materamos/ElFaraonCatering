@@ -70,9 +70,11 @@ Las RPCs operativas devuelven `ok`, `changed`, `requires_redeploy`, `operation` 
 
 Las funciones publicas del admin deben quedar como wrappers `security invoker`. Los cuerpos `security definer` que necesitan leer o escribir datos protegidos viven en `app_private`, fuera de los schemas expuestos por PostgREST.
 
+Excepcion actual: `public.reserve_menu_publish_request(...)` y `public.complete_menu_publish_request(...)` son helpers `security definer` para la Edge Function `publish-menu-changes`, revocados para `anon` y `authenticated`, y ejecutables solo por `service_role`. No son RPCs del browser ni del admin; moverlos a `app_private` queda reservado para un refactor explicito o para el baseline pre-lanzamiento.
+
 `staff_users` y sus helpers (`can_edit_availability(text)`, `can_manage_staff()`, `can_publish_menu()`) son precondicion obligatoria para instalar las RPCs operativas. `can_edit_menu_content()` se introduce en la fase de RPCs operativas; no es precondicion de la migracion de `staff_users`.
 
-`publish-menu-changes` usa `can_publish_menu()` para autorizar publicacion, reserva/completa solicitudes mediante helpers privados, registra auditoria en `app_private` y llama el Vercel Deploy Hook desde secretos de Supabase Functions. No usa `pg_net`.
+`publish-menu-changes` usa `can_publish_menu()` para autorizar publicacion, reserva/completa solicitudes mediante helpers service-role-only, registra auditoria en `app_private` y llama el Vercel Deploy Hook desde secretos de Supabase Functions. No usa `pg_net`.
 
 La alerta `auth_leaked_password_protection` no se resuelve con SQL del repo: se habilita en la configuracion de Supabase Auth del proyecto, si el plan lo soporta.
 

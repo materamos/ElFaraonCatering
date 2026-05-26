@@ -169,6 +169,44 @@ where item.group_id <> ''
   and menu_group.group_id is null;
 
 select
+  'build_time_available_not_true' as diagnostic,
+  'menu_daily_items' as table_name,
+  item.item_id as object_id
+from menu_content.menu_daily_items item
+where item.available is distinct from true
+union all
+select
+  'build_time_available_not_true',
+  'menu_price_variants',
+  variant.pricing_key || ':' || variant.variant_id
+from menu_content.menu_price_variants variant
+where variant.available is distinct from true
+union all
+select
+  'build_time_available_not_true',
+  'menu_catalog_items',
+  item.section_id || ':' || coalesce(nullif(item.group_id, ''), '-') || ':' || item.item_id
+from menu_content.menu_catalog_items item
+where item.available is distinct from true
+union all
+select
+  'build_time_available_not_true',
+  'menu_catalog_item_options',
+  item.section_id || ':' || coalesce(nullif(item.group_id, ''), '-') || ':' || item.item_id || ':' || option.option_id
+from menu_content.menu_catalog_item_options option
+join menu_content.menu_catalog_items item
+  on item.id = option.catalog_item_id
+where option.available is distinct from true
+union all
+select
+  'build_time_available_not_true',
+  'menu_grill_catalog_items',
+  item.item_id
+from menu_content.menu_grill_catalog_items item
+where item.available is distinct from true
+order by table_name, object_id;
+
+select
   'legacy_table_still_present' as diagnostic,
   table_name
 from information_schema.tables
