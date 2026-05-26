@@ -134,6 +134,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260526000000_add_fixed_menu_item_admin.sql` | Agrega estado y RPCs para alta/baja medida de items del menu fijo desde `/admin/`. |
 | `20260526001000_simplify_staff_roles.sql` | Simplifica roles de staff a `admin` y `operator`, sin alcance por perfil. |
 | `20260526002000_standardize_catalog_item_order.sql` | Reordena items puntuales del catalogo y alinea el estado del admin con el orden editorial. |
+| `20260526003000_refine_catalog_option_order.sql` | Reordena opciones puntuales del catalogo para agrupar sabores y variantes relacionadas. |
 
 ## Baseline pre-lanzamiento
 
