@@ -14,27 +14,22 @@ create table if not exists public.editor_profiles (
 create table if not exists public.staff_users (
   user_id uuid primary key references auth.users(id) on delete cascade,
   display_name text not null check (length(btrim(display_name)) > 0),
-  role text not null check (role in ('availability_editor', 'menu_editor', 'admin')),
-  profile_id text null references menu_content.menu_profiles(id),
+  role text not null check (role in ('operator', 'admin')),
   active boolean not null default true,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint staff_users_profile_id_valid
-    check (profile_id is null or profile_id ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')
+  updated_at timestamptz not null default now()
 );
 
 insert into public.staff_users (
   user_id,
   display_name,
   role,
-  profile_id,
   active
 )
 select
   editor.user_id,
   coalesce(nullif(btrim(editor.display_name), ''), 'Editor'),
-  'availability_editor',
-  null,
+  'operator',
   editor.active
 from public.editor_profiles editor
 on conflict (user_id) do nothing;
@@ -106,12 +101,7 @@ as $$
       from public.staff_users staff
       where staff.user_id = (select auth.uid())
         and staff.active = true
-        and staff.role in ('availability_editor', 'admin')
-        and (
-          staff.role = 'admin'
-          or staff.profile_id is null
-          or staff.profile_id = $1
-        )
+        and staff.role in ('operator', 'admin')
     );
 $$;
 
@@ -143,7 +133,7 @@ as $$
     from public.staff_users staff
     where staff.user_id = (select auth.uid())
       and staff.active = true
-      and staff.role in ('menu_editor', 'admin')
+      and staff.role in ('operator', 'admin')
   );
 $$;
 

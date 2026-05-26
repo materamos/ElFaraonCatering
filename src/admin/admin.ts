@@ -1,4 +1,4 @@
-type StaffRole = "availability_editor" | "menu_editor" | "admin";
+type StaffRole = "operator" | "admin";
 type ServiceKind = "daily-menu" | "grill";
 type TargetKind = "daily-menu" | "grill" | "catalog";
 type AdminTabId = "availability" | "daily" | "grill" | "fixed" | "prices" | "publish";
@@ -2337,11 +2337,7 @@ function roleLabel(role: StaffRole): string {
     return "Admin";
   }
 
-  if (role === "menu_editor") {
-    return "Editor de menu";
-  }
-
-  return "Editor de disponibilidad";
+  return "Operador";
 }
 
 function resultMessage(result: RpcResult): string {

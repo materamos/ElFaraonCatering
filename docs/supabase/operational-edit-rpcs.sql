@@ -58,7 +58,7 @@ as $$
     from public.staff_users staff
     where staff.user_id = (select auth.uid())
       and staff.active = true
-      and staff.role in ('menu_editor', 'admin')
+      and staff.role in ('operator', 'admin')
   );
 $$;
 

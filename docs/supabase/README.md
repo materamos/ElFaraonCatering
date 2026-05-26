@@ -8,7 +8,7 @@ Las migraciones operativas reales viven en `../../supabase/migrations/`. No agre
 
 - `menu_content`: fuente privada de estructura y operacion build-time.
 - `public.menu_availability_overlays`: unico overlay runtime sin rebuild.
-- `public.staff_users`: empleados, roles y alcance por perfil para el admin operativo.
+- `public.staff_users`: empleados y roles para el admin operativo.
 - `public.editor_profiles`: tabla legacy usada solo como origen de backfill hacia `staff_users`.
 - `public.get_admin_operational_state()`: RPC de lectura controlada para `/admin/`.
 - RPCs operativas: unica superficie de escritura browser para disponibilidad, servicio activo, menu del dia, menu fijo medido y precios.
@@ -51,8 +51,7 @@ No implementar consultas runtime para menu del dia, precios, servicio activo, ca
 
 ## Permisos y admin
 
-- `staff_users.role = 'availability_editor'`: puede editar disponibilidad; si `profile_id` es null, aplica a todos los perfiles; si no, solo a ese perfil.
-- `staff_users.role = 'menu_editor'`: puede editar datos operativos build-time, incluyendo items puntuales del menu fijo, y publicar cambios.
+- `staff_users.role = 'operator'`: puede editar todo lo que permite `/admin/`, para todos los perfiles, incluyendo publicar cambios.
 - `staff_users.role = 'admin'`: hereda permisos operativos y puede gestionar staff a nivel de base/RPC.
 - El sitio actual no tiene pantalla de gestion de empleados.
 - `editor_profiles` no debe usarse para policies nuevas; queda solo como origen de migracion.
@@ -125,6 +124,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260514003000_add_teleinde_whatsapp_link.sql` | Agrega el link de WhatsApp al perfil `teleinde`. |
 | `20260514004000_make_availability_runtime_only.sql` | Normaliza disponibilidad build-time a `true` y deja la disponibilidad operativa solo como overlay runtime. |
 | `20260526000000_add_fixed_menu_item_admin.sql` | Agrega estado y RPCs para alta/baja medida de items del menu fijo desde `/admin/`. |
+| `20260526001000_simplify_staff_roles.sql` | Simplifica roles de staff a `admin` y `operator`, sin alcance por perfil. |
 
 ## Orden recomendado
 

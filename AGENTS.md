@@ -179,7 +179,9 @@ Runtime overlay:
 - `docs/supabase/operational-edit-rpcs.sql` defines the approved RPC write surface for operational CMS edits.
 - `public.get_admin_operational_state()` is the approved read surface for the operational admin. Browser code must not query `menu_content` or `app_private` directly.
 - Public admin RPCs and permission helpers must remain `security invoker` wrappers when they are executable by `authenticated`; privileged `security definer` bodies must live outside exposed API schemas, currently in `app_private`.
-- `public.staff_users` defines operational staff roles: `availability_editor`, `menu_editor`, and `admin`.
+- `public.staff_users` defines operational staff roles: `operator` and `admin`.
+- `operator` can edit everything currently exposed by `/admin/` for every profile, including publishing changes.
+- `admin` has operator permissions and may manage staff through privileged SQL/RPC surfaces.
 - `public.staff_users` and the `can_edit_availability(text)`, `can_manage_staff()`, and `can_publish_menu()` helpers are required before operational edit RPCs may be installed.
 - `can_edit_menu_content()` is introduced by the operational edit RPC phase; it is not a precondition of the `staff_users` migration.
 - `publish-menu-changes` is the only approved Supabase Edge Function. It may publish build-time operational changes by validating Supabase Auth, checking `can_publish_menu()`, reserving/completing publish requests through private helpers, logging privately in `app_private`, and calling the Vercel Deploy Hook from Supabase Function secrets.
