@@ -1,9 +1,10 @@
 type StaffRole = "availability_editor" | "menu_editor" | "admin";
 type ServiceKind = "daily-menu" | "grill";
 type TargetKind = "daily-menu" | "grill" | "catalog";
-type AdminTabId = "availability" | "daily" | "grill" | "prices" | "publish";
+type AdminTabId = "availability" | "daily" | "grill" | "fixed" | "prices" | "publish";
 type StatusTone = "neutral" | "success" | "danger";
 type AvailabilityScope = "availability" | "daily" | "grill";
+type CatalogContentKind = "items" | "groups";
 
 interface AuthSession {
   accessToken: string;
@@ -85,6 +86,44 @@ interface VariantPriceState {
   order_index: number;
 }
 
+interface CatalogSectionState {
+  section_id: string;
+  title: string;
+  content_kind: CatalogContentKind;
+  order_index: number;
+  item_count: number;
+}
+
+interface CatalogGroupState {
+  section_id: string;
+  group_id: string;
+  title: string;
+  pricing_key: string | null;
+  order_index: number;
+  item_count: number;
+}
+
+interface CatalogItemState {
+  section_id: string;
+  section_title: string;
+  group_id: string;
+  group_title: string | null;
+  item_id: string;
+  name: string;
+  description: string | null;
+  note: string | null;
+  pricing_key: string | null;
+  price_amount: number | null;
+  order_index: number;
+  option_count: number;
+}
+
+interface CatalogEditorState {
+  sections: CatalogSectionState[];
+  groups: CatalogGroupState[];
+  items: CatalogItemState[];
+}
+
 interface AdminOperationalState {
   ok: boolean;
   message: string;
@@ -99,6 +138,7 @@ interface AdminOperationalState {
     fixed: FixedPriceState[];
     variants: VariantPriceState[];
   };
+  catalog_editor: CatalogEditorState;
 }
 
 interface RpcResult {
@@ -154,6 +194,8 @@ let grillProfileFilter = "";
 let availabilityGroupFilter = "";
 let dailyGroupFilter = "";
 let grillGroupFilter = "";
+let fixedSectionFilter = "";
+let fixedGroupFilter = "";
 
 if (!rootElement) {
   throw new Error("Admin root element was not found.");
@@ -214,6 +256,15 @@ root.addEventListener("change", (event) => {
 
   if (field.dataset.adminFilter === "grill-group") {
     grillGroupFilter = field.value;
+  }
+
+  if (field.dataset.adminFilter === "fixed-section") {
+    fixedSectionFilter = field.value;
+    fixedGroupFilter = "";
+  }
+
+  if (field.dataset.adminFilter === "fixed-group") {
+    fixedGroupFilter = field.value;
   }
 
   renderAuthenticated();
@@ -295,6 +346,25 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
+  if (action === "delete-catalog-item") {
+    const sectionId = target.dataset.sectionId;
+    const groupId = target.dataset.groupId ?? "";
+    const itemId = target.dataset.itemId;
+    const item = sectionId && itemId ? findCatalogItem(sectionId, groupId, itemId) : undefined;
+
+    if (!item) {
+      setStatus("No se encontro el item seleccionado.", "danger");
+      return;
+    }
+
+    if (!confirmDeleteCatalogItem(item)) {
+      return;
+    }
+
+    await deleteCatalogItem(item);
+    return;
+  }
+
   if (action === "publish") {
     if (!confirmPublishChanges()) {
       return;
@@ -338,6 +408,11 @@ async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
 
   if (formKind === "variant-price") {
     await saveVariantPrice(form);
+    return;
+  }
+
+  if (formKind === "catalog-item") {
+    await saveCatalogItem(form);
   }
 }
 
@@ -533,6 +608,51 @@ async function saveVariantPrice(form: HTMLFormElement): Promise<void> {
       "success",
     );
   }, "Guardando variante...");
+}
+
+async function saveCatalogItem(form: HTMLFormElement): Promise<void> {
+  await runBusy(async () => {
+    const amountValue = getNullableFormString(form, "amount");
+    const result = await callMutation("add_catalog_item", {
+      section_id: getFormString(form, "section_id"),
+      group_id: getFormString(form, "group_id"),
+      item_id: getFormString(form, "item_id"),
+      name: getFormString(form, "name"),
+      description: getNullableFormString(form, "description"),
+      note: getNullableFormString(form, "note"),
+      amount: amountValue ? getFormInteger(form, "amount") : null,
+    });
+
+    if (!result.ok) {
+      throw new Error(resultMessage(result));
+    }
+
+    markPendingIfNeeded(result);
+    await loadAdminState(
+      result.changed ? "Item agregado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
+      "success",
+    );
+  }, "Agregando item...");
+}
+
+async function deleteCatalogItem(item: CatalogItemState): Promise<void> {
+  await runBusy(async () => {
+    const result = await callMutation("delete_catalog_item", {
+      section_id: item.section_id,
+      group_id: item.group_id,
+      item_id: item.item_id,
+    });
+
+    if (!result.ok) {
+      throw new Error(resultMessage(result));
+    }
+
+    markPendingIfNeeded(result);
+    await loadAdminState(
+      result.changed ? "Item eliminado. Para quitarlo del menu publico, publica los cambios." : "Sin cambios.",
+      "success",
+    );
+  }, "Eliminando item...");
 }
 
 async function publishChanges(): Promise<void> {
@@ -775,6 +895,10 @@ function renderActiveTab(state: AdminOperationalState): string {
     return renderGrillTab(state);
   }
 
+  if (activeTab === "fixed") {
+    return renderFixedMenuTab(state);
+  }
+
   if (activeTab === "prices") {
     return renderPricesTab(state);
   }
@@ -852,6 +976,71 @@ function renderGrillTab(state: AdminOperationalState): string {
   `;
 }
 
+function renderFixedMenuTab(state: AdminOperationalState): string {
+  const editor = state.catalog_editor;
+  const section = getEffectiveFixedSection(editor);
+
+  if (!state.permissions.can_edit_menu_content) {
+    return `
+      <section class="admin-section">
+        <div class="admin-section__header">
+          <h2 class="admin-section__title">Menu fijo</h2>
+          <p class="admin-section__copy">No hay acciones de menu fijo disponibles para este rol.</p>
+        </div>
+      </section>
+    `;
+  }
+
+  if (!section) {
+    return `
+      <section class="admin-section">
+        <div class="admin-section__header">
+          <h2 class="admin-section__title">Menu fijo</h2>
+          <p class="admin-section__copy">Agrega o elimina items dentro de secciones existentes. Las secciones, grupos y orden no se editan desde esta pantalla.</p>
+        </div>
+        ${renderEmpty("No hay secciones de catalogo disponibles.")}
+      </section>
+    `;
+  }
+
+  const groups = getFixedSectionGroups(editor, section.section_id);
+  const group = section.content_kind === "groups" ? getEffectiveFixedGroup(editor, section.section_id) : undefined;
+  const items = getFixedLocationItems(editor, section, group);
+
+  return `
+    <section class="admin-section admin-fixed">
+      <div class="admin-section__header">
+        <h2 class="admin-section__title">Menu fijo</h2>
+        <p class="admin-section__copy">Agrega o elimina items puntuales dentro de una seccion existente. Guardar necesita publicacion para verse en el menu publico.</p>
+      </div>
+      <div class="admin-toolbar admin-fixed-toolbar">
+        <label class="admin-field">
+          <span class="admin-label">Seccion</span>
+          <select class="admin-select" data-admin-filter="fixed-section">
+            ${editor.sections
+              .map((entry) => `<option value="${escapeHtml(entry.section_id)}" ${entry.section_id === section.section_id ? "selected" : ""}>${escapeHtml(entry.title)}</option>`)
+              .join("")}
+          </select>
+        </label>
+        ${section.content_kind === "groups" ? `
+          <label class="admin-field">
+            <span class="admin-label">Grupo</span>
+            <select class="admin-select" data-admin-filter="fixed-group">
+              ${groups
+                .map((entry) => `<option value="${escapeHtml(entry.group_id)}" ${entry.group_id === group?.group_id ? "selected" : ""}>${escapeHtml(entry.title)}</option>`)
+                .join("")}
+            </select>
+          </label>
+        ` : ""}
+      </div>
+      ${section.content_kind === "groups" && !group
+        ? renderEmpty("La seccion seleccionada no tiene grupos para agregar items.")
+        : renderCatalogItemForm(section, group)}
+      ${renderCatalogItemList(items)}
+    </section>
+  `;
+}
+
 function renderPricesTab(state: AdminOperationalState): string {
   const fixedRows = state.prices.fixed;
   const variantRows = state.prices.variants;
@@ -881,7 +1070,7 @@ function renderPublishTab(state: AdminOperationalState): string {
     <section class="admin-section">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Publicacion</h2>
-        <p class="admin-section__copy">Publicar envia al menu publico los cambios guardados de platos, servicio activo y precios. Puede tardar unos minutos.</p>
+        <p class="admin-section__copy">Publicar envia al menu publico los cambios guardados de platos, menu fijo, servicio activo y precios. Puede tardar unos minutos.</p>
       </div>
       <div class="admin-row">
         <div class="admin-row__main">
@@ -1599,6 +1788,106 @@ function renderDailyFieldset(
   `;
 }
 
+function renderCatalogItemForm(
+  section: CatalogSectionState,
+  group: CatalogGroupState | undefined,
+): string {
+  const requiresPrice = section.content_kind === "items" || !group?.pricing_key;
+  const locationTitle = group ? `${section.title} / ${group.title}` : section.title;
+
+  return `
+    <form class="admin-card admin-fixed-form" data-admin-form="catalog-item">
+      <div class="admin-fixed-form__header">
+        <h3 class="admin-card__legend">Agregar item</h3>
+        <p class="admin-row__meta">Se agrega al final de ${escapeHtml(locationTitle)}. No cambia secciones, grupos ni orden existente.</p>
+      </div>
+      <input type="hidden" name="section_id" value="${escapeHtml(section.section_id)}" />
+      <input type="hidden" name="group_id" value="${escapeHtml(group?.group_id ?? "")}" />
+      <label class="admin-field">
+        <span class="admin-label">ID tecnico</span>
+        <input class="admin-input" name="item_id" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="ejemplo-item" required />
+      </label>
+      <label class="admin-field">
+        <span class="admin-label">Nombre visible</span>
+        <input class="admin-input" name="name" required />
+      </label>
+      ${requiresPrice ? `
+        <label class="admin-field">
+          <span class="admin-label">Precio</span>
+          <input class="admin-input" type="number" name="amount" min="0" step="1" inputmode="numeric" required />
+        </label>
+      ` : `
+        <div class="admin-fixed-form__note">
+          <span class="admin-label">Precio</span>
+          <p>Hereda el precio del grupo.</p>
+        </div>
+      `}
+      <label class="admin-field admin-field--wide">
+        <span class="admin-label">Descripcion</span>
+        <textarea class="admin-textarea" name="description"></textarea>
+      </label>
+      <label class="admin-field admin-field--wide">
+        <span class="admin-label">Nota</span>
+        <textarea class="admin-textarea" name="note"></textarea>
+      </label>
+      <div class="admin-row__actions admin-fixed-form__actions">
+        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Agregar item</button>
+      </div>
+    </form>
+  `;
+}
+
+function renderCatalogItemList(items: CatalogItemState[]): string {
+  if (items.length === 0) {
+    return renderEmpty("No hay items en esta ubicacion.");
+  }
+
+  return `
+    <div class="admin-list-header">
+      <span>${items.length} items</span>
+      <span>No se puede eliminar el ultimo item de una seccion o grupo.</span>
+    </div>
+    <div class="admin-grid">
+      ${items.map((item) => renderCatalogItemRow(item, items.length > 1)).join("")}
+    </div>
+  `;
+}
+
+function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean): string {
+  const priceText = formatCatalogItemPrice(item);
+  const optionText = item.option_count > 0
+    ? `${item.option_count} opciones asociadas`
+    : "Sin opciones";
+
+  return `
+    <div class="admin-row admin-fixed-row">
+      <div class="admin-row__main">
+        <p class="admin-row__title">${escapeHtml(item.name)}</p>
+        <div class="admin-price-tags">
+          <span class="admin-price-tag">${escapeHtml(item.item_id)}</span>
+          <span class="admin-price-tag">${escapeHtml(priceText)}</span>
+          <span class="admin-price-tag">${escapeHtml(optionText)}</span>
+        </div>
+        ${item.description ? `<p class="admin-row__meta">${escapeHtml(item.description)}</p>` : ""}
+        ${item.note ? `<p class="admin-row__meta">${escapeHtml(item.note)}</p>` : ""}
+      </div>
+      <div class="admin-row__actions">
+        <button
+          class="admin-button admin-button--danger"
+          type="button"
+          data-admin-action="delete-catalog-item"
+          data-section-id="${escapeHtml(item.section_id)}"
+          data-group-id="${escapeHtml(item.group_id)}"
+          data-item-id="${escapeHtml(item.item_id)}"
+          ${isBusy || !canDelete ? "disabled" : ""}
+        >
+          Eliminar
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function renderFixedPriceRow(price: FixedPriceState): string {
   const label = formatPricingLabel(price.pricing_key, "Precio fijo");
 
@@ -1668,6 +1957,10 @@ function getAllowedTabs(state: AdminOperationalState): Array<{ id: AdminTabId; l
     tabs.push({ id: "grill", label: "Parrilla" });
   }
 
+  if (state.permissions.can_edit_menu_content) {
+    tabs.push({ id: "fixed", label: "Menu fijo" });
+  }
+
   if (state.permissions.can_edit_availability) {
     tabs.push({ id: "availability", label: "Disponibilidad" });
   }
@@ -1718,6 +2011,56 @@ function findAvailabilityTarget(key: string): AvailabilityTargetState | undefine
   return currentState?.availability_targets.find((target) => getTargetKey(target) === key);
 }
 
+function findCatalogItem(
+  sectionId: string,
+  groupId: string,
+  itemId: string,
+): CatalogItemState | undefined {
+  return currentState?.catalog_editor.items.find((item) =>
+    item.section_id === sectionId
+    && item.group_id === groupId
+    && item.item_id === itemId
+  );
+}
+
+function getEffectiveFixedSection(editor: CatalogEditorState): CatalogSectionState | undefined {
+  return editor.sections.find((section) => section.section_id === fixedSectionFilter)
+    ?? editor.sections[0];
+}
+
+function getFixedSectionGroups(
+  editor: CatalogEditorState,
+  sectionId: string,
+): CatalogGroupState[] {
+  return editor.groups.filter((group) => group.section_id === sectionId);
+}
+
+function getEffectiveFixedGroup(
+  editor: CatalogEditorState,
+  sectionId: string,
+): CatalogGroupState | undefined {
+  const groups = getFixedSectionGroups(editor, sectionId);
+
+  return groups.find((group) => group.group_id === fixedGroupFilter) ?? groups[0];
+}
+
+function getFixedLocationItems(
+  editor: CatalogEditorState,
+  section: CatalogSectionState,
+  group: CatalogGroupState | undefined,
+): CatalogItemState[] {
+  const groupId = section.content_kind === "groups" ? group?.group_id : "";
+
+  if (groupId === undefined) {
+    return [];
+  }
+
+  return editor.items.filter((item) =>
+    item.section_id === section.section_id
+    && item.group_id === groupId
+  );
+}
+
 function getTargetKey(target: {
   menu_id: string;
   section_id: string;
@@ -1744,7 +2087,17 @@ function markPendingIfNeeded(result: RpcResult): void {
 
 function confirmPublishChanges(): boolean {
   return window.confirm(
-    "Vas a publicar los cambios guardados de platos, servicio activo y precios. La disponibilidad ya se aplica al instante. Continuar?",
+    "Vas a publicar los cambios guardados de platos, menu fijo, servicio activo y precios. La disponibilidad ya se aplica al instante. Continuar?",
+  );
+}
+
+function confirmDeleteCatalogItem(item: CatalogItemState): boolean {
+  const optionText = item.option_count > 0
+    ? ` Tambien se eliminan sus ${item.option_count} opciones.`
+    : "";
+
+  return window.confirm(
+    `Vas a eliminar "${item.name}" del menu fijo.${optionText} El menu publico cambia despues de publicar. Continuar?`,
   );
 }
 
@@ -1830,6 +2183,44 @@ function normalizeAdminState(state: AdminOperationalState): AdminOperationalStat
       fixed: Array.isArray(state.prices?.fixed) ? state.prices.fixed : [],
       variants: Array.isArray(state.prices?.variants) ? state.prices.variants : [],
     },
+    catalog_editor: {
+      sections: Array.isArray(state.catalog_editor?.sections)
+        ? state.catalog_editor.sections.map(normalizeCatalogSection)
+        : [],
+      groups: Array.isArray(state.catalog_editor?.groups)
+        ? state.catalog_editor.groups.map(normalizeCatalogGroup)
+        : [],
+      items: Array.isArray(state.catalog_editor?.items)
+        ? state.catalog_editor.items.map(normalizeCatalogItem)
+        : [],
+    },
+  };
+}
+
+function normalizeCatalogSection(section: CatalogSectionState): CatalogSectionState {
+  return {
+    ...section,
+    item_count: normalizeNonnegativeInteger(section.item_count),
+  };
+}
+
+function normalizeCatalogGroup(group: CatalogGroupState): CatalogGroupState {
+  return {
+    ...group,
+    item_count: normalizeNonnegativeInteger(group.item_count),
+  };
+}
+
+function normalizeCatalogItem(item: CatalogItemState): CatalogItemState {
+  const priceAmount = (item as { price_amount?: unknown }).price_amount;
+
+  return {
+    ...item,
+    price_amount:
+      typeof priceAmount === "number" && Number.isSafeInteger(priceAmount) && priceAmount >= 0
+        ? priceAmount
+        : null,
+    option_count: normalizeNonnegativeInteger(item.option_count),
   };
 }
 
@@ -1843,6 +2234,10 @@ function normalizeAvailabilityTarget(target: AvailabilityTargetState): Availabil
         ? priceAmount
         : null,
   };
+}
+
+function normalizeNonnegativeInteger(value: unknown): number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : 0;
 }
 
 function groupGrillTargets(targets: AvailabilityTargetState[]): GrillProfileGroup[] {
@@ -1898,6 +2293,17 @@ function resultMessage(result: RpcResult): string {
     daily_menu_name_required: "El nombre del menu es obligatorio.",
     daily_menu_available_required: "La disponibilidad del menu es obligatoria.",
     invalid_service_kind: "El servicio seleccionado no es valido.",
+    catalog_item_id_required: "El ID tecnico del item es obligatorio.",
+    invalid_catalog_item_id: "El ID tecnico debe usar minusculas, numeros y guiones.",
+    catalog_item_name_required: "El nombre del item es obligatorio.",
+    catalog_section_not_found: "La seccion seleccionada no existe.",
+    invalid_catalog_group: "La seccion seleccionada no acepta grupo.",
+    catalog_group_required: "Selecciona un grupo existente.",
+    catalog_group_not_found: "El grupo seleccionado no existe.",
+    catalog_item_exists: "Ya existe un item con ese ID en esta ubicacion.",
+    catalog_price_key_conflict: "Ya existe un precio incompatible para ese ID.",
+    catalog_item_not_found: "El item seleccionado ya no existe.",
+    catalog_location_must_keep_item: "No se puede eliminar el ultimo item de una seccion o grupo.",
   };
 
   return messages[result.message] ?? result.message.replaceAll("_", " ");
@@ -2091,6 +2497,14 @@ function formatOptionalAmount(amount: number | null): string {
   return typeof amount === "number" && Number.isSafeInteger(amount) && amount >= 0
     ? formatAmount(amount)
     : "";
+}
+
+function formatCatalogItemPrice(item: CatalogItemState): string {
+  if (typeof item.price_amount === "number" && Number.isSafeInteger(item.price_amount) && item.price_amount >= 0) {
+    return formatAmount(item.price_amount);
+  }
+
+  return item.pricing_key ? "Precio configurado" : "Precio heredado";
 }
 
 function formatPricingLabel(value: string, fallbackTag: string): PricingLabel {

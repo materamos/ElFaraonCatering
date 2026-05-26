@@ -233,6 +233,7 @@ flowchart LR
 - Las columnas build-time `available` no representan faltantes operativos; se conservan siempre `true` por compatibilidad.
 - `menu_daily_items` modela dos opciones planas: comun y vegetariano.
 - `/admin/` puede editar datos operativos build-time, pero esos cambios requieren rebuild/deploy para impactar el menu publico.
+- La edicion de menu fijo desde `/admin/` esta limitada a altas y bajas de items puntuales dentro de secciones o grupos existentes.
 - `public.menu_availability_overlays` es el unico dato editable en runtime sin rebuild.
 - La ausencia de overlay equivale a disponible; marcar disponible en admin debe limpiar el overlay.
 - Los items con opciones exponen target padre y targets de opcion; las opciones usan IDs compuestos `item-id-option-id` como `item_id` del overlay.

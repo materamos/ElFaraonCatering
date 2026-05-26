@@ -686,6 +686,46 @@
     line-height: 1.35;
   }
 
+  .admin-fixed {
+    gap: 1.15rem;
+  }
+
+  .admin-fixed-toolbar {
+    align-items: center;
+  }
+
+  .admin-fixed-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-fixed-form__header {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .admin-fixed-form__header .admin-card__legend {
+    padding-inline: 0;
+  }
+
+  .admin-fixed-form__note {
+    display: grid;
+    align-content: start;
+    gap: 0.35rem;
+    min-height: 2.75rem;
+    padding-block: 0.15rem;
+    color: #676257;
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .admin-fixed-form__actions {
+    justify-content: flex-start;
+  }
+
+  .admin-fixed-row {
+    background: #ffffff;
+  }
+
   .admin-price-field {
     display: grid;
     gap: 0.35rem;
@@ -776,6 +816,16 @@
   .admin-form-grid,
   .admin-price-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-fixed-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-fixed-form__header,
+  .admin-fixed-form .admin-field--wide,
+  .admin-fixed-form__actions {
+    grid-column: 1 / -1;
   }
 
   .admin-daily-submit {

@@ -18,7 +18,7 @@ La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuent
 - El overlay runtime de disponibilidad esta separado y se consume desde JavaScript cliente.
 - `public.staff_users` define empleados, roles y alcance operativo.
 - `/admin/` lee y escribe mediante RPCs Supabase controladas, sin grants directos sobre `menu_content`.
-- El admin activo queda limitado a disponibilidad, servicio del dia, parrilla, precios y publicacion.
+- El admin activo queda limitado a disponibilidad, servicio del dia, parrilla, menu fijo medido, precios y publicacion.
 
 ## Stack tecnico
 
@@ -254,7 +254,7 @@ RPCs y funciones relevantes:
 
 - `get_admin_operational_state()`: lectura controlada para `/admin/`.
 - `set_menu_availability_overlay(...)` y `clear_menu_availability_overlay(...)`: cambios runtime de disponibilidad.
-- `set_daily_menu(...)`, `set_profile_service_kind(...)`, `set_global_fixed_price(...)` y `set_global_price_variant(...)`: cambios build-time que requieren publicacion y no editan disponibilidad.
+- `set_daily_menu(...)`, `set_profile_service_kind(...)`, `add_catalog_item(...)`, `delete_catalog_item(...)`, `set_global_fixed_price(...)` y `set_global_price_variant(...)`: cambios build-time que requieren publicacion y no editan disponibilidad.
 - `can_edit_availability(text)`, `can_edit_menu_content()`, `can_manage_staff()` y `can_publish_menu()`: helpers de permisos.
 - `reserve_menu_publish_request(...)` y `complete_menu_publish_request(...)`: helpers privados usados por la Edge Function.
 
@@ -297,10 +297,11 @@ El admin permite:
 - editar disponibilidad
 - editar el menu del dia base
 - cambiar el servicio activo por local entre `daily-menu` y `grill`
+- agregar y eliminar items puntuales del menu fijo dentro de secciones o grupos existentes
 - editar precios fijos y variantes globales
 - solicitar publicacion mediante `publish-menu-changes`
 
-No existe administracion de empleados en la UI actual. No existe CMS editorial amplio.
+No existe administracion de empleados en la UI actual. No existe CMS editorial amplio. La edicion de menu fijo no permite crear, eliminar, renombrar ni reordenar secciones o grupos.
 
 ## Despliegue
 
