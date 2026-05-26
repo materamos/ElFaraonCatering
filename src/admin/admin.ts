@@ -1,10 +1,11 @@
 type StaffRole = "operator" | "admin";
 type ServiceKind = "daily-menu" | "grill";
 type TargetKind = "daily-menu" | "grill" | "catalog";
-type AdminTabId = "availability" | "daily" | "grill" | "fixed" | "prices" | "publish";
+type AdminTabId = "availability" | "daily" | "grill" | "fixed" | "prices" | "publish" | "account";
 type StatusTone = "neutral" | "success" | "danger";
 type AvailabilityScope = "availability" | "daily" | "grill";
 type CatalogContentKind = "items" | "groups";
+type AuthView = "login" | "reset-request" | "set-password";
 
 interface AuthSession {
   accessToken: string;
@@ -186,6 +187,7 @@ let currentState: AdminOperationalState | null = null;
 let currentStatus: StatusMessage | null = null;
 let currentBusyText: string | null = null;
 let activeTab: AdminTabId = "daily";
+let authView: AuthView = "login";
 let hasPendingPublication = false;
 let isBusy = false;
 let availabilityProfileFilter = "";
@@ -288,9 +290,20 @@ async function startAdmin(): Promise<void> {
     return;
   }
 
+  const passwordSession = readPasswordSessionFromLocation();
+
+  if (passwordSession) {
+    currentSession = passwordSession;
+    authView = "set-password";
+    currentStatus = { text: "Defini una nueva contrasena para activar tu acceso.", tone: "neutral" };
+    renderSetPassword();
+    return;
+  }
+
   currentSession = await getValidSession();
 
   if (!currentSession) {
+    authView = "login";
     renderLogin();
     return;
   }
@@ -300,6 +313,20 @@ async function startAdmin(): Promise<void> {
 
 async function handleAction(target: HTMLElement): Promise<void> {
   const action = target.dataset.adminAction;
+
+  if (action === "show-reset-request") {
+    authView = "reset-request";
+    currentStatus = null;
+    renderPasswordResetRequest();
+    return;
+  }
+
+  if (action === "show-login") {
+    authView = "login";
+    currentStatus = null;
+    renderLogin();
+    return;
+  }
 
   if (action === "logout") {
     await logout();
@@ -392,7 +419,18 @@ async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
     return;
   }
 
+  if (formKind === "password-reset-request") {
+    await requestPasswordReset(form);
+    return;
+  }
+
+  if (formKind === "set-password") {
+    await setPassword(form);
+    return;
+  }
+
   if (!currentSession) {
+    authView = "login";
     renderLogin();
     return;
   }
@@ -423,6 +461,11 @@ async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
 
   if (formKind === "catalog-item") {
     await saveCatalogItem(form);
+    return;
+  }
+
+  if (formKind === "change-password") {
+    await changePassword(form);
   }
 }
 
@@ -454,9 +497,105 @@ async function login(form: HTMLFormElement): Promise<void> {
     }
 
     currentSession = createSession(body);
+    authView = "login";
     saveStoredSession(currentSession);
     await loadAdminState("Sesion iniciada.", "success");
   }, "Iniciando sesion...");
+}
+
+async function requestPasswordReset(form: HTMLFormElement): Promise<void> {
+  const email = getFormString(form, "email");
+
+  if (!email) {
+    setStatus("Ingresa tu email.", "danger");
+    return;
+  }
+
+  await runBusy(async () => {
+    const resetUrl = new URL(`${configuredSupabaseUrl}/auth/v1/recover`);
+    resetUrl.searchParams.set("redirect_to", getPasswordRedirectUrl());
+
+    const response = await fetch(resetUrl.toString(), {
+      method: "POST",
+      headers: {
+        apikey: configuredSupabaseAnonKey,
+        "Content-Type": "application/json",
+      },
+      credentials: "omit",
+      body: JSON.stringify({ email }),
+    });
+
+    const body = await readJsonBody(response);
+
+    if (!response.ok) {
+      throw new Error(readErrorMessage(body));
+    }
+
+    currentStatus = {
+      text: "Te enviamos un link para definir una nueva contrasena. Revisa tu email.",
+      tone: "success",
+    };
+    authView = "login";
+    renderLogin();
+  }, "Enviando link...");
+}
+
+async function setPassword(form: HTMLFormElement): Promise<void> {
+  const session = currentSession;
+
+  if (!session) {
+    authView = "login";
+    renderLogin();
+    return;
+  }
+
+  const password = getFormString(form, "password");
+  const passwordConfirmation = getFormString(form, "password_confirmation");
+
+  if (!isValidNewPassword(password, passwordConfirmation)) {
+    return;
+  }
+
+  await runBusy(async () => {
+    await updatePassword(session, password);
+    saveStoredSession(session);
+    authView = "login";
+    await loadAdminState("Contrasena actualizada.", "success");
+  }, "Actualizando contrasena...");
+}
+
+async function changePassword(form: HTMLFormElement): Promise<void> {
+  const session = await requireSession();
+  const password = getFormString(form, "password");
+  const passwordConfirmation = getFormString(form, "password_confirmation");
+
+  if (!isValidNewPassword(password, passwordConfirmation)) {
+    return;
+  }
+
+  await runBusy(async () => {
+    await updatePassword(session, password);
+    await loadAdminState("Contrasena actualizada.", "success");
+  }, "Actualizando contrasena...");
+}
+
+async function updatePassword(session: AuthSession, password: string): Promise<void> {
+  const response = await fetch(`${configuredSupabaseUrl}/auth/v1/user`, {
+    method: "PUT",
+    headers: {
+      apikey: configuredSupabaseAnonKey,
+      Authorization: `Bearer ${session.accessToken}`,
+      "Content-Type": "application/json",
+    },
+    credentials: "omit",
+    body: JSON.stringify({ password }),
+  });
+
+  const body = await readJsonBody(response);
+
+  if (!response.ok) {
+    throw new Error(readErrorMessage(body));
+  }
 }
 
 async function logout(): Promise<void> {
@@ -465,6 +604,7 @@ async function logout(): Promise<void> {
   currentSession = null;
   currentState = null;
   hasPendingPublication = false;
+  authView = "login";
 
   if (session) {
     await fetch(`${configuredSupabaseUrl}/auth/v1/logout`, {
@@ -820,6 +960,51 @@ function renderLogin(): void {
           <input class="admin-input" type="password" name="password" autocomplete="current-password" required />
         </label>
         <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Iniciar sesion</button>
+        <button class="admin-link-button" type="button" data-admin-action="show-reset-request" ${isBusy ? "disabled" : ""}>Olvide mi contrasena</button>
+      </form>
+    </section>
+  `;
+}
+
+function renderPasswordResetRequest(): void {
+  root.innerHTML = `
+    <section class="admin-login" aria-busy="${isBusy ? "true" : "false"}">
+      <div>
+        <p class="admin-kicker">Panel operativo</p>
+        <h1 class="admin-title">Recuperar acceso</h1>
+        <p class="admin-muted">Te vamos a enviar un link para definir una nueva contrasena.</p>
+      </div>
+      ${renderStatus()}
+      <form class="admin-login__form" data-admin-form="password-reset-request">
+        <label class="admin-field">
+          <span class="admin-label">Email</span>
+          <input class="admin-input" type="email" name="email" autocomplete="email" required />
+        </label>
+        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Enviar link</button>
+        <button class="admin-link-button" type="button" data-admin-action="show-login" ${isBusy ? "disabled" : ""}>Volver al ingreso</button>
+      </form>
+    </section>
+  `;
+}
+
+function renderSetPassword(): void {
+  root.innerHTML = `
+    <section class="admin-login" aria-busy="${isBusy ? "true" : "false"}">
+      <div>
+        <p class="admin-kicker">Panel operativo</p>
+        <h1 class="admin-title">Nueva contrasena</h1>
+      </div>
+      ${renderStatus()}
+      <form class="admin-login__form" data-admin-form="set-password">
+        <label class="admin-field">
+          <span class="admin-label">Nueva contrasena</span>
+          <input class="admin-input" type="password" name="password" autocomplete="new-password" minlength="8" required />
+        </label>
+        <label class="admin-field">
+          <span class="admin-label">Confirmar contrasena</span>
+          <input class="admin-input" type="password" name="password_confirmation" autocomplete="new-password" minlength="8" required />
+        </label>
+        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar contrasena</button>
       </form>
     </section>
   `;
@@ -913,7 +1098,11 @@ function renderActiveTab(state: AdminOperationalState): string {
     return renderPricesTab(state);
   }
 
-  return renderPublishTab(state);
+  if (activeTab === "publish") {
+    return renderPublishTab(state);
+  }
+
+  return renderAccountTab();
 }
 
 function renderAvailabilityTab(state: AdminOperationalState): string {
@@ -1098,6 +1287,30 @@ function renderPublishTab(state: AdminOperationalState): string {
           <button class="admin-button admin-button--secondary" type="button" data-admin-action="reload" ${isBusy ? "disabled" : ""}>Actualizar estado</button>
         </div>
       </div>
+    </section>
+  `;
+}
+
+function renderAccountTab(): string {
+  return `
+    <section class="admin-section">
+      <div class="admin-section__header">
+        <h2 class="admin-section__title">Cuenta</h2>
+        <p class="admin-section__copy">Actualiza tu contrasena de acceso al panel.</p>
+      </div>
+      <form class="admin-form-grid" data-admin-form="change-password">
+        <label class="admin-field">
+          <span class="admin-label">Nueva contrasena</span>
+          <input class="admin-input" type="password" name="password" autocomplete="new-password" minlength="8" required />
+        </label>
+        <label class="admin-field">
+          <span class="admin-label">Confirmar contrasena</span>
+          <input class="admin-input" type="password" name="password_confirmation" autocomplete="new-password" minlength="8" required />
+        </label>
+        <div class="admin-row__actions">
+          <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar contrasena</button>
+        </div>
+      </form>
     </section>
   `;
 }
@@ -1997,6 +2210,8 @@ function getAllowedTabs(state: AdminOperationalState): Array<{ id: AdminTabId; l
     tabs.push({ id: "publish", label: "Publicacion" });
   }
 
+  tabs.push({ id: "account", label: "Cuenta" });
+
   return tabs;
 }
 
@@ -2180,23 +2395,13 @@ function confirmServiceChange(form: HTMLFormElement): boolean {
 
 function setStatus(text: string, tone: StatusTone): void {
   currentStatus = { text, tone };
-
-  if (currentSession && currentState) {
-    renderAuthenticated();
-  } else {
-    renderLogin();
-  }
+  renderCurrentView();
 }
 
 async function runBusy(action: () => Promise<void>, busyText = "Procesando..."): Promise<void> {
   isBusy = true;
   currentBusyText = busyText;
-
-  if (currentSession && currentState) {
-    renderAuthenticated();
-  } else {
-    renderLogin();
-  }
+  renderCurrentView();
 
   try {
     await action();
@@ -2206,12 +2411,7 @@ async function runBusy(action: () => Promise<void>, busyText = "Procesando..."):
   } finally {
     isBusy = false;
     currentBusyText = null;
-
-    if (currentSession && currentState) {
-      renderAuthenticated();
-    } else {
-      renderLogin();
-    }
+    renderCurrentView();
   }
 }
 
@@ -2222,12 +2422,79 @@ function handleUnexpectedError(error: unknown): void {
       ? toOperationalErrorMessage(error.message)
       : "Ocurrio un error inesperado.";
   currentStatus = { text: message, tone: "danger" };
+  renderCurrentView();
+}
 
+function renderCurrentView(): void {
   if (currentSession && currentState) {
     renderAuthenticated();
-  } else {
-    renderLogin();
+    return;
   }
+
+  if (authView === "reset-request") {
+    renderPasswordResetRequest();
+    return;
+  }
+
+  if (authView === "set-password") {
+    renderSetPassword();
+    return;
+  }
+
+  renderLogin();
+}
+
+function isValidNewPassword(password: string, passwordConfirmation: string): boolean {
+  if (!password || !passwordConfirmation) {
+    setStatus("Completa la nueva contrasena y su confirmacion.", "danger");
+    return false;
+  }
+
+  if (password.length < 8) {
+    setStatus("La contrasena debe tener al menos 8 caracteres.", "danger");
+    return false;
+  }
+
+  if (password !== passwordConfirmation) {
+    setStatus("Las contrasenas no coinciden.", "danger");
+    return false;
+  }
+
+  return true;
+}
+
+function getPasswordRedirectUrl(): string {
+  const url = new URL(window.location.href);
+  url.pathname = "/admin/";
+  url.search = "";
+  url.hash = "";
+  return url.toString();
+}
+
+function readPasswordSessionFromLocation(): AuthSession | null {
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const params = hashParams.has("access_token") ? hashParams : new URLSearchParams(window.location.search);
+  const type = params.get("type");
+
+  if (type !== "recovery" && type !== "invite") {
+    return null;
+  }
+
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+  const expiresIn = Number(params.get("expires_in") ?? "3600");
+
+  if (!accessToken || !refreshToken || !Number.isFinite(expiresIn)) {
+    return null;
+  }
+
+  window.history.replaceState({}, document.title, getPasswordRedirectUrl());
+
+  return {
+    accessToken,
+    refreshToken,
+    expiresAt: Date.now() + expiresIn * 1000,
+  };
 }
 
 function normalizeAdminState(state: AdminOperationalState): AdminOperationalState {
@@ -2447,8 +2714,16 @@ async function readJsonBody(response: Response): Promise<unknown> {
 }
 
 function readErrorMessage(body: unknown): string {
-  if (body && typeof body === "object" && "message" in body) {
-    const message = (body as { message?: unknown }).message;
+  if (body && typeof body === "object") {
+    const message = (body as {
+      error?: unknown;
+      error_description?: unknown;
+      message?: unknown;
+      msg?: unknown;
+    }).message
+      ?? (body as { msg?: unknown }).msg
+      ?? (body as { error_description?: unknown }).error_description
+      ?? (body as { error?: unknown }).error;
 
     if (typeof message === "string" && message.trim()) {
       return toOperationalErrorMessage(message);

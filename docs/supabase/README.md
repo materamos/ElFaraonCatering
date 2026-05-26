@@ -57,8 +57,14 @@ No implementar consultas runtime para menu del dia, precios, servicio activo, ca
 - `editor_profiles` no debe usarse para policies nuevas; queda solo como origen de migracion.
 - El primer `admin` debe crearse por SQL privilegiado o service role; no se bootstrapea desde browser RLS.
 - `/admin/` lee estado operativo mediante `get_admin_operational_state()` y escribe solo mediante RPCs operativas.
+- `/admin/` permite recuperar y cambiar contrasena con Supabase Auth; el redirect de recuperacion debe volver a `/admin/`.
 - La edicion de menu fijo solo puede agregar o eliminar items dentro de secciones o grupos existentes; no crea, elimina, renombra ni reordena secciones o grupos.
 - No hay grants client-facing sobre `menu_content` ni tablas de `app_private`.
+
+Redirects requeridos en Supabase Auth:
+
+- `https://elfaraoncatering.vercel.app/admin/`
+- `http://localhost:4321/admin/` para pruebas locales
 
 Las RPCs operativas devuelven `ok`, `changed`, `requires_redeploy`, `operation` y `message`. La publicacion puede devolver `cooldown_seconds_remaining`.
 
