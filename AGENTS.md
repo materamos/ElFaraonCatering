@@ -68,9 +68,11 @@ into customer accounts, broad editorial accounts, or public user features.
 CMS editable does not mean runtime editable. Except for availability, operational CMS
 changes require rebuild/deploy before they affect the public menu.
 
-Fixed-menu admin edits may add or delete individual catalog items only within
-existing sections or groups. Do not allow creating, deleting, renaming, or
-reordering catalog sections or groups from `/admin/`.
+Fixed-menu admin edits may add individual catalog items, update item name and
+description, or delete individual catalog items only within existing sections or
+groups. Do not allow fixed-menu edits to change prices, availability, technical
+IDs, order, or to create, delete, rename, or reorder catalog sections or groups
+from `/admin/`.
 
 Keep `/admin/` as a static Astro route. Do not add SSR, server output, API routes, Vercel Functions, service role usage in browser, or broad editorial CMS behavior.
 

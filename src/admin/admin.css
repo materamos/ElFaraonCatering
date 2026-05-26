@@ -306,6 +306,10 @@
     resize: vertical;
   }
 
+  .admin-textarea--compact {
+    min-height: 4.25rem;
+  }
+
   .admin-button {
     display: inline-flex;
     align-items: center;
@@ -756,6 +760,12 @@
 
   .admin-fixed-row {
     background: #ffffff;
+  }
+
+  .admin-fixed-edit-fields {
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 0.35rem;
   }
 
   .admin-fixed-delete-note {
