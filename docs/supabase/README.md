@@ -132,6 +132,26 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260526000000_add_fixed_menu_item_admin.sql` | Agrega estado y RPCs para alta/baja medida de items del menu fijo desde `/admin/`. |
 | `20260526001000_simplify_staff_roles.sql` | Simplifica roles de staff a `admin` y `operator`, sin alcance por perfil. |
 
+## Baseline pre-lanzamiento
+
+Mientras el admin operativo y la superficie Supabase sigan en cierre de desarrollo,
+mantener cambios estructurales como migraciones incrementales en `../../supabase/migrations/`.
+No consolidar el historial si todavia se esperan cambios en tablas, RPCs, roles,
+grants, RLS o contrato de la Edge Function.
+
+Antes del freeze de produccion, si el modelo actual ya esta estable, hacer un
+corte explicito:
+
+1. Crear un tag Git que preserve la historia completa de migraciones pre-lanzamiento.
+2. Auditar Supabase remoto con `audits/`, `npm run menu:validate` y las validaciones del repo.
+3. Reemplazar el historial pre-lanzamiento por una migracion baseline limpia que represente el modelo actual.
+4. Mantener de ahi en adelante solo migraciones nuevas post-baseline.
+5. Actualizar `schema.sql`, `schema-diagram.md`, este README y los audits para que describan el modelo vigente, no cada etapa historica.
+
+El objetivo del baseline es reducir ruido operativo para bases nuevas y cambios
+futuros. La historia previa debe quedar preservada por tag, no como la interfaz
+principal de mantenimiento diario.
+
 ## Orden recomendado
 
 Para una base existente:

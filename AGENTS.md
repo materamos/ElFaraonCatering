@@ -163,6 +163,8 @@ Build-time structural and operational content:
 - `docs/supabase/README.md` documents the local-first Supabase workflow, real migration order, and remote-application rules.
 - `docs/supabase/schema-diagram.md` documents the Mermaid ERD for `menu_content` and the runtime overlay.
 - `docs/supabase/` keeps documentation, audits, snapshots, and explanatory SQL; do not place real migrations there.
+- Until the production freeze, keep likely structural Supabase changes as incremental migrations. When the Supabase model is stable, create a Git tag that preserves the pre-launch migration history and consolidate a clean baseline migration for new databases.
+- Do not consolidate the Supabase migration history while table, RPC, role, grant, RLS, or Edge Function contracts are still expected to change.
 - Supabase CLI is installed as a dev dependency and should be run through npm scripts, for example `npm run supabase -- <args>`.
 - `npm run supabase:functions:deploy` may deploy only the approved `publish-menu-changes` Edge Function and must keep platform JWT verification disabled for that function.
 - `SUPABASE_DB_URL` is required for build-time structural reads and menu validation.

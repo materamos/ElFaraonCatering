@@ -285,6 +285,12 @@ Flujo local-first para cambios de base:
 4. Ejecutar `npm run menu:validate`, `npm run build`, `npm run verify:dist-secrets` y `npm run check`.
 5. Aplicar SQL mutante en Supabase remoto solo si los audits y validaciones pasan.
 
+Estrategia pre-lanzamiento:
+
+- Mientras puedan quedar cambios estructurales en tablas, RPCs, roles, grants, RLS o contrato de `publish-menu-changes`, seguir usando migraciones incrementales.
+- Antes del freeze de produccion, si el modelo Supabase ya esta estable, crear un tag que preserve la historia pre-lanzamiento y consolidar un baseline limpio para bases nuevas.
+- Despues del baseline, mantener solo migraciones nuevas post-baseline y actualizar los snapshots, audits y diagramas para reflejar el modelo vigente.
+
 ## Admin operativo
 
 `/admin/` es una ruta Astro estatica con cliente TypeScript. Usa Supabase Auth mediante `PUBLIC_SUPABASE_URL` y `PUBLIC_SUPABASE_ANON_KEY`.
