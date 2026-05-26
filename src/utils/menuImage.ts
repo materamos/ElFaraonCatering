@@ -46,16 +46,6 @@ export const getSafeMenuImagePath = (value?: string): string | undefined => {
   return isSafeMenuImagePath(trimmedValue) ? trimmedValue : undefined;
 };
 
-export const getMenuPhotoImagePath = (value?: string): string | undefined => {
-  const safeImagePath = getSafeMenuImagePath(value);
-
-  if (!safeImagePath || safeImagePath.startsWith(menuPlaceholderBasePath)) {
-    return undefined;
-  }
-
-  return safeImagePath;
-};
-
 export const isMenuPlaceholderImagePath = (value?: string): boolean => {
   const safeImagePath = getSafeMenuImagePath(value);
 
