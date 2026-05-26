@@ -190,6 +190,7 @@ Runtime overlay:
 - `public.editor_profiles` is legacy-only and must not back new policies.
 - The first `admin` staff row must be bootstrapped through privileged SQL or service role access, not browser RLS.
 - Public client variables are `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.
+- `/admin/` may use Supabase Auth password recovery and password updates for staff users; recovery redirects must return to `/admin/`.
 - The overlay may only change visual availability through availability data.
 - A missing overlay means available; marking an item available in admin should clear the overlay, not write an explicit `true` override.
 - Catalog items with options expose both the parent item target and each option target; each option uses a composed runtime target ID in the form `item-id-option-id`.

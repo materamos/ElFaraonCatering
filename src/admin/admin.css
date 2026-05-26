@@ -358,7 +358,27 @@
     border-color: #c99490;
   }
 
+  .admin-link-button {
+    justify-self: center;
+    min-height: 2.25rem;
+    padding: 0.25rem 0.5rem;
+    color: #31543f;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 750;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .admin-link-button:not(:disabled):hover {
+    color: #1f3027;
+  }
+
   .admin-button:focus-visible,
+  .admin-link-button:focus-visible,
   .admin-tab:focus-visible {
     outline: 3px solid rgb(38 57 46 / 0.22);
     outline-offset: 2px;
@@ -370,6 +390,11 @@
   }
 
   .admin-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .admin-link-button:disabled {
     cursor: not-allowed;
     opacity: 0.55;
   }
