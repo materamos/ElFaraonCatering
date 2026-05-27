@@ -1328,12 +1328,27 @@ returns table (
   operation text,
   message text
 )
-language sql
+language plpgsql
 security invoker
 set search_path = public, app_private, pg_temp
 as $$
+declare
+  target_section_id text := nullif(btrim(add_catalog_item.section_id), '');
+begin
+  if not public.can_edit_menu_content() then
+    return query select false, false, true, 'add_catalog_item', 'permission_denied';
+    return;
+  end if;
+
+  if target_section_id in ('minutas-tartas-omelettes', 'empanadas') then
+    return query select false, false, true, 'add_catalog_item', 'catalog_item_locked';
+    return;
+  end if;
+
+  return query
   select *
   from app_private.add_catalog_item($1, $2, $3, $4, $5, $6);
+end;
 $$;
 
 create or replace function public.delete_catalog_item(
@@ -1348,12 +1363,27 @@ returns table (
   operation text,
   message text
 )
-language sql
+language plpgsql
 security invoker
 set search_path = public, app_private, pg_temp
 as $$
+declare
+  target_section_id text := nullif(btrim(delete_catalog_item.section_id), '');
+begin
+  if not public.can_edit_menu_content() then
+    return query select false, false, true, 'delete_catalog_item', 'permission_denied';
+    return;
+  end if;
+
+  if target_section_id in ('minutas-tartas-omelettes', 'empanadas') then
+    return query select false, false, true, 'delete_catalog_item', 'catalog_item_locked';
+    return;
+  end if;
+
+  return query
   select *
   from app_private.delete_catalog_item($1, $2, $3);
+end;
 $$;
 
 create or replace function public.update_catalog_item(
@@ -1370,12 +1400,27 @@ returns table (
   operation text,
   message text
 )
-language sql
+language plpgsql
 security invoker
 set search_path = public, app_private, pg_temp
 as $$
+declare
+  target_section_id text := nullif(btrim(update_catalog_item.section_id), '');
+begin
+  if not public.can_edit_menu_content() then
+    return query select false, false, true, 'update_catalog_item', 'permission_denied';
+    return;
+  end if;
+
+  if target_section_id in ('minutas-tartas-omelettes', 'empanadas') then
+    return query select false, false, true, 'update_catalog_item', 'catalog_item_locked';
+    return;
+  end if;
+
+  return query
   select *
   from app_private.update_catalog_item($1, $2, $3, $4, $5);
+end;
 $$;
 
 create or replace function public.add_catalog_item_option(

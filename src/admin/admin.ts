@@ -5,6 +5,7 @@ type AdminTabId = "availability" | "daily" | "grill" | "fixed" | "prices" | "pub
 type StatusTone = "neutral" | "success" | "danger";
 type AvailabilityScope = "availability" | "daily" | "grill";
 type CatalogContentKind = "items" | "groups";
+type FixedMenuEditMode = "items" | "options-only";
 type AuthView = "login" | "reset-request" | "set-password";
 
 interface AuthSession {
@@ -184,6 +185,22 @@ const rootElement = document.querySelector<HTMLElement>("[data-admin-root]");
 const localStorageKey = "el-faraon-admin-session";
 const regularDailyId = "menu-del-dia";
 const vegetarianDailyId = "menu-vegetariano-del-dia";
+const fixedOptionsOnlySectionRules: ReadonlyArray<{
+  sectionId: string;
+  title: string;
+  itemIds: readonly string[];
+}> = [
+  {
+    sectionId: "minutas-tartas-omelettes",
+    title: "Tartas",
+    itemIds: ["tartas"],
+  },
+  {
+    sectionId: "empanadas",
+    title: "Empanadas",
+    itemIds: ["empanadas"],
+  },
+];
 
 const supabaseUrl = normalizeSupabaseProjectUrl(import.meta.env.PUBLIC_SUPABASE_URL);
 const supabaseAnonKey = getTrimmedValue(import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
@@ -1335,25 +1352,29 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
   const groups = getFixedSectionGroups(editor, section.section_id);
   const group = section.content_kind === "groups" ? getEffectiveFixedGroup(editor, section.section_id) : undefined;
   const items = getFixedLocationItems(editor, section, group);
+  const editMode = getFixedMenuEditMode(section);
+  const sectionCopy = editMode === "options-only"
+    ? "Administra solo sabores de esta subcategoria. No se pueden agregar, editar ni eliminar items desde esta pantalla."
+    : "Agrega, edita nombre/descripcion o elimina items puntuales del catalogo estable. Los cambios quedan guardados, pero el menu publico se actualiza despues de publicar.";
 
   return `
     <section class="admin-section admin-fixed">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Menu fijo</h2>
-        <p class="admin-section__copy">Agrega, edita nombre/descripcion o elimina items puntuales del catalogo estable. Los cambios quedan guardados, pero el menu publico se actualiza despues de publicar.</p>
+        <p class="admin-section__copy">${escapeHtml(sectionCopy)}</p>
       </div>
-      <div class="admin-row admin-callout admin-fixed-guide">
+      ${editMode === "items" ? `<div class="admin-row admin-callout admin-fixed-guide">
         <div class="admin-row__main">
           <p class="admin-row__title">Como usar esta pantalla</p>
           <p class="admin-row__meta">Elegi la ubicacion, completa el nombre visible y agrega el item. El codigo se propone automaticamente y solo sirve para evitar duplicados.</p>
         </div>
-      </div>
+      </div>` : ""}
       <div class="admin-toolbar admin-fixed-toolbar">
         <label class="admin-field">
           <span class="admin-label">Seccion</span>
           <select class="admin-select" data-admin-filter="fixed-section">
             ${editor.sections
-              .map((entry) => `<option value="${escapeHtml(entry.section_id)}" ${entry.section_id === section.section_id ? "selected" : ""}>${escapeHtml(entry.title)}</option>`)
+              .map((entry) => `<option value="${escapeHtml(entry.section_id)}" ${entry.section_id === section.section_id ? "selected" : ""}>${escapeHtml(getFixedSectionAdminTitle(entry))}</option>`)
               .join("")}
           </select>
         </label>
@@ -1368,10 +1389,12 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
           </label>
         ` : ""}
       </div>
-      ${section.content_kind === "groups" && !group
+      ${editMode === "options-only"
+        ? ""
+        : section.content_kind === "groups" && !group
         ? renderEmpty("La seccion seleccionada no tiene grupos disponibles para agregar items.")
         : renderCatalogItemForm(section, group)}
-      ${renderCatalogItemList(items)}
+      ${renderCatalogItemList(items, editMode)}
     </section>
   `;
 }
@@ -2192,23 +2215,25 @@ function renderCatalogItemForm(
   `;
 }
 
-function renderCatalogItemList(items: CatalogItemState[]): string {
+function renderCatalogItemList(items: CatalogItemState[], editMode: FixedMenuEditMode): string {
   if (items.length === 0) {
-    return renderEmpty("No hay items en esta ubicacion. Agrega el primero con el formulario de arriba.");
+    return renderEmpty(editMode === "options-only"
+      ? "No hay subcategorias con sabores editables en esta ubicacion."
+      : "No hay items en esta ubicacion. Agrega el primero con el formulario de arriba.");
   }
 
   return `
     <div class="admin-list-header">
-      <span>${items.length} items</span>
-      <span>Editar o eliminar requiere publicar cambios.</span>
+      <span>${items.length} ${editMode === "options-only" ? "subcategorias" : "items"}</span>
+      <span>${editMode === "options-only" ? "Agregar, editar o eliminar sabores requiere publicar cambios." : "Editar o eliminar requiere publicar cambios."}</span>
     </div>
     <div class="admin-grid">
-      ${items.map((item) => renderCatalogItemRow(item, items.length > 1)).join("")}
+      ${items.map((item) => renderCatalogItemRow(item, items.length > 1, editMode)).join("")}
     </div>
   `;
 }
 
-function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean): string {
+function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean, editMode: FixedMenuEditMode): string {
   const priceText = formatCatalogItemPrice(item);
   const optionText = item.option_count > 0
     ? `${item.option_count} opciones asociadas`
@@ -2225,7 +2250,7 @@ function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean): strin
           <span class="admin-price-tag">${escapeHtml(priceText)}</span>
           <span class="admin-price-tag">${escapeHtml(optionText)}</span>
         </div>
-        <form class="admin-fixed-edit-fields" data-admin-form="catalog-item-edit">
+        ${editMode === "items" ? `<form class="admin-fixed-edit-fields" data-admin-form="catalog-item-edit">
           <input type="hidden" name="section_id" value="${escapeHtml(item.section_id)}" />
           <input type="hidden" name="group_id" value="${escapeHtml(item.group_id)}" />
           <input type="hidden" name="item_id" value="${escapeHtml(item.item_id)}" />
@@ -2242,10 +2267,10 @@ function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean): strin
               Guardar
             </button>
           </div>
-        </form>
+        </form>` : ""}
         ${renderCatalogItemOptions(item)}
       </div>
-      <div class="admin-row__actions">
+      ${editMode === "items" ? `<div class="admin-row__actions">
         <button
           class="admin-button admin-button--danger"
           type="button"
@@ -2258,7 +2283,7 @@ function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean): strin
           Eliminar
         </button>
         <span class="admin-row__state-note admin-fixed-delete-note">${escapeHtml(deleteHelp)}</span>
-      </div>
+      </div>` : ""}
     </div>
   `;
 }
@@ -2489,6 +2514,18 @@ function getEffectiveFixedSection(editor: CatalogEditorState): CatalogSectionSta
     ?? editor.sections[0];
 }
 
+function getFixedOptionsOnlyRule(sectionId: string): (typeof fixedOptionsOnlySectionRules)[number] | undefined {
+  return fixedOptionsOnlySectionRules.find((rule) => rule.sectionId === sectionId);
+}
+
+function getFixedMenuEditMode(section: CatalogSectionState): FixedMenuEditMode {
+  return getFixedOptionsOnlyRule(section.section_id) ? "options-only" : "items";
+}
+
+function getFixedSectionAdminTitle(section: CatalogSectionState): string {
+  return getFixedOptionsOnlyRule(section.section_id)?.title ?? section.title;
+}
+
 function getFixedSectionGroups(
   editor: CatalogEditorState,
   sectionId: string,
@@ -2511,6 +2548,7 @@ function getFixedLocationItems(
   group: CatalogGroupState | undefined,
 ): CatalogItemState[] {
   const groupId = section.content_kind === "groups" ? group?.group_id : "";
+  const optionsOnlyRule = getFixedOptionsOnlyRule(section.section_id);
 
   if (groupId === undefined) {
     return [];
@@ -2519,6 +2557,7 @@ function getFixedLocationItems(
   return editor.items.filter((item) =>
     item.section_id === section.section_id
     && item.group_id === groupId
+    && (!optionsOnlyRule || optionsOnlyRule.itemIds.includes(item.item_id))
   );
 }
 
@@ -2901,6 +2940,7 @@ function resultMessage(result: RpcResult): string {
     catalog_option_must_keep_one: "La subcategoria debe conservar al menos un sabor.",
     catalog_price_key_conflict: "Ya existe un precio incompatible para ese codigo.",
     catalog_item_not_found: "El item seleccionado ya no existe.",
+    catalog_item_locked: "Esta seccion solo permite administrar sabores desde Menu fijo.",
     catalog_location_must_keep_item: "No se puede eliminar el ultimo item de una seccion o grupo.",
   };
 

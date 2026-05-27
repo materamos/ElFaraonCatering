@@ -73,8 +73,11 @@ CMS changes require rebuild/deploy before they affect the public menu.
 Fixed-menu admin edits may add individual catalog items, update item name and
 description, delete individual catalog items only within existing sections or
 groups, or add, update, and delete individual catalog item options for items
-that already use options. Option edits from `/admin/` must not leave an item
-with zero options. Do not allow fixed-menu edits to change prices,
+that already use options. The fixed-menu admin treats `minutas-tartas-omelettes`
+as `Tartas` and allows only `tartas` option edits there; it allows only
+`empanadas` option edits in `empanadas`. In those option-only locations, do not
+allow item add, update, or delete operations. Option edits from `/admin/` must
+not leave an item with zero options. Do not allow fixed-menu edits to change prices,
 availability, technical IDs, order, to reorder options, or to create, delete,
 rename, or reorder catalog sections or groups from `/admin/`.
 

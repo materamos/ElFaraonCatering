@@ -307,12 +307,13 @@ El admin permite:
 - cambiar el servicio activo por local entre `daily-menu` y `grill`
 - agregar, editar nombre/descripcion y eliminar items puntuales del menu fijo dentro de secciones o grupos existentes
 - agregar, editar nombre y eliminar opciones de items del menu fijo que ya usan sabores, como empanadas o tartas, sin permitir que una subcategoria quede sin sabores
+- en `Menu fijo`, la seccion operativa `minutas-tartas-omelettes` se muestra como `Tartas` y solo permite administrar sabores de `tartas`; `empanadas` tambien permite solo administrar sabores de `empanadas`
 - editar precios fijos y variantes globales
 - solicitar publicacion mediante `publish-menu-changes`
 
 El link de recuperacion de contrasena vuelve a `/admin/`, donde el cliente lee el token de Supabase Auth y permite definir una nueva contrasena. Supabase Auth debe permitir la URL de redirect de produccion `https://elfaraoncatering.vercel.app/admin/` y, para pruebas locales, `http://localhost:4321/admin/`.
 
-No existe administracion de empleados en la UI actual. No existe CMS editorial amplio. La edicion de menu fijo no permite crear, eliminar, renombrar ni reordenar secciones o grupos, ni reordenar opciones, ni editar disponibilidad desde esa superficie. Los precios se editan desde la superficie global de precios, no desde el editor de contenido del menu fijo.
+No existe administracion de empleados en la UI actual. No existe CMS editorial amplio. La edicion de menu fijo no permite crear, eliminar, renombrar ni reordenar secciones o grupos, ni reordenar opciones, ni editar disponibilidad desde esa superficie. En las ubicaciones de solo sabores (`Tartas` y `Empanadas`) tampoco permite agregar, editar ni eliminar items. Los precios se editan desde la superficie global de precios, no desde el editor de contenido del menu fijo.
 
 ## Despliegue
 
