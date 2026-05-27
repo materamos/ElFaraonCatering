@@ -768,6 +768,38 @@
     margin-top: 0.35rem;
   }
 
+  .admin-fixed-options {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.65rem;
+    padding: 0.7rem;
+    background: #fbfaf7;
+    border: 1px solid #e4ded4;
+    border-radius: 0.5rem;
+  }
+
+  .admin-fixed-options__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .admin-fixed-options__list {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .admin-fixed-option-row {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.65rem;
+    background: #ffffff;
+    border: 1px solid #e7e0d6;
+    border-radius: 0.45rem;
+  }
+
   .admin-fixed-delete-note {
     max-width: 14rem;
   }
@@ -877,6 +909,20 @@
   .admin-fixed-form .admin-field--wide,
   .admin-fixed-form__actions {
     grid-column: 1 / -1;
+  }
+
+  .admin-fixed-edit-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-fixed-edit-fields .admin-field--wide,
+  .admin-fixed-edit-actions {
+    grid-column: 1 / -1;
+  }
+
+  .admin-fixed-option-row {
+    grid-template-columns: minmax(10rem, 0.8fr) minmax(14rem, 1.2fr) auto;
+    align-items: end;
   }
 
   .admin-daily-submit {

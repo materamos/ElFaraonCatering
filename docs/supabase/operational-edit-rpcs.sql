@@ -916,6 +916,91 @@ begin
 end;
 $$;
 
+create or replace function app_private.update_catalog_item_option(
+  section_id text,
+  group_id text,
+  item_id text,
+  option_id text,
+  name text,
+  description text
+)
+returns table (
+  ok boolean,
+  changed boolean,
+  requires_redeploy boolean,
+  operation text,
+  message text
+)
+language plpgsql
+security definer
+set search_path = public, menu_content, pg_temp
+as $$
+declare
+  target_section_id text := nullif(btrim(update_catalog_item_option.section_id), '');
+  target_group_id text := coalesce(nullif(btrim(update_catalog_item_option.group_id), ''), '');
+  target_item_id text := nullif(btrim(update_catalog_item_option.item_id), '');
+  target_option_id text := nullif(btrim(update_catalog_item_option.option_id), '');
+  target_name text := nullif(btrim(update_catalog_item_option.name), '');
+  target_description text := nullif(btrim(update_catalog_item_option.description), '');
+  target_catalog_item_id bigint;
+  current_name text;
+  current_description text;
+begin
+  if not public.can_edit_menu_content() then
+    return query select false, false, true, 'update_catalog_item_option', 'permission_denied';
+    return;
+  end if;
+
+  if target_section_id is null or target_item_id is null or target_option_id is null then
+    return query select false, false, true, 'update_catalog_item_option', 'catalog_option_id_required';
+    return;
+  end if;
+
+  if target_name is null then
+    return query select false, false, true, 'update_catalog_item_option', 'catalog_option_name_required';
+    return;
+  end if;
+
+  select item.id
+  into target_catalog_item_id
+  from menu_content.menu_catalog_items item
+  where item.section_id = target_section_id
+    and item.group_id = target_group_id
+    and item.item_id = target_item_id;
+
+  if target_catalog_item_id is null then
+    return query select false, false, true, 'update_catalog_item_option', 'catalog_item_not_found';
+    return;
+  end if;
+
+  select option.name, option.description
+  into current_name, current_description
+  from menu_content.menu_catalog_item_options option
+  where option.catalog_item_id = target_catalog_item_id
+    and option.option_id = target_option_id;
+
+  if current_name is null then
+    return query select false, false, true, 'update_catalog_item_option', 'catalog_option_not_found';
+    return;
+  end if;
+
+  if current_name is not distinct from target_name
+    and current_description is not distinct from target_description then
+    return query select true, false, true, 'update_catalog_item_option', 'catalog_option_unchanged';
+    return;
+  end if;
+
+  update menu_content.menu_catalog_item_options option
+  set
+    name = target_name,
+    description = target_description
+  where option.catalog_item_id = target_catalog_item_id
+    and option.option_id = target_option_id;
+
+  return query select true, true, true, 'update_catalog_item_option', 'catalog_option_updated';
+end;
+$$;
+
 -- Public client-facing RPCs are security-invoker wrappers around app_private.
 create or replace function public.can_edit_menu_content()
 returns boolean
@@ -1132,6 +1217,29 @@ as $$
   from app_private.update_catalog_item($1, $2, $3, $4, $5);
 $$;
 
+create or replace function public.update_catalog_item_option(
+  section_id text,
+  group_id text,
+  item_id text,
+  option_id text,
+  name text,
+  description text
+)
+returns table (
+  ok boolean,
+  changed boolean,
+  requires_redeploy boolean,
+  operation text,
+  message text
+)
+language sql
+security invoker
+set search_path = public, app_private, pg_temp
+as $$
+  select *
+  from app_private.update_catalog_item_option($1, $2, $3, $4, $5, $6);
+$$;
+
 revoke all on public.menu_availability_overlays from anon, authenticated;
 grant select (
   menu_id,
@@ -1152,6 +1260,7 @@ revoke all on function public.set_global_price_variant(text, text, integer) from
 revoke all on function public.add_catalog_item(text, text, text, text, text, text, integer) from public, anon, authenticated;
 revoke all on function public.delete_catalog_item(text, text, text) from public, anon, authenticated;
 revoke all on function public.update_catalog_item(text, text, text, text, text) from public, anon, authenticated;
+revoke all on function public.update_catalog_item_option(text, text, text, text, text, text) from public, anon, authenticated;
 
 grant execute on function public.can_edit_menu_content() to authenticated;
 grant execute on function public.set_menu_availability_overlay(text, text, text, text, boolean) to authenticated;
@@ -1163,6 +1272,7 @@ grant execute on function public.set_global_price_variant(text, text, integer) t
 grant execute on function public.add_catalog_item(text, text, text, text, text, text, integer) to authenticated;
 grant execute on function public.delete_catalog_item(text, text, text) to authenticated;
 grant execute on function public.update_catalog_item(text, text, text, text, text) to authenticated;
+grant execute on function public.update_catalog_item_option(text, text, text, text, text, text) to authenticated;
 
 revoke all on function app_private.can_edit_menu_content() from public, anon, authenticated;
 revoke all on function app_private.menu_availability_target_exists(text, text, text, text) from public, anon, authenticated;
@@ -1175,6 +1285,7 @@ revoke all on function app_private.set_global_price_variant(text, text, integer)
 revoke all on function app_private.add_catalog_item(text, text, text, text, text, text, integer) from public, anon, authenticated;
 revoke all on function app_private.delete_catalog_item(text, text, text) from public, anon, authenticated;
 revoke all on function app_private.update_catalog_item(text, text, text, text, text) from public, anon, authenticated;
+revoke all on function app_private.update_catalog_item_option(text, text, text, text, text, text) from public, anon, authenticated;
 
 grant execute on function app_private.can_edit_menu_content() to authenticated;
 grant execute on function app_private.menu_availability_target_exists(text, text, text, text) to authenticated;
@@ -1187,6 +1298,7 @@ grant execute on function app_private.set_global_price_variant(text, text, integ
 grant execute on function app_private.add_catalog_item(text, text, text, text, text, text, integer) to authenticated;
 grant execute on function app_private.delete_catalog_item(text, text, text) to authenticated;
 grant execute on function app_private.update_catalog_item(text, text, text, text, text) to authenticated;
+grant execute on function app_private.update_catalog_item_option(text, text, text, text, text, text) to authenticated;
 
 drop policy if exists "Staff can insert menu availability overlays"
   on public.menu_availability_overlays;

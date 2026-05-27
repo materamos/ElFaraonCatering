@@ -58,7 +58,7 @@ No implementar consultas runtime para menu del dia, precios, servicio activo, ca
 - El primer `admin` debe crearse por SQL privilegiado o service role; no se bootstrapea desde browser RLS.
 - `/admin/` lee estado operativo mediante `get_admin_operational_state()` y escribe solo mediante RPCs operativas.
 - `/admin/` permite recuperar y cambiar contrasena con Supabase Auth; el redirect de recuperacion debe volver a `/admin/`.
-- La edicion de menu fijo solo puede agregar items, editar nombre/descripcion y eliminar items dentro de secciones o grupos existentes; no edita precios, disponibilidad, IDs tecnicos, orden, secciones ni grupos.
+- La edicion de menu fijo solo puede agregar items, editar nombre/descripcion y eliminar items dentro de secciones o grupos existentes, y editar nombre/descripcion de opciones existentes como sabores; no edita precios, disponibilidad, IDs tecnicos, orden, secciones, grupos ni altas/bajas de opciones.
 - No hay grants client-facing sobre `menu_content` ni tablas de `app_private`.
 
 Redirects requeridos en Supabase Auth:
@@ -136,6 +136,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260526002000_standardize_catalog_item_order.sql` | Reordena items puntuales del catalogo y alinea el estado del admin con el orden editorial. |
 | `20260526003000_refine_catalog_option_order.sql` | Reordena opciones puntuales del catalogo para agrupar sabores y variantes relacionadas. |
 | `20260526004000_add_catalog_item_update_admin.sql` | Agrega RPC medida para editar nombre y descripcion de items del menu fijo desde `/admin/`. |
+| `20260526005000_add_catalog_option_update_admin.sql` | Agrega estado y RPC medida para editar nombre y descripcion de opciones existentes del menu fijo desde `/admin/`. |
 
 ## Baseline pre-lanzamiento
 

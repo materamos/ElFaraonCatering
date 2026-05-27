@@ -117,6 +117,17 @@ interface CatalogItemState {
   price_amount: number | null;
   order_index: number;
   option_count: number;
+  options: CatalogItemOptionState[];
+}
+
+interface CatalogItemOptionState {
+  section_id: string;
+  group_id: string;
+  item_id: string;
+  option_id: string;
+  name: string;
+  description: string | null;
+  order_index: number;
 }
 
 interface CatalogEditorState {
@@ -466,6 +477,11 @@ async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
 
   if (formKind === "catalog-item-edit") {
     await saveCatalogItemEdit(form);
+    return;
+  }
+
+  if (formKind === "catalog-option-edit") {
+    await saveCatalogOptionEdit(form);
     return;
   }
 
@@ -830,6 +846,29 @@ async function saveCatalogItemEdit(form: HTMLFormElement): Promise<void> {
       "success",
     );
   }, "Guardando item...");
+}
+
+async function saveCatalogOptionEdit(form: HTMLFormElement): Promise<void> {
+  await runBusy(async () => {
+    const result = await callMutation("update_catalog_item_option", {
+      section_id: getFormString(form, "section_id"),
+      group_id: getFormString(form, "group_id"),
+      item_id: getFormString(form, "item_id"),
+      option_id: getFormString(form, "option_id"),
+      name: getFormString(form, "name"),
+      description: getNullableFormString(form, "description"),
+    });
+
+    if (!result.ok) {
+      throw new Error(resultMessage(result));
+    }
+
+    markPendingIfNeeded(result);
+    await loadAdminState(
+      result.changed ? "Opcion actualizada. Para verla en el menu publico, publica los cambios." : "Sin cambios.",
+      "success",
+    );
+  }, "Guardando opcion...");
 }
 
 async function publishChanges(): Promise<void> {
@@ -2124,14 +2163,14 @@ function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean): strin
     : "No se puede eliminar porque debe quedar al menos un item en esta ubicacion.";
 
   return `
-    <form class="admin-row admin-fixed-row" data-admin-form="catalog-item-edit">
+    <div class="admin-row admin-fixed-row">
       <div class="admin-row__main">
         <p class="admin-row__title">${escapeHtml(item.name)}</p>
         <div class="admin-price-tags">
           <span class="admin-price-tag">${escapeHtml(priceText)}</span>
           <span class="admin-price-tag">${escapeHtml(optionText)}</span>
         </div>
-        <div class="admin-fixed-edit-fields">
+        <form class="admin-fixed-edit-fields" data-admin-form="catalog-item-edit">
           <input type="hidden" name="section_id" value="${escapeHtml(item.section_id)}" />
           <input type="hidden" name="group_id" value="${escapeHtml(item.group_id)}" />
           <input type="hidden" name="item_id" value="${escapeHtml(item.item_id)}" />
@@ -2143,13 +2182,16 @@ function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean): strin
             <span class="admin-label">Descripcion</span>
             <textarea class="admin-textarea admin-textarea--compact" name="description">${escapeHtml(item.description ?? "")}</textarea>
           </label>
-        </div>
+          <div class="admin-row__actions admin-fixed-edit-actions">
+            <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>
+              Guardar
+            </button>
+          </div>
+        </form>
         ${item.note ? `<p class="admin-row__meta">${escapeHtml(item.note)}</p>` : ""}
+        ${renderCatalogItemOptions(item)}
       </div>
       <div class="admin-row__actions">
-        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>
-          Guardar
-        </button>
         <button
           class="admin-button admin-button--danger"
           type="button"
@@ -2162,6 +2204,46 @@ function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean): strin
           Eliminar
         </button>
         <span class="admin-row__state-note admin-fixed-delete-note">${escapeHtml(deleteHelp)}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderCatalogItemOptions(item: CatalogItemState): string {
+  if (item.options.length === 0) {
+    return "";
+  }
+
+  return `
+    <section class="admin-fixed-options">
+      <div class="admin-fixed-options__header">
+        <p class="admin-label">Opciones</p>
+        <span class="admin-row__state-note">${item.options.length} disponibles</span>
+      </div>
+      <div class="admin-fixed-options__list">
+        ${item.options.map(renderCatalogItemOptionRow).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderCatalogItemOptionRow(option: CatalogItemOptionState): string {
+  return `
+    <form class="admin-fixed-option-row" data-admin-form="catalog-option-edit">
+      <input type="hidden" name="section_id" value="${escapeHtml(option.section_id)}" />
+      <input type="hidden" name="group_id" value="${escapeHtml(option.group_id)}" />
+      <input type="hidden" name="item_id" value="${escapeHtml(option.item_id)}" />
+      <input type="hidden" name="option_id" value="${escapeHtml(option.option_id)}" />
+      <label class="admin-field">
+        <span class="admin-label">Nombre</span>
+        <input class="admin-input" name="name" value="${escapeHtml(option.name)}" required />
+      </label>
+      <label class="admin-field admin-field--wide">
+        <span class="admin-label">Descripcion</span>
+        <textarea class="admin-textarea admin-textarea--compact" name="description">${escapeHtml(option.description ?? "")}</textarea>
+      </label>
+      <div class="admin-row__actions">
+        <button class="admin-button admin-button--secondary" type="submit" ${isBusy ? "disabled" : ""}>Guardar opcion</button>
       </div>
     </form>
   `;
@@ -2591,6 +2673,14 @@ function normalizeCatalogItem(item: CatalogItemState): CatalogItemState {
         ? priceAmount
         : null,
     option_count: normalizeNonnegativeInteger(item.option_count),
+    options: Array.isArray(item.options) ? item.options.map(normalizeCatalogItemOption) : [],
+  };
+}
+
+function normalizeCatalogItemOption(option: CatalogItemOptionState): CatalogItemOptionState {
+  return {
+    ...option,
+    order_index: normalizeNonnegativeInteger(option.order_index),
   };
 }
 
@@ -2669,6 +2759,11 @@ function resultMessage(result: RpcResult): string {
     catalog_item_exists: "Ya existe un item con ese codigo en esta ubicacion.",
     catalog_item_unchanged: "Sin cambios.",
     catalog_item_updated: "Item actualizado.",
+    catalog_option_id_required: "El codigo de la opcion es obligatorio.",
+    catalog_option_name_required: "El nombre de la opcion es obligatorio.",
+    catalog_option_not_found: "La opcion seleccionada ya no existe.",
+    catalog_option_unchanged: "Sin cambios.",
+    catalog_option_updated: "Opcion actualizada.",
     catalog_price_key_conflict: "Ya existe un precio incompatible para ese codigo.",
     catalog_item_not_found: "El item seleccionado ya no existe.",
     catalog_location_must_keep_item: "No se puede eliminar el ultimo item de una seccion o grupo.",
