@@ -32,7 +32,6 @@ export interface MenuPricingVariant {
 export interface MenuOption {
   id: string;
   name: string;
-  description?: string;
   available: boolean;
 }
 

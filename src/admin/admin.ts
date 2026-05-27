@@ -124,7 +124,6 @@ interface CatalogItemOptionState {
   item_id: string;
   option_id: string;
   name: string;
-  description: string | null;
   order_index: number;
 }
 
@@ -851,7 +850,6 @@ async function saveCatalogOptionEdit(form: HTMLFormElement): Promise<void> {
       item_id: getFormString(form, "item_id"),
       option_id: getFormString(form, "option_id"),
       name: getFormString(form, "name"),
-      description: getNullableFormString(form, "description"),
     });
 
     if (!result.ok) {
@@ -2222,10 +2220,6 @@ function renderCatalogItemOptionRow(option: CatalogItemOptionState): string {
       <label class="admin-field">
         <span class="admin-label">Nombre</span>
         <input class="admin-input" name="name" value="${escapeHtml(option.name)}" required />
-      </label>
-      <label class="admin-field admin-field--wide">
-        <span class="admin-label">Descripcion</span>
-        <textarea class="admin-textarea admin-textarea--compact" name="description">${escapeHtml(option.description ?? "")}</textarea>
       </label>
       <div class="admin-row__actions">
         <button class="admin-button admin-button--secondary" type="submit" ${isBusy ? "disabled" : ""}>Guardar opcion</button>

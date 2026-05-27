@@ -136,7 +136,6 @@ erDiagram
     bigint catalog_item_id PK,FK
     text option_id PK
     text name
-    text description
     bool available
     int order_index
   }
@@ -153,7 +152,6 @@ erDiagram
     text item_id
     text name
     text variant_name
-    text description
     text image_path
     bool available
     text pricing_key FK

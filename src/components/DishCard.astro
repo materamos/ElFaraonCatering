@@ -95,12 +95,7 @@ const directPricingText =
             data-item-id={getOptionAvailabilityItemId(option)}
             data-available={option.available ? "true" : "false"}
           >
-            <span>
-              {option.name}
-              {option.description && (
-                <span class="dish-card__option-detail">{option.description}</span>
-              )}
-            </span>
+            <span>{option.name}</span>
             {option.available === false && (
               <span class="dish-card__option-status">
                 No disponible

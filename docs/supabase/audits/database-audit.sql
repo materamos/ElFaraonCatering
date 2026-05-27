@@ -235,7 +235,7 @@ with expected_functions (function_name, identity_arguments, expectation) as (
     ('add_catalog_item', 'section_id text, group_id text, item_id text, name text, description text, amount integer', 'fixed menu item add RPC'),
     ('delete_catalog_item', 'section_id text, group_id text, item_id text', 'fixed menu item delete RPC'),
     ('update_catalog_item', 'section_id text, group_id text, item_id text, name text, description text', 'fixed menu item text edit RPC'),
-    ('update_catalog_item_option', 'section_id text, group_id text, item_id text, option_id text, name text, description text', 'fixed menu option text edit RPC'),
+    ('update_catalog_item_option', 'section_id text, group_id text, item_id text, option_id text, name text', 'fixed menu option text edit RPC'),
     ('reserve_menu_publish_request', 'user_id uuid, cooldown_seconds integer', 'private publish reservation helper'),
     ('complete_menu_publish_request', 'request_id bigint, publish_status text, publish_message text, vercel_status_code integer, vercel_job_id text', 'private publish completion helper')
 ),

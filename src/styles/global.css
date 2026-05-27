@@ -411,11 +411,6 @@
     line-height: 1.35;
   }
 
-  .dish-card__option-detail {
-    display: block;
-    color: var(--color-muted);
-  }
-
   .dish-card__option-status,
   .dish-card__variant-status {
     display: block;

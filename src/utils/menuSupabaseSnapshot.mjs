@@ -224,7 +224,6 @@ const createFlatItem = (item, options, priceMap, transformImage) =>
             cleanOptional({
               id: option.option_id,
               name: option.name,
-              description: option.description ?? undefined,
               available: true,
             }),
           )
