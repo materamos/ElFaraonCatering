@@ -8,14 +8,14 @@ Las migraciones operativas reales viven en `../../supabase/migrations/`. No agre
 
 - `menu_content`: fuente privada de estructura y operacion build-time.
 - `public.menu_availability_overlays`: unico overlay runtime sin rebuild.
-- `public.staff_users`: empleados y roles para el admin operativo.
+- `public.staff_users`: empleados y roles para el CMS operativo de menu.
 - `public.editor_profiles`: tabla legacy usada solo como origen de backfill hacia `staff_users`.
 - `public.get_admin_operational_state()`: RPC de lectura controlada para `/admin/`.
-- RPCs operativas: unica superficie de escritura browser para disponibilidad, servicio activo, menu del dia, menu fijo medido y precios.
+- RPCs operativas: unica superficie de escritura browser para disponibilidad, servicio activo, menu del dia, contenido de menu fijo, opciones existentes, precios y publicacion.
 - `app_private.menu_publish_requests`: log privado y reserva de publicaciones.
 - `publish-menu-changes`: Supabase Edge Function server-side para publicar cambios build-time sin exponer el Deploy Hook.
 
-Supabase respalda un admin operativo, pero "editable" no significa "runtime editable". Salvo disponibilidad, todo cambio operativo en Supabase requiere rebuild/deploy para impactar `/menu/corpo/` y `/menu/teleinde/`.
+Supabase respalda un CMS operativo de contenido de menu, pero "editable" no significa "runtime editable". Salvo disponibilidad, todo cambio operativo en Supabase requiere rebuild/deploy para impactar `/menu/corpo/` y `/menu/teleinde/`. El alcance es intermedio: administra contenido del menu QR, no paginas institucionales ni CMS editorial amplio.
 
 ## Modelo activo
 
@@ -57,8 +57,9 @@ No implementar consultas runtime para menu del dia, precios, servicio activo, ca
 - `editor_profiles` no debe usarse para policies nuevas; queda solo como origen de migracion.
 - El primer `admin` debe crearse por SQL privilegiado o service role; no se bootstrapea desde browser RLS.
 - `/admin/` lee estado operativo mediante `get_admin_operational_state()` y escribe solo mediante RPCs operativas.
+- `/admin/` es un CMS operativo de contenido de menu: puede cubrir disponibilidad, servicio activo, menu del dia, parrilla, contenido de menu fijo, opciones existentes, precios y publicacion, sin abrir escritura editorial general.
 - `/admin/` permite recuperar y cambiar contrasena con Supabase Auth; el redirect de recuperacion debe volver a `/admin/`.
-- La edicion de menu fijo solo puede agregar items, editar nombre/descripcion y eliminar items dentro de secciones o grupos existentes, y editar nombre/descripcion de opciones existentes como sabores; no edita precios, disponibilidad, IDs tecnicos, orden, secciones, grupos ni altas/bajas de opciones.
+- La edicion de menu fijo puede agregar items, editar nombre/descripcion y eliminar items dentro de secciones o grupos existentes, y editar nombre/descripcion de opciones existentes como sabores; no edita disponibilidad, IDs tecnicos, orden, secciones, grupos ni altas/bajas de opciones. Los precios se editan desde RPCs globales de precios.
 - No hay grants client-facing sobre `menu_content` ni tablas de `app_private`.
 
 Redirects requeridos en Supabase Auth:
@@ -234,8 +235,8 @@ No aplicar SQL mutante en Supabase remoto si los audits muestran bloqueos conoci
 - No editar el estado remoto desde el dashboard sin reflejarlo en SQL versionado.
 - Preferir SQL idempotente para cambios futuros cuando sea compatible con la migracion.
 - Mantener nombres tecnicos ASCII/kebab-case donde corresponda.
-- Usar `staff_users` y funciones helper para permisos nuevos del admin operativo; no reusar `editor_profiles` para nuevas policies.
+- Usar `staff_users` y funciones helper para permisos nuevos del CMS operativo de menu; no reusar `editor_profiles` para nuevas policies.
 - Usar RPCs operativas para escrituras desde el browser; no otorgar grants directos sobre `menu_content`.
 - Usar `get_admin_operational_state()` para lectura del admin; no consultar `menu_content` ni `app_private` desde el browser.
 - Usar `publish-menu-changes` para publicacion; no exponer el Vercel Deploy Hook, no usar `pg_net`, no exponer `app_private` por PostgREST y no otorgar grants sobre sus tablas.
-- No agregar SSR, Vercel Functions, CMS editorial amplio, auth editorial ni queries estructurales desde el navegador por cambios en esta carpeta.
+- No agregar SSR, Vercel Functions, CMS editorial amplio, auth editorial ni queries estructurales desde el navegador por cambios en esta carpeta. Las ampliaciones del CMS deben permanecer dentro del contenido operativo de menu y seguir pasando por RPCs.

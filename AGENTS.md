@@ -20,7 +20,7 @@ Current routes:
 - `/menu/` -> future operational menu index placeholder
 - `/menu/corpo/` -> primary operational QR menu
 - `/menu/teleinde/` -> active operational QR menu in the multi-location model
-- `/admin/` -> static Astro operational admin for employees
+- `/admin/` -> static Astro operational menu-content CMS for employees
 
 Current stack:
 
@@ -38,7 +38,7 @@ Current source of truth:
 - The runtime availability overlay is separate and progressive.
 - `public.staff_users` is the staff permission source for the operational CMS.
 - Operational CMS writes must go through explicit Supabase RPCs, not direct table grants.
-- `/admin/` is the active operational CMS surface, limited to availability, daily service, grill mode, measured fixed-menu item edits, prices, and publication.
+- `/admin/` is the active operational menu-content CMS surface: broader than availability-only admin, but still limited to QR menu operations, menu content, prices, and publication.
 - The historical rollback point to the previous file-backed content stage is the Git tag `yaml-rollback-2026-05-02`; YAML is not an active content source.
 
 ---
@@ -56,17 +56,19 @@ Do not add these capabilities unless explicitly requested:
 - SSR
 - server output
 - serverless functions, except the explicitly approved Supabase Edge Function `publish-menu-changes`
-- broad editorial CMS code, auth, or repo-writing admin flows
+- broad editorial CMS code, non-operational auth, or repo-writing admin flows outside operational menu content
 
-Operational CMS work is limited to menu del dia, active service, availability,
-measured fixed-menu item edits, and global prices unless a broader admin scope is
-explicitly requested.
+Operational CMS work may cover menu del dia, active service, availability, grill
+mode, fixed-menu content, existing catalog item options, global prices, and
+publication. This is an intermediate menu-content CMS, not a general editorial
+CMS.
 
 Operational staff auth and roles may support that CMS surface. Do not expand them
-into customer accounts, broad editorial accounts, or public user features.
+into customer accounts, broad editorial accounts, institutional-site accounts, or
+public user features.
 
-CMS editable does not mean runtime editable. Except for availability, operational CMS
-changes require rebuild/deploy before they affect the public menu.
+CMS editable does not mean runtime editable. Except for availability, operational
+CMS changes require rebuild/deploy before they affect the public menu.
 
 Fixed-menu admin edits may add individual catalog items, update item name and
 description, delete individual catalog items only within existing sections or
@@ -75,7 +77,7 @@ allow fixed-menu edits to change prices, availability, technical IDs, order, to
 create/delete/reorder options, or to create, delete, rename, or reorder catalog
 sections or groups from `/admin/`.
 
-Keep `/admin/` as a static Astro route. Do not add SSR, server output, API routes, Vercel Functions, service role usage in browser, or broad editorial CMS behavior.
+Keep `/admin/` as a static Astro route. Do not add SSR, server output, API routes, Vercel Functions, service role usage in browser, or broad editorial CMS behavior outside the operational menu-content scope.
 
 Keep the project compatible with Node 20 and Astro 5 unless the runtime upgrade is explicitly requested.
 
@@ -151,9 +153,10 @@ Image rules:
 
 ## Supabase Rules
 
-Supabase may back an operational CMS for daily menu, grill mode, availability,
-measured fixed-menu item edits, and global prices. It must not become a broad
-editorial CMS without an explicit architecture decision.
+Supabase may back an operational menu-content CMS for daily menu, grill mode,
+availability, fixed-menu content, existing catalog item options, global prices,
+and publication. It must not become a broad editorial CMS without an explicit
+architecture decision.
 
 Build-time structural and operational content:
 

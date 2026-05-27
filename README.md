@@ -12,13 +12,13 @@ La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuent
 - `/menu/teleinde/` esta activo como parte del modelo multi-locacion.
 - `/menu/` es un placeholder de entrada general para menus.
 - `/` es un placeholder institucional.
-- `/admin/` es el panel operativo estatico para empleados.
+- `/admin/` es el CMS operativo estatico de contenido de menu para empleados.
 - Supabase `menu_content` es la fuente estructural y operativa build-time del menu.
 - Astro usa output estatico por default y no hay adapter de servidor.
 - El overlay runtime de disponibilidad esta separado y se consume desde JavaScript cliente.
 - `public.staff_users` define empleados y roles operativos.
 - `/admin/` lee y escribe mediante RPCs Supabase controladas, sin grants directos sobre `menu_content`.
-- El admin activo queda limitado a disponibilidad, servicio del dia, parrilla, menu fijo medido, precios y publicacion.
+- El admin activo cubre un punto intermedio de CMS: disponibilidad, servicio del dia, parrilla, contenido de menu fijo, opciones existentes, precios y publicacion, sin convertirse en un CMS editorial amplio.
 
 ## Stack tecnico
 
@@ -291,9 +291,11 @@ Estrategia pre-lanzamiento:
 - Antes del freeze de produccion, si el modelo Supabase ya esta estable, crear un tag que preserve la historia pre-lanzamiento y consolidar un baseline limpio para bases nuevas.
 - Despues del baseline, mantener solo migraciones nuevas post-baseline y actualizar los snapshots, audits y diagramas para reflejar el modelo vigente.
 
-## Admin operativo
+## CMS operativo de menu
 
 `/admin/` es una ruta Astro estatica con cliente TypeScript. Usa Supabase Auth mediante `PUBLIC_SUPABASE_URL` y `PUBLIC_SUPABASE_ANON_KEY`.
+
+El alcance buscado es un CMS operativo de contenido de menu: mas amplio que un panel de disponibilidad, pero todavia acotado al dominio del menu QR. No administra paginas institucionales, contenido de marketing, cuentas de clientes ni flujos comerciales. Salvo disponibilidad, los cambios que toca siguen siendo datos build-time y requieren publicacion/rebuild para verse en el menu publico.
 
 El admin permite:
 
@@ -310,7 +312,7 @@ El admin permite:
 
 El link de recuperacion de contrasena vuelve a `/admin/`, donde el cliente lee el token de Supabase Auth y permite definir una nueva contrasena. Supabase Auth debe permitir la URL de redirect de produccion `https://elfaraoncatering.vercel.app/admin/` y, para pruebas locales, `http://localhost:4321/admin/`.
 
-No existe administracion de empleados en la UI actual. No existe CMS editorial amplio. La edicion de menu fijo no permite crear, eliminar, renombrar ni reordenar secciones o grupos, ni crear/eliminar/reordenar opciones, ni editar precios o disponibilidad desde esa superficie.
+No existe administracion de empleados en la UI actual. No existe CMS editorial amplio. La edicion de menu fijo no permite crear, eliminar, renombrar ni reordenar secciones o grupos, ni crear/eliminar/reordenar opciones, ni editar disponibilidad desde esa superficie. Los precios se editan desde la superficie global de precios, no desde el editor de contenido del menu fijo.
 
 ## Despliegue
 
@@ -323,7 +325,7 @@ Restricciones de esta etapa:
 - no hay Vercel Functions ni funciones server-side del sitio Astro
 - hay una Supabase Edge Function aislada para publicacion operativa
 - `/admin/` es estatico y no agrega SSR ni server output
-- no hay escritura editorial amplia desde `/admin/` ni desde el sitio publico
+- no hay escritura editorial amplia desde `/admin/` ni desde el sitio publico; `/admin/` se limita al CMS operativo de contenido de menu
 - no hay consultas directas desde el navegador a `menu_content` o `app_private`
 
 `vercel.json` define headers de seguridad y canonicaliza `/menu`, `/menu/corpo`, `/menu/teleinde` y `/admin` hacia sus rutas con slash final.
@@ -341,7 +343,7 @@ No agregar estas capacidades salvo pedido explicito:
 - SSR
 - Vercel serverless functions
 - nuevas Supabase Edge Functions fuera de `publish-menu-changes`
-- CMS editorial amplio, auth no operativa o flujos de escritura editorial
+- CMS editorial amplio, auth no operativa o flujos de escritura editorial fuera del contenido operativo de menu
 
 ## Decisiones tecnicas actuales
 

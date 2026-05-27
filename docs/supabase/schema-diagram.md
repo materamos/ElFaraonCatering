@@ -195,7 +195,7 @@ flowchart LR
   EDGE["Supabase Edge Function<br/>publish-menu-changes"]
   PRIVATE["app_private<br/>auditoria privada e implementaciones definer"]
   VERCEL["Vercel Deploy Hook<br/>secreto en Functions"]
-  ADMIN_UI["/admin/ estatico<br/>cliente TypeScript"]
+  ADMIN_UI["/admin/ estatico<br/>CMS operativo de menu"]
   STATIC["HTML estatico<br/>data-menu-id / data-section-id / data-item-id"]
 
   AUTH_USERS -->|"FK fisica: user_id"| STAFF
@@ -232,8 +232,9 @@ flowchart LR
 - Menu del dia, notas, servicio activo por local, catalogo, secciones, grupos, imagenes y precios son datos build-time.
 - Las columnas build-time `available` no representan faltantes operativos; se conservan siempre `true` por compatibilidad.
 - `menu_daily_items` modela dos opciones planas: comun y vegetariano.
+- `/admin/` funciona como CMS operativo de contenido de menu: cubre disponibilidad, servicio activo, menu del dia, parrilla, contenido de menu fijo, opciones existentes, precios y publicacion.
 - `/admin/` puede editar datos operativos build-time, pero esos cambios requieren rebuild/deploy para impactar el menu publico.
-- La edicion de menu fijo desde `/admin/` esta limitada a altas, bajas y cambios de nombre/descripcion de items puntuales dentro de secciones o grupos existentes, y a cambios de nombre/descripcion de opciones existentes.
+- La edicion de menu fijo desde `/admin/` cubre altas, bajas y cambios de nombre/descripcion de items puntuales dentro de secciones o grupos existentes, y cambios de nombre/descripcion de opciones existentes; no abre CMS editorial general ni edicion libre de secciones, grupos, IDs u orden.
 - `public.menu_availability_overlays` es el unico dato editable en runtime sin rebuild.
 - La ausencia de overlay equivale a disponible; marcar disponible en admin debe limpiar el overlay.
 - Los items con opciones exponen target padre y targets de opcion; las opciones usan IDs compuestos `item-id-option-id` como `item_id` del overlay.
