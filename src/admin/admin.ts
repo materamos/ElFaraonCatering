@@ -192,7 +192,7 @@ const fixedOptionsOnlySectionRules: ReadonlyArray<{
 }> = [
   {
     sectionId: "minutas-tartas-omelettes",
-    title: "Tartas",
+    title: "Tartas, tortillas y omelettes",
     itemIds: ["tartas"],
   },
   {
