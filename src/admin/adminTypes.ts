@@ -1,0 +1,189 @@
+export type StaffRole = "operator" | "admin";
+export type ServiceKind = "daily-menu" | "grill";
+export type TargetKind = "daily-menu" | "grill" | "catalog";
+export type AdminTabId = "availability" | "daily" | "grill" | "fixed" | "prices" | "publish" | "account";
+export type StatusTone = "neutral" | "success" | "danger";
+export type AvailabilityScope = "availability" | "daily" | "grill";
+export type CatalogContentKind = "items" | "groups";
+export type FixedMenuEditMode = "items" | "options-only";
+export type AuthView = "login" | "reset-request" | "set-password";
+
+export interface AuthSession {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+}
+
+export interface StaffState {
+  user_id: string;
+  display_name: string;
+  role: StaffRole;
+  profile_id: string | null;
+  active: boolean;
+}
+
+export interface PermissionState {
+  can_edit_availability: boolean;
+  can_edit_menu_content: boolean;
+  can_publish_menu: boolean;
+  can_manage_staff: boolean;
+}
+
+export interface ProfileState {
+  id: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  can_edit_availability: boolean;
+}
+
+export interface ServiceSettingState {
+  profile_id: string;
+  service_kind: ServiceKind;
+}
+
+export interface DailyMenuState {
+  item_id: string;
+  name: string;
+  description: string | null;
+  pricing_key: string;
+  order_index: number;
+}
+
+export interface AvailabilityTargetState {
+  menu_id: string;
+  profile_title: string;
+  target_kind: TargetKind;
+  section_id: string;
+  section_title: string;
+  group_id: string;
+  group_title: string | null;
+  item_id: string;
+  name: string;
+  description: string | null;
+  base_available: boolean;
+  price_amount: number | null;
+}
+
+export interface AvailabilityOverlayState {
+  menu_id: string;
+  section_id: string;
+  group_id: string;
+  item_id: string;
+  available_override: boolean;
+  updated_at: string;
+}
+
+export interface FixedPriceState {
+  pricing_key: string;
+  amount: number;
+}
+
+export interface VariantPriceState {
+  pricing_key: string;
+  variant_id: string;
+  name: string;
+  amount: number;
+  order_index: number;
+}
+
+export interface CatalogSectionState {
+  section_id: string;
+  title: string;
+  content_kind: CatalogContentKind;
+  order_index: number;
+  item_count: number;
+}
+
+export interface CatalogGroupState {
+  section_id: string;
+  group_id: string;
+  title: string;
+  pricing_key: string | null;
+  order_index: number;
+  item_count: number;
+}
+
+export interface CatalogItemState {
+  section_id: string;
+  section_title: string;
+  group_id: string;
+  group_title: string | null;
+  item_id: string;
+  name: string;
+  description: string | null;
+  pricing_key: string | null;
+  price_amount: number | null;
+  order_index: number;
+  option_count: number;
+  options: CatalogItemOptionState[];
+}
+
+export interface CatalogItemOptionState {
+  section_id: string;
+  group_id: string;
+  item_id: string;
+  option_id: string;
+  name: string;
+  order_index: number;
+}
+
+export interface CatalogEditorState {
+  sections: CatalogSectionState[];
+  groups: CatalogGroupState[];
+  items: CatalogItemState[];
+}
+
+export interface AdminOperationalState {
+  ok: boolean;
+  message: string;
+  staff: StaffState | null;
+  permissions: PermissionState;
+  profiles: ProfileState[];
+  service_settings: ServiceSettingState[];
+  daily_menu: DailyMenuState[];
+  availability_targets: AvailabilityTargetState[];
+  availability_overlays: AvailabilityOverlayState[];
+  prices: {
+    fixed: FixedPriceState[];
+    variants: VariantPriceState[];
+  };
+  catalog_editor: CatalogEditorState;
+}
+
+export interface RpcResult {
+  ok: boolean;
+  changed: boolean;
+  requires_redeploy: boolean;
+  operation: string;
+  message: string;
+  cooldown_seconds_remaining?: number;
+}
+
+export interface StatusMessage {
+  text: string;
+  tone: StatusTone;
+}
+
+export interface GrillProfileGroup {
+  menuId: string;
+  profileTitle: string;
+  families: GrillFamilyGroup[];
+}
+
+export interface GrillFamilyGroup {
+  title: string;
+  targets: AvailabilityTargetState[];
+}
+
+export interface PricingLabel {
+  title: string;
+  tags: string[];
+}
+
+export interface AuthApiResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  user: object;
+}
