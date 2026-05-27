@@ -117,7 +117,7 @@ Required content surfaces:
 Daily service rules:
 
 - `menu_daily_items` defines the two daily-menu options: regular menu and vegetarian menu.
-- `menu_daily_items` must define name, availability, pricing, and may define description and note.
+- `menu_daily_items` must define name, availability, pricing, and may define description.
 - `menu_profile_service_settings` must define one settings row per profile.
 - `service_kind` is the per-profile property that selects `daily-menu` or `grill`.
 - When `service_kind` is `daily-menu`, the profile shows the two daily-menu options.
@@ -176,7 +176,7 @@ Build-time structural and operational content:
 - `SUPABASE_DB_URL` is required for build-time structural reads and menu validation.
 - Local development may define `SUPABASE_DB_URL` in `.env.local`; scripts load it only when an environment value is not already set.
 - Never expose `SUPABASE_DB_URL` to the client or any `PUBLIC_*` environment variable.
-- Menu del dia, notes, active service, prices, catalog, groups, sections, images, and structural text are build-time data even when the operational admin or RPCs edit them.
+- Menu del dia, active service, prices, catalog, groups, sections, images, and structural text are build-time data even when the operational admin or RPCs edit them.
 - Build-time `available` columns are compatibility fields and must remain `true`; do not use them to represent operational unavailability.
 - Changes to build-time data require rebuild/deploy before affecting `/menu/corpo/` and `/menu/teleinde/`.
 - Legacy menu-content tables were removed by the explicit cleanup migration after flat-model deploy validation.

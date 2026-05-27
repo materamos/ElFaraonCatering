@@ -374,10 +374,8 @@ $$;
 create or replace function app_private.set_daily_menu(
   regular_name text,
   regular_description text,
-  regular_note text,
   vegetarian_name text,
-  vegetarian_description text,
-  vegetarian_note text
+  vegetarian_description text
 )
 returns table (
   ok boolean,
@@ -393,10 +391,8 @@ as $$
 declare
   regular_name_value text := nullif(btrim(set_daily_menu.regular_name), '');
   regular_description_value text := nullif(btrim(set_daily_menu.regular_description), '');
-  regular_note_value text := nullif(btrim(set_daily_menu.regular_note), '');
   vegetarian_name_value text := nullif(btrim(set_daily_menu.vegetarian_name), '');
   vegetarian_description_value text := nullif(btrim(set_daily_menu.vegetarian_description), '');
-  vegetarian_note_value text := nullif(btrim(set_daily_menu.vegetarian_note), '');
   expected_item_count integer;
   has_changes boolean;
 begin
@@ -426,12 +422,11 @@ begin
   with desired_items (
     item_id,
     name,
-    description,
-    note
+    description
   ) as (
     values
-      ('menu-del-dia', regular_name_value, regular_description_value, regular_note_value),
-      ('menu-vegetariano-del-dia', vegetarian_name_value, vegetarian_description_value, vegetarian_note_value)
+      ('menu-del-dia', regular_name_value, regular_description_value),
+      ('menu-vegetariano-del-dia', vegetarian_name_value, vegetarian_description_value)
   )
   select exists (
     select 1
@@ -440,7 +435,7 @@ begin
       on item.item_id = desired.item_id
     where item.name is distinct from desired.name
       or item.description is distinct from desired.description
-      or item.note is distinct from desired.note
+      or item.note is not null
       or item.available is distinct from true
   )
   into has_changes;
@@ -453,18 +448,17 @@ begin
   with desired_items (
     item_id,
     name,
-    description,
-    note
+    description
   ) as (
     values
-      ('menu-del-dia', regular_name_value, regular_description_value, regular_note_value),
-      ('menu-vegetariano-del-dia', vegetarian_name_value, vegetarian_description_value, vegetarian_note_value)
+      ('menu-del-dia', regular_name_value, regular_description_value),
+      ('menu-vegetariano-del-dia', vegetarian_name_value, vegetarian_description_value)
   )
   update menu_content.menu_daily_items item
   set
     name = desired.name,
     description = desired.description,
-    note = desired.note,
+    note = null,
     available = true
   from desired_items desired
   where item.item_id = desired.item_id;
@@ -607,7 +601,6 @@ create or replace function app_private.add_catalog_item(
   item_id text,
   name text,
   description text,
-  note text,
   amount integer
 )
 returns table (
@@ -627,7 +620,6 @@ declare
   target_item_id text := nullif(btrim(add_catalog_item.item_id), '');
   target_name text := nullif(btrim(add_catalog_item.name), '');
   target_description text := nullif(btrim(add_catalog_item.description), '');
-  target_note text := nullif(btrim(add_catalog_item.note), '');
   target_amount integer := add_catalog_item.amount;
   section_kind text;
   group_pricing_key text;
@@ -754,7 +746,7 @@ begin
     target_item_id,
     target_name,
     target_description,
-    target_note,
+    null,
     null,
     true,
     price_key,
@@ -1092,10 +1084,8 @@ $$;
 create or replace function public.set_daily_menu(
   regular_name text,
   regular_description text,
-  regular_note text,
   vegetarian_name text,
-  vegetarian_description text,
-  vegetarian_note text
+  vegetarian_description text
 )
 returns table (
   ok boolean,
@@ -1109,7 +1099,7 @@ security invoker
 set search_path = public, app_private, pg_temp
 as $$
   select *
-  from app_private.set_daily_menu($1, $2, $3, $4, $5, $6);
+  from app_private.set_daily_menu($1, $2, $3, $4);
 $$;
 
 create or replace function public.set_global_fixed_price(
@@ -1157,7 +1147,6 @@ create or replace function public.add_catalog_item(
   item_id text,
   name text,
   description text,
-  note text,
   amount integer
 )
 returns table (
@@ -1172,7 +1161,7 @@ security invoker
 set search_path = public, app_private, pg_temp
 as $$
   select *
-  from app_private.add_catalog_item($1, $2, $3, $4, $5, $6, $7);
+  from app_private.add_catalog_item($1, $2, $3, $4, $5, $6);
 $$;
 
 create or replace function public.delete_catalog_item(
@@ -1254,10 +1243,10 @@ revoke all on function public.menu_availability_target_exists(text, text, text, 
 revoke all on function public.set_menu_availability_overlay(text, text, text, text, boolean) from public, anon, authenticated;
 revoke all on function public.clear_menu_availability_overlay(text, text, text, text) from public, anon, authenticated;
 revoke all on function public.set_profile_service_kind(text, text) from public, anon, authenticated;
-revoke all on function public.set_daily_menu(text, text, text, text, text, text) from public, anon, authenticated;
+revoke all on function public.set_daily_menu(text, text, text, text) from public, anon, authenticated;
 revoke all on function public.set_global_fixed_price(text, integer) from public, anon, authenticated;
 revoke all on function public.set_global_price_variant(text, text, integer) from public, anon, authenticated;
-revoke all on function public.add_catalog_item(text, text, text, text, text, text, integer) from public, anon, authenticated;
+revoke all on function public.add_catalog_item(text, text, text, text, text, integer) from public, anon, authenticated;
 revoke all on function public.delete_catalog_item(text, text, text) from public, anon, authenticated;
 revoke all on function public.update_catalog_item(text, text, text, text, text) from public, anon, authenticated;
 revoke all on function public.update_catalog_item_option(text, text, text, text, text, text) from public, anon, authenticated;
@@ -1266,10 +1255,10 @@ grant execute on function public.can_edit_menu_content() to authenticated;
 grant execute on function public.set_menu_availability_overlay(text, text, text, text, boolean) to authenticated;
 grant execute on function public.clear_menu_availability_overlay(text, text, text, text) to authenticated;
 grant execute on function public.set_profile_service_kind(text, text) to authenticated;
-grant execute on function public.set_daily_menu(text, text, text, text, text, text) to authenticated;
+grant execute on function public.set_daily_menu(text, text, text, text) to authenticated;
 grant execute on function public.set_global_fixed_price(text, integer) to authenticated;
 grant execute on function public.set_global_price_variant(text, text, integer) to authenticated;
-grant execute on function public.add_catalog_item(text, text, text, text, text, text, integer) to authenticated;
+grant execute on function public.add_catalog_item(text, text, text, text, text, integer) to authenticated;
 grant execute on function public.delete_catalog_item(text, text, text) to authenticated;
 grant execute on function public.update_catalog_item(text, text, text, text, text) to authenticated;
 grant execute on function public.update_catalog_item_option(text, text, text, text, text, text) to authenticated;
@@ -1279,10 +1268,10 @@ revoke all on function app_private.menu_availability_target_exists(text, text, t
 revoke all on function app_private.set_menu_availability_overlay(text, text, text, text, boolean) from public, anon, authenticated;
 revoke all on function app_private.clear_menu_availability_overlay(text, text, text, text) from public, anon, authenticated;
 revoke all on function app_private.set_profile_service_kind(text, text) from public, anon, authenticated;
-revoke all on function app_private.set_daily_menu(text, text, text, text, text, text) from public, anon, authenticated;
+revoke all on function app_private.set_daily_menu(text, text, text, text) from public, anon, authenticated;
 revoke all on function app_private.set_global_fixed_price(text, integer) from public, anon, authenticated;
 revoke all on function app_private.set_global_price_variant(text, text, integer) from public, anon, authenticated;
-revoke all on function app_private.add_catalog_item(text, text, text, text, text, text, integer) from public, anon, authenticated;
+revoke all on function app_private.add_catalog_item(text, text, text, text, text, integer) from public, anon, authenticated;
 revoke all on function app_private.delete_catalog_item(text, text, text) from public, anon, authenticated;
 revoke all on function app_private.update_catalog_item(text, text, text, text, text) from public, anon, authenticated;
 revoke all on function app_private.update_catalog_item_option(text, text, text, text, text, text) from public, anon, authenticated;
@@ -1292,10 +1281,10 @@ grant execute on function app_private.menu_availability_target_exists(text, text
 grant execute on function app_private.set_menu_availability_overlay(text, text, text, text, boolean) to authenticated;
 grant execute on function app_private.clear_menu_availability_overlay(text, text, text, text) to authenticated;
 grant execute on function app_private.set_profile_service_kind(text, text) to authenticated;
-grant execute on function app_private.set_daily_menu(text, text, text, text, text, text) to authenticated;
+grant execute on function app_private.set_daily_menu(text, text, text, text) to authenticated;
 grant execute on function app_private.set_global_fixed_price(text, integer) to authenticated;
 grant execute on function app_private.set_global_price_variant(text, text, integer) to authenticated;
-grant execute on function app_private.add_catalog_item(text, text, text, text, text, text, integer) to authenticated;
+grant execute on function app_private.add_catalog_item(text, text, text, text, text, integer) to authenticated;
 grant execute on function app_private.delete_catalog_item(text, text, text) to authenticated;
 grant execute on function app_private.update_catalog_item(text, text, text, text, text) to authenticated;
 grant execute on function app_private.update_catalog_item_option(text, text, text, text, text, text) to authenticated;

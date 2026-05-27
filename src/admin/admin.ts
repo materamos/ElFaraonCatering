@@ -45,7 +45,6 @@ interface DailyMenuState {
   item_id: string;
   name: string;
   description: string | null;
-  note: string | null;
   pricing_key: string;
   order_index: number;
 }
@@ -112,7 +111,6 @@ interface CatalogItemState {
   item_id: string;
   name: string;
   description: string | null;
-  note: string | null;
   pricing_key: string | null;
   price_amount: number | null;
   order_index: number;
@@ -702,10 +700,8 @@ async function saveDailyMenu(form: HTMLFormElement): Promise<void> {
     const result = await callMutation("set_daily_menu", {
       regular_name: getFormString(form, "regular_name"),
       regular_description: getNullableFormString(form, "regular_description"),
-      regular_note: getNullableFormString(form, "regular_note"),
       vegetarian_name: getFormString(form, "vegetarian_name"),
       vegetarian_description: getNullableFormString(form, "vegetarian_description"),
-      vegetarian_note: getNullableFormString(form, "vegetarian_note"),
     });
 
     if (!result.ok) {
@@ -790,7 +786,6 @@ async function saveCatalogItem(form: HTMLFormElement): Promise<void> {
       item_id: getFormString(form, "item_id"),
       name: getFormString(form, "name"),
       description: getNullableFormString(form, "description"),
-      note: getNullableFormString(form, "note"),
       amount: amountValue ? getFormInteger(form, "amount") : null,
     });
 
@@ -2075,10 +2070,6 @@ function renderDailyFieldset(
         <span class="admin-label">Descripcion del ${fieldLabel}</span>
         <textarea class="admin-textarea" name="${prefix}_description">${escapeHtml(item?.description ?? "")}</textarea>
       </label>
-      <label class="admin-field admin-field--wide">
-        <span class="admin-label">Nota del ${fieldLabel}</span>
-        <textarea class="admin-textarea" name="${prefix}_note">${escapeHtml(item?.note ?? "")}</textarea>
-      </label>
     </fieldset>
   `;
 }
@@ -2123,12 +2114,7 @@ function renderCatalogItemForm(
       <label class="admin-field admin-field--wide">
         <span class="admin-label">Descripcion</span>
         <textarea class="admin-textarea" name="description"></textarea>
-        <span class="admin-help">Texto corto debajo del nombre. Dejalo vacio si no hace falta.</span>
-      </label>
-      <label class="admin-field admin-field--wide">
-        <span class="admin-label">Nota</span>
-        <textarea class="admin-textarea" name="note"></textarea>
-        <span class="admin-help">Aclaracion breve para el cliente, si corresponde.</span>
+        <span class="admin-help">Texto corto debajo del nombre. Inclui aclaraciones aca si hacen falta.</span>
       </label>
       <div class="admin-row__actions admin-fixed-form__actions">
         <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Agregar al menu fijo</button>
@@ -2188,7 +2174,6 @@ function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean): strin
             </button>
           </div>
         </form>
-        ${item.note ? `<p class="admin-row__meta">${escapeHtml(item.note)}</p>` : ""}
         ${renderCatalogItemOptions(item)}
       </div>
       <div class="admin-row__actions">
