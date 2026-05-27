@@ -11,7 +11,7 @@ Las migraciones operativas reales viven en `../../supabase/migrations/`. No agre
 - `public.staff_users`: empleados y roles para el CMS operativo de menu.
 - `public.editor_profiles`: tabla legacy usada solo como origen de backfill hacia `staff_users`.
 - `public.get_admin_operational_state()`: RPC de lectura controlada para `/admin/`.
-- RPCs operativas: unica superficie de escritura browser para disponibilidad, servicio activo, menu del dia, contenido de menu fijo, opciones existentes, precios y publicacion.
+- RPCs operativas: unica superficie de escritura browser para disponibilidad, servicio activo, menu del dia, contenido de menu fijo, opciones de subcategorias, precios y publicacion.
 - `app_private.menu_publish_requests`: log privado y reserva de publicaciones.
 - `publish-menu-changes`: Supabase Edge Function server-side para publicar cambios build-time sin exponer el Deploy Hook.
 
@@ -57,9 +57,9 @@ No implementar consultas runtime para menu del dia, precios, servicio activo, ca
 - `editor_profiles` no debe usarse para policies nuevas; queda solo como origen de migracion.
 - El primer `admin` debe crearse por SQL privilegiado o service role; no se bootstrapea desde browser RLS.
 - `/admin/` lee estado operativo mediante `get_admin_operational_state()` y escribe solo mediante RPCs operativas.
-- `/admin/` es un CMS operativo de contenido de menu: puede cubrir disponibilidad, servicio activo, menu del dia, parrilla, contenido de menu fijo, opciones existentes, precios y publicacion, sin abrir escritura editorial general.
+- `/admin/` es un CMS operativo de contenido de menu: puede cubrir disponibilidad, servicio activo, menu del dia, parrilla, contenido de menu fijo, opciones de subcategorias, precios y publicacion, sin abrir escritura editorial general.
 - `/admin/` permite recuperar y cambiar contrasena con Supabase Auth; el redirect de recuperacion debe volver a `/admin/`.
-- La edicion de menu fijo puede agregar items, editar nombre/descripcion y eliminar items dentro de secciones o grupos existentes, y editar nombre/descripcion de opciones existentes como sabores; no edita disponibilidad, IDs tecnicos, orden, secciones, grupos ni altas/bajas de opciones. Los precios se editan desde RPCs globales de precios.
+- La edicion de menu fijo puede agregar items, editar nombre/descripcion y eliminar items dentro de secciones o grupos existentes, y agregar, editar nombre y eliminar opciones de items que ya usan sabores, sin dejar una lista vacia; no edita disponibilidad, IDs tecnicos, orden, secciones, grupos ni reordenamiento de opciones. Los precios se editan desde RPCs globales de precios.
 - No hay grants client-facing sobre `menu_content` ni tablas de `app_private`.
 
 Redirects requeridos en Supabase Auth:
@@ -138,6 +138,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260526003000_refine_catalog_option_order.sql` | Reordena opciones puntuales del catalogo para agrupar sabores y variantes relacionadas. |
 | `20260526004000_add_catalog_item_update_admin.sql` | Agrega RPC medida para editar nombre y descripcion de items del menu fijo desde `/admin/`. |
 | `20260526005000_add_catalog_option_update_admin.sql` | Agrega estado y RPC medida para editar nombre y descripcion de opciones existentes del menu fijo desde `/admin/`. |
+| `20260527000000_add_catalog_option_admin_management.sql` | Agrega RPCs medidas para alta y baja de opciones de subcategorias sin permitir que un item quede sin sabores. |
 | `20260526006000_remove_admin_note_option.sql` | Integra las notas existentes en descripciones y elimina la nota de las RPCs de edicion del admin. |
 | `20260526007000_drop_menu_note_columns.sql` | Elimina las columnas `note` del modelo `menu_content` y reemplaza las funciones que aun las referenciaban. |
 | `20260526008000_drop_option_and_grill_descriptions.sql` | Elimina descripciones de opciones del catalogo y modalidades de parrilla; las opciones quedan editables solo por nombre. |

@@ -288,6 +288,7 @@ root.addEventListener("input", (event) => {
   }
 
   handleCatalogItemInput(field);
+  handleCatalogOptionInput(field);
 });
 
 void startAdmin().catch(handleUnexpectedError);
@@ -410,6 +411,28 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
+  if (action === "delete-catalog-option") {
+    const sectionId = target.dataset.sectionId;
+    const groupId = target.dataset.groupId ?? "";
+    const itemId = target.dataset.itemId;
+    const optionId = target.dataset.optionId;
+    const option = sectionId && itemId && optionId
+      ? findCatalogItemOption(sectionId, groupId, itemId, optionId)
+      : undefined;
+
+    if (!option) {
+      setStatus("No se encontro la opcion seleccionada.", "danger");
+      return;
+    }
+
+    if (!confirmDeleteCatalogOption(option)) {
+      return;
+    }
+
+    await deleteCatalogOption(option);
+    return;
+  }
+
   if (action === "publish") {
     if (!confirmPublishChanges()) {
       return;
@@ -474,6 +497,11 @@ async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
 
   if (formKind === "catalog-item-edit") {
     await saveCatalogItemEdit(form);
+    return;
+  }
+
+  if (formKind === "catalog-option") {
+    await saveCatalogOption(form);
     return;
   }
 
@@ -842,6 +870,28 @@ async function saveCatalogItemEdit(form: HTMLFormElement): Promise<void> {
   }, "Guardando item...");
 }
 
+async function saveCatalogOption(form: HTMLFormElement): Promise<void> {
+  await runBusy(async () => {
+    const result = await callMutation("add_catalog_item_option", {
+      section_id: getFormString(form, "section_id"),
+      group_id: getFormString(form, "group_id"),
+      item_id: getFormString(form, "item_id"),
+      option_id: getFormString(form, "option_id"),
+      name: getFormString(form, "name"),
+    });
+
+    if (!result.ok) {
+      throw new Error(resultMessage(result));
+    }
+
+    markPendingIfNeeded(result);
+    await loadAdminState(
+      result.changed ? "Opcion agregada. Para verla en el menu publico, publica los cambios." : "Sin cambios.",
+      "success",
+    );
+  }, "Agregando opcion...");
+}
+
 async function saveCatalogOptionEdit(form: HTMLFormElement): Promise<void> {
   await runBusy(async () => {
     const result = await callMutation("update_catalog_item_option", {
@@ -862,6 +912,27 @@ async function saveCatalogOptionEdit(form: HTMLFormElement): Promise<void> {
       "success",
     );
   }, "Guardando opcion...");
+}
+
+async function deleteCatalogOption(option: CatalogItemOptionState): Promise<void> {
+  await runBusy(async () => {
+    const result = await callMutation("delete_catalog_item_option", {
+      section_id: option.section_id,
+      group_id: option.group_id,
+      item_id: option.item_id,
+      option_id: option.option_id,
+    });
+
+    if (!result.ok) {
+      throw new Error(resultMessage(result));
+    }
+
+    markPendingIfNeeded(result);
+    await loadAdminState(
+      result.changed ? "Opcion eliminada. Para quitarla del menu publico, publica los cambios." : "Sin cambios.",
+      "success",
+    );
+  }, "Eliminando opcion...");
 }
 
 async function publishChanges(): Promise<void> {
@@ -2197,20 +2268,46 @@ function renderCatalogItemOptions(item: CatalogItemState): string {
     return "";
   }
 
+  const canDeleteOptions = item.options.length > 1;
+  const deleteHelp = canDeleteOptions
+    ? "Puedes quitar sabores individuales; el cambio se publica despues."
+    : "Debe quedar al menos un sabor en esta subcategoria.";
+
   return `
     <section class="admin-fixed-options">
       <div class="admin-fixed-options__header">
         <p class="admin-label">Opciones</p>
         <span class="admin-row__state-note">${item.options.length} disponibles</span>
       </div>
+      <form class="admin-fixed-option-row" data-admin-form="catalog-option">
+        <input type="hidden" name="section_id" value="${escapeHtml(item.section_id)}" />
+        <input type="hidden" name="group_id" value="${escapeHtml(item.group_id)}" />
+        <input type="hidden" name="item_id" value="${escapeHtml(item.item_id)}" />
+        <label class="admin-field">
+          <span class="admin-label">Nuevo sabor</span>
+          <input class="admin-input" name="name" data-catalog-option-name required />
+        </label>
+        <label class="admin-field">
+          <span class="admin-label">Codigo del sabor</span>
+          <input class="admin-input" name="option_id" data-catalog-option-id pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="se-completa-solo" autocomplete="off" required />
+        </label>
+        <div class="admin-row__actions">
+          <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Agregar sabor</button>
+        </div>
+      </form>
       <div class="admin-fixed-options__list">
-        ${item.options.map(renderCatalogItemOptionRow).join("")}
+        ${item.options.map((option) => renderCatalogItemOptionRow(option, canDeleteOptions)).join("")}
       </div>
+      <span class="admin-row__state-note">${escapeHtml(deleteHelp)}</span>
     </section>
   `;
 }
 
-function renderCatalogItemOptionRow(option: CatalogItemOptionState): string {
+function renderCatalogItemOptionRow(option: CatalogItemOptionState, canDelete: boolean): string {
+  const deleteHelp = canDelete
+    ? "Se quitara del menu publico despues de publicar."
+    : "No se puede eliminar porque debe quedar al menos un sabor.";
+
   return `
     <form class="admin-fixed-option-row" data-admin-form="catalog-option-edit">
       <input type="hidden" name="section_id" value="${escapeHtml(option.section_id)}" />
@@ -2223,7 +2320,20 @@ function renderCatalogItemOptionRow(option: CatalogItemOptionState): string {
       </label>
       <div class="admin-row__actions">
         <button class="admin-button admin-button--secondary" type="submit" ${isBusy ? "disabled" : ""}>Guardar opcion</button>
+        <button
+          class="admin-button admin-button--danger"
+          type="button"
+          data-admin-action="delete-catalog-option"
+          data-section-id="${escapeHtml(option.section_id)}"
+          data-group-id="${escapeHtml(option.group_id)}"
+          data-item-id="${escapeHtml(option.item_id)}"
+          data-option-id="${escapeHtml(option.option_id)}"
+          ${isBusy || !canDelete ? "disabled" : ""}
+        >
+          Eliminar sabor
+        </button>
       </div>
+      <span class="admin-row__state-note">${escapeHtml(deleteHelp)}</span>
     </form>
   `;
 }
@@ -2365,6 +2475,15 @@ function findCatalogItem(
   );
 }
 
+function findCatalogItemOption(
+  sectionId: string,
+  groupId: string,
+  itemId: string,
+  optionId: string,
+): CatalogItemOptionState | undefined {
+  return findCatalogItem(sectionId, groupId, itemId)?.options.find((option) => option.option_id === optionId);
+}
+
 function getEffectiveFixedSection(editor: CatalogEditorState): CatalogSectionState | undefined {
   return editor.sections.find((section) => section.section_id === fixedSectionFilter)
     ?? editor.sections[0];
@@ -2449,10 +2568,35 @@ function handleCatalogItemInput(field: HTMLInputElement): void {
     return;
   }
 
-  itemIdField.value = createCatalogItemId(field.value);
+  itemIdField.value = createCatalogId(field.value);
 }
 
-function createCatalogItemId(value: string): string {
+function handleCatalogOptionInput(field: HTMLInputElement): void {
+  const form = field.closest<HTMLFormElement>('form[data-admin-form="catalog-option"]');
+
+  if (!form) {
+    return;
+  }
+
+  if (field.name === "option_id") {
+    field.dataset.manual = "true";
+    return;
+  }
+
+  if (field.name !== "name") {
+    return;
+  }
+
+  const optionIdField = form.elements.namedItem("option_id");
+
+  if (!(optionIdField instanceof HTMLInputElement) || optionIdField.dataset.manual === "true") {
+    return;
+  }
+
+  optionIdField.value = createCatalogId(field.value);
+}
+
+function createCatalogId(value: string): string {
   return value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -2477,6 +2621,12 @@ function confirmDeleteCatalogItem(item: CatalogItemState): boolean {
 
   return window.confirm(
     `Vas a eliminar "${item.name}" del menu fijo.${optionText} El menu publico cambia despues de publicar. Continuar?`,
+  );
+}
+
+function confirmDeleteCatalogOption(option: CatalogItemOptionState): boolean {
+  return window.confirm(
+    `Vas a eliminar el sabor "${option.name}". La subcategoria debe conservar al menos un sabor y el menu publico cambia despues de publicar. Continuar?`,
   );
 }
 
@@ -2738,11 +2888,17 @@ function resultMessage(result: RpcResult): string {
     catalog_item_exists: "Ya existe un item con ese codigo en esta ubicacion.",
     catalog_item_unchanged: "Sin cambios.",
     catalog_item_updated: "Item actualizado.",
+    invalid_catalog_option_id: "El codigo del sabor debe usar minusculas, numeros y guiones.",
+    catalog_option_exists: "Ya existe un sabor con ese codigo en esta subcategoria.",
+    catalog_options_not_enabled: "Solo se pueden administrar sabores en subcategorias que ya usan opciones.",
     catalog_option_id_required: "El codigo de la opcion es obligatorio.",
     catalog_option_name_required: "El nombre de la opcion es obligatorio.",
+    catalog_option_added: "Opcion agregada.",
     catalog_option_not_found: "La opcion seleccionada ya no existe.",
     catalog_option_unchanged: "Sin cambios.",
     catalog_option_updated: "Opcion actualizada.",
+    catalog_option_deleted: "Opcion eliminada.",
+    catalog_option_must_keep_one: "La subcategoria debe conservar al menos un sabor.",
     catalog_price_key_conflict: "Ya existe un precio incompatible para ese codigo.",
     catalog_item_not_found: "El item seleccionado ya no existe.",
     catalog_location_must_keep_item: "No se puede eliminar el ultimo item de una seccion o grupo.",

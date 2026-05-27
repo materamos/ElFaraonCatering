@@ -18,7 +18,7 @@ La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuent
 - El overlay runtime de disponibilidad esta separado y se consume desde JavaScript cliente.
 - `public.staff_users` define empleados y roles operativos.
 - `/admin/` lee y escribe mediante RPCs Supabase controladas, sin grants directos sobre `menu_content`.
-- El admin activo cubre un punto intermedio de CMS: disponibilidad, servicio del dia, parrilla, contenido de menu fijo, opciones existentes, precios y publicacion, sin convertirse en un CMS editorial amplio.
+- El admin activo cubre un punto intermedio de CMS: disponibilidad, servicio del dia, parrilla, contenido de menu fijo, opciones de subcategorias, precios y publicacion, sin convertirse en un CMS editorial amplio.
 
 ## Stack tecnico
 
@@ -306,13 +306,13 @@ El admin permite:
 - editar el menu del dia base
 - cambiar el servicio activo por local entre `daily-menu` y `grill`
 - agregar, editar nombre/descripcion y eliminar items puntuales del menu fijo dentro de secciones o grupos existentes
-- editar nombre/descripcion de opciones existentes de items del menu fijo, como sabores de empanadas
+- agregar, editar nombre y eliminar opciones de items del menu fijo que ya usan sabores, como empanadas o tartas, sin permitir que una subcategoria quede sin sabores
 - editar precios fijos y variantes globales
 - solicitar publicacion mediante `publish-menu-changes`
 
 El link de recuperacion de contrasena vuelve a `/admin/`, donde el cliente lee el token de Supabase Auth y permite definir una nueva contrasena. Supabase Auth debe permitir la URL de redirect de produccion `https://elfaraoncatering.vercel.app/admin/` y, para pruebas locales, `http://localhost:4321/admin/`.
 
-No existe administracion de empleados en la UI actual. No existe CMS editorial amplio. La edicion de menu fijo no permite crear, eliminar, renombrar ni reordenar secciones o grupos, ni crear/eliminar/reordenar opciones, ni editar disponibilidad desde esa superficie. Los precios se editan desde la superficie global de precios, no desde el editor de contenido del menu fijo.
+No existe administracion de empleados en la UI actual. No existe CMS editorial amplio. La edicion de menu fijo no permite crear, eliminar, renombrar ni reordenar secciones o grupos, ni reordenar opciones, ni editar disponibilidad desde esa superficie. Los precios se editan desde la superficie global de precios, no desde el editor de contenido del menu fijo.
 
 ## Despliegue
 

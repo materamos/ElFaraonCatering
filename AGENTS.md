@@ -72,10 +72,11 @@ CMS changes require rebuild/deploy before they affect the public menu.
 
 Fixed-menu admin edits may add individual catalog items, update item name and
 description, delete individual catalog items only within existing sections or
-groups, or update name and description for existing catalog item options. Do not
-allow fixed-menu edits to change prices, availability, technical IDs, order, to
-create/delete/reorder options, or to create, delete, rename, or reorder catalog
-sections or groups from `/admin/`.
+groups, or add, update, and delete individual catalog item options for items
+that already use options. Option edits from `/admin/` must not leave an item
+with zero options. Do not allow fixed-menu edits to change prices,
+availability, technical IDs, order, to reorder options, or to create, delete,
+rename, or reorder catalog sections or groups from `/admin/`.
 
 Keep `/admin/` as a static Astro route. Do not add SSR, server output, API routes, Vercel Functions, service role usage in browser, or broad editorial CMS behavior outside the operational menu-content scope.
 
