@@ -13,7 +13,6 @@ interface Props {
   itemId: string;
   name: MenuItem["name"];
   description?: MenuItem["description"];
-  note?: MenuItem["note"];
   available: boolean;
   pricing?: MenuPricing;
   inheritedPricing?: MenuPricing;
@@ -28,7 +27,6 @@ const {
   itemId,
   name,
   description,
-  note,
   available,
   pricing,
   inheritedPricing,
@@ -70,11 +68,6 @@ const directPricingText =
           {description}
         </p>
       )}
-      {note && (
-        <p class="dish-card__note">
-          {note}
-        </p>
-      )}
     </div>
     {!hasOperationalVariants && !available && (
       <span
@@ -106,9 +99,6 @@ const directPricingText =
               {option.name}
               {option.description && (
                 <span class="dish-card__option-detail">{option.description}</span>
-              )}
-              {option.note && (
-                <span class="dish-card__option-detail">{option.note}</span>
               )}
             </span>
             {option.available === false && (

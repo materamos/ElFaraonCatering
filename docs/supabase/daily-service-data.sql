@@ -12,14 +12,13 @@ insert into menu_content.menu_daily_items (
   item_id,
   name,
   description,
-  note,
   available,
   pricing_key,
   order_index
 )
 values
-  ('menu-del-dia', 'Menu del dia', null, null, true, 'menu-del-dia', 0),
-  ('menu-vegetariano-del-dia', 'Menu del dia vegetariano', null, null, true, 'menu-vegetariano-del-dia', 1)
+  ('menu-del-dia', 'Menu del dia', null, true, 'menu-del-dia', 0),
+  ('menu-vegetariano-del-dia', 'Menu del dia vegetariano', null, true, 'menu-vegetariano-del-dia', 1)
 on conflict (item_id) do nothing;
 
 with settings (profile_id, service_kind) as (
@@ -93,7 +92,6 @@ insert into menu_content.menu_grill_catalog_items (
   name,
   variant_name,
   description,
-  note,
   image_path,
   available,
   pricing_key,
@@ -106,7 +104,6 @@ select
   grill_items.variant_name,
   null,
   null,
-  null,
   true,
   grill_items.pricing_key,
   grill_items.order_index
@@ -117,7 +114,6 @@ set
   name = excluded.name,
   variant_name = excluded.variant_name,
   description = excluded.description,
-  note = excluded.note,
   image_path = excluded.image_path,
   available = excluded.available,
   pricing_key = excluded.pricing_key,

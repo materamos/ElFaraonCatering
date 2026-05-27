@@ -89,7 +89,6 @@ erDiagram
     text item_id
     text name
     text description
-    text note
     bool available
     text pricing_key FK
     int order_index
@@ -105,7 +104,6 @@ erDiagram
     text section_id
     text title
     text description
-    text note
     text content_kind
     text presentation
     int order_index
@@ -117,7 +115,6 @@ erDiagram
     text group_id
     text title
     text description
-    text note
     text pricing_key FK
     int order_index
   }
@@ -129,7 +126,6 @@ erDiagram
     text item_id
     text name
     text description
-    text note
     text image_path
     bool available
     text pricing_key FK
@@ -141,7 +137,6 @@ erDiagram
     text option_id PK
     text name
     text description
-    text note
     bool available
     int order_index
   }
@@ -159,7 +154,6 @@ erDiagram
     text name
     text variant_name
     text description
-    text note
     text image_path
     bool available
     text pricing_key FK

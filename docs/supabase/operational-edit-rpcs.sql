@@ -435,7 +435,6 @@ begin
       on item.item_id = desired.item_id
     where item.name is distinct from desired.name
       or item.description is distinct from desired.description
-      or item.note is not null
       or item.available is distinct from true
   )
   into has_changes;
@@ -458,7 +457,6 @@ begin
   set
     name = desired.name,
     description = desired.description,
-    note = null,
     available = true
   from desired_items desired
   where item.item_id = desired.item_id;
@@ -734,7 +732,6 @@ begin
     item_id,
     name,
     description,
-    note,
     image_path,
     available,
     pricing_key,
@@ -746,7 +743,6 @@ begin
     target_item_id,
     target_name,
     target_description,
-    null,
     null,
     true,
     price_key,

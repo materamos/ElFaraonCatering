@@ -139,6 +139,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260526004000_add_catalog_item_update_admin.sql` | Agrega RPC medida para editar nombre y descripcion de items del menu fijo desde `/admin/`. |
 | `20260526005000_add_catalog_option_update_admin.sql` | Agrega estado y RPC medida para editar nombre y descripcion de opciones existentes del menu fijo desde `/admin/`. |
 | `20260526006000_remove_admin_note_option.sql` | Integra las notas existentes en descripciones y elimina la nota de las RPCs de edicion del admin. |
+| `20260526007000_drop_menu_note_columns.sql` | Elimina las columnas `note` del modelo `menu_content` y reemplaza las funciones que aun las referenciaban. |
 
 ## Baseline pre-lanzamiento
 

@@ -164,7 +164,6 @@ const createCatalogSection = ({
     sectionId: section.section_id,
     title: section.title,
     description: section.description ?? undefined,
-    note: section.note ?? undefined,
     order: section.order_index,
     presentation:
       section.presentation === "compact-list" ? section.presentation : undefined,
@@ -198,7 +197,6 @@ const createCatalogSection = ({
         groupId: group.group_id,
         title: group.title,
         description: group.description ?? undefined,
-        note: group.note ?? undefined,
         pricing: readPricing(priceMap, group.pricing_key),
         items: (itemsByGroup.get(group.group_id) ?? []).map((item) =>
           createFlatItem(
@@ -218,7 +216,6 @@ const createFlatItem = (item, options, priceMap, transformImage) =>
     itemId: item.item_id,
     name: item.name,
     description: item.description ?? undefined,
-    note: item.note ?? undefined,
     available: true,
     pricing: readPricing(priceMap, item.pricing_key),
     options:
@@ -228,7 +225,6 @@ const createFlatItem = (item, options, priceMap, transformImage) =>
               id: option.option_id,
               name: option.name,
               description: option.description ?? undefined,
-              note: option.note ?? undefined,
               available: true,
             }),
           )

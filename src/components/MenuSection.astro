@@ -12,7 +12,6 @@ interface Props {
   sectionId: string;
   title: string;
   description?: string;
-  note?: string;
   items?: MenuItem[];
   groups?: MenuGroup[];
   presentation?: MenuSectionPresentation;
@@ -23,7 +22,6 @@ const {
   sectionId,
   title,
   description,
-  note,
   items,
   groups,
   presentation = "cards",
@@ -35,11 +33,6 @@ const {
     <h2 class="menu-section__title">{title}</h2>
     {description && (
       <p class="menu-section__description">{description}</p>
-    )}
-    {note && (
-      <p class="menu-section__note">
-        {note}
-      </p>
     )}
   </div>
 
@@ -66,7 +59,6 @@ const {
           itemId={item.itemId}
           name={item.name}
           description={item.description}
-          note={item.note}
           available={item.available}
           pricing={item.pricing}
           options={item.options}
@@ -84,11 +76,6 @@ const {
               <h3 class="menu-group__title">{group.title}</h3>
               {group.description && (
                 <p class="menu-group__description">{group.description}</p>
-              )}
-              {group.note && (
-                <p class="menu-group__note">
-                  {group.note}
-                </p>
               )}
             </div>
 
@@ -113,7 +100,6 @@ const {
                     itemId={item.itemId}
                     name={item.name}
                     description={item.description}
-                    note={item.note}
                     available={item.available}
                     pricing={item.pricing}
                     inheritedPricing={group.pricing}

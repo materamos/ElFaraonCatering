@@ -46,10 +46,6 @@ const hasOperationalVariants = variants.some((variant) => variant.availabilityIt
         {item.description}
       </p>
     )}
-    {item.note && (
-      <p class="compact-item__note">{item.note}</p>
-    )}
-
     {variants.length > 0 && (
       <ul class="compact-item__variants">
         {variants.map((variant: MenuPricingVariant) => (

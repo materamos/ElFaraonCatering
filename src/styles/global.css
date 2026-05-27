@@ -242,15 +242,6 @@
     line-height: 1.6;
   }
 
-  .menu-section__note,
-  .dish-card__note,
-  .menu-group__note {
-    color: var(--color-accent);
-    font-size: 0.95rem;
-    font-weight: 650;
-    line-height: 1.6;
-  }
-
   .menu-section__items,
   .menu-section__groups,
   .menu-group__items {
@@ -311,8 +302,7 @@
     line-height: 1.45;
   }
 
-  .compact-item__description,
-  .compact-item__note {
+  .compact-item__description {
     color: var(--color-muted);
     font-size: 0.92rem;
     line-height: 1.55;

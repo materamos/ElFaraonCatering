@@ -33,7 +33,6 @@ export interface MenuOption {
   id: string;
   name: string;
   description?: string;
-  note?: string;
   available: boolean;
 }
 
@@ -41,7 +40,6 @@ export interface MenuItem {
   itemId: string;
   name: string;
   description?: string;
-  note?: string;
   available: boolean;
   pricing?: MenuPricing;
   options?: MenuOption[];
@@ -52,7 +50,6 @@ export interface MenuGroup {
   groupId: string;
   title: string;
   description?: string;
-  note?: string;
   pricing?: MenuPricing;
   items: MenuItem[];
 }
@@ -63,7 +60,6 @@ export interface MenuSectionBase {
   sectionId: string;
   title: string;
   description?: string;
-  note?: string;
   order: number;
   presentation?: MenuSectionPresentation;
 }
