@@ -308,7 +308,7 @@ El admin permite:
 - agregar, editar nombre/etiqueta y eliminar items de parrilla dentro de familias existentes
 - agregar, editar nombre/descripcion y eliminar items puntuales del menu fijo dentro de secciones o grupos existentes
 - agregar, editar nombre y eliminar opciones de items del menu fijo que ya usan sabores, como empanadas o tartas, sin permitir que una subcategoria quede sin sabores
-- en `Menu fijo`, la seccion operativa `minutas-tartas-omelettes` se muestra como `Tartas, tortillas y omelettes` y solo permite administrar sabores de `tartas`; `empanadas` tambien permite solo administrar sabores de `empanadas`
+- en `Menu fijo`, la seccion operativa `minutas-tartas-omelettes` se muestra como `Tartas, tortillas y omelettes`, incluye tartas, tortilla y omelette, y solo permite administrar sabores en items que ya usan opciones; `empanadas` tambien permite solo administrar sabores de `empanadas`
 - editar precios desde la pantalla del menu correspondiente: menu del dia y parrilla en `Servicio`, menu fijo en `Menu fijo`
 - solicitar publicacion mediante `publish-menu-changes`
 

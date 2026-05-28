@@ -47,7 +47,7 @@ const fixedOptionsOnlySectionRules: ReadonlyArray<{
   {
     sectionId: "minutas-tartas-omelettes",
     title: "Tartas, tortillas y omelettes",
-    itemIds: ["tartas"],
+    itemIds: ["tartas", "tortilla", "omelette"],
   },
   {
     sectionId: "empanadas",

@@ -80,14 +80,15 @@ Fixed-menu admin item edits may add individual catalog items, update item name a
 description, delete individual catalog items only within existing sections or
 groups, or add, update, and delete individual catalog item options for items
 that already use options. The fixed-menu admin treats `minutas-tartas-omelettes`
-as `Tartas, tortillas y omelettes` and allows only `tartas` option edits there; it allows only
-`empanadas` option edits in `empanadas`. In those option-only locations, do not
-allow item add, update, or delete operations. Option edits from `/admin/` must
-not leave an item with zero options. Do not allow fixed-menu item edits to change
-prices, availability, technical IDs, order, to reorder options, or to create,
-delete, rename, or reorder catalog sections or groups from `/admin/`. Global
-price edits may be presented in the admin surface for the related menu, but must
-remain the explicit global price RPC workflow.
+as `Tartas, tortillas y omelettes`, shows `tartas`, `tortilla`, and `omelette`
+there, and allows only option edits for items that already use options; it allows
+only `empanadas` option edits in `empanadas`. In those option-only locations, do
+not allow item add, update, or delete operations. Option edits from `/admin/`
+must not leave an item with zero options. Do not allow fixed-menu item edits to
+change prices, availability, technical IDs, order, to reorder options, or to
+create, delete, rename, or reorder catalog sections or groups from `/admin/`.
+Global price edits may be presented in the admin surface for the related menu,
+but must remain the explicit global price RPC workflow.
 
 Keep `/admin/` as a static Astro route. Do not add SSR, server output, API routes, Vercel Functions, service role usage in browser, or broad editorial CMS behavior outside the operational menu-content scope.
 
