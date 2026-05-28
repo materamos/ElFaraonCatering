@@ -59,9 +59,9 @@ Do not add these capabilities unless explicitly requested:
 - broad editorial CMS code, non-operational auth, or repo-writing admin flows outside operational menu content
 
 Operational CMS work may cover menu del dia, active service, availability, grill
-mode, fixed-menu content, existing catalog item options, global prices, and
-publication. This is an intermediate menu-content CMS, not a general editorial
-CMS.
+mode, grill items inside existing families, fixed-menu content, existing catalog
+item options, global prices, and publication. This is an intermediate
+menu-content CMS, not a general editorial CMS.
 
 Operational staff auth and roles may support that CMS surface. Do not expand them
 into customer accounts, broad editorial accounts, institutional-site accounts, or
@@ -69,6 +69,12 @@ public user features.
 
 CMS editable does not mean runtime editable. Except for availability, operational
 CMS changes require rebuild/deploy before they affect the public menu.
+
+Grill admin edits may add individual grill items, update item name and variant
+label, delete individual grill items, and edit their global fixed prices within
+existing grill families. Do not allow grill edits to create, delete, rename, or
+reorder grill families, change technical IDs, change availability, or reorder
+items from `/admin/`.
 
 Fixed-menu admin item edits may add individual catalog items, update item name and
 description, delete individual catalog items only within existing sections or
@@ -80,8 +86,8 @@ allow item add, update, or delete operations. Option edits from `/admin/` must
 not leave an item with zero options. Do not allow fixed-menu item edits to change
 prices, availability, technical IDs, order, to reorder options, or to create,
 delete, rename, or reorder catalog sections or groups from `/admin/`. Global
-price edits may be presented in the `Menu fijo` admin surface, but must remain
-the explicit global price RPC workflow.
+price edits may be presented in the admin surface for the related menu, but must
+remain the explicit global price RPC workflow.
 
 Keep `/admin/` as a static Astro route. Do not add SSR, server output, API routes, Vercel Functions, service role usage in browser, or broad editorial CMS behavior outside the operational menu-content scope.
 
@@ -160,9 +166,9 @@ Image rules:
 ## Supabase Rules
 
 Supabase may back an operational menu-content CMS for daily menu, grill mode,
-availability, fixed-menu content, existing catalog item options, global prices,
-and publication. It must not become a broad editorial CMS without an explicit
-architecture decision.
+grill items inside existing families, availability, fixed-menu content, existing
+catalog item options, global prices, and publication. It must not become a broad
+editorial CMS without an explicit architecture decision.
 
 Build-time structural and operational content:
 

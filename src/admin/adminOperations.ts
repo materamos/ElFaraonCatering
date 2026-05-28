@@ -1,4 +1,12 @@
-import type { AuthSession, AvailabilityTargetState, CatalogItemOptionState, CatalogItemState, RpcResult, StatusTone } from "./adminTypes";
+import type {
+  AuthSession,
+  AvailabilityTargetState,
+  CatalogItemOptionState,
+  CatalogItemState,
+  GrillItemState,
+  RpcResult,
+  StatusTone,
+} from "./adminTypes";
 import {
   formatCooldownSuffix,
   getFormInteger,
@@ -98,6 +106,66 @@ export function createAdminOperations(context: AdminOperationContext) {
           "success",
         );
       }, "Guardando servicio...");
+    },
+
+    saveGrillItem(form: HTMLFormElement): Promise<void> {
+      return context.runBusy(async () => {
+        const result = await context.callMutation("add_grill_item", {
+          family_id: getFormString(form, "family_id"),
+          item_id: getFormString(form, "item_id"),
+          name: getFormString(form, "name"),
+          variant_name: getNullableFormString(form, "variant_name"),
+          amount: getFormInteger(form, "amount"),
+        });
+
+        if (!result.ok) {
+          throw new Error(resultMessage(result));
+        }
+
+        context.markPendingIfNeeded(result);
+        await context.loadAdminState(
+          result.changed ? "Item de parrilla agregado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
+          "success",
+        );
+      }, "Agregando item de parrilla...");
+    },
+
+    saveGrillItemEdit(form: HTMLFormElement): Promise<void> {
+      return context.runBusy(async () => {
+        const result = await context.callMutation("update_grill_item", {
+          item_id: getFormString(form, "item_id"),
+          name: getFormString(form, "name"),
+          variant_name: getNullableFormString(form, "variant_name"),
+        });
+
+        if (!result.ok) {
+          throw new Error(resultMessage(result));
+        }
+
+        context.markPendingIfNeeded(result);
+        await context.loadAdminState(
+          result.changed ? "Item de parrilla actualizado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
+          "success",
+        );
+      }, "Guardando item de parrilla...");
+    },
+
+    deleteGrillItem(item: GrillItemState): Promise<void> {
+      return context.runBusy(async () => {
+        const result = await context.callMutation("delete_grill_item", {
+          item_id: item.item_id,
+        });
+
+        if (!result.ok) {
+          throw new Error(resultMessage(result));
+        }
+
+        context.markPendingIfNeeded(result);
+        await context.loadAdminState(
+          result.changed ? "Item de parrilla eliminado. Para quitarlo del menu publico, publica los cambios." : "Sin cambios.",
+          "success",
+        );
+      }, "Eliminando item de parrilla...");
     },
 
     saveFixedPrice(form: HTMLFormElement): Promise<void> {

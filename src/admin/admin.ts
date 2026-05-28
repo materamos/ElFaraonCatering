@@ -5,6 +5,7 @@ import type {
   AuthView,
   CatalogItemOptionState,
   CatalogItemState,
+  GrillItemState,
   RpcResult,
   StatusMessage,
   StatusTone,
@@ -32,6 +33,7 @@ import {
   findAvailabilityTarget,
   findCatalogItem,
   findCatalogItemOption,
+  findGrillItem,
   renderAuthenticated,
   renderConfigurationError,
   renderLogin,
@@ -128,6 +130,7 @@ root.addEventListener("input", (event) => {
 
   handleCatalogItemInput(field);
   handleCatalogOptionInput(field);
+  handleGrillItemInput(field);
 });
 
 void startAdmin().catch(handleUnexpectedError);
@@ -251,6 +254,23 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
+  if (action === "delete-grill-item") {
+    const itemId = target.dataset.itemId;
+    const item = itemId ? findGrillItem(itemId) : undefined;
+
+    if (!item) {
+      setStatus("No se encontro el item de parrilla seleccionado.", "danger");
+      return;
+    }
+
+    if (!confirmDeleteGrillItem(item)) {
+      return;
+    }
+
+    await adminOperations.deleteGrillItem(item);
+    return;
+  }
+
   if (action === "delete-catalog-option") {
     const sectionId = target.dataset.sectionId;
     const groupId = target.dataset.groupId ?? "";
@@ -317,6 +337,16 @@ async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
     }
 
     await adminOperations.saveServiceKind(form);
+    return;
+  }
+
+  if (formKind === "grill-item") {
+    await adminOperations.saveGrillItem(form);
+    return;
+  }
+
+  if (formKind === "grill-item-edit") {
+    await adminOperations.saveGrillItemEdit(form);
     return;
   }
 
@@ -562,9 +592,34 @@ function handleCatalogOptionInput(field: HTMLInputElement): void {
   optionIdField.value = createCatalogId(field.value);
 }
 
+function handleGrillItemInput(field: HTMLInputElement): void {
+  const form = field.closest<HTMLFormElement>('form[data-admin-form="grill-item"]');
+
+  if (!form) {
+    return;
+  }
+
+  if (field.name === "item_id") {
+    field.dataset.manual = "true";
+    return;
+  }
+
+  if (field.name !== "name") {
+    return;
+  }
+
+  const itemIdField = form.elements.namedItem("item_id");
+
+  if (!(itemIdField instanceof HTMLInputElement) || itemIdField.dataset.manual === "true") {
+    return;
+  }
+
+  itemIdField.value = createCatalogId(field.value);
+}
+
 function confirmPublishChanges(): boolean {
   return window.confirm(
-    "Vas a publicar los cambios guardados de platos, menu fijo, servicio activo y precios. La disponibilidad ya se aplica al instante. Continuar?",
+    "Vas a publicar los cambios guardados de platos, parrilla, menu fijo, servicio activo y precios. La disponibilidad ya se aplica al instante. Continuar?",
   );
 }
 
@@ -575,6 +630,12 @@ function confirmDeleteCatalogItem(item: CatalogItemState): boolean {
 
   return window.confirm(
     `Vas a eliminar "${item.name}" del menu fijo.${optionText} El menu publico cambia despues de publicar. Continuar?`,
+  );
+}
+
+function confirmDeleteGrillItem(item: GrillItemState): boolean {
+  return window.confirm(
+    `Vas a eliminar "${item.name}" de parrilla. El menu publico cambia despues de publicar. Continuar?`,
   );
 }
 

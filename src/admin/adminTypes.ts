@@ -86,6 +86,29 @@ export interface VariantPriceState {
   order_index: number;
 }
 
+export interface GrillFamilyState {
+  family_id: string;
+  title: string;
+  order_index: number;
+  item_count: number;
+}
+
+export interface GrillItemState {
+  family_id: string;
+  family_title: string;
+  item_id: string;
+  name: string;
+  variant_name: string | null;
+  pricing_key: string;
+  price_amount: number | null;
+  order_index: number;
+}
+
+export interface GrillEditorState {
+  families: GrillFamilyState[];
+  items: GrillItemState[];
+}
+
 export interface CatalogSectionState {
   section_id: string;
   title: string;
@@ -147,6 +170,7 @@ export interface AdminOperationalState {
     fixed: FixedPriceState[];
     variants: VariantPriceState[];
   };
+  grill_editor: GrillEditorState;
   catalog_editor: CatalogEditorState;
 }
 

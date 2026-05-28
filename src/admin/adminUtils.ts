@@ -7,6 +7,8 @@ import type {
   CatalogItemOptionState,
   CatalogItemState,
   CatalogSectionState,
+  GrillFamilyState,
+  GrillItemState,
   GrillProfileGroup,
   PricingLabel,
   RpcResult,
@@ -57,6 +59,14 @@ export function normalizeAdminState(state: AdminOperationalState): AdminOperatio
       fixed: Array.isArray(state.prices?.fixed) ? state.prices.fixed : [],
       variants: Array.isArray(state.prices?.variants) ? state.prices.variants : [],
     },
+    grill_editor: {
+      families: Array.isArray(state.grill_editor?.families)
+        ? state.grill_editor.families.map(normalizeGrillFamily)
+        : [],
+      items: Array.isArray(state.grill_editor?.items)
+        ? state.grill_editor.items.map(normalizeGrillItem)
+        : [],
+    },
     catalog_editor: {
       sections: Array.isArray(state.catalog_editor?.sections)
         ? state.catalog_editor.sections.map(normalizeCatalogSection)
@@ -68,6 +78,25 @@ export function normalizeAdminState(state: AdminOperationalState): AdminOperatio
         ? state.catalog_editor.items.map(normalizeCatalogItem)
         : [],
     },
+  };
+}
+
+function normalizeGrillFamily(family: GrillFamilyState): GrillFamilyState {
+  return {
+    ...family,
+    item_count: normalizeNonnegativeInteger(family.item_count),
+  };
+}
+
+function normalizeGrillItem(item: GrillItemState): GrillItemState {
+  const priceAmount = (item as { price_amount?: unknown }).price_amount;
+
+  return {
+    ...item,
+    price_amount:
+      typeof priceAmount === "number" && Number.isSafeInteger(priceAmount) && priceAmount >= 0
+        ? priceAmount
+        : null,
   };
 }
 
@@ -196,6 +225,18 @@ export function resultMessage(result: RpcResult): string {
     catalog_item_not_found: "El item seleccionado ya no existe.",
     catalog_item_locked: "Esta seccion solo permite administrar sabores desde Menu fijo.",
     catalog_location_must_keep_item: "No se puede eliminar el ultimo item de una seccion o grupo.",
+    grill_item_id_required: "El codigo del item de parrilla es obligatorio.",
+    invalid_grill_item_id: "El codigo del item debe usar minusculas, numeros y guiones.",
+    grill_item_name_required: "El nombre del item de parrilla es obligatorio.",
+    grill_family_not_found: "La familia de parrilla seleccionada no existe.",
+    grill_item_exists: "Ya existe un item de parrilla con ese codigo.",
+    grill_item_not_found: "El item de parrilla seleccionado ya no existe.",
+    grill_family_must_keep_item: "No se puede eliminar el ultimo item de una familia.",
+    grill_price_key_conflict: "Ya existe un precio incompatible para ese codigo.",
+    grill_item_unchanged: "Sin cambios.",
+    grill_item_updated: "Item de parrilla actualizado.",
+    grill_item_added: "Item de parrilla agregado.",
+    grill_item_deleted: "Item de parrilla eliminado.",
   };
 
   return messages[result.message] ?? result.message.replaceAll("_", " ");

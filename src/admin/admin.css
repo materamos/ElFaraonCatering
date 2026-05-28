@@ -628,6 +628,14 @@
     padding-top: 0.35rem;
   }
 
+  .admin-availability-group,
+  .admin-grill-editor,
+  .admin-grill-family {
+    display: grid;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
   .admin-price-grid > .admin-grid {
     align-content: start;
   }
