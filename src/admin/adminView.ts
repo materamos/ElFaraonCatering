@@ -2,7 +2,6 @@ import type {
   AdminOperationalState,
   AdminTabId,
   AvailabilityOverlayState,
-  AvailabilityScope,
   AvailabilityTargetState,
   CatalogEditorState,
   CatalogGroupState,
@@ -16,18 +15,15 @@ import type {
   ProfileState,
   ServiceKind,
   StatusMessage,
-  TargetKind,
   VariantPriceState,
 } from "./adminTypes";
 import {
   escapeHtml,
   formatAmount,
   formatCatalogItemPrice,
-  formatOptionalAmount,
   formatPricingLabel,
   getOverlayKey,
   getTargetKey,
-  groupGrillTargets,
   roleLabel,
 } from "./adminUtils";
 
@@ -62,15 +58,11 @@ let root: HTMLElement;
 let currentState: AdminOperationalState | null = null;
 let currentStatus: StatusMessage | null = null;
 let currentBusyText: string | null = null;
-let activeTab: AdminTabId = "daily";
+let activeTab: AdminTabId = "service";
 let hasPendingPublication = false;
 let isBusy = false;
 let availabilityProfileFilter = "";
-let dailyProfileFilter = "";
-let grillProfileFilter = "";
 let availabilityGroupFilter = "";
-let dailyGroupFilter = "";
-let grillGroupFilter = "";
 let fixedSectionFilter = "";
 let fixedGroupFilter = "";
 
@@ -89,31 +81,12 @@ export function setAdminActiveTab(tab: AdminTabId): void {
 export function setAdminFilter(name: string, value: string): void {
   if (name === "availability-profile") {
     availabilityProfileFilter = value;
+    availabilityGroupFilter = "";
     return;
   }
 
   if (name === "availability-group") {
     availabilityGroupFilter = value;
-    return;
-  }
-
-  if (name === "daily-profile") {
-    dailyProfileFilter = value;
-    return;
-  }
-
-  if (name === "daily-group") {
-    dailyGroupFilter = value;
-    return;
-  }
-
-  if (name === "grill-profile") {
-    grillProfileFilter = value;
-    return;
-  }
-
-  if (name === "grill-group") {
-    grillGroupFilter = value;
     return;
   }
 
@@ -227,7 +200,7 @@ export function renderAuthenticated(): void {
           <div>
             <p class="admin-kicker">Panel operativo</p>
             <h1 class="admin-title">Admin El Faraon</h1>
-            <p class="admin-header__copy">Prepara el servicio diario. La disponibilidad se aplica al instante; platos, parrilla y precios necesitan publicar cambios.</p>
+            <p class="admin-header__copy">Prepara el servicio, controla disponibilidad y administra menu fijo. La disponibilidad se aplica al instante; contenido y precios necesitan publicacion.</p>
           </div>
           <div class="admin-header__identity">
             <span class="admin-user-name">${escapeHtml(currentState.staff.display_name)}</span>
@@ -279,24 +252,16 @@ function renderDenied(): void {
 }
 
 function renderActiveTab(state: AdminOperationalState): string {
+  if (activeTab === "service") {
+    return renderServiceTab(state);
+  }
+
   if (activeTab === "availability") {
     return renderAvailabilityTab(state);
   }
 
-  if (activeTab === "daily") {
-    return renderDailyTab(state);
-  }
-
-  if (activeTab === "grill") {
-    return renderGrillTab(state);
-  }
-
   if (activeTab === "fixed") {
     return renderFixedMenuTab(state);
-  }
-
-  if (activeTab === "prices") {
-    return renderPricesTab(state);
   }
 
   if (activeTab === "publish") {
@@ -311,25 +276,24 @@ function renderAvailabilityTab(state: AdminOperationalState): string {
     <section class="admin-section">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Disponibilidad</h2>
-        <p class="admin-section__copy">Oculta o vuelve a mostrar items del catalogo general. Estos cambios se ven al instante y no necesitan publicacion.</p>
+        <p class="admin-section__copy">Oculta o vuelve a mostrar cualquier item visible del menu: menu del dia, parrilla y menu fijo. Estos cambios se ven al instante y no necesitan publicacion.</p>
       </div>
-      ${renderAvailabilityFilters(state, "availability")}
-      ${renderAvailabilityRows(state, "catalog")}
+      ${renderAvailabilityFilters(state)}
+      ${renderAvailabilityRows(state)}
     </section>
   `;
 }
 
-function renderDailyTab(state: AdminOperationalState): string {
+function renderServiceTab(state: AdminOperationalState): string {
   const regular = findDailyItem(state, regularDailyId);
   const vegetarian = findDailyItem(state, vegetarianDailyId);
   const serviceEditor = state.permissions.can_edit_menu_content;
-  const availabilityEditor = state.permissions.can_edit_availability;
 
   return `
-    <section class="admin-section admin-daily">
+    <section class="admin-section admin-service">
       <div class="admin-section__header">
-        <h2 class="admin-section__title">Menu del dia</h2>
-        <p class="admin-section__copy">Primero carga los platos y confirma que locales usan menu del dia. Despues ajusta disponibilidad si algo se agota.</p>
+        <h2 class="admin-section__title">Servicio</h2>
+        <p class="admin-section__copy">Prepara el menu del dia y elegi que servicio muestra cada local. Para ocultar agotados, usa Disponibilidad.</p>
       </div>
       ${serviceEditor ? `
         <section class="admin-daily-panel">
@@ -351,27 +315,9 @@ function renderDailyTab(state: AdminOperationalState): string {
             </div>
           </form>
         </section>
-        ${renderDailyServiceForms(state)}
+        ${renderServiceModeForms(state)}
       ` : ""}
-      ${availabilityEditor ? renderDailyAvailabilitySection(state) : ""}
-      ${!serviceEditor && !availabilityEditor ? renderEmpty("No hay acciones de menu del dia disponibles para este rol.") : ""}
-    </section>
-  `;
-}
-
-function renderGrillTab(state: AdminOperationalState): string {
-  const serviceEditor = state.permissions.can_edit_menu_content;
-  const availabilityEditor = state.permissions.can_edit_availability;
-
-  return `
-    <section class="admin-section admin-grill">
-      <div class="admin-section__header">
-        <h2 class="admin-section__title">Parrilla</h2>
-        <p class="admin-section__copy">Activa parrilla por local cuando corresponda. Ese cambio necesita publicacion; ocultar o mostrar items se ve al instante.</p>
-      </div>
-      ${serviceEditor ? renderGrillServiceForms(state) : ""}
-      ${availabilityEditor ? renderGrillAvailabilitySection(state) : ""}
-      ${!serviceEditor && !availabilityEditor ? renderEmpty("No hay acciones de parrilla disponibles para este rol.") : ""}
+      ${!serviceEditor ? renderEmpty("No hay acciones de servicio disponibles para este rol.") : ""}
     </section>
   `;
 }
@@ -396,9 +342,10 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
       <section class="admin-section">
         <div class="admin-section__header">
           <h2 class="admin-section__title">Menu fijo</h2>
-          <p class="admin-section__copy">Agrega, edita o elimina items dentro de secciones existentes. Para crear secciones o cambiar el orden, avisale a quien administra el sitio.</p>
+          <p class="admin-section__copy">Agrega, edita o elimina items dentro de secciones existentes y ajusta precios globales. Para crear secciones o cambiar el orden, avisale a quien administra el sitio.</p>
         </div>
         ${renderEmpty("No hay secciones del menu fijo disponibles.")}
+        ${renderPriceEditorSection(state)}
       </section>
     `;
   }
@@ -449,19 +396,20 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
         ? renderEmpty("La seccion seleccionada no tiene grupos disponibles para agregar items.")
         : renderCatalogItemForm(section, group)}
       ${renderCatalogItemList(items, editMode)}
+      ${renderPriceEditorSection(state)}
     </section>
   `;
 }
 
-function renderPricesTab(state: AdminOperationalState): string {
+function renderPriceEditorSection(state: AdminOperationalState): string {
   const fixedRows = state.prices.fixed;
   const variantRows = state.prices.variants;
 
   return `
-    <section class="admin-section">
-      <div class="admin-section__header">
-        <h2 class="admin-section__title">Precios</h2>
-        <p class="admin-section__copy">Ajusta precios globales. Guardar no cambia el menu publico hasta que publiques cambios.</p>
+    <section class="admin-price-panel">
+      <div class="admin-daily-panel__header">
+        <h3 class="admin-daily-panel__title">Precios</h3>
+        <p class="admin-row__meta">Ajusta precios globales. Guardar no cambia el menu publico hasta que publiques cambios.</p>
       </div>
       <div class="admin-price-grid">
         <div class="admin-grid">
@@ -551,24 +499,20 @@ function renderStatus(): string {
   `;
 }
 
-function renderAvailabilityFilters(
-  state: AdminOperationalState,
-  scope: AvailabilityScope,
-): string {
-  const profileFilter = getEffectiveAvailabilityProfileFilter(state, scope);
-  const groupFilter = getAvailabilityGroupFilter(scope);
+function renderAvailabilityFilters(state: AdminOperationalState): string {
+  const profileFilter = getEffectiveAvailabilityProfileFilter(state);
   const profileOptions = getEditableAvailabilityProfiles(state);
+  const profileTargets = state.availability_targets.filter((target) => target.menu_id === profileFilter);
   const groupOptions = getAvailabilityGroupOptions(
-    getAvailabilityScopeTargets(state, getAvailabilityKindLimit(scope)).filter((target) =>
-      target.menu_id === profileFilter
-    ),
+    profileTargets,
   );
+  const groupFilter = getEffectiveAvailabilityGroupFilter(groupOptions);
 
   return `
     <div class="admin-toolbar">
       <label class="admin-field">
         <span class="admin-label">Local</span>
-        <select class="admin-select" data-admin-filter="${getAvailabilityProfileFilterName(scope)}">
+        <select class="admin-select" data-admin-filter="availability-profile">
           ${profileOptions
             .map((profile) => `<option value="${escapeHtml(profile.id)}" ${profileFilter === profile.id ? "selected" : ""}>${escapeHtml(profile.title)}</option>`)
             .join("")}
@@ -576,7 +520,7 @@ function renderAvailabilityFilters(
       </label>
       <label class="admin-field">
         <span class="admin-label">Familia / grupo</span>
-        <select class="admin-select" data-admin-filter="${getAvailabilityGroupFilterName(scope)}">
+        <select class="admin-select" data-admin-filter="availability-group">
           <option value="">Todos</option>
           ${groupOptions
             .map((option) => `<option value="${escapeHtml(option.key)}" ${groupFilter === option.key ? "selected" : ""}>${escapeHtml(option.label)}</option>`)
@@ -587,101 +531,18 @@ function renderAvailabilityFilters(
   `;
 }
 
-function getAvailabilityProfileFilter(scope: AvailabilityScope): string {
-  if (scope === "daily") {
-    return dailyProfileFilter;
-  }
-
-  if (scope === "grill") {
-    return grillProfileFilter;
-  }
-
-  return availabilityProfileFilter;
-}
-
 function getEditableAvailabilityProfiles(state: AdminOperationalState): ProfileState[] {
   return state.profiles.filter((profile) => profile.can_edit_availability);
 }
 
-function getEffectiveAvailabilityProfileFilter(
-  state: AdminOperationalState,
-  scope: AvailabilityScope,
-): string {
-  const profileFilter = getAvailabilityProfileFilter(scope);
+function getEffectiveAvailabilityProfileFilter(state: AdminOperationalState): string {
   const editableProfiles = getEditableAvailabilityProfiles(state);
 
-  if (editableProfiles.some((profile) => profile.id === profileFilter)) {
-    return profileFilter;
+  if (editableProfiles.some((profile) => profile.id === availabilityProfileFilter)) {
+    return availabilityProfileFilter;
   }
 
   return editableProfiles[0]?.id ?? "";
-}
-
-function getAvailabilityProfileFilterName(scope: AvailabilityScope): string {
-  if (scope === "daily") {
-    return "daily-profile";
-  }
-
-  if (scope === "grill") {
-    return "grill-profile";
-  }
-
-  return "availability-profile";
-}
-
-function getAvailabilityGroupFilter(scope: AvailabilityScope): string {
-  if (scope === "daily") {
-    return dailyGroupFilter;
-  }
-
-  if (scope === "grill") {
-    return grillGroupFilter;
-  }
-
-  return availabilityGroupFilter;
-}
-
-function getAvailabilityGroupFilterName(scope: AvailabilityScope): string {
-  if (scope === "daily") {
-    return "daily-group";
-  }
-
-  if (scope === "grill") {
-    return "grill-group";
-  }
-
-  return "availability-group";
-}
-
-function getAvailabilityKindLimit(scope: AvailabilityScope): TargetKind | undefined {
-  if (scope === "daily") {
-    return "daily-menu";
-  }
-
-  if (scope === "grill") {
-    return "grill";
-  }
-
-  return "catalog";
-}
-
-function getAvailabilityScopeForKindLimit(kindLimit: TargetKind | undefined): AvailabilityScope {
-  if (kindLimit === "daily-menu") {
-    return "daily";
-  }
-
-  if (kindLimit === "grill") {
-    return "grill";
-  }
-
-  return "availability";
-}
-
-function getAvailabilityScopeTargets(
-  state: AdminOperationalState,
-  kindLimit: TargetKind | undefined,
-): AvailabilityTargetState[] {
-  return state.availability_targets.filter((target) => !kindLimit || target.target_kind === kindLimit);
 }
 
 function getAvailabilityGroupKey(target: AvailabilityTargetState): string {
@@ -716,20 +577,11 @@ function getAvailabilityGroupOptions(
   return options;
 }
 
-function renderAvailabilityRows(
-  state: AdminOperationalState,
-  kindLimit: TargetKind | undefined,
-): string {
-  const profileFilter = getEffectiveAvailabilityProfileFilter(
-    state,
-    getAvailabilityScopeForKindLimit(kindLimit),
-  );
-  const groupFilter = kindLimit === "daily-menu"
-    ? dailyGroupFilter
-    : kindLimit === "grill"
-      ? grillGroupFilter
-      : availabilityGroupFilter;
-  const scopeTargets = getAvailabilityScopeTargets(state, kindLimit);
+function renderAvailabilityRows(state: AdminOperationalState): string {
+  const profileFilter = getEffectiveAvailabilityProfileFilter(state);
+  const scopeTargets = state.availability_targets;
+  const profileTargets = scopeTargets.filter((target) => target.menu_id === profileFilter);
+  const groupFilter = getEffectiveAvailabilityGroupFilter(getAvailabilityGroupOptions(profileTargets));
   const targets = scopeTargets.filter((target) =>
     target.menu_id === profileFilter
     && (!groupFilter || getAvailabilityGroupKey(target) === groupFilter)
@@ -752,28 +604,12 @@ function renderAvailabilityRows(
   `;
 }
 
-function getDailyServiceProfiles(state: AdminOperationalState): ProfileState[] {
-  return state.profiles.filter((profile) => findServiceKind(state, profile.id) === "daily-menu");
-}
-
-function getDailyAvailabilityTargets(state: AdminOperationalState): AvailabilityTargetState[] {
-  const profileIds = new Set(
-    getDailyServiceProfiles(state)
-      .filter((profile) => profile.can_edit_availability)
-      .map((profile) => profile.id),
-  );
-
-  return state.availability_targets.filter((target) =>
-    target.target_kind === "daily-menu" && profileIds.has(target.menu_id)
-  );
-}
-
-function renderDailyServiceForms(state: AdminOperationalState): string {
+function renderServiceModeForms(state: AdminOperationalState): string {
   if (state.profiles.length === 0) {
     return `
       <section class="admin-daily-panel">
         <div class="admin-daily-panel__header">
-          <h3 class="admin-daily-panel__title">Locales con menu del dia</h3>
+          <h3 class="admin-daily-panel__title">Servicio activo por local</h3>
           <p class="admin-row__meta">Cambiar entre menu del dia y parrilla se vera en el menu publico despues de publicar.</p>
         </div>
         ${renderEmpty("No hay locales para configurar.")}
@@ -784,7 +620,7 @@ function renderDailyServiceForms(state: AdminOperationalState): string {
   return `
     <section class="admin-daily-panel">
       <div class="admin-daily-panel__header">
-        <h3 class="admin-daily-panel__title">Locales con menu del dia</h3>
+        <h3 class="admin-daily-panel__title">Servicio activo por local</h3>
         <p class="admin-row__meta">Elegir el servicio activo cambia que ve cada local. Se vera en el menu publico despues de publicar.</p>
       </div>
       <div class="admin-grid">
@@ -817,312 +653,10 @@ function renderDailyServiceForms(state: AdminOperationalState): string {
   `;
 }
 
-function renderDailyAvailabilitySection(state: AdminOperationalState): string {
-  const profiles = getDailyServiceProfiles(state).filter((profile) => profile.can_edit_availability);
-  const targets = getDailyAvailabilityTargets(state);
-
-  if (profiles.length === 0) {
-    return `
-      <section class="admin-daily-panel">
-        <div class="admin-daily-panel__header">
-          <h3 class="admin-daily-panel__title">Disponibilidad de hoy</h3>
-          <p class="admin-row__meta">Ocultar o mostrar se ve al instante en el menu publico.</p>
-        </div>
-        ${renderEmpty("No hay locales con menu del dia activo.")}
-      </section>
-    `;
-  }
-
-  const profileFilter = profiles.some((profile) => profile.id === dailyProfileFilter)
-    ? dailyProfileFilter
-    : profiles[0]?.id ?? "";
-  const visibleTargets = targets.filter((target) => target.menu_id === profileFilter);
-  const selectedProfile = profiles.find((profile) => profile.id === profileFilter);
-
-  return `
-    <section class="admin-daily-panel">
-      <div class="admin-daily-panel__header">
-        <h3 class="admin-daily-panel__title">Disponibilidad de hoy</h3>
-        <p class="admin-row__meta">Usa esto cuando una opcion se agota o vuelve a estar disponible. No hace falta publicar.</p>
-      </div>
-      <div class="admin-toolbar admin-daily-toolbar">
-        ${profiles.length > 1 ? `
-          <label class="admin-field">
-            <span class="admin-label">Local</span>
-            <select class="admin-select" data-admin-filter="daily-profile">
-              ${profiles
-                .map((profile) => `<option value="${escapeHtml(profile.id)}" ${profileFilter === profile.id ? "selected" : ""}>${escapeHtml(profile.title)}</option>`)
-                .join("")}
-            </select>
-          </label>
-        ` : `
-          <div class="admin-daily-context">
-            <span class="admin-label">Local</span>
-            <strong>${escapeHtml(selectedProfile?.title ?? "Menu del dia")}</strong>
-          </div>
-        `}
-      </div>
-      ${visibleTargets.length === 0 ? renderEmpty("No hay items de menu del dia para este local.") : `
-        <div class="admin-list-header">
-          <span>${visibleTargets.length} items</span>
-          <span>Los cambios se aplican al instante.</span>
-        </div>
-        <div class="admin-grid">${visibleTargets.map((target) => renderDailyAvailabilityRow(state, target)).join("")}</div>
-      `}
-    </section>
-  `;
-}
-
-function renderDailyAvailabilityRow(
-  state: AdminOperationalState,
-  target: AvailabilityTargetState,
+function getEffectiveAvailabilityGroupFilter(
+  groupOptions: Array<{ key: string; label: string }>,
 ): string {
-  const overlay = findOverlay(state, target);
-  const effectiveAvailable = overlay ? overlay.available_override : target.base_available;
-  const key = getTargetKey(target);
-
-  return `
-    <div class="admin-row admin-daily-availability-row">
-      <div class="admin-row__main">
-        <p class="admin-row__title">${escapeHtml(target.name)}</p>
-        ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
-        <div class="admin-row__status">
-          ${renderAvailabilityStatus(effectiveAvailable, overlay)}
-        </div>
-      </div>
-      ${renderAvailabilityActions(key, effectiveAvailable, overlay)}
-    </div>
-  `;
-}
-
-function getGrillServiceProfiles(state: AdminOperationalState): ProfileState[] {
-  return state.profiles.filter((profile) => findServiceKind(state, profile.id) === "grill");
-}
-
-function getGrillAvailabilityTargets(state: AdminOperationalState): AvailabilityTargetState[] {
-  const profileIds = new Set(
-    getGrillServiceProfiles(state)
-      .filter((profile) => profile.can_edit_availability)
-      .map((profile) => profile.id),
-  );
-
-  return state.availability_targets.filter((target) =>
-    target.target_kind === "grill" && profileIds.has(target.menu_id)
-  );
-}
-
-function getEffectiveGrillProfileFilter(state: AdminOperationalState): string {
-  const profiles = getGrillServiceProfiles(state).filter((profile) => profile.can_edit_availability);
-
-  if (profiles.some((profile) => profile.id === grillProfileFilter)) {
-    return grillProfileFilter;
-  }
-
-  return profiles[0]?.id ?? "";
-}
-
-function getGrillFamilyKey(target: AvailabilityTargetState): string {
-  if (target.group_id) {
-    return `group:${target.section_id}:${target.group_id}`;
-  }
-
-  if (target.group_title) {
-    return `group-title:${target.section_id}:${target.group_title}`;
-  }
-
-  return `section:${target.section_id}`;
-}
-
-function getGrillFamilyOptions(
-  targets: AvailabilityTargetState[],
-): Array<{ key: string; label: string }> {
-  const options: Array<{ key: string; label: string }> = [];
-  const seenKeys = new Set<string>();
-
-  for (const target of targets) {
-    const key = getGrillFamilyKey(target);
-
-    if (seenKeys.has(key)) {
-      continue;
-    }
-
-    seenKeys.add(key);
-    options.push({ key, label: getAvailabilityGroupLabel(target) });
-  }
-
-  return options;
-}
-
-function renderGrillServiceForms(state: AdminOperationalState): string {
-  if (state.profiles.length === 0) {
-    return `
-      <section class="admin-grill-panel">
-        <div class="admin-grill-panel__header">
-          <h3 class="admin-grill-panel__title">Locales con parrilla</h3>
-          <p class="admin-row__meta">Cambiar entre menu del dia y parrilla se vera en el menu publico despues de publicar.</p>
-        </div>
-        ${renderEmpty("No hay locales para configurar.")}
-      </section>
-    `;
-  }
-
-  return `
-    <section class="admin-grill-panel">
-      <div class="admin-grill-panel__header">
-        <h3 class="admin-grill-panel__title">Locales con parrilla</h3>
-        <p class="admin-row__meta">Elegir parrilla activa ese servicio para el local. Se vera en el menu publico despues de publicar.</p>
-      </div>
-      <div class="admin-grid">
-        ${state.profiles.map((profile) => {
-          const currentService = findServiceKind(state, profile.id);
-          const serviceLabel = currentService === "grill" ? "Parrilla activa" : "Menu del dia activo";
-
-          return `
-            <form class="admin-row admin-grill-service-row" data-admin-form="service-kind" data-current-service="${currentService}" data-profile-title="${escapeHtml(profile.title)}">
-              <div class="admin-row__main">
-                <p class="admin-row__title">${escapeHtml(profile.title)}</p>
-                <div class="admin-row__status">
-                  <span class="admin-pill" data-tone="${currentService === "grill" ? "success" : "neutral"}">${escapeHtml(serviceLabel)}</span>
-                  <span class="admin-row__state-note">Se vera despues de publicar si cambia.</span>
-                </div>
-              </div>
-              <div class="admin-row__actions">
-                <input type="hidden" name="profile_id" value="${escapeHtml(profile.id)}" />
-                <select class="admin-select" name="service_kind" aria-label="Servicio activo para ${escapeHtml(profile.title)}">
-                  <option value="daily-menu" ${currentService === "daily-menu" ? "selected" : ""}>Menu del dia</option>
-                  <option value="grill" ${currentService === "grill" ? "selected" : ""}>Parrilla</option>
-                </select>
-                <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar</button>
-              </div>
-            </form>
-          `;
-        }).join("")}
-      </div>
-    </section>
-  `;
-}
-
-function renderGrillAvailabilitySection(state: AdminOperationalState): string {
-  const profiles = getGrillServiceProfiles(state).filter((profile) => profile.can_edit_availability);
-  const allTargets = getGrillAvailabilityTargets(state);
-
-  if (profiles.length === 0) {
-    return `
-      <section class="admin-grill-panel">
-        <div class="admin-grill-panel__header">
-          <h3 class="admin-grill-panel__title">Disponibilidad de parrilla</h3>
-          <p class="admin-row__meta">Ocultar o mostrar variantes se ve al instante en el menu publico.</p>
-        </div>
-        ${renderEmpty("No hay locales con parrilla activa.")}
-      </section>
-    `;
-  }
-
-  const profileFilter = getEffectiveGrillProfileFilter(state);
-  const profileTargets = allTargets.filter((target) => target.menu_id === profileFilter);
-  const familyOptions = getGrillFamilyOptions(profileTargets);
-  const familyFilter = familyOptions.some((option) => option.key === grillGroupFilter) ? grillGroupFilter : "";
-  const selectedProfile = profiles.find((profile) => profile.id === profileFilter);
-
-  return `
-    <section class="admin-grill-panel">
-      <div class="admin-grill-panel__header">
-        <h3 class="admin-grill-panel__title">Disponibilidad de parrilla</h3>
-        <p class="admin-row__meta">Usa esto cuando una variante se agota o vuelve a estar disponible. No hace falta publicar.</p>
-      </div>
-      <div class="admin-toolbar admin-grill-toolbar">
-        ${profiles.length > 1 ? `
-          <label class="admin-field">
-            <span class="admin-label">Local</span>
-            <select class="admin-select" data-admin-filter="grill-profile">
-              ${profiles
-                .map((profile) => `<option value="${escapeHtml(profile.id)}" ${profileFilter === profile.id ? "selected" : ""}>${escapeHtml(profile.title)}</option>`)
-                .join("")}
-            </select>
-          </label>
-        ` : `
-          <div class="admin-grill-context">
-            <span class="admin-label">Local</span>
-            <strong>${escapeHtml(selectedProfile?.title ?? "Parrilla")}</strong>
-          </div>
-        `}
-        <label class="admin-field">
-          <span class="admin-label">Familia</span>
-          <select class="admin-select" data-admin-filter="grill-group">
-            <option value="">Todas</option>
-            ${familyOptions
-              .map((option) => `<option value="${escapeHtml(option.key)}" ${familyFilter === option.key ? "selected" : ""}>${escapeHtml(option.label)}</option>`)
-              .join("")}
-          </select>
-        </label>
-      </div>
-      ${renderGrillAvailabilityRows(state, profileTargets, familyFilter)}
-    </section>
-  `;
-}
-
-function renderGrillAvailabilityRows(
-  state: AdminOperationalState,
-  scopeTargets: AvailabilityTargetState[],
-  familyFilter: string,
-): string {
-  const targets = scopeTargets.filter((target) =>
-    !familyFilter || getGrillFamilyKey(target) === familyFilter
-  );
-
-  if (targets.length === 0) {
-    return renderEmpty(
-      scopeTargets.length > 0
-        ? "No hay variantes para los filtros seleccionados."
-        : "No hay variantes de parrilla disponibles para este rol.",
-    );
-  }
-
-  return `
-    <div class="admin-list-header">
-      <span>${targets.length} variantes</span>
-      <span>Los cambios se aplican al instante.</span>
-    </div>
-    <div class="admin-grill-groups">
-      ${groupGrillTargets(targets).flatMap((profileGroup) => profileGroup.families).map((family) => `
-        <section class="admin-family admin-grill-family">
-          <div class="admin-family__header">
-            <h4 class="admin-family__title">${escapeHtml(family.title)}</h4>
-            <span class="admin-family__count">${family.targets.length} variantes</span>
-          </div>
-          <div class="admin-family__variants">
-            ${family.targets.map((target) => renderGrillAvailabilityVariant(state, target)).join("")}
-          </div>
-        </section>
-      `).join("")}
-    </div>
-  `;
-}
-
-function renderGrillAvailabilityVariant(
-  state: AdminOperationalState,
-  target: AvailabilityTargetState,
-): string {
-  const overlay = findOverlay(state, target);
-  const effectiveAvailable = overlay ? overlay.available_override : target.base_available;
-  const key = getTargetKey(target);
-  const priceText = formatOptionalAmount(target.price_amount);
-
-  return `
-    <div class="admin-row admin-variant-row admin-grill-variant-row">
-      <div class="admin-row__main">
-        <div class="admin-variant-heading">
-          <p class="admin-row__title">${escapeHtml(target.name)}</p>
-          ${priceText ? `<span class="admin-variant-price">${escapeHtml(priceText)}</span>` : ""}
-        </div>
-        ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
-        <div class="admin-row__status">
-          ${renderAvailabilityStatus(effectiveAvailable, overlay)}
-        </div>
-      </div>
-      ${renderAvailabilityActions(key, effectiveAvailable, overlay)}
-    </div>
-  `;
+  return groupOptions.some((option) => option.key === availabilityGroupFilter) ? availabilityGroupFilter : "";
 }
 
 function renderAvailabilityRow(
@@ -1138,7 +672,7 @@ function renderAvailabilityRow(
       <div class="admin-row__main">
         <p class="admin-row__title">${escapeHtml(target.name)}</p>
         <p class="admin-row__meta">
-          ${escapeHtml(target.profile_title)} &middot; ${escapeHtml(target.section_title)}
+          ${escapeHtml(formatAvailabilityKindLabel(target))} &middot; ${escapeHtml(target.profile_title)} &middot; ${escapeHtml(target.section_title)}
           ${target.group_title ? ` &middot; ${escapeHtml(target.group_title)}` : ""}
         </p>
         ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
@@ -1218,6 +752,18 @@ function renderDailyFieldset(
       </label>
     </fieldset>
   `;
+}
+
+function formatAvailabilityKindLabel(target: AvailabilityTargetState): string {
+  if (target.target_kind === "daily-menu") {
+    return "Menu del dia";
+  }
+
+  if (target.target_kind === "grill") {
+    return "Parrilla";
+  }
+
+  return "Menu fijo";
 }
 
 function renderCatalogItemForm(
@@ -1478,16 +1024,8 @@ function renderEmpty(message: string): string {
 function getAllowedTabs(state: AdminOperationalState): Array<{ id: AdminTabId; label: string }> {
   const tabs: Array<{ id: AdminTabId; label: string }> = [];
 
-  if (state.permissions.can_edit_menu_content || state.permissions.can_edit_availability) {
-    tabs.push({ id: "daily", label: "Menu del dia" });
-  }
-
-  if (state.permissions.can_edit_availability || state.permissions.can_edit_menu_content) {
-    tabs.push({ id: "grill", label: "Parrilla" });
-  }
-
   if (state.permissions.can_edit_menu_content) {
-    tabs.push({ id: "fixed", label: "Menu fijo" });
+    tabs.push({ id: "service", label: "Servicio" });
   }
 
   if (state.permissions.can_edit_availability) {
@@ -1495,7 +1033,7 @@ function getAllowedTabs(state: AdminOperationalState): Array<{ id: AdminTabId; l
   }
 
   if (state.permissions.can_edit_menu_content) {
-    tabs.push({ id: "prices", label: "Precios" });
+    tabs.push({ id: "fixed", label: "Menu fijo" });
   }
 
   if (state.permissions.can_publish_menu) {
@@ -1515,7 +1053,7 @@ export function ensureActiveTab(): void {
   const allowedTabs = getAllowedTabs(currentState);
 
   if (!allowedTabs.some((tab) => tab.id === activeTab)) {
-    activeTab = allowedTabs[0]?.id ?? "availability";
+    activeTab = allowedTabs[0]?.id ?? "account";
   }
 }
 
