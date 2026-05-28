@@ -386,16 +386,13 @@ function renderGrillItemForm(family: GrillFamilyState): string {
     <form class="admin-card admin-fixed-form" data-admin-form="grill-item">
       <div class="admin-fixed-form__header">
         <h4 class="admin-card__legend">Agregar item en ${escapeHtml(family.title)}</h4>
-        <p class="admin-row__meta">Se agrega al final de la familia. El codigo se propone automaticamente desde el nombre.</p>
+        <p class="admin-row__meta">Se agrega al final de la familia.</p>
       </div>
       <input type="hidden" name="family_id" value="${escapeHtml(family.family_id)}" />
+      <input type="hidden" name="item_id" data-grill-id />
       <label class="admin-field">
         <span class="admin-label">Nombre visible</span>
         <input class="admin-input" name="name" data-grill-name required />
-      </label>
-      <label class="admin-field">
-        <span class="admin-label">Codigo del item</span>
-        <input class="admin-input" name="item_id" data-grill-id pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="se-completa-solo" autocomplete="off" required />
       </label>
       <label class="admin-field">
         <span class="admin-label">Etiqueta de variante</span>
@@ -502,7 +499,7 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
       ${editMode === "items" ? `<div class="admin-row admin-callout admin-fixed-guide">
         <div class="admin-row__main">
           <p class="admin-row__title">Como usar esta pantalla</p>
-          <p class="admin-row__meta">Elegi la ubicacion, completa el nombre visible y agrega el item. El codigo se propone automaticamente y solo sirve para evitar duplicados.</p>
+          <p class="admin-row__meta">Elegi la ubicacion, completa el nombre visible y agrega el item.</p>
         </div>
       </div>` : ""}
       <div class="admin-toolbar admin-fixed-toolbar">
@@ -964,15 +961,11 @@ function renderCatalogItemForm(
       </div>
       <input type="hidden" name="section_id" value="${escapeHtml(section.section_id)}" />
       <input type="hidden" name="group_id" value="${escapeHtml(group?.group_id ?? "")}" />
+      <input type="hidden" name="item_id" data-catalog-id />
       <label class="admin-field">
         <span class="admin-label">Nombre visible</span>
         <input class="admin-input" name="name" data-catalog-name required />
         <span class="admin-help">Es el nombre que va a leer el cliente en el menu.</span>
-      </label>
-      <label class="admin-field">
-        <span class="admin-label">Codigo del item</span>
-        <input class="admin-input" name="item_id" data-catalog-id pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="se-completa-solo" autocomplete="off" required />
-        <span class="admin-help">Se completa solo desde el nombre. Editalo solo si el panel avisa que ya existe.</span>
       </label>
       ${requiresPrice ? `
         <label class="admin-field">
