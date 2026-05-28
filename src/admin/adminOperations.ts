@@ -256,7 +256,8 @@ export function createAdminOperations(context: AdminOperationContext) {
 
     saveCatalogItemEdit(form: HTMLFormElement): Promise<void> {
       return context.runBusy(async () => {
-        const result = await context.callMutation("update_catalog_item", {
+        const results: RpcResult[] = [];
+        const itemResult = await context.callMutation("update_catalog_item", {
           section_id: getFormString(form, "section_id"),
           group_id: getFormString(form, "group_id"),
           item_id: getFormString(form, "item_id"),
@@ -264,13 +265,70 @@ export function createAdminOperations(context: AdminOperationContext) {
           description: getNullableFormString(form, "description"),
         });
 
-        if (!result.ok) {
-          throw new Error(resultMessage(result));
+        if (!itemResult.ok) {
+          throw new Error(resultMessage(itemResult));
         }
 
-        context.markPendingIfNeeded(result);
+        results.push(itemResult);
+
+        const fixedPricingKey = getFormString(form, "fixed_pricing_key");
+
+        if (fixedPricingKey) {
+          const priceResult = await context.callMutation("set_global_fixed_price", {
+            pricing_key: fixedPricingKey,
+            amount: getFormInteger(form, "fixed_price_amount"),
+          });
+
+          if (!priceResult.ok) {
+            throw new Error(resultMessage(priceResult));
+          }
+
+          results.push(priceResult);
+        }
+
+        const variantPricingKey = getFormString(form, "variant_pricing_key");
+
+        if (variantPricingKey) {
+          const formData = new FormData(form);
+          const variantIds = formData.getAll("variant_id");
+          const variantAmounts = formData.getAll("variant_amount");
+
+          for (let index = 0; index < variantIds.length; index += 1) {
+            const variantId = variantIds[index];
+            const amountValue = variantAmounts[index];
+
+            if (typeof variantId !== "string" || typeof amountValue !== "string") {
+              continue;
+            }
+
+            const amount = Number(amountValue.trim());
+
+            if (!Number.isInteger(amount) || amount < 0) {
+              throw new Error("El importe no es valido.");
+            }
+
+            const priceResult = await context.callMutation("set_global_price_variant", {
+              pricing_key: variantPricingKey,
+              variant_id: variantId,
+              amount,
+            });
+
+            if (!priceResult.ok) {
+              throw new Error(resultMessage(priceResult));
+            }
+
+            results.push(priceResult);
+          }
+        }
+
+        for (const result of results) {
+          context.markPendingIfNeeded(result);
+        }
+
+        const changed = results.some((result) => result.changed);
+
         await context.loadAdminState(
-          result.changed ? "Item actualizado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
+          changed ? "Item actualizado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
           "success",
         );
       }, "Guardando item...");

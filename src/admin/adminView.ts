@@ -1050,6 +1050,7 @@ function renderCatalogItemRow(
             <span class="admin-label">Nombre</span>
             <input class="admin-input" name="name" value="${escapeHtml(item.name)}" required />
           </label>
+          ${renderCatalogItemIntegratedPriceFields(state, item)}
           <label class="admin-field admin-field--wide">
             <span class="admin-label">Descripcion</span>
             <textarea class="admin-textarea admin-textarea--compact" name="description">${escapeHtml(item.description ?? "")}</textarea>
@@ -1060,7 +1061,7 @@ function renderCatalogItemRow(
             </button>
           </div>
         </form>` : ""}
-        ${renderCatalogItemPriceEditor(state, item)}
+        ${editMode === "items" ? "" : renderCatalogItemPriceEditor(state, item)}
         ${renderCatalogItemOptions(item)}
       </div>
       ${editMode === "items" ? `<div class="admin-row__actions">
@@ -1078,6 +1079,55 @@ function renderCatalogItemRow(
         <span class="admin-row__state-note admin-fixed-delete-note">${escapeHtml(deleteHelp)}</span>
       </div>` : ""}
     </div>
+  `;
+}
+
+function renderCatalogItemIntegratedPriceFields(state: AdminOperationalState, item: CatalogItemState): string {
+  if (!item.pricing_key) {
+    return `
+      <div class="admin-fixed-form__note">
+        <span class="admin-label">Precio</span>
+        <p>Usa el precio compartido del grupo seleccionado.</p>
+      </div>
+    `;
+  }
+
+  const fixedRows = state.prices.fixed.filter((price) => price.pricing_key === item.pricing_key);
+  const variantRows = state.prices.variants.filter((variant) => variant.pricing_key === item.pricing_key);
+
+  if (fixedRows.length === 0 && variantRows.length === 0) {
+    return `
+      <div class="admin-fixed-form__note">
+        <span class="admin-label">Precio</span>
+        <p>No hay precio editable para este item.</p>
+      </div>
+    `;
+  }
+
+  if (fixedRows.length > 0) {
+    const price = fixedRows[0];
+
+    return `
+      <label class="admin-field">
+        <span class="admin-label">Precio</span>
+        <input type="hidden" name="fixed_pricing_key" value="${escapeHtml(price.pricing_key)}" />
+        <input class="admin-input" type="number" name="fixed_price_amount" min="0" step="1" inputmode="numeric" value="${price.amount}" required />
+      </label>
+    `;
+  }
+
+  return `
+    <fieldset class="admin-card admin-catalog-variant-prices">
+      <legend class="admin-card__legend">Precios</legend>
+      <input type="hidden" name="variant_pricing_key" value="${escapeHtml(item.pricing_key)}" />
+      ${variantRows.map((variant) => `
+        <label class="admin-field">
+          <span class="admin-label">${escapeHtml(variant.name)}</span>
+          <input type="hidden" name="variant_id" value="${escapeHtml(variant.variant_id)}" />
+          <input class="admin-input" type="number" name="variant_amount" min="0" step="1" inputmode="numeric" value="${variant.amount}" required />
+        </label>
+      `).join("")}
+    </fieldset>
   `;
 }
 

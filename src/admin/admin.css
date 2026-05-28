@@ -779,6 +779,10 @@
     line-height: 1.45;
   }
 
+  .admin-catalog-variant-prices {
+    grid-template-columns: 1fr;
+  }
+
   .admin-fixed-form__actions {
     justify-content: flex-start;
   }
@@ -1039,8 +1043,13 @@
   }
 
   .admin-fixed-edit-fields .admin-field--wide,
-  .admin-fixed-edit-actions {
+  .admin-fixed-edit-actions,
+  .admin-catalog-variant-prices {
     grid-column: 1 / -1;
+  }
+
+  .admin-catalog-variant-prices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .admin-fixed-option-row {
