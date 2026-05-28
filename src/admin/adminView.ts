@@ -525,41 +525,31 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
           </label>
         ` : ""}
       </div>
+      ${renderFixedMenuSharedPriceEditor(state, group)}
       ${editMode === "options-only"
         ? ""
         : section.content_kind === "groups" && !group
         ? renderEmpty("La seccion seleccionada no tiene grupos disponibles para agregar items.")
         : renderCatalogItemForm(section, group)}
-      ${renderCatalogItemList(items, editMode)}
-      ${renderFixedMenuPriceEditor(state, section, group, items)}
+      ${renderCatalogItemList(state, items, editMode)}
     </section>
   `;
 }
 
-function renderFixedMenuPriceEditor(
+function renderFixedMenuSharedPriceEditor(
   state: AdminOperationalState,
-  section: CatalogSectionState,
   group: CatalogGroupState | undefined,
-  items: CatalogItemState[],
 ): string {
-  const priceKeys = new Set<string>();
-
-  if (group?.pricing_key) {
-    priceKeys.add(group.pricing_key);
+  if (!group?.pricing_key) {
+    return "";
   }
 
-  for (const item of items) {
-    if (item.pricing_key) {
-      priceKeys.add(item.pricing_key);
-    }
-  }
-
-  const fixedRows = state.prices.fixed.filter((price) => priceKeys.has(price.pricing_key));
-  const variantRows = state.prices.variants.filter((variant) => priceKeys.has(variant.pricing_key));
+  const fixedRows = state.prices.fixed.filter((price) => price.pricing_key === group.pricing_key);
+  const variantRows = state.prices.variants.filter((variant) => variant.pricing_key === group.pricing_key);
 
   return renderPriceEditorSection(
-    "Precios de esta ubicacion",
-    `Ajusta precios de ${group ? `${section.title} / ${group.title}` : section.title}. Guardar requiere publicacion.`,
+    "Precio compartido del grupo",
+    `Este precio aplica a todos los items de ${group.title}. Guardar requiere publicacion.`,
     fixedRows,
     variantRows,
   );
@@ -1008,7 +998,11 @@ function renderCatalogItemForm(
   `;
 }
 
-function renderCatalogItemList(items: CatalogItemState[], editMode: FixedMenuEditMode): string {
+function renderCatalogItemList(
+  state: AdminOperationalState,
+  items: CatalogItemState[],
+  editMode: FixedMenuEditMode,
+): string {
   if (items.length === 0) {
     return renderEmpty(editMode === "options-only"
       ? "No hay subcategorias con sabores editables en esta ubicacion."
@@ -1021,12 +1015,17 @@ function renderCatalogItemList(items: CatalogItemState[], editMode: FixedMenuEdi
       <span>${editMode === "options-only" ? "Agregar, editar o eliminar sabores requiere publicar cambios." : "Editar o eliminar requiere publicar cambios."}</span>
     </div>
     <div class="admin-grid">
-      ${items.map((item) => renderCatalogItemRow(item, items.length > 1, editMode)).join("")}
+      ${items.map((item) => renderCatalogItemRow(state, item, items.length > 1, editMode)).join("")}
     </div>
   `;
 }
 
-function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean, editMode: FixedMenuEditMode): string {
+function renderCatalogItemRow(
+  state: AdminOperationalState,
+  item: CatalogItemState,
+  canDelete: boolean,
+  editMode: FixedMenuEditMode,
+): string {
   const priceText = formatCatalogItemPrice(item);
   const optionText = item.option_count > 0
     ? `${item.option_count} opciones asociadas`
@@ -1061,6 +1060,7 @@ function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean, editMo
             </button>
           </div>
         </form>` : ""}
+        ${renderCatalogItemPriceEditor(state, item)}
         ${renderCatalogItemOptions(item)}
       </div>
       ${editMode === "items" ? `<div class="admin-row__actions">
@@ -1078,6 +1078,40 @@ function renderCatalogItemRow(item: CatalogItemState, canDelete: boolean, editMo
         <span class="admin-row__state-note admin-fixed-delete-note">${escapeHtml(deleteHelp)}</span>
       </div>` : ""}
     </div>
+  `;
+}
+
+function renderCatalogItemPriceEditor(state: AdminOperationalState, item: CatalogItemState): string {
+  if (!item.pricing_key) {
+    return `
+      <div class="admin-inline-price-panel">
+        <p class="admin-label">Precio</p>
+        <p class="admin-row__meta">Este item usa el precio compartido del grupo seleccionado.</p>
+      </div>
+    `;
+  }
+
+  const fixedRows = state.prices.fixed.filter((price) => price.pricing_key === item.pricing_key);
+  const variantRows = state.prices.variants.filter((variant) => variant.pricing_key === item.pricing_key);
+
+  if (fixedRows.length === 0 && variantRows.length === 0) {
+    return `
+      <div class="admin-inline-price-panel">
+        <p class="admin-label">Precio</p>
+        <p class="admin-row__meta">No hay precio editable para este item.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <section class="admin-inline-price-panel">
+      <div class="admin-fixed-options__header">
+        <p class="admin-label">Precio</p>
+        <span class="admin-row__state-note">Guardar requiere publicacion.</span>
+      </div>
+      ${fixedRows.map(renderFixedPriceRow).join("")}
+      ${variantRows.map(renderVariantPriceRow).join("")}
+    </section>
   `;
 }
 

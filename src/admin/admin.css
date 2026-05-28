@@ -803,6 +803,22 @@
     border-radius: 0.5rem;
   }
 
+  .admin-inline-price-panel {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.65rem;
+    padding: 0.7rem;
+    background: #fbfaf7;
+    border: 1px solid #e4ded4;
+    border-radius: 0.5rem;
+  }
+
+  .admin-inline-price-panel .admin-price-row {
+    padding: 0;
+    background: transparent;
+    border: 0;
+  }
+
   .admin-fixed-options__header {
     display: flex;
     flex-wrap: wrap;
