@@ -288,18 +288,15 @@ function renderAvailabilityTab(state: AdminOperationalState): string {
 
 function renderServiceTab(state: AdminOperationalState): string {
   const serviceEditor = state.permissions.can_edit_menu_content;
-  const activeServices = getActiveServiceKinds(state);
 
   return `
     <section class="admin-section admin-service">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Servicio</h2>
-        <p class="admin-section__copy">Elegi primero que servicio muestra cada local. Debajo aparece solo la configuracion necesaria para los servicios activos.</p>
+        <p class="admin-section__copy">Elegi que servicio muestra cada local. Los platos, parrilla, menu fijo y precios se editan en Menu fijo.</p>
       </div>
       ${serviceEditor ? `
         ${renderServiceModeForms(state)}
-        ${activeServices.includes("daily-menu") ? renderDailyMenuEditor(state) : ""}
-        ${activeServices.includes("grill") ? renderGrillEditor(state) : ""}
       ` : ""}
       ${!serviceEditor ? renderEmpty("No hay acciones de servicio disponibles para este rol.") : ""}
     </section>
@@ -475,8 +472,10 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
       <section class="admin-section">
         <div class="admin-section__header">
           <h2 class="admin-section__title">Menu fijo</h2>
-          <p class="admin-section__copy">Agrega, edita o elimina items dentro de secciones existentes y ajusta precios globales. Para crear secciones o cambiar el orden, avisale a quien administra el sitio.</p>
+          <p class="admin-section__copy">Edita menu del dia, parrilla, catalogo fijo y precios globales. Para crear secciones o cambiar el orden, avisale a quien administra el sitio.</p>
         </div>
+        ${renderDailyMenuEditor(state)}
+        ${renderGrillEditor(state)}
         ${renderEmpty("No hay secciones del menu fijo disponibles.")}
       </section>
     `;
@@ -494,8 +493,10 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
     <section class="admin-section admin-fixed">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Menu fijo</h2>
-        <p class="admin-section__copy">${escapeHtml(sectionCopy)}</p>
+        <p class="admin-section__copy">Edita menu del dia, parrilla, catalogo fijo y precios globales. ${escapeHtml(sectionCopy)}</p>
       </div>
+      ${renderDailyMenuEditor(state)}
+      ${renderGrillEditor(state)}
       ${editMode === "items" ? `<div class="admin-row admin-callout admin-fixed-guide">
         <div class="admin-row__main">
           <p class="admin-row__title">Como usar esta pantalla</p>
@@ -1337,16 +1338,6 @@ function findDailyItem(
 function findServiceKind(state: AdminOperationalState, profileId: string): ServiceKind {
   return state.service_settings.find((entry) => entry.profile_id === profileId)?.service_kind
     ?? "daily-menu";
-}
-
-function getActiveServiceKinds(state: AdminOperationalState): ServiceKind[] {
-  const services = new Set<ServiceKind>();
-
-  for (const profile of state.profiles) {
-    services.add(findServiceKind(state, profile.id));
-  }
-
-  return [...services];
 }
 
 function getVisibleAvailabilityTargets(state: AdminOperationalState): AvailabilityTargetState[] {
