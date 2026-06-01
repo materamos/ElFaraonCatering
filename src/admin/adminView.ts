@@ -293,10 +293,12 @@ function renderServiceTab(state: AdminOperationalState): string {
     <section class="admin-section admin-service">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Servicio</h2>
-        <p class="admin-section__copy">Elegi que servicio muestra cada local. Los platos, parrilla, menu fijo y precios se editan en Menu fijo.</p>
+        <p class="admin-section__copy">Elegi que servicio muestra cada local y edita el menu del dia o la parrilla operativa. El menu fijo queda separado como catalogo estable compartido.</p>
       </div>
       ${serviceEditor ? `
         ${renderServiceModeForms(state)}
+        ${renderDailyMenuEditor(state)}
+        ${renderGrillEditor(state)}
       ` : ""}
       ${!serviceEditor ? renderEmpty("No hay acciones de servicio disponibles para este rol.") : ""}
     </section>
@@ -472,10 +474,8 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
       <section class="admin-section">
         <div class="admin-section__header">
           <h2 class="admin-section__title">Menu fijo</h2>
-          <p class="admin-section__copy">Edita menu del dia, parrilla, catalogo fijo y precios globales. Para crear secciones o cambiar el orden, avisale a quien administra el sitio.</p>
+          <p class="admin-section__copy">Administra el catalogo estable compartido. Para crear secciones o cambiar el orden, avisale a quien administra el sitio.</p>
         </div>
-        ${renderDailyMenuEditor(state)}
-        ${renderGrillEditor(state)}
         ${renderEmpty("No hay secciones del menu fijo disponibles.")}
       </section>
     `;
@@ -493,10 +493,8 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
     <section class="admin-section admin-fixed">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Menu fijo</h2>
-        <p class="admin-section__copy">Edita menu del dia, parrilla, catalogo fijo y precios globales. ${escapeHtml(sectionCopy)}</p>
+        <p class="admin-section__copy">Administra el catalogo estable compartido. ${escapeHtml(sectionCopy)}</p>
       </div>
-      ${renderDailyMenuEditor(state)}
-      ${renderGrillEditor(state)}
       ${editMode === "items" ? `<div class="admin-row admin-callout admin-fixed-guide">
         <div class="admin-row__main">
           <p class="admin-row__title">Como usar esta pantalla</p>
