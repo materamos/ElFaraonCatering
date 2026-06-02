@@ -186,13 +186,6 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
-  if (action === "verify-pending-publication") {
-    await runBusy(async () => {
-      await loadAdminState("Cambios pendientes verificados.", "success");
-    }, "Verificando cambios pendientes...");
-    return;
-  }
-
   if (action === "tab") {
     const tab = target.dataset.adminTab as AdminTabId | undefined;
 

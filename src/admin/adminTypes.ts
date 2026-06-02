@@ -1,7 +1,7 @@
 export type StaffRole = "operator" | "admin";
 export type ServiceKind = "daily-menu" | "grill";
 export type TargetKind = "daily-menu" | "grill" | "catalog";
-export type AdminTabId = "service" | "availability" | "fixed" | "publish" | "account";
+export type AdminTabId = "service" | "availability" | "fixed" | "account";
 export type StatusTone = "neutral" | "success" | "danger";
 export type CatalogContentKind = "items" | "groups";
 export type FixedMenuEditMode = "items" | "options-only";

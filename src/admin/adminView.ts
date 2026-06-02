@@ -262,10 +262,6 @@ function renderActiveTab(state: AdminOperationalState): string {
     return renderFixedMenuTab(state);
   }
 
-  if (activeTab === "publish") {
-    return renderPublishTab(state);
-  }
-
   return renderAccountTab();
 }
 
@@ -585,27 +581,6 @@ function renderVariantPriceRows(rows: VariantPriceState[], emptyMessage: string)
   `;
 }
 
-function renderPublishTab(state: AdminOperationalState): string {
-  return `
-    <section class="admin-section">
-      <div class="admin-section__header">
-        <h2 class="admin-section__title">Publicacion</h2>
-        <p class="admin-section__copy">Publicar envia al menu publico los cambios guardados de platos, parrilla, menu fijo, servicio activo y precios. Puede tardar unos minutos.</p>
-      </div>
-      <div class="admin-row">
-        <div class="admin-row__main">
-          <p class="admin-row__title">${hasPendingPublication(state) ? "Hay cambios guardados por publicar" : "El menu guardado coincide con la ultima publicacion registrada"}</p>
-          <p class="admin-row__meta">La disponibilidad no pasa por este paso porque se aplica al instante.</p>
-        </div>
-        <div class="admin-row__actions">
-          <button class="admin-button" type="button" data-admin-action="publish" ${isBusy || !state.permissions.can_publish_menu ? "disabled" : ""}>Publicar ahora</button>
-          <button class="admin-button admin-button--secondary" type="button" data-admin-action="verify-pending-publication" ${isBusy ? "disabled" : ""}>Verificar cambios pendientes</button>
-        </div>
-      </div>
-    </section>
-  `;
-}
-
 function renderAccountTab(): string {
   return `
     <section class="admin-section">
@@ -637,7 +612,7 @@ function renderPublishBanner(state: AdminOperationalState): string {
 
   return `
     <div class="admin-banner">
-      <span>Falta publicar: hay cambios guardados que todavia no se ven en el menu publico.</span>
+      <span>Falta publicar: hay cambios guardados que no estan publicados.</span>
       <button class="admin-button" type="button" data-admin-action="publish" ${isBusy ? "disabled" : ""}>Publicar ahora</button>
     </div>
   `;
@@ -1300,10 +1275,6 @@ function getAllowedTabs(state: AdminOperationalState): Array<{ id: AdminTabId; l
 
   if (state.permissions.can_edit_menu_content) {
     tabs.push({ id: "fixed", label: "Menu fijo" });
-  }
-
-  if (state.permissions.can_publish_menu) {
-    tabs.push({ id: "publish", label: "Publicacion" });
   }
 
   tabs.push({ id: "account", label: "Cuenta" });
