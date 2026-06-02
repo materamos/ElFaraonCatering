@@ -264,6 +264,60 @@
     border-radius: 0.5rem;
   }
 
+  .admin-service-switcher {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    padding: 0.45rem;
+    background: #f6f4ef;
+    border: 1px solid #e3ded4;
+    border-radius: 0.5rem;
+  }
+
+  .admin-service-switcher__button {
+    display: grid;
+    gap: 0.2rem;
+    min-height: 3.25rem;
+    padding: 0.7rem 0.8rem;
+    color: #4e4a42;
+    font: inherit;
+    text-align: left;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 0.4rem;
+    cursor: pointer;
+  }
+
+  .admin-service-switcher__button span {
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .admin-service-switcher__button small {
+    color: #676257;
+    font-size: 0.82rem;
+    font-weight: 550;
+    line-height: 1.35;
+  }
+
+  .admin-service-switcher__button:not([data-current="true"]):hover {
+    color: #26392e;
+    background: #ffffff;
+    border-color: #d5cfc5;
+  }
+
+  .admin-service-switcher__button[data-current="true"] {
+    color: #ffffff;
+    background: #26392e;
+    border-color: #26392e;
+    box-shadow: 0 0.4rem 0.9rem rgb(38 57 46 / 0.14);
+  }
+
+  .admin-service-switcher__button[data-current="true"] small {
+    color: #edf4ef;
+  }
+
   .admin-field {
     display: grid;
     gap: 0.35rem;
@@ -394,7 +448,8 @@
 
   .admin-button:focus-visible,
   .admin-link-button:focus-visible,
-  .admin-tab:focus-visible {
+  .admin-tab:focus-visible,
+  .admin-service-switcher__button:focus-visible {
     outline: 3px solid rgb(38 57 46 / 0.22);
     outline-offset: 2px;
   }
@@ -839,6 +894,12 @@
     border-radius: 0;
   }
 
+  .admin-service-switcher {
+    margin-inline: -0.35rem;
+    border-inline: 0;
+    border-radius: 0;
+  }
+
   .admin-tab {
     min-height: 2.9rem;
   }
@@ -916,6 +977,10 @@
   .admin-toolbar {
     display: flex;
     flex-wrap: wrap;
+  }
+
+  .admin-service-switcher {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .admin-field {

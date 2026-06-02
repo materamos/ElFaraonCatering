@@ -15,6 +15,7 @@ import type {
   GrillItemState,
   PricingLabel,
   ProfileState,
+  ServiceSectionId,
   ServiceKind,
   StatusMessage,
   VariantPriceState,
@@ -61,6 +62,7 @@ let currentState: AdminOperationalState | null = null;
 let currentStatus: StatusMessage | null = null;
 let currentBusyText: string | null = null;
 let activeTab: AdminTabId = "service";
+let activeServiceSection: ServiceSectionId = "active-service";
 let isBusy = false;
 let availabilityProfileFilter = "";
 let availabilityGroupFilter = "";
@@ -77,6 +79,10 @@ export function setAdminViewContext(context: AdminViewContext): void {
 
 export function setAdminActiveTab(tab: AdminTabId): void {
   activeTab = tab;
+}
+
+export function setAdminServiceSection(section: ServiceSectionId): void {
+  activeServiceSection = section;
 }
 
 export function setAdminFilter(name: string, value: string): void {
@@ -288,13 +294,61 @@ function renderServiceTab(state: AdminOperationalState): string {
         <p class="admin-section__copy">Elegi que servicio muestra cada local y edita el menu del dia o la parrilla operativa. El menu fijo queda separado como catalogo estable compartido.</p>
       </div>
       ${serviceEditor ? `
-        ${renderServiceModeForms(state)}
-        ${renderDailyMenuEditor(state)}
-        ${renderGrillEditor(state)}
+        ${renderServiceSectionNav()}
+        ${renderActiveServiceSection(state)}
       ` : ""}
       ${!serviceEditor ? renderEmpty("No hay acciones de servicio disponibles para este rol.") : ""}
     </section>
   `;
+}
+
+function renderServiceSectionNav(): string {
+  const sections: Array<{ id: ServiceSectionId; label: string; copy: string }> = [
+    {
+      id: "active-service",
+      label: "Servicio activo",
+      copy: "Define si cada local muestra menu del dia o parrilla.",
+    },
+    {
+      id: "daily-menu",
+      label: "Menu del dia",
+      copy: "Edita platos y precios globales del servicio diario.",
+    },
+    {
+      id: "grill",
+      label: "Parrilla",
+      copy: "Administra items y precios dentro de familias existentes.",
+    },
+  ];
+
+  return `
+    <div class="admin-service-switcher">
+      ${sections.map((section) => `
+        <button
+          class="admin-service-switcher__button"
+          type="button"
+          data-admin-action="service-section"
+          data-admin-service-section="${section.id}"
+          data-current="${activeServiceSection === section.id ? "true" : "false"}"
+        >
+          <span>${escapeHtml(section.label)}</span>
+          <small>${escapeHtml(section.copy)}</small>
+        </button>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderActiveServiceSection(state: AdminOperationalState): string {
+  if (activeServiceSection === "daily-menu") {
+    return renderDailyMenuEditor(state);
+  }
+
+  if (activeServiceSection === "grill") {
+    return renderGrillEditor(state);
+  }
+
+  return renderServiceModeForms(state);
 }
 
 function renderDailyMenuEditor(state: AdminOperationalState): string {

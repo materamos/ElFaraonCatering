@@ -38,6 +38,7 @@ import {
   renderSetPassword,
   setAdminActiveTab,
   setAdminFilter,
+  setAdminServiceSection,
   setAdminViewContext,
 } from "./adminView";
 import {
@@ -193,6 +194,17 @@ async function handleAction(target: HTMLElement): Promise<void> {
 
     if (tab) {
       setAdminActiveTab(tab);
+      renderCurrentView();
+    }
+
+    return;
+  }
+
+  if (action === "service-section") {
+    const section = target.dataset.adminServiceSection;
+
+    if (section === "active-service" || section === "daily-menu" || section === "grill") {
+      setAdminServiceSection(section);
       renderCurrentView();
     }
 
