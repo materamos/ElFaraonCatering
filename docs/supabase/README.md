@@ -150,6 +150,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260602002000_insert_side_options_before_last.sql` | Inserta nuevas opciones de guarniciones antes del ultimo item u opcion para preservar el cierre editorial. |
 | `20260602003000_include_guarniciones_admin_items.sql` | Incluye items de guarniciones en el alcance medido de alta del menu fijo desde `/admin/`. |
 | `20260602224312_rename_papas_fritas_id.sql` | Renombra el ID tecnico de Papas Fritas y su clave de precio para evitar ambiguedad con Chips. |
+| `20260602230249_reorder_guarniciones_platos_principales.sql` | Compacta el orden de Guarniciones y agrupa variantes relacionadas en Platos principales. |
 
 ## Baseline pre-lanzamiento
 
