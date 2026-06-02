@@ -179,10 +179,17 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
-  if (action === "reload") {
+  if (action === "retry-admin-state") {
     await runBusy(async () => {
-      await loadAdminState("Estado actualizado.", "success");
-    }, "Actualizando estado...");
+      await loadAdminState();
+    }, "Reintentando...");
+    return;
+  }
+
+  if (action === "verify-pending-publication") {
+    await runBusy(async () => {
+      await loadAdminState("Cambios pendientes verificados.", "success");
+    }, "Verificando cambios pendientes...");
     return;
   }
 

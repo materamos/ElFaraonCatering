@@ -241,7 +241,7 @@ function renderDenied(): void {
       <div class="admin-denied__panel">
         <p class="admin-muted">${escapeHtml(message)}</p>
         <div class="admin-row__actions">
-          <button class="admin-button admin-button--secondary" type="button" data-admin-action="reload" ${isBusy ? "disabled" : ""}>Reintentar</button>
+          <button class="admin-button admin-button--secondary" type="button" data-admin-action="retry-admin-state" ${isBusy ? "disabled" : ""}>Reintentar</button>
           <button class="admin-button" type="button" data-admin-action="logout" ${isBusy ? "disabled" : ""}>Salir</button>
         </div>
       </div>
@@ -599,7 +599,7 @@ function renderPublishTab(state: AdminOperationalState): string {
         </div>
         <div class="admin-row__actions">
           <button class="admin-button" type="button" data-admin-action="publish" ${isBusy || !state.permissions.can_publish_menu ? "disabled" : ""}>Publicar ahora</button>
-          <button class="admin-button admin-button--secondary" type="button" data-admin-action="reload" ${isBusy ? "disabled" : ""}>Actualizar estado</button>
+          <button class="admin-button admin-button--secondary" type="button" data-admin-action="verify-pending-publication" ${isBusy ? "disabled" : ""}>Verificar cambios pendientes</button>
         </div>
       </div>
     </section>
