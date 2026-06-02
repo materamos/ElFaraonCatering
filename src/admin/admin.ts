@@ -42,6 +42,7 @@ import {
   setAdminFilter,
   setAdminServiceSection,
   setAdminViewContext,
+  isServiceSectionAvailable,
 } from "./adminView";
 import {
   createCatalogId,
@@ -206,7 +207,11 @@ async function handleAction(target: HTMLElement): Promise<void> {
   if (action === "service-section") {
     const section = target.dataset.adminServiceSection;
 
-    if (section === "active-service" || section === "daily-menu" || section === "grill") {
+    if (
+      currentState
+      && (section === "active-service" || section === "daily-menu" || section === "grill")
+      && isServiceSectionAvailable(currentState, section)
+    ) {
       setAdminServiceSection(section);
       renderCurrentView();
     }

@@ -195,6 +195,7 @@ export function renderAuthenticated(): void {
   }
 
   ensureActiveTab();
+  ensureActiveServiceSection(currentState);
   const tabs = getAllowedTabs(currentState);
 
   root.innerHTML = `
@@ -303,7 +304,13 @@ function renderServiceTab(state: AdminOperationalState): string {
 }
 
 function renderServiceSectionNav(): string {
-  const sections: Array<{ id: ServiceSectionId; label: string; copy: string }> = [
+  const state = currentState;
+
+  if (!state) {
+    return "";
+  }
+
+  const allSections: Array<{ id: ServiceSectionId; label: string; copy: string }> = [
     {
       id: "active-service",
       label: "Servicio activo",
@@ -320,6 +327,7 @@ function renderServiceSectionNav(): string {
       copy: "Administra productos, opciones y precios de parrilla.",
     },
   ];
+  const sections = allSections.filter((section) => isServiceSectionAvailable(state, section.id));
 
   return `
     <div class="admin-service-switcher">
@@ -1447,6 +1455,27 @@ export function ensureActiveTab(): void {
   if (!allowedTabs.some((tab) => tab.id === activeTab)) {
     activeTab = allowedTabs[0]?.id ?? "account";
   }
+}
+
+export function isServiceSectionAvailable(
+  state: AdminOperationalState,
+  section: ServiceSectionId,
+): boolean {
+  if (section === "active-service") {
+    return true;
+  }
+
+  const targetServiceKind: ServiceKind = section === "daily-menu" ? "daily-menu" : "grill";
+
+  return state.service_settings.some((entry) => entry.service_kind === targetServiceKind);
+}
+
+export function ensureActiveServiceSection(state: AdminOperationalState): void {
+  if (isServiceSectionAvailable(state, activeServiceSection)) {
+    return;
+  }
+
+  activeServiceSection = "active-service";
 }
 
 function findDailyItem(
