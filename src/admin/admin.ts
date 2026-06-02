@@ -30,6 +30,7 @@ import {
   findAvailabilityTarget,
   findCatalogItem,
   findCatalogItemOption,
+  findGrillFamily,
   findGrillItem,
   renderAuthenticated,
   renderConfigurationError,
@@ -128,6 +129,7 @@ root.addEventListener("input", (event) => {
   handleCatalogItemInput(field);
   handleCatalogOptionInput(field);
   handleGrillItemInput(field);
+  handleGrillProductInput(field);
 });
 
 void startAdmin().catch(handleUnexpectedError);
@@ -263,11 +265,28 @@ async function handleAction(target: HTMLElement): Promise<void> {
     const item = itemId ? findGrillItem(itemId) : undefined;
 
     if (!item) {
-      setStatus("No se encontro el item de parrilla seleccionado.", "danger");
+      setStatus("No se encontro la opcion de parrilla seleccionada.", "danger");
       return;
     }
 
     await adminOperations.deleteGrillItem(item);
+    return;
+  }
+
+  if (action === "delete-grill-product") {
+    const familyId = target.dataset.familyId;
+    const family = familyId ? findGrillFamily(familyId) : undefined;
+
+    if (!family) {
+      setStatus("No se encontro el producto de parrilla seleccionado.", "danger");
+      return;
+    }
+
+    if (!confirmDeleteGrillProduct(family.title)) {
+      return;
+    }
+
+    await adminOperations.deleteGrillProduct(family);
     return;
   }
 
@@ -334,6 +353,16 @@ async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
 
   if (formKind === "grill-item") {
     await adminOperations.saveGrillItem(form);
+    return;
+  }
+
+  if (formKind === "grill-product") {
+    await adminOperations.saveGrillProduct(form);
+    return;
+  }
+
+  if (formKind === "grill-product-edit") {
+    await adminOperations.saveGrillProductEdit(form);
     return;
   }
 
@@ -594,22 +623,62 @@ function handleGrillItemInput(field: HTMLInputElement): void {
     return;
   }
 
-  if (field.name !== "name") {
+  if (field.name !== "variant_name") {
     return;
   }
 
   const itemIdField = form.elements.namedItem("item_id");
+  const productNameField = form.elements.namedItem("product_name");
 
   if (!(itemIdField instanceof HTMLInputElement) || itemIdField.dataset.manual === "true") {
     return;
   }
 
-  itemIdField.value = createCatalogId(field.value);
+  const productName = productNameField instanceof HTMLInputElement ? productNameField.value : "";
+  itemIdField.value = createCatalogId(`${productName} ${field.value}`);
+}
+
+function handleGrillProductInput(field: HTMLInputElement): void {
+  const form = field.closest<HTMLFormElement>('form[data-admin-form="grill-product"]');
+
+  if (!form) {
+    return;
+  }
+
+  if (field.name === "family_id" || field.name === "item_id") {
+    field.dataset.manual = "true";
+    return;
+  }
+
+  const familyIdField = form.elements.namedItem("family_id");
+  const itemIdField = form.elements.namedItem("item_id");
+  const titleField = form.elements.namedItem("title");
+  const optionField = form.elements.namedItem("variant_name");
+  const title = titleField instanceof HTMLInputElement ? titleField.value : "";
+  const option = optionField instanceof HTMLInputElement ? optionField.value : "";
+
+  if (field.name === "title" && familyIdField instanceof HTMLInputElement && familyIdField.dataset.manual !== "true") {
+    familyIdField.value = createCatalogId(field.value);
+  }
+
+  if (
+    (field.name === "title" || field.name === "variant_name")
+    && itemIdField instanceof HTMLInputElement
+    && itemIdField.dataset.manual !== "true"
+  ) {
+    itemIdField.value = createCatalogId(`${title} ${option}`);
+  }
 }
 
 function confirmPublishChanges(): boolean {
   return window.confirm(
     "Vas a publicar los cambios guardados de platos, parrilla, menu fijo, servicio activo y precios. La disponibilidad ya se aplica al instante. Continuar?",
+  );
+}
+
+function confirmDeleteGrillProduct(title: string): boolean {
+  return window.confirm(
+    `Vas a eliminar ${title} y todas sus opciones de parrilla. El cambio se vera despues de publicar. Continuar?`,
   );
 }
 

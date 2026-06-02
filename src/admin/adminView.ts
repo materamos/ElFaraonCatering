@@ -317,7 +317,7 @@ function renderServiceSectionNav(): string {
     {
       id: "grill",
       label: "Parrilla",
-      copy: "Administra items y precios dentro de familias existentes.",
+      copy: "Administra productos, opciones y precios de parrilla.",
     },
   ];
 
@@ -385,95 +385,131 @@ function renderGrillEditor(state: AdminOperationalState): string {
   const editor = state.grill_editor;
   const families = editor.families;
 
-  if (families.length === 0) {
-    return `
-      <section class="admin-daily-panel admin-grill-editor">
-        <div class="admin-daily-panel__header">
-          <h3 class="admin-daily-panel__title">Parrilla</h3>
-          <p class="admin-row__meta">No hay familias de parrilla para editar.</p>
-        </div>
-      </section>
-    `;
-  }
-
   return `
     <section class="admin-daily-panel admin-grill-editor">
       <div class="admin-daily-panel__header">
         <h3 class="admin-daily-panel__title">Parrilla</h3>
-        <p class="admin-row__meta">Agrega, edita o elimina items dentro de familias existentes. Los precios se editan junto a cada item.</p>
+        <p class="admin-row__meta">Administra productos de parrilla y sus opciones de precio. El menu publico se actualiza despues de publicar cambios.</p>
       </div>
-      ${families.map((family) => renderGrillFamilyEditor(state, family)).join("")}
+      ${renderGrillProductForm()}
+      ${families.length > 0
+        ? families.map((family) => renderGrillProductEditor(state, family)).join("")
+        : renderEmpty("No hay productos de parrilla. Agrega el primero con el formulario.")}
     </section>
   `;
 }
 
-function renderGrillFamilyEditor(state: AdminOperationalState, family: GrillFamilyState): string {
-  const items = state.grill_editor.items.filter((item) => item.family_id === family.family_id);
-
+function renderGrillProductForm(): string {
   return `
-    <section class="admin-grill-family">
-      <div class="admin-list-header">
-        <span>${escapeHtml(family.title)}</span>
-        <span>${items.length} items</span>
-      </div>
-      ${renderGrillItemForm(family)}
-      <div class="admin-grid">
-        ${items.length > 0
-          ? items.map((item) => renderGrillItemRow(item, items.length > 1)).join("")
-          : renderEmpty("No hay items en esta familia. Agrega el primero con el formulario.")}
-      </div>
-    </section>
-  `;
-}
-
-function renderGrillItemForm(family: GrillFamilyState): string {
-  return `
-    <form class="admin-card admin-fixed-form" data-admin-form="grill-item">
+    <form class="admin-card admin-fixed-form" data-admin-form="grill-product">
       <div class="admin-fixed-form__header">
-        <h4 class="admin-card__legend">Agregar item en ${escapeHtml(family.title)}</h4>
-        <p class="admin-row__meta">Se agrega al final de la familia.</p>
+        <h4 class="admin-card__legend">Agregar producto de parrilla</h4>
+        <p class="admin-row__meta">Crea un producto nuevo con su primera opcion y precio.</p>
       </div>
-      <input type="hidden" name="family_id" value="${escapeHtml(family.family_id)}" />
+      <input type="hidden" name="family_id" data-grill-product-id />
       <input type="hidden" name="item_id" data-grill-id />
       <label class="admin-field">
-        <span class="admin-label">Nombre visible</span>
-        <input class="admin-input" name="name" data-grill-name required />
+        <span class="admin-label">Producto</span>
+        <input class="admin-input" name="title" data-grill-product-name required />
       </label>
       <label class="admin-field">
-        <span class="admin-label">Etiqueta de variante</span>
-        <input class="admin-input" name="variant_name" />
+        <span class="admin-label">Primera opcion</span>
+        <input class="admin-input" name="variant_name" data-grill-name required />
       </label>
       <label class="admin-field">
         <span class="admin-label">Precio</span>
         <input class="admin-input" type="number" name="amount" min="0" step="1" inputmode="numeric" required />
       </label>
       <div class="admin-row__actions admin-fixed-form__actions">
-        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Agregar a parrilla</button>
+        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Agregar producto</button>
       </div>
     </form>
   `;
 }
 
-function renderGrillItemRow(item: GrillItemState, canDelete: boolean): string {
+function renderGrillProductEditor(state: AdminOperationalState, family: GrillFamilyState): string {
+  const items = state.grill_editor.items.filter((item) => item.family_id === family.family_id);
+
+  return `
+    <section class="admin-grill-family admin-grill-product">
+      <div class="admin-list-header">
+        <span>${escapeHtml(family.title)}</span>
+        <span>${items.length} opciones</span>
+      </div>
+      <form class="admin-fixed-edit-fields" data-admin-form="grill-product-edit">
+        <input type="hidden" name="family_id" value="${escapeHtml(family.family_id)}" />
+        <label class="admin-field">
+          <span class="admin-label">Producto</span>
+          <input class="admin-input" name="title" value="${escapeHtml(family.title)}" required />
+        </label>
+        <div class="admin-row__actions admin-fixed-edit-actions">
+          <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar producto</button>
+        </div>
+      </form>
+      ${renderGrillOptionForm(family)}
+      <div class="admin-grid">
+        ${items.length > 0
+          ? items.map((item) => renderGrillOptionRow(item, items.length > 1)).join("")
+          : renderEmpty("No hay opciones en este producto. Agrega la primera con el formulario.")}
+      </div>
+      <div class="admin-row__actions">
+        <button
+          class="admin-button admin-button--danger"
+          type="button"
+          data-admin-action="delete-grill-product"
+          data-family-id="${escapeHtml(family.family_id)}"
+          ${isBusy ? "disabled" : ""}
+        >
+          Eliminar producto
+        </button>
+        <span class="admin-row__state-note admin-fixed-delete-note">Elimina el producto completo y todas sus opciones despues de publicar.</span>
+      </div>
+    </section>
+  `;
+}
+
+function renderGrillOptionForm(family: GrillFamilyState): string {
+  return `
+    <form class="admin-card admin-fixed-form" data-admin-form="grill-item">
+      <div class="admin-fixed-form__header">
+        <h4 class="admin-card__legend">Agregar opcion</h4>
+        <p class="admin-row__meta">Se agrega al final de ${escapeHtml(family.title)}.</p>
+      </div>
+      <input type="hidden" name="family_id" value="${escapeHtml(family.family_id)}" />
+      <input type="hidden" name="product_name" value="${escapeHtml(family.title)}" />
+      <input type="hidden" name="item_id" data-grill-id />
+      <label class="admin-field">
+        <span class="admin-label">Opcion</span>
+        <input class="admin-input" name="variant_name" data-grill-name required />
+      </label>
+      <label class="admin-field">
+        <span class="admin-label">Precio</span>
+        <input class="admin-input" type="number" name="amount" min="0" step="1" inputmode="numeric" required />
+      </label>
+      <div class="admin-row__actions admin-fixed-form__actions">
+        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Agregar opcion</button>
+      </div>
+    </form>
+  `;
+}
+
+function renderGrillOptionRow(item: GrillItemState, canDelete: boolean): string {
   const priceText = item.price_amount === null ? "Precio configurado" : formatAmount(item.price_amount);
+  const optionName = item.variant_name ?? item.name;
 
   return `
     <div class="admin-row admin-fixed-row">
       <div class="admin-row__main">
-        <p class="admin-row__title">${escapeHtml(item.name)}</p>
+        <p class="admin-row__title">${escapeHtml(optionName)}</p>
         <div class="admin-price-tags">
-          <span class="admin-price-tag">${escapeHtml(item.variant_name ?? "Sin etiqueta")}</span>
+          <span class="admin-price-tag">${escapeHtml(item.family_title)}</span>
           <span class="admin-price-tag">${escapeHtml(priceText)}</span>
         </div>
         <form class="admin-fixed-edit-fields" data-admin-form="grill-item-edit">
           <input type="hidden" name="item_id" value="${escapeHtml(item.item_id)}" />
           <label class="admin-field">
-            <span class="admin-label">Nombre</span>
-            <input class="admin-input" name="name" value="${escapeHtml(item.name)}" required />
-          </label>
-          <label class="admin-field">
-            <span class="admin-label">Etiqueta</span>
-            <input class="admin-input" name="variant_name" value="${escapeHtml(item.variant_name ?? "")}" />
+            <span class="admin-label">Opcion</span>
+            <input class="admin-input" name="variant_name" value="${escapeHtml(optionName)}" required />
           </label>
           <div class="admin-row__actions admin-fixed-edit-actions">
             <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar</button>
@@ -482,7 +518,7 @@ function renderGrillItemRow(item: GrillItemState, canDelete: boolean): string {
         ${renderFixedPriceRows([{
           pricing_key: item.pricing_key,
           amount: item.price_amount ?? 0,
-        }], "No hay precio editable para este item.")}
+        }], "No hay precio editable para esta opcion.")}
       </div>
       <div class="admin-row__actions">
         <button
@@ -494,7 +530,7 @@ function renderGrillItemRow(item: GrillItemState, canDelete: boolean): string {
         >
           Eliminar
         </button>
-        <span class="admin-row__state-note admin-fixed-delete-note">${canDelete ? "Se quitara del menu publico despues de publicar." : "Debe quedar al menos un item en esta familia."}</span>
+        <span class="admin-row__state-note admin-fixed-delete-note">${canDelete ? "Se quitara del menu publico despues de publicar." : "Debe quedar al menos una opcion. Para quitar todo, elimina el producto."}</span>
       </div>
     </div>
   `;
@@ -1401,6 +1437,10 @@ export function findCatalogItemOption(
 
 export function findGrillItem(itemId: string): GrillItemState | undefined {
   return currentState?.grill_editor.items.find((item) => item.item_id === itemId);
+}
+
+export function findGrillFamily(familyId: string): GrillFamilyState | undefined {
+  return currentState?.grill_editor.families.find((family) => family.family_id === familyId);
 }
 
 function getEffectiveFixedSection(editor: CatalogEditorState): CatalogSectionState | undefined {

@@ -253,7 +253,7 @@ RPCs y funciones relevantes:
 
 - `get_admin_operational_state()`: lectura controlada para `/admin/`.
 - `set_menu_availability_overlay(...)` y `clear_menu_availability_overlay(...)`: cambios runtime de disponibilidad.
-- `set_daily_menu(...)`, `set_profile_service_kind(...)`, `add_catalog_item(...)`, `update_catalog_item(...)`, `update_catalog_item_option(...)`, `delete_catalog_item(...)`, `set_global_fixed_price(...)` y `set_global_price_variant(...)`: cambios build-time que requieren publicacion y no editan disponibilidad.
+- `set_daily_menu(...)`, `set_profile_service_kind(...)`, `add_grill_product(...)`, `update_grill_product(...)`, `delete_grill_product(...)`, `add_grill_item(...)`, `update_grill_item(...)`, `delete_grill_item(...)`, `add_catalog_item(...)`, `update_catalog_item(...)`, `update_catalog_item_option(...)`, `delete_catalog_item(...)`, `set_global_fixed_price(...)` y `set_global_price_variant(...)`: cambios build-time que requieren publicacion y no editan disponibilidad.
 - `can_edit_availability(text)`, `can_edit_menu_content()`, `can_manage_staff()` y `can_publish_menu()`: helpers de permisos.
 - `reserve_menu_publish_request(...)` y `complete_menu_publish_request(...)`: helpers `security definer` service-role-only usados por la Edge Function.
 
@@ -305,7 +305,7 @@ El admin permite:
 - editar disponibilidad
 - editar el menu del dia base
 - cambiar el servicio activo por local entre `daily-menu` y `grill`
-- agregar, editar nombre/etiqueta y eliminar items de parrilla dentro de familias existentes
+- agregar, renombrar y eliminar productos de parrilla, y agregar, editar o eliminar sus opciones/precios
 - agregar, editar nombre/descripcion y eliminar items puntuales del menu fijo dentro de secciones o grupos existentes
 - agregar, editar nombre y eliminar opciones de items del menu fijo que ya usan sabores, como empanadas o tartas, sin permitir que una subcategoria quede sin sabores
 - en `Menu fijo`, la seccion operativa `minutas-tartas-omelettes` se muestra como `Tartas, tortillas y omelettes`, incluye tartas, tortilla y omelette, y solo permite administrar sabores en items que ya usan opciones; `empanadas` tambien permite solo administrar sabores de `empanadas`
@@ -314,7 +314,7 @@ El admin permite:
 
 El link de recuperacion de contrasena vuelve a `/admin/`, donde el cliente lee el token de Supabase Auth y permite definir una nueva contrasena. Supabase Auth debe permitir la URL de redirect de produccion `https://elfaraoncatering.vercel.app/admin/` y, para pruebas locales, `http://localhost:4321/admin/`.
 
-No existe administracion de empleados en la UI actual. No existe CMS editorial amplio. La edicion de parrilla no permite crear, eliminar, renombrar ni reordenar familias. La edicion de items del menu fijo no permite crear, eliminar, renombrar ni reordenar secciones o grupos, ni reordenar opciones, ni editar disponibilidad. En las ubicaciones de solo sabores (`Tartas, tortillas y omelettes` y `Empanadas`) tampoco permite agregar, editar ni eliminar items. Los precios se editan con los RPCs globales de precios, presentados dentro de la pantalla del menu correspondiente.
+No existe administracion de empleados en la UI actual. No existe CMS editorial amplio. La edicion de parrilla trata las familias como productos visibles y permite crear, renombrar o eliminar productos completos, ademas de administrar sus opciones y precios. No permite reordenar productos u opciones, cambiar IDs tecnicos despues de crearlos, editar disponibilidad ni administrar imagenes. La edicion de items del menu fijo no permite crear, eliminar, renombrar ni reordenar secciones o grupos, ni reordenar opciones, ni editar disponibilidad. En las ubicaciones de solo sabores (`Tartas, tortillas y omelettes` y `Empanadas`) tampoco permite agregar, editar ni eliminar items. Los precios se editan con los RPCs globales de precios, presentados dentro de la pantalla del menu correspondiente.
 
 ## Despliegue
 

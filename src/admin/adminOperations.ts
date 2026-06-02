@@ -4,6 +4,7 @@ import type {
   AvailabilityTargetState,
   CatalogItemOptionState,
   CatalogItemState,
+  GrillFamilyState,
   GrillItemState,
   RpcResult,
   StatusTone,
@@ -121,8 +122,8 @@ export function createAdminOperations(context: AdminOperationContext) {
         const result = await context.callMutation("add_grill_item", {
           family_id: getFormString(form, "family_id"),
           item_id: getFormString(form, "item_id"),
-          name: getFormString(form, "name"),
-          variant_name: getNullableFormString(form, "variant_name"),
+          name: getFormString(form, "variant_name"),
+          variant_name: getFormString(form, "variant_name"),
           amount: getFormInteger(form, "amount"),
         });
 
@@ -133,20 +134,22 @@ export function createAdminOperations(context: AdminOperationContext) {
         await context.loadAdminState(
           publicationStatus(
             result.changed,
-            "Item de parrilla agregado. Falta publicar los cambios.",
-            "Item de parrilla agregado. No hay cambios pendientes de publicacion.",
+            "Opcion de parrilla agregada. Falta publicar los cambios.",
+            "Opcion de parrilla agregada. No hay cambios pendientes de publicacion.",
           ),
           "success",
         );
-      }, "Agregando item de parrilla...");
+      }, "Agregando opcion de parrilla...");
     },
 
-    saveGrillItemEdit(form: HTMLFormElement): Promise<void> {
+    saveGrillProduct(form: HTMLFormElement): Promise<void> {
       return context.runBusy(async () => {
-        const result = await context.callMutation("update_grill_item", {
+        const result = await context.callMutation("add_grill_product", {
+          family_id: getFormString(form, "family_id"),
+          title: getFormString(form, "title"),
           item_id: getFormString(form, "item_id"),
-          name: getFormString(form, "name"),
-          variant_name: getNullableFormString(form, "variant_name"),
+          variant_name: getFormString(form, "variant_name"),
+          amount: getFormInteger(form, "amount"),
         });
 
         if (!result.ok) {
@@ -156,12 +159,58 @@ export function createAdminOperations(context: AdminOperationContext) {
         await context.loadAdminState(
           publicationStatus(
             result.changed,
-            "Item de parrilla actualizado. Falta publicar los cambios.",
-            "Item de parrilla actualizado. No hay cambios pendientes de publicacion.",
+            "Producto de parrilla agregado. Falta publicar los cambios.",
+            "Producto de parrilla agregado. No hay cambios pendientes de publicacion.",
           ),
           "success",
         );
-      }, "Guardando item de parrilla...");
+      }, "Agregando producto de parrilla...");
+    },
+
+    saveGrillProductEdit(form: HTMLFormElement): Promise<void> {
+      return context.runBusy(async () => {
+        const result = await context.callMutation("update_grill_product", {
+          family_id: getFormString(form, "family_id"),
+          title: getFormString(form, "title"),
+        });
+
+        if (!result.ok) {
+          throw new Error(resultMessage(result));
+        }
+
+        await context.loadAdminState(
+          publicationStatus(
+            result.changed,
+            "Producto de parrilla actualizado. Falta publicar los cambios.",
+            "Producto de parrilla actualizado. No hay cambios pendientes de publicacion.",
+          ),
+          "success",
+        );
+      }, "Guardando producto de parrilla...");
+    },
+
+    saveGrillItemEdit(form: HTMLFormElement): Promise<void> {
+      return context.runBusy(async () => {
+        const optionName = getFormString(form, "variant_name");
+        const result = await context.callMutation("update_grill_item", {
+          item_id: getFormString(form, "item_id"),
+          name: optionName,
+          variant_name: optionName,
+        });
+
+        if (!result.ok) {
+          throw new Error(resultMessage(result));
+        }
+
+        await context.loadAdminState(
+          publicationStatus(
+            result.changed,
+            "Opcion de parrilla actualizada. Falta publicar los cambios.",
+            "Opcion de parrilla actualizada. No hay cambios pendientes de publicacion.",
+          ),
+          "success",
+        );
+      }, "Guardando opcion de parrilla...");
     },
 
     deleteGrillItem(item: GrillItemState): Promise<void> {
@@ -177,12 +226,33 @@ export function createAdminOperations(context: AdminOperationContext) {
         await context.loadAdminState(
           publicationStatus(
             result.changed,
-            "Item de parrilla eliminado. Falta publicar los cambios.",
-            "Item de parrilla eliminado. No hay cambios pendientes de publicacion.",
+            "Opcion de parrilla eliminada. Falta publicar los cambios.",
+            "Opcion de parrilla eliminada. No hay cambios pendientes de publicacion.",
           ),
           "success",
         );
-      }, "Eliminando item de parrilla...");
+      }, "Eliminando opcion de parrilla...");
+    },
+
+    deleteGrillProduct(family: GrillFamilyState): Promise<void> {
+      return context.runBusy(async () => {
+        const result = await context.callMutation("delete_grill_product", {
+          family_id: family.family_id,
+        });
+
+        if (!result.ok) {
+          throw new Error(resultMessage(result));
+        }
+
+        await context.loadAdminState(
+          publicationStatus(
+            result.changed,
+            "Producto de parrilla eliminado. Falta publicar los cambios.",
+            "Producto de parrilla eliminado. No hay cambios pendientes de publicacion.",
+          ),
+          "success",
+        );
+      }, "Eliminando producto de parrilla...");
     },
 
     saveFixedPrice(form: HTMLFormElement): Promise<void> {

@@ -59,7 +59,7 @@ Do not add these capabilities unless explicitly requested:
 - broad editorial CMS code, non-operational auth, or repo-writing admin flows outside operational menu content
 
 Operational CMS work may cover menu del dia, active service, availability, grill
-mode, grill items inside existing families, fixed-menu content, existing catalog
+mode, grill products and their options, fixed-menu content, existing catalog
 item options, global prices, and publication. This is an intermediate
 menu-content CMS, not a general editorial CMS.
 
@@ -70,11 +70,13 @@ public user features.
 CMS editable does not mean runtime editable. Except for availability, operational
 CMS changes require rebuild/deploy before they affect the public menu.
 
-Grill admin edits may add individual grill items, update item name and variant
-label, delete individual grill items, and edit their global fixed prices within
-existing grill families. Do not allow grill edits to create, delete, rename, or
-reorder grill families, change technical IDs, change availability, or reorder
-items from `/admin/`.
+Grill admin edits treat `menu_grill_families` as visible grill products and
+`menu_grill_catalog_items` as product options. They may add a product with its
+first option, rename a product, delete a whole product, add product options,
+update option labels, delete individual options while keeping at least one
+option per product, and edit global fixed prices for options. Do not allow grill
+edits to reorder products or options, change technical IDs after creation,
+change availability, or manage images from `/admin/`.
 
 Fixed-menu admin item edits may add individual catalog items, update item name and
 description, delete individual catalog items only within existing sections or
@@ -167,8 +169,8 @@ Image rules:
 ## Supabase Rules
 
 Supabase may back an operational menu-content CMS for daily menu, grill mode,
-grill items inside existing families, availability, fixed-menu content, existing
-catalog item options, global prices, and publication. It must not become a broad
+grill products and options, availability, fixed-menu content, existing catalog
+item options, global prices, and publication. It must not become a broad
 editorial CMS without an explicit architecture decision.
 
 Build-time structural and operational content:
