@@ -500,7 +500,6 @@ function renderGrillOptionForm(family: GrillFamilyState): string {
 function renderGrillOptionRow(item: GrillItemState, canDelete: boolean): string {
   const priceText = item.price_amount === null ? "Precio configurado" : formatAmount(item.price_amount);
   const optionName = item.variant_name ?? item.name;
-  const displayName = formatGrillOptionDisplayName(item.family_title, optionName);
 
   return `
     <div class="admin-row admin-fixed-row admin-grill-option-row">
@@ -508,7 +507,7 @@ function renderGrillOptionRow(item: GrillItemState, canDelete: boolean): string 
         <input type="hidden" name="item_id" value="${escapeHtml(item.item_id)}" />
         <input type="hidden" name="fixed_pricing_key" value="${escapeHtml(item.pricing_key)}" />
         <div class="admin-row__main">
-          <p class="admin-row__title">${escapeHtml(displayName)}</p>
+          <p class="admin-row__title">${escapeHtml(item.family_title)}</p>
           <div class="admin-price-tags">
             <span class="admin-price-tag">${escapeHtml(item.family_title)}</span>
             <span class="admin-price-tag">${escapeHtml(priceText)}</span>
@@ -540,25 +539,6 @@ function renderGrillOptionRow(item: GrillItemState, canDelete: boolean): string 
       </div>
     </div>
   `;
-}
-
-function formatGrillOptionDisplayName(familyTitle: string, optionName: string): string {
-  const family = familyTitle.trim();
-  const option = optionName.trim();
-
-  if (!family || !option) {
-    return option || family;
-  }
-
-  if (option.toLocaleLowerCase("es-AR").startsWith(family.toLocaleLowerCase("es-AR"))) {
-    return option;
-  }
-
-  return `${family} ${lowercaseFirstLetter(option)}`;
-}
-
-function lowercaseFirstLetter(value: string): string {
-  return value.charAt(0).toLocaleLowerCase("es-AR") + value.slice(1);
 }
 
 function renderFixedMenuTab(state: AdminOperationalState): string {
@@ -775,7 +755,6 @@ function renderAvailabilityFilters(state: AdminOperationalState): string {
       <label class="admin-field">
         <span class="admin-label">Familia / grupo</span>
         <select class="admin-select" data-admin-filter="availability-group">
-          <option value="">Todos</option>
           ${groupOptions
             .map((option) => `<option value="${escapeHtml(option.key)}" ${groupFilter === option.key ? "selected" : ""}>${escapeHtml(option.label)}</option>`)
             .join("")}
@@ -961,7 +940,11 @@ function renderServiceModeForms(state: AdminOperationalState): string {
 function getEffectiveAvailabilityGroupFilter(
   groupOptions: Array<{ key: string; label: string }>,
 ): string {
-  return groupOptions.some((option) => option.key === availabilityGroupFilter) ? availabilityGroupFilter : "";
+  if (groupOptions.some((option) => option.key === availabilityGroupFilter)) {
+    return availabilityGroupFilter;
+  }
+
+  return groupOptions[0]?.key ?? "";
 }
 
 function renderAvailabilityRow(
