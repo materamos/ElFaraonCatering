@@ -152,6 +152,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260602224312_rename_papas_fritas_id.sql` | Renombra el ID tecnico de Papas Fritas y su clave de precio para evitar ambiguedad con Chips. |
 | `20260602230249_reorder_guarniciones_platos_principales.sql` | Compacta el orden de Guarniciones y agrupa variantes relacionadas en Platos principales. |
 | `20260602232042_reorder_chips_before_ensalada.sql` | Ubica Chips antes de Ensalada tres sabores en Guarniciones. |
+| `20260602232948_reorder_promociones_huevos_revueltos.sql` | Agrupa la promocion de huevos revueltos con las promos de cafe con leche. |
 
 ## Baseline pre-lanzamiento
 
