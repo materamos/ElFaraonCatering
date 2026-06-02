@@ -146,6 +146,10 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260526008000_drop_option_and_grill_descriptions.sql` | Elimina descripciones de opciones del catalogo y modalidades de parrilla; las opciones quedan editables solo por nombre. |
 | `20260528000000_add_grill_item_admin.sql` | Agrega estado y RPCs medidos para administrar items de parrilla dentro de familias existentes desde `/admin/`. |
 | `20260602000000_add_publish_content_fingerprint.sql` | Registra fingerprints de contenido publicado y expone pendientes por comparacion contra el estado actual. |
+| `20260602001000_add_grill_product_admin.sql` | Agrega RPCs medidos para administrar productos visibles de parrilla y su primera variante desde `/admin/`. |
+| `20260602002000_insert_side_options_before_last.sql` | Inserta nuevas opciones de guarniciones antes del ultimo item u opcion para preservar el cierre editorial. |
+| `20260602003000_include_guarniciones_admin_items.sql` | Incluye items de guarniciones en el alcance medido de alta del menu fijo desde `/admin/`. |
+| `20260602224312_rename_papas_fritas_id.sql` | Renombra el ID tecnico de Papas Fritas y su clave de precio para evitar ambiguedad con Chips. |
 
 ## Baseline pre-lanzamiento
 
