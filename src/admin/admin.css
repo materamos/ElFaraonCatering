@@ -783,6 +783,21 @@
     background: #ffffff;
   }
 
+  .admin-grill-option-row {
+    align-items: stretch;
+  }
+
+  .admin-grill-option-edit {
+    display: grid;
+    gap: 0.65rem;
+    min-width: 0;
+  }
+
+  .admin-grill-option-actions,
+  .admin-grill-option-delete {
+    align-items: stretch;
+  }
+
   .admin-fixed-edit-fields {
     display: grid;
     gap: 0.65rem;
@@ -1006,14 +1021,48 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .admin-grill-option-add {
+    grid-template-columns: minmax(14rem, 1fr) minmax(9rem, 0.45fr) auto;
+    align-items: end;
+  }
+
   .admin-fixed-form__header,
   .admin-fixed-form .admin-field--wide,
   .admin-fixed-form__actions {
     grid-column: 1 / -1;
   }
 
+  .admin-grill-option-add .admin-fixed-form__header {
+    grid-column: 1 / -1;
+  }
+
+  .admin-grill-option-add .admin-fixed-form__actions {
+    grid-column: auto;
+  }
+
   .admin-fixed-edit-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-grill-option-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .admin-grill-option-edit {
+    grid-template-columns: minmax(9rem, 0.9fr) minmax(13rem, 1.2fr) minmax(8rem, 0.55fr) auto;
+    align-items: end;
+  }
+
+  .admin-grill-option-edit .admin-row__main {
+    align-self: center;
+  }
+
+  .admin-grill-option-actions {
+    justify-content: flex-start;
+  }
+
+  .admin-grill-option-delete {
+    align-self: end;
   }
 
   .admin-fixed-edit-fields .admin-field--wide,

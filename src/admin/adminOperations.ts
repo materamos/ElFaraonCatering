@@ -191,6 +191,7 @@ export function createAdminOperations(context: AdminOperationContext) {
 
     saveGrillItemEdit(form: HTMLFormElement): Promise<void> {
       return context.runBusy(async () => {
+        const results: RpcResult[] = [];
         const optionName = getFormString(form, "variant_name");
         const result = await context.callMutation("update_grill_item", {
           item_id: getFormString(form, "item_id"),
@@ -202,9 +203,28 @@ export function createAdminOperations(context: AdminOperationContext) {
           throw new Error(resultMessage(result));
         }
 
+        results.push(result);
+
+        const fixedPricingKey = getFormString(form, "fixed_pricing_key");
+
+        if (fixedPricingKey) {
+          const priceResult = await context.callMutation("set_global_fixed_price", {
+            pricing_key: fixedPricingKey,
+            amount: getFormInteger(form, "fixed_price_amount"),
+          });
+
+          if (!priceResult.ok) {
+            throw new Error(resultMessage(priceResult));
+          }
+
+          results.push(priceResult);
+        }
+
+        const changed = results.some((entry) => entry.changed);
+
         await context.loadAdminState(
           publicationStatus(
-            result.changed,
+            changed,
             "Opcion de parrilla actualizada. Falta publicar los cambios.",
             "Opcion de parrilla actualizada. No hay cambios pendientes de publicacion.",
           ),

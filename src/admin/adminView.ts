@@ -470,7 +470,7 @@ function renderGrillProductEditor(state: AdminOperationalState, family: GrillFam
 
 function renderGrillOptionForm(family: GrillFamilyState): string {
   return `
-    <form class="admin-card admin-fixed-form" data-admin-form="grill-item">
+    <form class="admin-card admin-fixed-form admin-grill-option-add" data-admin-form="grill-item">
       <div class="admin-fixed-form__header">
         <h4 class="admin-card__legend">Agregar opcion</h4>
         <p class="admin-row__meta">Se agrega al final de ${escapeHtml(family.title)}.</p>
@@ -498,29 +498,30 @@ function renderGrillOptionRow(item: GrillItemState, canDelete: boolean): string 
   const optionName = item.variant_name ?? item.name;
 
   return `
-    <div class="admin-row admin-fixed-row">
-      <div class="admin-row__main">
-        <p class="admin-row__title">${escapeHtml(optionName)}</p>
-        <div class="admin-price-tags">
-          <span class="admin-price-tag">${escapeHtml(item.family_title)}</span>
-          <span class="admin-price-tag">${escapeHtml(priceText)}</span>
-        </div>
-        <form class="admin-fixed-edit-fields" data-admin-form="grill-item-edit">
-          <input type="hidden" name="item_id" value="${escapeHtml(item.item_id)}" />
-          <label class="admin-field">
-            <span class="admin-label">Opcion</span>
-            <input class="admin-input" name="variant_name" value="${escapeHtml(optionName)}" required />
-          </label>
-          <div class="admin-row__actions admin-fixed-edit-actions">
-            <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar</button>
+    <div class="admin-row admin-fixed-row admin-grill-option-row">
+      <form class="admin-grill-option-edit" data-admin-form="grill-item-edit">
+        <input type="hidden" name="item_id" value="${escapeHtml(item.item_id)}" />
+        <input type="hidden" name="fixed_pricing_key" value="${escapeHtml(item.pricing_key)}" />
+        <div class="admin-row__main">
+          <p class="admin-row__title">${escapeHtml(optionName)}</p>
+          <div class="admin-price-tags">
+            <span class="admin-price-tag">${escapeHtml(item.family_title)}</span>
+            <span class="admin-price-tag">${escapeHtml(priceText)}</span>
           </div>
-        </form>
-        ${renderFixedPriceRows([{
-          pricing_key: item.pricing_key,
-          amount: item.price_amount ?? 0,
-        }], "No hay precio editable para esta opcion.")}
-      </div>
-      <div class="admin-row__actions">
+        </div>
+        <label class="admin-field">
+          <span class="admin-label">Opcion</span>
+          <input class="admin-input" name="variant_name" value="${escapeHtml(optionName)}" required />
+        </label>
+        <label class="admin-field admin-price-field">
+          <span class="admin-label">Importe</span>
+          <input class="admin-input" type="number" name="fixed_price_amount" min="0" step="1" inputmode="numeric" value="${item.price_amount ?? 0}" required />
+        </label>
+        <div class="admin-row__actions admin-grill-option-actions">
+          <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar</button>
+        </div>
+      </form>
+      <div class="admin-row__actions admin-grill-option-delete">
         <button
           class="admin-button admin-button--danger"
           type="button"
