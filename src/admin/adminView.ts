@@ -432,14 +432,10 @@ function renderGrillProductEditor(state: AdminOperationalState, family: GrillFam
 
   return `
     <section class="admin-grill-family admin-grill-product">
-      <div class="admin-list-header">
-        <span>${escapeHtml(family.title)}</span>
-        <span>${items.length} opciones</span>
-      </div>
       <form class="admin-fixed-edit-fields admin-grill-product-edit" data-admin-form="grill-product-edit">
         <input type="hidden" name="family_id" value="${escapeHtml(family.family_id)}" />
         <label class="admin-field">
-          <span class="admin-label">Producto</span>
+          <span class="admin-grill-product-title">Producto</span>
           <input class="admin-input" name="title" value="${escapeHtml(family.title)}" required />
         </label>
         <div class="admin-row__actions admin-fixed-edit-actions">

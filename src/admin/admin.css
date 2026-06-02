@@ -808,6 +808,19 @@
     align-items: end;
   }
 
+  .admin-grill-product-title {
+    color: #26392e;
+    font-size: 1.15rem;
+    font-weight: 850;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .admin-grill-product {
+    border-top: 1px solid #ded6c9;
+    padding-top: 0.95rem;
+  }
+
   .admin-fixed-options {
     display: grid;
     gap: 0.55rem;
