@@ -111,6 +111,13 @@ root.addEventListener("submit", (event) => {
 });
 
 root.addEventListener("change", (event) => {
+  const checkbox = event.target instanceof HTMLInputElement ? event.target : null;
+
+  if (checkbox?.dataset.adminDescriptionToggle !== undefined) {
+    toggleCatalogDescriptionField(checkbox);
+    return;
+  }
+
   const field = event.target instanceof HTMLSelectElement ? event.target : null;
 
   if (!field?.dataset.adminFilter) {
@@ -623,6 +630,16 @@ function handleCatalogItemInput(field: HTMLInputElement): void {
   }
 
   itemIdField.value = createCatalogId(field.value);
+}
+
+function toggleCatalogDescriptionField(field: HTMLInputElement): void {
+  const descriptionField = field.closest<HTMLElement>(".admin-description-field");
+
+  if (!descriptionField) {
+    return;
+  }
+
+  descriptionField.classList.toggle("admin-description-field--hidden", !field.checked);
 }
 
 function handleCatalogOptionInput(field: HTMLInputElement): void {

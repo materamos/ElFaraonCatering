@@ -1116,11 +1116,11 @@ function renderCatalogItemForm(
           <p>Usa el precio compartido de este grupo.</p>
         </div>
       `}
-      <label class="admin-field admin-field--wide">
-        <span class="admin-label">Descripcion</span>
-        <textarea class="admin-textarea" name="description"></textarea>
-        <span class="admin-help">Texto corto debajo del nombre. Inclui aclaraciones aca si hacen falta.</span>
-      </label>
+        ${renderCatalogDescriptionField({
+          fieldName: "description",
+          description: null,
+          helpText: "Texto corto debajo del nombre. Inclui aclaraciones aca si hacen falta.",
+        })}
       <div class="admin-row__actions admin-fixed-form__actions">
         <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Agregar al menu fijo</button>
       </div>
@@ -1163,6 +1163,11 @@ function renderCatalogItemRow(
   const deleteHelp = canDelete
     ? "Se quitara del menu publico despues de publicar."
     : "No se puede eliminar porque debe quedar al menos un item en esta ubicacion.";
+  const editDescriptionField = renderCatalogDescriptionField({
+    fieldName: "description",
+    description: item.description,
+    compact: true,
+  });
 
   return `
     <div class="admin-row admin-fixed-row">
@@ -1181,15 +1186,12 @@ function renderCatalogItemRow(
             <input class="admin-input" name="name" value="${escapeHtml(item.name)}" required />
           </label>
           ${renderCatalogItemIntegratedPriceFields(state, item)}
-          <label class="admin-field admin-field--wide">
-            <span class="admin-label">Descripcion</span>
-            <textarea class="admin-textarea admin-textarea--compact" name="description">${escapeHtml(item.description ?? "")}</textarea>
-          </label>
-          <div class="admin-row__actions admin-fixed-edit-actions">
-            <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>
-              Guardar
-            </button>
-          </div>
+            ${editDescriptionField}
+            <div class="admin-row__actions admin-fixed-edit-actions">
+              <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>
+                Guardar
+              </button>
+            </div>
         </form>` : ""}
         ${editMode === "items" ? "" : renderCatalogItemPriceEditor(state, item)}
         ${renderCatalogItemOptions(item)}
@@ -1208,6 +1210,39 @@ function renderCatalogItemRow(
         </button>
         <span class="admin-row__state-note admin-fixed-delete-note">${escapeHtml(deleteHelp)}</span>
       </div>` : ""}
+    </div>
+  `;
+}
+
+function renderCatalogDescriptionField(input: {
+  fieldName: string;
+  description: string | null;
+  helpText?: string;
+  compact?: boolean;
+}): string {
+  const hasDescription = Boolean(input.description?.trim());
+  const textareaClass = input.compact
+    ? "admin-textarea admin-textarea--compact"
+    : "admin-textarea admin-textarea--short";
+
+  return `
+    <div class="admin-field admin-field--wide admin-description-field${hasDescription ? "" : " admin-description-field--hidden"}">
+      <div class="admin-description-field__header">
+        <span class="admin-label">Descripcion</span>
+        <label class="admin-description-toggle">
+          <input
+            class="admin-description-toggle__input"
+            type="checkbox"
+            data-admin-description-toggle
+            ${hasDescription ? "checked" : ""}
+          />
+          <span class="admin-description-toggle__text">Mostrar descripcion</span>
+        </label>
+      </div>
+      <div class="admin-description-field__body" data-admin-description-body>
+        <textarea class="${textareaClass}" name="${input.fieldName}">${escapeHtml(input.description ?? "")}</textarea>
+        ${input.helpText ? `<span class="admin-help">${escapeHtml(input.helpText)}</span>` : ""}
+      </div>
     </div>
   `;
 }

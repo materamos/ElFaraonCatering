@@ -371,8 +371,54 @@
     resize: vertical;
   }
 
+  .admin-textarea--short {
+    min-height: 3.35rem;
+  }
+
   .admin-textarea--compact {
-    min-height: 4.25rem;
+    min-height: 3.35rem;
+  }
+
+  .admin-description-field {
+    display: grid;
+    gap: 0.45rem;
+    align-content: start;
+  }
+
+  .admin-description-field__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 0.85rem;
+  }
+
+  .admin-description-field__body {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .admin-description-field--hidden .admin-description-field__body {
+    display: none;
+  }
+
+  .admin-description-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: #4e4a42;
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.35;
+    cursor: pointer;
+  }
+
+  .admin-description-toggle__input {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    accent-color: #26392e;
+    cursor: pointer;
   }
 
   .admin-button {
