@@ -1090,7 +1090,7 @@ function renderCatalogItemForm(
   section: CatalogSectionState,
   group: CatalogGroupState | undefined,
 ): string {
-  const requiresPrice = section.content_kind === "items" || !group?.pricing_key;
+  const requiresPrice = catalogItemFormRequiresPrice(section, group);
   const locationTitle = group ? `${section.title} / ${group.title}` : section.title;
 
   return `
@@ -1188,7 +1188,7 @@ function renderCatalogItemRow(
             <span class="admin-label">Nombre</span>
             <input class="admin-input" name="name" value="${escapeHtml(item.name)}" required />
           </label>
-          ${renderCatalogItemIntegratedPriceFields(state, item)}
+          ${isIncludedSideOptionItem(item) ? "" : renderCatalogItemIntegratedPriceFields(state, item)}
             ${editDescriptionField}
             <div class="admin-row__actions admin-fixed-edit-actions">
               <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>
@@ -1405,7 +1405,22 @@ function renderCatalogItemOptionRow(option: CatalogItemOptionState, canDelete: b
   `;
 }
 
+function catalogItemFormRequiresPrice(
+  section: CatalogSectionState,
+  group: CatalogGroupState | undefined,
+): boolean {
+  if (section.section_id === "guarniciones") {
+    return false;
+  }
+
+  return section.content_kind === "items" || !group?.pricing_key;
+}
+
 function isIncludedSideOptionItem(item: CatalogItemState): boolean {
+  if (item.section_id === "guarniciones" && item.item_id !== "guarnicion-sola") {
+    return true;
+  }
+
   const searchableValues = [item.item_id, item.name].map((value) =>
     value
       .normalize("NFD")

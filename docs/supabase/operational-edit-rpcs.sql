@@ -692,11 +692,6 @@ begin
   end if;
 
   if section_kind = 'items' or group_pricing_key is null then
-    if target_amount is null or target_amount < 0 then
-      return query select false, false, true, 'add_catalog_item', 'invalid_amount';
-      return;
-    end if;
-
     if target_group_id = '' then
       price_key := 'catalog:' || target_section_id || ':item:' || target_item_id || ':price';
     else
@@ -708,16 +703,35 @@ begin
     from menu_content.menu_prices price
     where price.pricing_key = price_key;
 
-    if price_kind is not null and price_kind <> 'fixed' then
-      return query select false, false, true, 'add_catalog_item', 'catalog_price_key_conflict';
-      return;
-    end if;
+    if target_section_id = 'guarniciones' then
+      if price_kind is not null and price_kind <> 'included' then
+        return query select false, false, true, 'add_catalog_item', 'catalog_price_key_conflict';
+        return;
+      end if;
 
-    insert into menu_content.menu_prices (pricing_key, kind, amount)
-    values (price_key, 'fixed', target_amount)
-    on conflict (pricing_key) do update
-    set amount = excluded.amount
-    where menu_content.menu_prices.kind = 'fixed';
+      insert into menu_content.menu_prices (pricing_key, kind, amount)
+      values (price_key, 'included', null)
+      on conflict (pricing_key) do update
+      set kind = excluded.kind,
+        amount = excluded.amount
+      where menu_content.menu_prices.kind = 'included';
+    else
+      if target_amount is null or target_amount < 0 then
+        return query select false, false, true, 'add_catalog_item', 'invalid_amount';
+        return;
+      end if;
+
+      if price_kind is not null and price_kind <> 'fixed' then
+        return query select false, false, true, 'add_catalog_item', 'catalog_price_key_conflict';
+        return;
+      end if;
+
+      insert into menu_content.menu_prices (pricing_key, kind, amount)
+      values (price_key, 'fixed', target_amount)
+      on conflict (pricing_key) do update
+      set amount = excluded.amount
+      where menu_content.menu_prices.kind = 'fixed';
+    end if;
   end if;
 
   select coalesce(max(item.order_index) + 1, 0)
