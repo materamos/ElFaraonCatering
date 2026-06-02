@@ -151,6 +151,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260602003000_include_guarniciones_admin_items.sql` | Incluye items de guarniciones en el alcance medido de alta del menu fijo desde `/admin/`. |
 | `20260602224312_rename_papas_fritas_id.sql` | Renombra el ID tecnico de Papas Fritas y su clave de precio para evitar ambiguedad con Chips. |
 | `20260602230249_reorder_guarniciones_platos_principales.sql` | Compacta el orden de Guarniciones y agrupa variantes relacionadas en Platos principales. |
+| `20260602232042_reorder_chips_before_ensalada.sql` | Ubica Chips antes de Ensalada tres sabores en Guarniciones. |
 
 ## Baseline pre-lanzamiento
 
