@@ -772,6 +772,10 @@ function getEffectiveAvailabilityProfileFilter(state: AdminOperationalState): st
 }
 
 function getAvailabilityGroupKey(target: AvailabilityTargetState): string {
+  if (target.target_kind === "grill") {
+    return `section:${target.section_id}`;
+  }
+
   if (target.group_title) {
     return `group:${target.section_id}:${target.group_id}`;
   }
@@ -780,7 +784,7 @@ function getAvailabilityGroupKey(target: AvailabilityTargetState): string {
 }
 
 function getAvailabilityGroupLabel(target: AvailabilityTargetState): string {
-  if (target.target_kind === "grill" && !target.group_title) {
+  if (target.target_kind === "grill") {
     return "Parrilla";
   }
 
