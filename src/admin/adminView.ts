@@ -828,7 +828,7 @@ function renderAvailabilityRows(state: AdminOperationalState): string {
   }
 
   return `
-    ${renderAvailabilityTargetSection(state, "Servicio activo", serviceTargets)}
+    ${renderAvailabilityTargetSection(state, "Servicio activo", serviceTargets, { collapseGrillFamilies: true })}
     ${renderAvailabilityTargetSection(state, "Menu fijo", catalogTargets)}
   `;
 }
@@ -837,8 +837,13 @@ function renderAvailabilityTargetSection(
   state: AdminOperationalState,
   title: string,
   targets: AvailabilityTargetState[],
+  options: { collapseGrillFamilies?: boolean } = {},
 ): string {
-  if (targets.length === 0) {
+  const rows = options.collapseGrillFamilies
+    ? buildAvailabilityRows(state, targets)
+    : targets.map((target) => renderAvailabilityRow(state, target));
+
+  if (rows.length === 0) {
     return "";
   }
 
@@ -846,11 +851,34 @@ function renderAvailabilityTargetSection(
     <section class="admin-availability-group">
       <div class="admin-list-header">
         <span>${escapeHtml(title)}</span>
-        <span>${targets.length} items &middot; cambios instantaneos</span>
+        <span>${rows.length} items &middot; cambios instantaneos</span>
       </div>
-      <div class="admin-grid">${targets.map((target) => renderAvailabilityRow(state, target)).join("")}</div>
+      <div class="admin-grid">${rows.join("")}</div>
     </section>
   `;
+}
+
+function buildAvailabilityRows(state: AdminOperationalState, targets: AvailabilityTargetState[]): string[] {
+  const rows: string[] = [];
+  const grillFamilyMap = new Map<string, AvailabilityTargetState[]>();
+
+  for (const target of targets) {
+    if (target.target_kind !== "grill") {
+      rows.push(renderAvailabilityRow(state, target));
+      continue;
+    }
+
+    const familyKey = getAvailabilityFamilyKey(target);
+    const familyTargets = grillFamilyMap.get(familyKey) ?? [];
+    familyTargets.push(target);
+    grillFamilyMap.set(familyKey, familyTargets);
+  }
+
+  for (const familyTargets of grillFamilyMap.values()) {
+    rows.push(renderAvailabilityFamilyRow(state, familyTargets));
+  }
+
+  return rows;
 }
 
 function renderServiceModeForms(state: AdminOperationalState): string {
@@ -919,7 +947,7 @@ function renderAvailabilityRow(
   return `
     <div class="admin-row">
       <div class="admin-row__main">
-        <p class="admin-row__title">${escapeHtml(formatAvailabilityTargetTitle(target))}</p>
+        <p class="admin-row__title">${escapeHtml(target.name)}</p>
         <p class="admin-row__meta">
           ${escapeHtml(formatAvailabilityKindLabel(target))} &middot; ${escapeHtml(target.profile_title)} &middot; ${escapeHtml(target.section_title)}
           ${target.group_title ? ` &middot; ${escapeHtml(target.group_title)}` : ""}
@@ -934,32 +962,45 @@ function renderAvailabilityRow(
   `;
 }
 
-function formatAvailabilityTargetTitle(target: AvailabilityTargetState): string {
-  if (target.target_kind === "grill" && target.group_title) {
-    return `${target.group_title} ${lowercaseFirstCharacter(target.name)}`;
-  }
+function renderAvailabilityFamilyRow(
+  state: AdminOperationalState,
+  familyTargets: AvailabilityTargetState[],
+): string {
+  const familyTarget = familyTargets[0];
+  const effectiveAvailable = familyTargets.every((target) => {
+    const overlay = findOverlay(state, target);
+    return overlay ? overlay.available_override : target.base_available;
+  });
+  const hasOverlay = familyTargets.some((target) => Boolean(findOverlay(state, target)));
 
-  return target.name;
-}
-
-function lowercaseFirstCharacter(value: string): string {
-  if (!value) {
-    return value;
-  }
-
-  return `${value[0].toLowerCase()}${value.slice(1)}`;
+  return `
+    <div class="admin-row">
+      <div class="admin-row__main">
+        <p class="admin-row__title">${escapeHtml(familyTarget.group_title ?? familyTarget.name)}</p>
+        <p class="admin-row__meta">
+          ${escapeHtml(formatAvailabilityKindLabel(familyTarget))} &middot; ${escapeHtml(familyTarget.profile_title)} &middot; ${escapeHtml(familyTarget.section_title)}
+        </p>
+        <div class="admin-row__status">
+          ${renderAvailabilityStatus(effectiveAvailable, hasOverlay)}
+        </div>
+      </div>
+      ${renderAvailabilityActions(getAvailabilityFamilyKey(familyTarget), effectiveAvailable, hasOverlay, "family")}
+    </div>
+  `;
 }
 
 function renderAvailabilityStatus(
   effectiveAvailable: boolean,
-  overlay: AvailabilityOverlayState | undefined,
+  overlay: AvailabilityOverlayState | boolean | undefined,
 ): string {
+  const hasOverlay = Boolean(overlay);
+
   return `
     <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">
       ${effectiveAvailable ? "Se muestra en el menu" : "Oculto en el menu"}
     </span>
     <span class="admin-row__state-note">
-      ${overlay ? "Cambio manual activo" : "Sin cambio manual"}
+      ${hasOverlay ? "Cambio manual activo" : "Sin cambio manual"}
     </span>
   `;
 }
@@ -967,23 +1008,26 @@ function renderAvailabilityStatus(
 function renderAvailabilityActions(
   key: string,
   effectiveAvailable: boolean,
-  overlay: AvailabilityOverlayState | undefined,
+  overlay: AvailabilityOverlayState | boolean | undefined,
+  keyKind: "target" | "family" = "target",
 ): string {
+  const keyAttribute = keyKind === "family" ? "data-family-key" : "data-target-key";
+  const hasOverlay = Boolean(overlay);
   const mainButton = effectiveAvailable
     ? `
-      <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="false" ${isBusy ? "disabled" : ""}>
+      <button class="admin-button admin-button--danger" type="button" data-admin-action="set-overlay" ${keyAttribute}="${escapeHtml(key)}" data-available="false" ${isBusy ? "disabled" : ""}>
         Ocultar ahora
       </button>
     `
     : `
-      <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" data-target-key="${escapeHtml(key)}" data-available="true" ${isBusy ? "disabled" : ""}>
+      <button class="admin-button admin-button--secondary" type="button" data-admin-action="set-overlay" ${keyAttribute}="${escapeHtml(key)}" data-available="true" ${isBusy ? "disabled" : ""}>
         Volver a mostrar
       </button>
     `;
 
-  const clearButton = overlay && effectiveAvailable
+  const clearButton = hasOverlay && effectiveAvailable
     ? `
-      <button class="admin-button admin-button--secondary" type="button" data-admin-action="clear-overlay" data-target-key="${escapeHtml(key)}" ${isBusy ? "disabled" : ""}>
+      <button class="admin-button admin-button--secondary" type="button" data-admin-action="clear-overlay" ${keyAttribute}="${escapeHtml(key)}" ${isBusy ? "disabled" : ""}>
         Quitar ajuste
       </button>
     `
@@ -1424,6 +1468,10 @@ function getVisibleAvailabilityTargets(state: AdminOperationalState): Availabili
   );
 }
 
+function getAvailabilityFamilyKey(target: AvailabilityTargetState): string {
+  return `family:${target.menu_id}:${target.section_id}:${target.group_id}`;
+}
+
 function findOverlay(
   state: AdminOperationalState,
   target: AvailabilityTargetState,
@@ -1433,6 +1481,12 @@ function findOverlay(
 
 export function findAvailabilityTarget(key: string): AvailabilityTargetState | undefined {
   return currentState?.availability_targets.find((target) => getTargetKey(target) === key);
+}
+
+export function findAvailabilityFamilyTargets(key: string): AvailabilityTargetState[] {
+  return currentState?.availability_targets.filter((target) =>
+    target.target_kind === "grill" && getAvailabilityFamilyKey(target) === key
+  ) ?? [];
 }
 
 export function findCatalogItem(

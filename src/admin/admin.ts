@@ -26,6 +26,7 @@ import {
   saveStoredSession,
 } from "./adminSession";
 import {
+  findAvailabilityFamilyTargets,
   ensureActiveTab,
   findAvailabilityTarget,
   findCatalogItem,
@@ -214,8 +215,27 @@ async function handleAction(target: HTMLElement): Promise<void> {
   }
 
   if (action === "set-overlay") {
+    const familyKey = target.dataset.familyKey;
     const targetKey = target.dataset.targetKey;
     const available = target.dataset.available === "true";
+
+    if (familyKey) {
+      const familyTargets = findAvailabilityFamilyTargets(familyKey);
+
+      if (familyTargets.length === 0) {
+        setStatus("No se encontro la familia seleccionada.", "danger");
+        return;
+      }
+
+      if (available) {
+        await adminOperations.clearAvailabilityOverlayBatch(familyTargets);
+      } else {
+        await adminOperations.saveAvailabilityOverlayBatch(familyTargets, false);
+      }
+
+      return;
+    }
+
     const availabilityTarget = targetKey ? findAvailabilityTarget(targetKey) : undefined;
 
     if (!availabilityTarget) {
@@ -233,7 +253,21 @@ async function handleAction(target: HTMLElement): Promise<void> {
   }
 
   if (action === "clear-overlay") {
+    const familyKey = target.dataset.familyKey;
     const targetKey = target.dataset.targetKey;
+
+    if (familyKey) {
+      const familyTargets = findAvailabilityFamilyTargets(familyKey);
+
+      if (familyTargets.length === 0) {
+        setStatus("No se encontro la familia seleccionada.", "danger");
+        return;
+      }
+
+      await adminOperations.clearAvailabilityOverlayBatch(familyTargets);
+      return;
+    }
+
     const availabilityTarget = targetKey ? findAvailabilityTarget(targetKey) : undefined;
 
     if (!availabilityTarget) {
