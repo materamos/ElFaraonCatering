@@ -1196,7 +1196,7 @@ function renderCatalogItemRow(
               </button>
             </div>
         </form>` : ""}
-        ${editMode === "items" ? "" : renderCatalogItemPriceEditor(state, item)}
+        ${editMode === "items" || isIncludedSideOptionItem(item) ? "" : renderCatalogItemPriceEditor(state, item)}
         ${renderCatalogItemOptions(item)}
       </div>
       ${editMode === "items" ? `<div class="admin-row__actions">
@@ -1403,6 +1403,17 @@ function renderCatalogItemOptionRow(option: CatalogItemOptionState, canDelete: b
       <span class="admin-row__state-note">${escapeHtml(deleteHelp)}</span>
     </form>
   `;
+}
+
+function isIncludedSideOptionItem(item: CatalogItemState): boolean {
+  const searchableValues = [item.item_id, item.name].map((value) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase(),
+  );
+
+  return searchableValues.some((value) => value === "guarnicion" || value === "guarniciones");
 }
 
 function renderFixedPriceRow(price: FixedPriceState): string {

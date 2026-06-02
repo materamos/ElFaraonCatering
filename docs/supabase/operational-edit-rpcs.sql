@@ -929,8 +929,10 @@ declare
   target_option_id text := nullif(btrim(add_catalog_item_option.option_id), '');
   target_name text := nullif(btrim(add_catalog_item_option.name), '');
   target_catalog_item_id bigint;
+  target_item_name text;
   existing_option_count integer;
   next_order_index integer;
+  is_side_option_item boolean;
 begin
   if not public.can_edit_menu_content() then
     return query select false, false, true, 'add_catalog_item_option', 'permission_denied';
@@ -955,8 +957,8 @@ begin
     return;
   end if;
 
-  select item.id
-  into target_catalog_item_id
+  select item.id, item.name
+  into target_catalog_item_id, target_item_name
   from menu_content.menu_catalog_items item
   where item.section_id = target_section_id
     and item.group_id = target_group_id
@@ -987,10 +989,27 @@ begin
     return;
   end if;
 
-  select coalesce(max(option.order_index), -1) + 1
-  into next_order_index
-  from menu_content.menu_catalog_item_options option
-  where option.catalog_item_id = target_catalog_item_id;
+  is_side_option_item :=
+    target_section_id = 'guarniciones'
+    or target_item_id in ('guarnicion', 'guarniciones', 'guarnicion-sola')
+    or lower(target_item_name) in ('guarnicion', 'guarniciones');
+
+  if is_side_option_item then
+    select max(option.order_index)
+    into next_order_index
+    from menu_content.menu_catalog_item_options option
+    where option.catalog_item_id = target_catalog_item_id;
+
+    update menu_content.menu_catalog_item_options option
+    set order_index = option.order_index + 1
+    where option.catalog_item_id = target_catalog_item_id
+      and option.order_index >= next_order_index;
+  else
+    select coalesce(max(option.order_index), -1) + 1
+    into next_order_index
+    from menu_content.menu_catalog_item_options option
+    where option.catalog_item_id = target_catalog_item_id;
+  end if;
 
   insert into menu_content.menu_catalog_item_options (
     catalog_item_id,

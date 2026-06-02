@@ -89,6 +89,9 @@ not allow item add, update, or delete operations. Option edits from `/admin/`
 must not leave an item with zero options. Do not allow fixed-menu item edits to
 change prices, availability, technical IDs, order, to reorder options, or to
 create, delete, rename, or reorder catalog sections or groups from `/admin/`.
+For included side-option items (`guarnicion` or `guarniciones`), `/admin/` must
+not expose price editing and new options must be inserted before the current last
+option.
 Global price edits may be presented in the admin surface for the related menu,
 but must remain the explicit global price RPC workflow.
 
