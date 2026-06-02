@@ -780,6 +780,10 @@ function getAvailabilityGroupKey(target: AvailabilityTargetState): string {
 }
 
 function getAvailabilityGroupLabel(target: AvailabilityTargetState): string {
+  if (target.target_kind === "grill" && !target.group_title) {
+    return "Parrilla";
+  }
+
   return target.group_title ?? target.section_title;
 }
 
