@@ -1,4 +1,5 @@
 import type {
+  AdminOperationalState,
   AuthSession,
   AvailabilityTargetState,
   CatalogItemOptionState,
@@ -18,7 +19,10 @@ import {
 interface AdminOperationContext {
   runBusy(action: () => Promise<void>, busyText?: string): Promise<void>;
   callMutation(name: string, body: Record<string, unknown>): Promise<RpcResult>;
-  loadAdminState(statusText?: string, statusTone?: StatusTone): Promise<void>;
+  loadAdminState(
+    statusText?: string | ((state: AdminOperationalState) => string),
+    statusTone?: StatusTone,
+  ): Promise<AdminOperationalState>;
   requireSession(): Promise<AuthSession>;
   publishMenuChanges(session: AuthSession): Promise<RpcResult>;
 }
@@ -80,7 +84,11 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         await context.loadAdminState(
-          result.changed ? "Menu guardado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
+          publicationStatus(
+            result.changed,
+            "Menu guardado. Falta publicar los cambios.",
+            "Menu guardado. No hay cambios pendientes de publicacion.",
+          ),
           "success",
         );
       }, "Guardando menu del dia...");
@@ -98,7 +106,11 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         await context.loadAdminState(
-          result.changed ? "Servicio guardado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
+          publicationStatus(
+            result.changed,
+            "Servicio guardado. Falta publicar los cambios.",
+            "Servicio guardado. No hay cambios pendientes de publicacion.",
+          ),
           "success",
         );
       }, "Guardando servicio...");
@@ -119,7 +131,11 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         await context.loadAdminState(
-          result.changed ? "Item de parrilla agregado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
+          publicationStatus(
+            result.changed,
+            "Item de parrilla agregado. Falta publicar los cambios.",
+            "Item de parrilla agregado. No hay cambios pendientes de publicacion.",
+          ),
           "success",
         );
       }, "Agregando item de parrilla...");
@@ -138,7 +154,11 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         await context.loadAdminState(
-          result.changed ? "Item de parrilla actualizado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
+          publicationStatus(
+            result.changed,
+            "Item de parrilla actualizado. Falta publicar los cambios.",
+            "Item de parrilla actualizado. No hay cambios pendientes de publicacion.",
+          ),
           "success",
         );
       }, "Guardando item de parrilla...");
@@ -155,7 +175,11 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         await context.loadAdminState(
-          result.changed ? "Item de parrilla eliminado. Para quitarlo del menu publico, publica los cambios." : "Sin cambios.",
+          publicationStatus(
+            result.changed,
+            "Item de parrilla eliminado. Falta publicar los cambios.",
+            "Item de parrilla eliminado. No hay cambios pendientes de publicacion.",
+          ),
           "success",
         );
       }, "Eliminando item de parrilla...");
@@ -173,7 +197,11 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         await context.loadAdminState(
-          result.changed ? "Precio guardado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
+          publicationStatus(
+            result.changed,
+            "Precio guardado. Falta publicar los cambios.",
+            "Precio guardado. No hay cambios pendientes de publicacion.",
+          ),
           "success",
         );
       }, "Guardando precio...");
@@ -195,7 +223,11 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         await context.loadAdminState(
-          result.changed ? "Variante guardada. Para verla en el menu publico, publica los cambios." : "Sin cambios.",
+          publicationStatus(
+            result.changed,
+            "Variante guardada. Falta publicar los cambios.",
+            "Variante guardada. No hay cambios pendientes de publicacion.",
+          ),
           "success",
         );
       }, "Guardando variante...");
@@ -218,7 +250,11 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         await context.loadAdminState(
-          result.changed ? "Item agregado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
+          publicationStatus(
+            result.changed,
+            "Item agregado. Falta publicar los cambios.",
+            "Item agregado. No hay cambios pendientes de publicacion.",
+          ),
           "success",
         );
       }, "Agregando item...");
@@ -237,7 +273,11 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         await context.loadAdminState(
-          result.changed ? "Item eliminado. Para quitarlo del menu publico, publica los cambios." : "Sin cambios.",
+          publicationStatus(
+            result.changed,
+            "Item eliminado. Falta publicar los cambios.",
+            "Item eliminado. No hay cambios pendientes de publicacion.",
+          ),
           "success",
         );
       }, "Eliminando item...");
@@ -313,7 +353,11 @@ export function createAdminOperations(context: AdminOperationContext) {
         const changed = results.some((result) => result.changed);
 
         await context.loadAdminState(
-          changed ? "Item actualizado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
+          publicationStatus(
+            changed,
+            "Item actualizado. Falta publicar los cambios.",
+            "Item actualizado. No hay cambios pendientes de publicacion.",
+          ),
           "success",
         );
       }, "Guardando item...");
@@ -334,7 +378,11 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         await context.loadAdminState(
-          result.changed ? "Opcion agregada. Para verla en el menu publico, publica los cambios." : "Sin cambios.",
+          publicationStatus(
+            result.changed,
+            "Opcion agregada. Falta publicar los cambios.",
+            "Opcion agregada. No hay cambios pendientes de publicacion.",
+          ),
           "success",
         );
       }, "Agregando opcion...");
@@ -355,7 +403,11 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         await context.loadAdminState(
-          result.changed ? "Opcion actualizada. Para verla en el menu publico, publica los cambios." : "Sin cambios.",
+          publicationStatus(
+            result.changed,
+            "Opcion actualizada. Falta publicar los cambios.",
+            "Opcion actualizada. No hay cambios pendientes de publicacion.",
+          ),
           "success",
         );
       }, "Guardando opcion...");
@@ -375,7 +427,11 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         await context.loadAdminState(
-          result.changed ? "Opcion eliminada. Para quitarla del menu publico, publica los cambios." : "Sin cambios.",
+          publicationStatus(
+            result.changed,
+            "Opcion eliminada. Falta publicar los cambios.",
+            "Opcion eliminada. No hay cambios pendientes de publicacion.",
+          ),
           "success",
         );
       }, "Eliminando opcion...");
@@ -405,5 +461,19 @@ export function createAdminOperations(context: AdminOperationContext) {
         await context.loadAdminState(resultMessage(result), "success");
       }, "Publicando cambios...");
     },
+  };
+}
+
+function publicationStatus(
+  changed: boolean,
+  pendingMessage: string,
+  cleanMessage: string,
+): (state: AdminOperationalState) => string {
+  return (state) => {
+    if (!changed) {
+      return "Sin cambios.";
+    }
+
+    return state.publication.has_unpublished_changes ? pendingMessage : cleanMessage;
   };
 }

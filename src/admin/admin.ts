@@ -67,6 +67,8 @@ let currentBusyText: string | null = null;
 let authView: AuthView = "login";
 let isBusy = false;
 
+type AdminStatusText = string | ((state: AdminOperationalState) => string);
+
 if (!rootElement) {
   throw new Error("Admin root element was not found.");
 }
@@ -458,16 +460,21 @@ async function logout(): Promise<void> {
 }
 
 async function loadAdminState(
-  statusText?: string,
+  statusText?: AdminStatusText,
   statusTone: StatusTone = "neutral",
-): Promise<void> {
+): Promise<AdminOperationalState> {
   const session = await requireSession();
   const state = await loadAdminOperationalState(adminApiConfig, session);
   currentState = normalizeAdminState(state);
-  currentStatus = statusText ? { text: statusText, tone: statusTone } : currentStatus;
+  currentStatus = statusText ? { text: getAdminStatusText(statusText, currentState), tone: statusTone } : currentStatus;
   syncAdminViewContext();
   ensureActiveTab();
   renderAuthenticated();
+  return currentState;
+}
+
+function getAdminStatusText(statusText: AdminStatusText, state: AdminOperationalState): string {
+  return typeof statusText === "function" ? statusText(state) : statusText;
 }
 
 async function callMutation(name: string, body: Record<string, unknown>): Promise<RpcResult> {
