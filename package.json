@@ -20,14 +20,14 @@
     "supabase:functions:deploy": "supabase functions deploy publish-menu-changes --use-api --no-verify-jwt"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.1.13",
-    "astro": "^5.14.0",
+    "@tailwindcss/vite": "^4.3.0",
+    "astro": "^5.18.2",
     "tailwindcss": "^4.1.13"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.8",
     "postgres": "^3.4.9",
-    "supabase": "^2.98.2",
+    "supabase": "^2.104.0",
     "typescript": "^5.9.2"
   }
 }
