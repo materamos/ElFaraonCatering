@@ -156,6 +156,12 @@ export interface CatalogEditorState {
   items: CatalogItemState[];
 }
 
+export interface PublicationState {
+  current_content_hash: string;
+  published_content_hash: string;
+  has_unpublished_changes: boolean;
+}
+
 export interface AdminOperationalState {
   ok: boolean;
   message: string;
@@ -172,6 +178,7 @@ export interface AdminOperationalState {
   };
   grill_editor: GrillEditorState;
   catalog_editor: CatalogEditorState;
+  publication: PublicationState;
 }
 
 export interface RpcResult {

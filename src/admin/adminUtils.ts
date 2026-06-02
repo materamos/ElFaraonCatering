@@ -78,6 +78,24 @@ export function normalizeAdminState(state: AdminOperationalState): AdminOperatio
         ? state.catalog_editor.items.map(normalizeCatalogItem)
         : [],
     },
+    publication: normalizePublicationState((state as Partial<AdminOperationalState>).publication),
+  };
+}
+
+function normalizePublicationState(
+  publication: Partial<AdminOperationalState["publication"]> | undefined,
+): AdminOperationalState["publication"] {
+  const currentContentHash = typeof publication?.current_content_hash === "string"
+    ? publication.current_content_hash
+    : "";
+  const publishedContentHash = typeof publication?.published_content_hash === "string"
+    ? publication.published_content_hash
+    : currentContentHash;
+
+  return {
+    current_content_hash: currentContentHash,
+    published_content_hash: publishedContentHash,
+    has_unpublished_changes: publication?.has_unpublished_changes === true,
   };
 }
 

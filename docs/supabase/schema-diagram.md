@@ -24,7 +24,7 @@ flowchart TD
 
   DB --> MC["menu_content<br/>estructura y operacion build-time"]
   DB --> PUB["public<br/>overlay runtime, staff y RPCs"]
-  DB --> PRIV["app_private<br/>auditoria privada e implementaciones definer"]
+  DB --> PRIV["app_private<br/>auditoria privada, fingerprints e implementaciones definer"]
   DB --> AUTH["auth<br/>Supabase-managed"]
 
   MC --> BUILD["Astro build<br/>SUPABASE_DB_URL"]
@@ -185,7 +185,7 @@ flowchart LR
   READ_RPC["get_admin_operational_state()<br/>lectura admin"]
   WRITE_RPCS["RPCs operativas<br/>edicion controlada"]
   EDGE["Supabase Edge Function<br/>publish-menu-changes"]
-  PRIVATE["app_private<br/>auditoria privada e implementaciones definer"]
+  PRIVATE["app_private<br/>auditoria privada, fingerprints e implementaciones definer"]
   VERCEL["Vercel Deploy Hook<br/>secreto en Functions"]
   ADMIN_UI["/admin/ estatico<br/>CMS operativo de menu"]
   STATIC["HTML estatico<br/>data-menu-id / data-section-id / data-item-id"]
@@ -233,6 +233,7 @@ flowchart LR
 - `public.staff_users` define roles operativos (`operator`, `admin`); `operator` puede editar todos los perfiles y publicar.
 - Las escrituras del admin deben pasar por RPCs operativas con respuesta `ok`, `changed`, `requires_redeploy`, `operation` y `message`.
 - Las RPCs publicas del admin son wrappers `security invoker`; las implementaciones privilegiadas viven en `app_private`, que no debe exponerse por PostgREST.
-- `publish-menu-changes` es la frontera server-side para publicar cambios build-time: valida Auth, usa `can_publish_menu()`, registra auditoria privada y llama el Deploy Hook desde secretos.
+- `publish-menu-changes` es la frontera server-side para publicar cambios build-time: valida Auth, usa `can_publish_menu()`, registra auditoria privada con fingerprint del contenido y llama el Deploy Hook desde secretos.
+- El estado `publication` de `get_admin_operational_state()` compara el fingerprint build-time actual contra el ultimo fingerprint publicado registrado para decidir si falta publicar.
 - `public.editor_profiles` es legacy temporal y no debe respaldar nuevas policies.
 - El cliente no debe consultar estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.

@@ -19,10 +19,8 @@ interface AdminOperationContext {
   runBusy(action: () => Promise<void>, busyText?: string): Promise<void>;
   callMutation(name: string, body: Record<string, unknown>): Promise<RpcResult>;
   loadAdminState(statusText?: string, statusTone?: StatusTone): Promise<void>;
-  markPendingIfNeeded(result: RpcResult): void;
   requireSession(): Promise<AuthSession>;
   publishMenuChanges(session: AuthSession): Promise<RpcResult>;
-  setPendingPublication(value: boolean): void;
 }
 
 export function createAdminOperations(context: AdminOperationContext) {
@@ -81,7 +79,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           throw new Error(resultMessage(result));
         }
 
-        context.markPendingIfNeeded(result);
         await context.loadAdminState(
           result.changed ? "Menu guardado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
           "success",
@@ -100,7 +97,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           throw new Error(resultMessage(result));
         }
 
-        context.markPendingIfNeeded(result);
         await context.loadAdminState(
           result.changed ? "Servicio guardado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
           "success",
@@ -122,7 +118,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           throw new Error(resultMessage(result));
         }
 
-        context.markPendingIfNeeded(result);
         await context.loadAdminState(
           result.changed ? "Item de parrilla agregado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
           "success",
@@ -142,7 +137,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           throw new Error(resultMessage(result));
         }
 
-        context.markPendingIfNeeded(result);
         await context.loadAdminState(
           result.changed ? "Item de parrilla actualizado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
           "success",
@@ -160,7 +154,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           throw new Error(resultMessage(result));
         }
 
-        context.markPendingIfNeeded(result);
         await context.loadAdminState(
           result.changed ? "Item de parrilla eliminado. Para quitarlo del menu publico, publica los cambios." : "Sin cambios.",
           "success",
@@ -179,7 +172,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           throw new Error(resultMessage(result));
         }
 
-        context.markPendingIfNeeded(result);
         await context.loadAdminState(
           result.changed ? "Precio guardado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
           "success",
@@ -202,7 +194,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           throw new Error(resultMessage(result));
         }
 
-        context.markPendingIfNeeded(result);
         await context.loadAdminState(
           result.changed ? "Variante guardada. Para verla en el menu publico, publica los cambios." : "Sin cambios.",
           "success",
@@ -226,7 +217,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           throw new Error(resultMessage(result));
         }
 
-        context.markPendingIfNeeded(result);
         await context.loadAdminState(
           result.changed ? "Item agregado. Para verlo en el menu publico, publica los cambios." : "Sin cambios.",
           "success",
@@ -246,7 +236,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           throw new Error(resultMessage(result));
         }
 
-        context.markPendingIfNeeded(result);
         await context.loadAdminState(
           result.changed ? "Item eliminado. Para quitarlo del menu publico, publica los cambios." : "Sin cambios.",
           "success",
@@ -321,10 +310,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           }
         }
 
-        for (const result of results) {
-          context.markPendingIfNeeded(result);
-        }
-
         const changed = results.some((result) => result.changed);
 
         await context.loadAdminState(
@@ -348,7 +333,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           throw new Error(resultMessage(result));
         }
 
-        context.markPendingIfNeeded(result);
         await context.loadAdminState(
           result.changed ? "Opcion agregada. Para verla en el menu publico, publica los cambios." : "Sin cambios.",
           "success",
@@ -370,7 +354,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           throw new Error(resultMessage(result));
         }
 
-        context.markPendingIfNeeded(result);
         await context.loadAdminState(
           result.changed ? "Opcion actualizada. Para verla en el menu publico, publica los cambios." : "Sin cambios.",
           "success",
@@ -391,7 +374,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           throw new Error(resultMessage(result));
         }
 
-        context.markPendingIfNeeded(result);
         await context.loadAdminState(
           result.changed ? "Opcion eliminada. Para quitarla del menu publico, publica los cambios." : "Sin cambios.",
           "success",
@@ -405,7 +387,6 @@ export function createAdminOperations(context: AdminOperationContext) {
         const result = await context.publishMenuChanges(session);
 
         if (result.message === "publish_queued") {
-          context.setPendingPublication(false);
           await context.loadAdminState(
             "Publicacion solicitada. El menu publico puede tardar unos minutos en actualizarse.",
             "success",
@@ -414,7 +395,6 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         if (result.message === "publish_recently_queued") {
-          context.setPendingPublication(true);
           await context.loadAdminState(
             `Ya se pidio una publicacion hace poco${formatCooldownSuffix(result)}. Los cambios quedan guardados; volve a publicar cuando este disponible.`,
             "neutral",

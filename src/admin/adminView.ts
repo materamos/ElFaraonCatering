@@ -61,7 +61,6 @@ let currentState: AdminOperationalState | null = null;
 let currentStatus: StatusMessage | null = null;
 let currentBusyText: string | null = null;
 let activeTab: AdminTabId = "service";
-let hasPendingPublication = false;
 let isBusy = false;
 let availabilityProfileFilter = "";
 let availabilityGroupFilter = "";
@@ -103,9 +102,6 @@ export function setAdminFilter(name: string, value: string): void {
   }
 }
 
-export function setPendingPublication(value: boolean): void {
-  hasPendingPublication = value;
-}
 export function renderConfigurationError(): void {
   root.innerHTML = `
     <section class="admin-denied">
@@ -598,7 +594,7 @@ function renderPublishTab(state: AdminOperationalState): string {
       </div>
       <div class="admin-row">
         <div class="admin-row__main">
-          <p class="admin-row__title">${hasPendingPublication ? "Hay cambios guardados por publicar" : "Sin cambios pendientes detectados en esta sesion"}</p>
+          <p class="admin-row__title">${hasPendingPublication(state) ? "Hay cambios guardados por publicar" : "El menu guardado coincide con la ultima publicacion registrada"}</p>
           <p class="admin-row__meta">La disponibilidad no pasa por este paso porque se aplica al instante.</p>
         </div>
         <div class="admin-row__actions">
@@ -635,7 +631,7 @@ function renderAccountTab(): string {
 }
 
 function renderPublishBanner(state: AdminOperationalState): string {
-  if (!hasPendingPublication || !state.permissions.can_publish_menu) {
+  if (!hasPendingPublication(state) || !state.permissions.can_publish_menu) {
     return "";
   }
 
@@ -645,6 +641,10 @@ function renderPublishBanner(state: AdminOperationalState): string {
       <button class="admin-button" type="button" data-admin-action="publish" ${isBusy ? "disabled" : ""}>Publicar ahora</button>
     </div>
   `;
+}
+
+function hasPendingPublication(state: AdminOperationalState): boolean {
+  return state.publication.has_unpublished_changes;
 }
 
 function renderStatus(): string {

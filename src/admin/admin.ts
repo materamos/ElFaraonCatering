@@ -39,7 +39,6 @@ import {
   setAdminActiveTab,
   setAdminFilter,
   setAdminViewContext,
-  setPendingPublication,
 } from "./adminView";
 import {
   createCatalogId,
@@ -77,10 +76,8 @@ const adminOperations = createAdminOperations({
   runBusy,
   callMutation,
   loadAdminState,
-  markPendingIfNeeded,
   requireSession,
   publishMenuChanges: (session) => publishMenuChangesRequest(adminApiConfig, session),
-  setPendingPublication,
 });
 
 root.addEventListener("click", (event) => {
@@ -450,7 +447,6 @@ async function logout(): Promise<void> {
   clearStoredSession();
   currentSession = null;
   currentState = null;
-  setPendingPublication(false);
   authView = "login";
 
   if (session) {
@@ -515,12 +511,6 @@ async function refreshSession(session: AuthSession): Promise<AuthSession | null>
 
   saveStoredSession(refreshedSession);
   return refreshedSession;
-}
-
-function markPendingIfNeeded(result: RpcResult): void {
-  if (result.ok && result.changed && result.requires_redeploy) {
-    setPendingPublication(true);
-  }
 }
 
 function handleCatalogItemInput(field: HTMLInputElement): void {

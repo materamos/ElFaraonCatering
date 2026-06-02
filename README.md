@@ -237,7 +237,7 @@ Superficies Supabase del proyecto:
 - `public.menu_availability_overlays`: overlay runtime de disponibilidad.
 - `public.staff_users`: empleados y roles para el admin operativo.
 - RPCs publicas controladas: lectura del admin y escrituras operativas.
-- `app_private.menu_publish_requests`: auditoria privada de publicaciones.
+- `app_private.menu_publish_requests`: auditoria privada de publicaciones y fingerprint del contenido publicado.
 - `publish-menu-changes`: Supabase Edge Function server-side que dispara el Vercel Deploy Hook.
 
 El overlay runtime no administra estructura, textos, precios, imagenes ni menu diario. Si no existe overlay para un item, el menu estatico generado en build-time lo trata como disponible.
@@ -261,7 +261,7 @@ Las RPCs operativas devuelven `ok`, `changed`, `requires_redeploy`, `operation` 
 
 Las funciones publicas del admin son wrappers `security invoker`; los cuerpos `security definer` viven en `app_private`, fuera de los schemas expuestos por PostgREST. La excepcion actual son los helpers publicos de publicacion `reserve_menu_publish_request(...)` y `complete_menu_publish_request(...)`, revocados para `anon` y `authenticated` y ejecutables solo por `service_role`; no son RPCs del browser ni del admin.
 
-`publish-menu-changes` valida la sesion Supabase Auth del empleado, verifica `can_publish_menu()`, aplica cooldown global, registra auditoria privada y llama el Vercel Deploy Hook desde secretos de Supabase Functions. La URL del hook es credencial y nunca debe llegar al browser ni versionarse. No se usa `pg_net` para publicar.
+`publish-menu-changes` valida la sesion Supabase Auth del empleado, verifica `can_publish_menu()`, aplica cooldown global, registra auditoria privada y llama el Vercel Deploy Hook desde secretos de Supabase Functions. Cada publicacion aceptada registra un fingerprint del contenido build-time; `/admin/` lo compara contra el estado actual para mostrar pendientes solo cuando el menu guardado difiere de la ultima publicacion registrada. La URL del hook es credencial y nunca debe llegar al browser ni versionarse. No se usa `pg_net` para publicar.
 
 La proteccion contra passwords filtradas se habilita en Supabase Auth settings del proyecto, no por migracion SQL.
 

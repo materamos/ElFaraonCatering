@@ -12,7 +12,7 @@ Las migraciones operativas reales viven en `../../supabase/migrations/`. No agre
 - `public.editor_profiles`: tabla legacy usada solo como origen de backfill hacia `staff_users`.
 - `public.get_admin_operational_state()`: RPC de lectura controlada para `/admin/`.
 - RPCs operativas: unica superficie de escritura browser para disponibilidad, servicio activo, menu del dia, parrilla, contenido de menu fijo, opciones de subcategorias, precios y publicacion.
-- `app_private.menu_publish_requests`: log privado y reserva de publicaciones.
+- `app_private.menu_publish_requests`: log privado, reserva de publicaciones y fingerprint del contenido publicado.
 - `publish-menu-changes`: Supabase Edge Function server-side para publicar cambios build-time sin exponer el Deploy Hook.
 
 Supabase respalda un CMS operativo de contenido de menu, pero "editable" no significa "runtime editable". Salvo disponibilidad, todo cambio operativo en Supabase requiere rebuild/deploy para impactar `/menu/corpo/` y `/menu/teleinde/`. El alcance es intermedio: administra contenido del menu QR, no paginas institucionales ni CMS editorial amplio.
@@ -75,7 +75,9 @@ Excepcion actual: `public.reserve_menu_publish_request(...)` y `public.complete_
 
 `staff_users` y sus helpers (`can_edit_availability(text)`, `can_manage_staff()`, `can_publish_menu()`) son precondicion obligatoria para instalar las RPCs operativas. `can_edit_menu_content()` se introduce en la fase de RPCs operativas; no es precondicion de la migracion de `staff_users`.
 
-`publish-menu-changes` usa `can_publish_menu()` para autorizar publicacion, reserva/completa solicitudes mediante helpers service-role-only, registra auditoria en `app_private` y llama el Vercel Deploy Hook desde secretos de Supabase Functions. No usa `pg_net`.
+`publish-menu-changes` usa `can_publish_menu()` para autorizar publicacion, reserva/completa solicitudes mediante helpers service-role-only, registra auditoria y fingerprint de contenido en `app_private`, y llama el Vercel Deploy Hook desde secretos de Supabase Functions. No usa `pg_net`.
+
+`get_admin_operational_state()` expone un estado `publication` calculado desde el fingerprint actual del contenido build-time y el ultimo fingerprint publicado registrado. El banner de `/admin/` debe depender de esa comparacion, no de un flag local de edicion en la sesion.
 
 La alerta `auth_leaked_password_protection` no se resuelve con SQL del repo: se habilita en la configuracion de Supabase Auth del proyecto, si el plan lo soporta.
 
@@ -143,6 +145,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260526007000_drop_menu_note_columns.sql` | Elimina las columnas `note` del modelo `menu_content` y reemplaza las funciones que aun las referenciaban. |
 | `20260526008000_drop_option_and_grill_descriptions.sql` | Elimina descripciones de opciones del catalogo y modalidades de parrilla; las opciones quedan editables solo por nombre. |
 | `20260528000000_add_grill_item_admin.sql` | Agrega estado y RPCs medidos para administrar items de parrilla dentro de familias existentes desde `/admin/`. |
+| `20260602000000_add_publish_content_fingerprint.sql` | Registra fingerprints de contenido publicado y expone pendientes por comparacion contra el estado actual. |
 
 ## Baseline pre-lanzamiento
 
