@@ -1177,13 +1177,10 @@ function renderCatalogItemOptions(item: CatalogItemState): string {
         <input type="hidden" name="section_id" value="${escapeHtml(item.section_id)}" />
         <input type="hidden" name="group_id" value="${escapeHtml(item.group_id)}" />
         <input type="hidden" name="item_id" value="${escapeHtml(item.item_id)}" />
+        <input type="hidden" name="option_id" data-catalog-option-id />
         <label class="admin-field">
           <span class="admin-label">Nuevo sabor</span>
           <input class="admin-input" name="name" data-catalog-option-name required />
-        </label>
-        <label class="admin-field">
-          <span class="admin-label">Codigo del sabor</span>
-          <input class="admin-input" name="option_id" data-catalog-option-id pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="se-completa-solo" autocomplete="off" required />
         </label>
         <div class="admin-row__actions">
           <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Agregar sabor</button>

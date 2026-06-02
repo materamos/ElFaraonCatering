@@ -3,9 +3,6 @@ import type {
   AdminTabId,
   AuthSession,
   AuthView,
-  CatalogItemOptionState,
-  CatalogItemState,
-  GrillItemState,
   RpcResult,
   StatusMessage,
   StatusTone,
@@ -246,10 +243,6 @@ async function handleAction(target: HTMLElement): Promise<void> {
       return;
     }
 
-    if (!confirmDeleteCatalogItem(item)) {
-      return;
-    }
-
     await adminOperations.deleteCatalogItem(item);
     return;
   }
@@ -260,10 +253,6 @@ async function handleAction(target: HTMLElement): Promise<void> {
 
     if (!item) {
       setStatus("No se encontro el item de parrilla seleccionado.", "danger");
-      return;
-    }
-
-    if (!confirmDeleteGrillItem(item)) {
       return;
     }
 
@@ -282,10 +271,6 @@ async function handleAction(target: HTMLElement): Promise<void> {
 
     if (!option) {
       setStatus("No se encontro la opcion seleccionada.", "danger");
-      return;
-    }
-
-    if (!confirmDeleteCatalogOption(option)) {
       return;
     }
 
@@ -332,10 +317,6 @@ async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
   }
 
   if (formKind === "service-kind") {
-    if (!confirmServiceChange(form)) {
-      return;
-    }
-
     await adminOperations.saveServiceKind(form);
     return;
   }
@@ -620,44 +601,6 @@ function handleGrillItemInput(field: HTMLInputElement): void {
 function confirmPublishChanges(): boolean {
   return window.confirm(
     "Vas a publicar los cambios guardados de platos, parrilla, menu fijo, servicio activo y precios. La disponibilidad ya se aplica al instante. Continuar?",
-  );
-}
-
-function confirmDeleteCatalogItem(item: CatalogItemState): boolean {
-  const optionText = item.option_count > 0
-    ? ` Tambien se eliminan sus ${item.option_count} opciones.`
-    : "";
-
-  return window.confirm(
-    `Vas a eliminar "${item.name}" del menu fijo.${optionText} El menu publico cambia despues de publicar. Continuar?`,
-  );
-}
-
-function confirmDeleteGrillItem(item: GrillItemState): boolean {
-  return window.confirm(
-    `Vas a eliminar "${item.name}" de parrilla. El menu publico cambia despues de publicar. Continuar?`,
-  );
-}
-
-function confirmDeleteCatalogOption(option: CatalogItemOptionState): boolean {
-  return window.confirm(
-    `Vas a eliminar el sabor "${option.name}". La subcategoria debe conservar al menos un sabor y el menu publico cambia despues de publicar. Continuar?`,
-  );
-}
-
-function confirmServiceChange(form: HTMLFormElement): boolean {
-  const currentService = form.dataset.currentService;
-  const nextService = getFormString(form, "service_kind");
-
-  if (!currentService || currentService === nextService) {
-    return true;
-  }
-
-  const profileTitle = form.dataset.profileTitle ?? "este local";
-  const nextLabel = nextService === "grill" ? "parrilla" : "menu del dia";
-
-  return window.confirm(
-    `Vas a cambiar ${profileTitle} a ${nextLabel}. El menu publico se actualiza despues de publicar cambios. Continuar?`,
   );
 }
 
