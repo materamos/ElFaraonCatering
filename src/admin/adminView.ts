@@ -61,7 +61,7 @@ let root: HTMLElement;
 let currentState: AdminOperationalState | null = null;
 let currentStatus: StatusMessage | null = null;
 let currentBusyText: string | null = null;
-let activeTab: AdminTabId = "service";
+let activeTab: AdminTabId = "availability";
 let activeServiceSection: ServiceSectionId = "active-service";
 let isBusy = false;
 let availabilityProfileFilter = "";
@@ -1428,12 +1428,12 @@ function renderEmpty(message: string): string {
 function getAllowedTabs(state: AdminOperationalState): Array<{ id: AdminTabId; label: string }> {
   const tabs: Array<{ id: AdminTabId; label: string }> = [];
 
-  if (state.permissions.can_edit_menu_content) {
-    tabs.push({ id: "service", label: "Servicio" });
-  }
-
   if (state.permissions.can_edit_availability) {
     tabs.push({ id: "availability", label: "Disponibilidad" });
+  }
+
+  if (state.permissions.can_edit_menu_content) {
+    tabs.push({ id: "service", label: "Servicio" });
   }
 
   if (state.permissions.can_edit_menu_content) {
