@@ -919,7 +919,7 @@ function renderAvailabilityRow(
   return `
     <div class="admin-row">
       <div class="admin-row__main">
-        <p class="admin-row__title">${escapeHtml(target.name)}</p>
+        <p class="admin-row__title">${escapeHtml(formatAvailabilityTargetTitle(target))}</p>
         <p class="admin-row__meta">
           ${escapeHtml(formatAvailabilityKindLabel(target))} &middot; ${escapeHtml(target.profile_title)} &middot; ${escapeHtml(target.section_title)}
           ${target.group_title ? ` &middot; ${escapeHtml(target.group_title)}` : ""}
@@ -932,6 +932,22 @@ function renderAvailabilityRow(
       ${renderAvailabilityActions(key, effectiveAvailable, overlay)}
     </div>
   `;
+}
+
+function formatAvailabilityTargetTitle(target: AvailabilityTargetState): string {
+  if (target.target_kind === "grill" && target.group_title) {
+    return `${target.group_title} ${lowercaseFirstCharacter(target.name)}`;
+  }
+
+  return target.name;
+}
+
+function lowercaseFirstCharacter(value: string): string {
+  if (!value) {
+    return value;
+  }
+
+  return `${value[0].toLowerCase()}${value.slice(1)}`;
 }
 
 function renderAvailabilityStatus(
