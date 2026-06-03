@@ -48,6 +48,7 @@ export function createCatalogId(value: string): string {
 export function normalizeAdminState(
   state: AdminOperationalState,
   deployedContentHash = "",
+  requestedPublishHash = "",
 ): AdminOperationalState {
   return {
     ...state,
@@ -84,6 +85,7 @@ export function normalizeAdminState(
     publication: normalizePublicationState(
       (state as Partial<AdminOperationalState>).publication,
       deployedContentHash,
+      requestedPublishHash,
     ),
   };
 }
@@ -91,6 +93,7 @@ export function normalizeAdminState(
 function normalizePublicationState(
   publication: Partial<AdminOperationalState["publication"]> | undefined,
   deployedContentHash: string,
+  requestedPublishHash: string,
 ): AdminOperationalState["publication"] {
   const currentContentHash = typeof publication?.current_content_hash === "string"
     ? publication.current_content_hash
@@ -99,12 +102,16 @@ function normalizePublicationState(
     ? publication.published_content_hash
     : currentContentHash;
   const normalizedDeployedContentHash = normalizeContentHash(deployedContentHash) ?? "";
+  const normalizedRequestedPublishHash = normalizeContentHash(requestedPublishHash);
 
   return {
     current_content_hash: currentContentHash,
     published_content_hash: publishedContentHash,
     deployed_content_hash: normalizedDeployedContentHash,
     has_unpublished_changes: currentContentHash !== normalizedDeployedContentHash,
+    publish_requested:
+      currentContentHash !== normalizedDeployedContentHash
+      && currentContentHash === normalizedRequestedPublishHash,
   };
 }
 

@@ -70,6 +70,7 @@ let currentStatus: StatusMessage | null = null;
 let currentBusyText: string | null = null;
 let authView: AuthView = "login";
 let isBusy = false;
+let requestedPublishHash = "";
 
 type AdminStatusText = string | ((state: AdminOperationalState) => string);
 
@@ -79,12 +80,15 @@ if (!rootElement) {
 
 const root: HTMLElement = rootElement;
 const deployedContentHash = getTrimmedValue(root.dataset.deployedContentHash) ?? "";
+const requestedPublishHashStorageKey = "el-faraon-admin-requested-publish-hash";
+requestedPublishHash = readRequestedPublishHash();
 const adminOperations = createAdminOperations({
   runBusy,
   callMutation,
   loadAdminState,
   requireSession,
   publishMenuChanges: (session) => publishMenuChangesRequest(adminApiConfig, session),
+  markCurrentPublicationRequested,
 });
 
 root.addEventListener("click", (event) => {
@@ -553,7 +557,8 @@ async function loadAdminState(
 ): Promise<AdminOperationalState> {
   const session = await requireSession();
   const state = await loadAdminOperationalState(adminApiConfig, session);
-  currentState = normalizeAdminState(state, deployedContentHash);
+  currentState = normalizeAdminState(state, deployedContentHash, requestedPublishHash);
+  reconcileRequestedPublishHash(currentState);
   currentStatus = statusText ? { text: getAdminStatusText(statusText, currentState), tone: statusTone } : currentStatus;
   syncAdminViewContext();
   ensureActiveTab();
@@ -568,6 +573,38 @@ function getAdminStatusText(statusText: AdminStatusText, state: AdminOperational
 async function callMutation(name: string, body: Record<string, unknown>): Promise<RpcResult> {
   const session = await requireSession();
   return callAdminMutation(adminApiConfig, session, name, body);
+}
+
+function markCurrentPublicationRequested(): void {
+  const contentHash = currentState?.publication.current_content_hash;
+
+  if (!contentHash) {
+    return;
+  }
+
+  requestedPublishHash = contentHash;
+  window.sessionStorage.setItem(requestedPublishHashStorageKey, contentHash);
+}
+
+function reconcileRequestedPublishHash(state: AdminOperationalState): void {
+  if (!requestedPublishHash) {
+    return;
+  }
+
+  const currentContentHash = state.publication.current_content_hash;
+  const activeDeployedContentHash = state.publication.deployed_content_hash;
+
+  if (requestedPublishHash === currentContentHash && requestedPublishHash !== activeDeployedContentHash) {
+    return;
+  }
+
+  requestedPublishHash = "";
+  window.sessionStorage.removeItem(requestedPublishHashStorageKey);
+  currentState = normalizeAdminState(state, deployedContentHash, requestedPublishHash);
+}
+
+function readRequestedPublishHash(): string {
+  return window.sessionStorage.getItem(requestedPublishHashStorageKey) ?? "";
 }
 
 async function requireSession(): Promise<AuthSession> {

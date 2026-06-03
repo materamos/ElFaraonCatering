@@ -162,6 +162,7 @@ export interface PublicationState {
   published_content_hash: string;
   deployed_content_hash: string;
   has_unpublished_changes: boolean;
+  publish_requested: boolean;
 }
 
 export interface AdminOperationalState {

@@ -26,6 +26,7 @@ interface AdminOperationContext {
   ): Promise<AdminOperationalState>;
   requireSession(): Promise<AuthSession>;
   publishMenuChanges(session: AuthSession): Promise<RpcResult>;
+  markCurrentPublicationRequested(): void;
 }
 
 export function createAdminOperations(context: AdminOperationContext) {
@@ -590,8 +591,9 @@ export function createAdminOperations(context: AdminOperationContext) {
         const result = await context.publishMenuChanges(session);
 
         if (result.message === "publish_queued") {
+          context.markCurrentPublicationRequested();
           await context.loadAdminState(
-            "Publicacion solicitada. El aviso se actualiza cuando termine el deploy y cargues la nueva version del admin.",
+            "Publicacion solicitada. El boton vuelve a aparecer si haces cambios nuevos antes de que termine el deploy.",
             "success",
           );
           return;

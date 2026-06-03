@@ -707,8 +707,12 @@ function renderPublishBanner(state: AdminOperationalState): string {
 
   return `
     <div class="admin-banner">
-      <span>Falta publicar: hay cambios guardados que no estan publicados.</span>
-      <button class="admin-button" type="button" data-admin-action="publish" ${isBusy ? "disabled" : ""}>Publicar ahora</button>
+      <span>${state.publication.publish_requested
+        ? "Publicacion solicitada: el deploy esta en curso. El aviso desaparece cuando cargues la nueva version del admin."
+        : "Falta publicar: hay cambios guardados que no estan publicados."}</span>
+      ${state.publication.publish_requested
+        ? ""
+        : `<button class="admin-button" type="button" data-admin-action="publish" ${isBusy ? "disabled" : ""}>Publicar ahora</button>`}
     </div>
   `;
 }
