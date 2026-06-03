@@ -1562,7 +1562,9 @@ function getVisibleAvailabilityTargets(state: AdminOperationalState): Availabili
 }
 
 function getAvailabilityFamilyKey(target: AvailabilityTargetState): string {
-  return `family:${target.menu_id}:${target.section_id}:${target.group_id}`;
+  const familyId = target.group_id || target.group_title || target.item_id;
+
+  return `family:${target.menu_id}:${target.section_id}:${familyId}`;
 }
 
 function findOverlay(
