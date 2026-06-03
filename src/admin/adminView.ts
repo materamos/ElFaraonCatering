@@ -1169,9 +1169,7 @@ function renderCatalogItemRow(
   editMode: FixedMenuEditMode,
 ): string {
   const priceText = formatCatalogItemPrice(item);
-  const optionText = item.option_count > 0
-    ? `${item.option_count} opciones asociadas`
-    : "Sin opciones";
+  const optionText = item.option_count > 0 ? `${item.option_count} opciones asociadas` : "";
   const deleteHelp = canDelete
     ? "Se quitará del menú público después de publicar."
     : "No se puede eliminar porque debe quedar al menos un item en esta ubicación.";
@@ -1187,7 +1185,7 @@ function renderCatalogItemRow(
         <p class="admin-row__title">${escapeHtml(item.name)}</p>
         <div class="admin-price-tags">
           <span class="admin-price-tag">${escapeHtml(priceText)}</span>
-          <span class="admin-price-tag">${escapeHtml(optionText)}</span>
+          ${optionText ? `<span class="admin-price-tag">${escapeHtml(optionText)}</span>` : ""}
         </div>
         ${editMode === "items" ? `<form class="admin-fixed-edit-fields" data-admin-form="catalog-item-edit">
           <input type="hidden" name="section_id" value="${escapeHtml(item.section_id)}" />
