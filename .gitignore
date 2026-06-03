@@ -38,6 +38,9 @@ public/uploads/*.svg
 !public/uploads/menu-placeholders/
 !public/uploads/.gitkeep
 
+# Branding (material de trabajo de diseño, no versionar)
+docs/branding/
+
 # Editor settings
 .vscode/*
 !.vscode/extensions.json
