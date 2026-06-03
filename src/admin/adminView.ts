@@ -514,7 +514,6 @@ function renderGrillOptionRow(item: GrillItemState, canDelete: boolean): string 
         <div class="admin-row__main">
           <p class="admin-row__title">${escapeHtml(item.family_title)}</p>
           <div class="admin-price-tags">
-            <span class="admin-price-tag">${escapeHtml(item.family_title)}</span>
             <span class="admin-price-tag">${escapeHtml(priceText)}</span>
           </div>
         </div>
