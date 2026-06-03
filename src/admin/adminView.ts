@@ -455,12 +455,12 @@ function renderGrillProductEditor(state: AdminOperationalState, family: GrillFam
           <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar producto</button>
         </div>
       </form>
-      ${renderGrillOptionForm(family)}
       <div class="admin-grid">
         ${items.length > 0
           ? items.map((item) => renderGrillOptionRow(item, items.length > 1)).join("")
           : renderEmpty("No hay opciones en este producto. Agregá la primera con el formulario.")}
       </div>
+      ${renderGrillOptionForm(family)}
       <div class="admin-row__actions">
         <button
           class="admin-button admin-button--danger"
