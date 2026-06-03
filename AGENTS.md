@@ -81,7 +81,7 @@ change availability, or manage images from `/admin/`.
 Fixed-menu admin item edits may add individual catalog items, update item name and
 description, delete individual catalog items only within existing sections or
 groups, or add, update, and delete individual catalog item options for items
-that already use options. The fixed-menu admin treats `minutas-tartas-omelettes`
+that already use options. The fixed-menu admin treats `tartas-tortillas-omelettes`
 as `Tartas, tortillas y omelettes`, shows `tartas`, `tortilla`, and `omelette`
 there, and allows only option edits for items that already use options; it allows
 only `empanadas` option edits in `empanadas`. In those option-only locations, do

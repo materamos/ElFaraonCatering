@@ -1373,7 +1373,7 @@ begin
     return;
   end if;
 
-  if target_section_id in ('minutas-tartas-omelettes', 'empanadas') then
+  if target_section_id in ('tartas-tortillas-omelettes', 'empanadas') then
     return query select false, false, true, 'add_catalog_item', 'catalog_item_locked';
     return;
   end if;
@@ -1408,7 +1408,7 @@ begin
     return;
   end if;
 
-  if target_section_id in ('minutas-tartas-omelettes', 'empanadas') then
+  if target_section_id in ('tartas-tortillas-omelettes', 'empanadas') then
     return query select false, false, true, 'delete_catalog_item', 'catalog_item_locked';
     return;
   end if;
@@ -1445,7 +1445,7 @@ begin
     return;
   end if;
 
-  if target_section_id in ('minutas-tartas-omelettes', 'empanadas') then
+  if target_section_id in ('tartas-tortillas-omelettes', 'empanadas') then
     return query select false, false, true, 'update_catalog_item', 'catalog_item_locked';
     return;
   end if;

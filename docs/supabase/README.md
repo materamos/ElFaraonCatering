@@ -153,6 +153,11 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260602230249_reorder_guarniciones_platos_principales.sql` | Compacta el orden de Guarniciones y agrupa variantes relacionadas en Platos principales. |
 | `20260602232042_reorder_chips_before_ensalada.sql` | Ubica Chips antes de Ensalada tres sabores en Guarniciones. |
 | `20260602232948_reorder_promociones_huevos_revueltos.sql` | Agrupa la promocion de huevos revueltos con las promos de cafe con leche. |
+| `20260603055801_rename_cafeteria_sections.sql` | Renombra titulos visibles de cafeteria y promociones cafeteria. |
+| `20260603061818_update_cafeteria_items.sql` | Actualiza el set operativo de items de cafeteria. |
+| `20260603062255_remove_cafeteria_promotion_images.sql` | Quita imagenes placeholder de cafeteria y promociones. |
+| `20260603070518_normalize_menu_order_and_spanish_text.sql` | Normaliza orden editorial y textos visibles del menu. |
+| `20260603090000_rename_prelaunch_catalog_section_ids.sql` | Renombra IDs tecnicos pre-lanzamiento de cafeteria y tartas/tortillas/omelettes. |
 
 ## Baseline pre-lanzamiento
 
