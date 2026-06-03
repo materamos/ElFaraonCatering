@@ -1010,15 +1010,12 @@ function renderAvailabilityFamilyRow(
 
 function renderAvailabilityStatus(
   effectiveAvailable: boolean,
-  overlay: AvailabilityOverlayState | boolean | undefined,
+  _overlay: AvailabilityOverlayState | boolean | undefined,
 ): string {
-  const hasOverlay = Boolean(overlay);
-
   return `
     <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">
       ${effectiveAvailable ? "Se muestra en el menú" : "Oculto en el menú"}
     </span>
-    ${hasOverlay ? `<span class="admin-row__state-note">Cambio manual activo</span>` : ""}
   `;
 }
 
