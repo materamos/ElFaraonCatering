@@ -45,7 +45,10 @@ export function createCatalogId(value: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export function normalizeAdminState(state: AdminOperationalState): AdminOperationalState {
+export function normalizeAdminState(
+  state: AdminOperationalState,
+  deployedContentHash = "",
+): AdminOperationalState {
   return {
     ...state,
     profiles: Array.isArray(state.profiles) ? state.profiles : [],
@@ -78,12 +81,16 @@ export function normalizeAdminState(state: AdminOperationalState): AdminOperatio
         ? state.catalog_editor.items.map(normalizeCatalogItem)
         : [],
     },
-    publication: normalizePublicationState((state as Partial<AdminOperationalState>).publication),
+    publication: normalizePublicationState(
+      (state as Partial<AdminOperationalState>).publication,
+      deployedContentHash,
+    ),
   };
 }
 
 function normalizePublicationState(
   publication: Partial<AdminOperationalState["publication"]> | undefined,
+  deployedContentHash: string,
 ): AdminOperationalState["publication"] {
   const currentContentHash = typeof publication?.current_content_hash === "string"
     ? publication.current_content_hash
@@ -91,12 +98,20 @@ function normalizePublicationState(
   const publishedContentHash = typeof publication?.published_content_hash === "string"
     ? publication.published_content_hash
     : currentContentHash;
+  const normalizedDeployedContentHash = normalizeContentHash(deployedContentHash) ?? "";
 
   return {
     current_content_hash: currentContentHash,
     published_content_hash: publishedContentHash,
-    has_unpublished_changes: publication?.has_unpublished_changes === true,
+    deployed_content_hash: normalizedDeployedContentHash,
+    has_unpublished_changes: currentContentHash !== normalizedDeployedContentHash,
   };
+}
+
+function normalizeContentHash(value: string): string | null {
+  const trimmedValue = value.trim();
+
+  return /^[a-f0-9]{32}$/.test(trimmedValue) ? trimmedValue : null;
 }
 
 function normalizeGrillFamily(family: GrillFamilyState): GrillFamilyState {
@@ -211,7 +226,7 @@ export function roleLabel(role: StaffRole): string {
 export function resultMessage(result: RpcResult): string {
   const messages: Record<string, string> = {
     permission_denied: "No tenes permisos para esta accion.",
-    publish_queued: "Publicacion solicitada. El menu publico puede tardar unos minutos en actualizarse.",
+    publish_queued: "Publicacion solicitada. El aviso se actualiza cuando termine el deploy y cargues la nueva version del admin.",
     publish_recently_queued: "Ya se pidio una publicacion hace poco.",
     publish_failed: "No se pudo publicar.",
     invalid_amount: "El importe no es valido.",

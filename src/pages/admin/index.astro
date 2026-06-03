@@ -1,13 +1,20 @@
 ---
 import "../../admin/admin.css";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { loadSupabaseMenuPublicationContentHash } from "../../utils/menuSupabaseContent";
+
+const deployedContentHash = await loadSupabaseMenuPublicationContentHash();
 ---
 
 <BaseLayout
   title="Admin operativo | El Faraon Catering"
   description="Panel operativo para preparar menu del dia, parrilla, disponibilidad, precios y publicacion."
 >
-  <main class="admin-root" data-admin-root>
+  <main
+    class="admin-root"
+    data-admin-root
+    data-deployed-content-hash={deployedContentHash}
+  >
     <section class="admin-loading" aria-live="polite">
       <p class="admin-kicker">Panel operativo</p>
       <h1>Cargando admin</h1>

@@ -234,6 +234,6 @@ flowchart LR
 - Las escrituras del admin deben pasar por RPCs operativas con respuesta `ok`, `changed`, `requires_redeploy`, `operation` y `message`.
 - Las RPCs publicas del admin son wrappers `security invoker`; las implementaciones privilegiadas viven en `app_private`, que no debe exponerse por PostgREST.
 - `publish-menu-changes` es la frontera server-side para publicar cambios build-time: valida Auth, usa `can_publish_menu()`, registra auditoria privada con fingerprint del contenido y llama el Deploy Hook desde secretos.
-- El estado `publication` de `get_admin_operational_state()` compara el fingerprint build-time actual contra el ultimo fingerprint publicado registrado para decidir si falta publicar.
+- El estado `publication` expone el fingerprint build-time actual; `/admin/` lo compara contra el fingerprint embebido en el deploy estatico actual para decidir si falta publicar.
 - `public.editor_profiles` es legacy temporal y no debe respaldar nuevas policies.
 - El cliente no debe consultar estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.

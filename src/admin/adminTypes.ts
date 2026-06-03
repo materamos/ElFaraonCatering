@@ -160,6 +160,7 @@ export interface CatalogEditorState {
 export interface PublicationState {
   current_content_hash: string;
   published_content_hash: string;
+  deployed_content_hash: string;
   has_unpublished_changes: boolean;
 }
 

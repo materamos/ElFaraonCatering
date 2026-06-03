@@ -591,7 +591,7 @@ export function createAdminOperations(context: AdminOperationContext) {
 
         if (result.message === "publish_queued") {
           await context.loadAdminState(
-            "Publicacion solicitada. El menu publico puede tardar unos minutos en actualizarse.",
+            "Publicacion solicitada. El aviso se actualiza cuando termine el deploy y cargues la nueva version del admin.",
             "success",
           );
           return;

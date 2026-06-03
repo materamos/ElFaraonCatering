@@ -78,6 +78,7 @@ if (!rootElement) {
 }
 
 const root: HTMLElement = rootElement;
+const deployedContentHash = getTrimmedValue(root.dataset.deployedContentHash) ?? "";
 const adminOperations = createAdminOperations({
   runBusy,
   callMutation,
@@ -552,7 +553,7 @@ async function loadAdminState(
 ): Promise<AdminOperationalState> {
   const session = await requireSession();
   const state = await loadAdminOperationalState(adminApiConfig, session);
-  currentState = normalizeAdminState(state);
+  currentState = normalizeAdminState(state, deployedContentHash);
   currentStatus = statusText ? { text: getAdminStatusText(statusText, currentState), tone: statusTone } : currentStatus;
   syncAdminViewContext();
   ensureActiveTab();
