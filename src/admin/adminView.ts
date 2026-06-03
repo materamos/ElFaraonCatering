@@ -1018,9 +1018,7 @@ function renderAvailabilityStatus(
     <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">
       ${effectiveAvailable ? "Se muestra en el menú" : "Oculto en el menú"}
     </span>
-    <span class="admin-row__state-note">
-      ${hasOverlay ? "Cambio manual activo" : "Sin cambio manual"}
-    </span>
+    ${hasOverlay ? `<span class="admin-row__state-note">Cambio manual activo</span>` : ""}
   `;
 }
 
