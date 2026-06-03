@@ -10,6 +10,7 @@
   --color-accent: #333333;
   --color-success: #2f6b4f;
   --color-danger: #9a3f3b;
+  --color-backdrop: rgba(0, 0, 0, 0.46);
   --radius-panel: 0.75rem;
   --radius-small: 0.45rem;
   --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -494,7 +495,7 @@
   }
 
   .photo-sheet::backdrop {
-    background: rgba(0, 0, 0, 0.46);
+    background: var(--color-backdrop);
   }
 
   .photo-sheet__panel {
