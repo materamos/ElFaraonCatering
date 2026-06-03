@@ -124,6 +124,10 @@
     line-height: 1.1;
   }
 
+  [data-admin-view-heading]:focus {
+    outline: none;
+  }
+
   .admin-tabs {
     display: flex;
     gap: 0.3rem;
