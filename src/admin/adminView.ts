@@ -112,9 +112,9 @@ export function renderConfigurationError(): void {
   root.innerHTML = `
     <section class="admin-denied">
       <p class="admin-kicker">Panel operativo</p>
-      <h1 class="admin-title">Configuracion incompleta</h1>
+      <h1 class="admin-title" tabindex="-1" data-admin-view-heading>Configuración incompleta</h1>
       <div class="admin-denied__panel">
-        <p class="admin-muted">Falta configurar el acceso publico necesario para cargar el panel. Avisale a quien administra el sitio.</p>
+        <p class="admin-muted">Falta configurar el acceso público necesario para cargar el panel. Avisale a quien administra el sitio.</p>
       </div>
     </section>
   `;
@@ -125,20 +125,20 @@ export function renderLogin(): void {
     <section class="admin-login" aria-busy="${isBusy ? "true" : "false"}">
       <div>
         <p class="admin-kicker">Panel operativo</p>
-        <h1 class="admin-title">Ingresar</h1>
+        <h1 class="admin-title" tabindex="-1" data-admin-view-heading>Ingresar</h1>
       </div>
       ${renderStatus()}
       <form class="admin-login__form" data-admin-form="login">
         <label class="admin-field">
           <span class="admin-label">Email</span>
-          <input class="admin-input" type="email" name="email" autocomplete="email" required />
+          <input class="admin-input" type="email" name="email" autocomplete="email" required data-admin-initial-focus />
         </label>
         <label class="admin-field">
-          <span class="admin-label">Contrasena</span>
+          <span class="admin-label">Contraseña</span>
           <input class="admin-input" type="password" name="password" autocomplete="current-password" required />
         </label>
-        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Iniciar sesion</button>
-        <button class="admin-link-button" type="button" data-admin-action="show-reset-request" ${isBusy ? "disabled" : ""}>Olvide mi contrasena</button>
+        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Iniciar sesión</button>
+        <button class="admin-link-button" type="button" data-admin-action="show-reset-request" ${isBusy ? "disabled" : ""}>Olvidé mi contraseña</button>
       </form>
     </section>
   `;
@@ -149,14 +149,14 @@ export function renderPasswordResetRequest(): void {
     <section class="admin-login" aria-busy="${isBusy ? "true" : "false"}">
       <div>
         <p class="admin-kicker">Panel operativo</p>
-        <h1 class="admin-title">Recuperar acceso</h1>
-        <p class="admin-muted">Te vamos a enviar un link para definir una nueva contrasena.</p>
+        <h1 class="admin-title" tabindex="-1" data-admin-view-heading>Recuperar acceso</h1>
+        <p class="admin-muted">Te vamos a enviar un link para definir una nueva contraseña.</p>
       </div>
       ${renderStatus()}
       <form class="admin-login__form" data-admin-form="password-reset-request">
         <label class="admin-field">
           <span class="admin-label">Email</span>
-          <input class="admin-input" type="email" name="email" autocomplete="email" required />
+          <input class="admin-input" type="email" name="email" autocomplete="email" required data-admin-initial-focus />
         </label>
         <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Enviar link</button>
         <button class="admin-link-button" type="button" data-admin-action="show-login" ${isBusy ? "disabled" : ""}>Volver al ingreso</button>
@@ -170,19 +170,19 @@ export function renderSetPassword(): void {
     <section class="admin-login" aria-busy="${isBusy ? "true" : "false"}">
       <div>
         <p class="admin-kicker">Panel operativo</p>
-        <h1 class="admin-title">Nueva contrasena</h1>
+        <h1 class="admin-title" tabindex="-1" data-admin-view-heading>Nueva contraseña</h1>
       </div>
       ${renderStatus()}
       <form class="admin-login__form" data-admin-form="set-password">
         <label class="admin-field">
-          <span class="admin-label">Nueva contrasena</span>
-          <input class="admin-input" type="password" name="password" autocomplete="new-password" minlength="8" required />
+          <span class="admin-label">Nueva contraseña</span>
+          <input class="admin-input" type="password" name="password" autocomplete="new-password" minlength="8" required data-admin-initial-focus />
         </label>
         <label class="admin-field">
-          <span class="admin-label">Confirmar contrasena</span>
+          <span class="admin-label">Confirmar contraseña</span>
           <input class="admin-input" type="password" name="password_confirmation" autocomplete="new-password" minlength="8" required />
         </label>
-        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar contrasena</button>
+        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar contraseña</button>
       </form>
     </section>
   `;
@@ -204,8 +204,8 @@ export function renderAuthenticated(): void {
         <div class="admin-header__main">
           <div>
             <p class="admin-kicker">Panel operativo</p>
-            <h1 class="admin-title">Admin El Faraon</h1>
-            <p class="admin-header__copy">Prepara el servicio, controla disponibilidad y administra los menus editables. La disponibilidad se aplica al instante; contenido y precios necesitan publicacion.</p>
+            <h1 class="admin-title" tabindex="-1" data-admin-view-heading>Admin El Faraón</h1>
+            <p class="admin-header__copy">Prepará el servicio, controlá disponibilidad y administrá los menús editables. La disponibilidad se aplica al instante; contenido y precios necesitan publicación.</p>
           </div>
           <div class="admin-header__identity">
             <span class="admin-user-name">${escapeHtml(currentState.staff.display_name)}</span>
@@ -217,11 +217,14 @@ export function renderAuthenticated(): void {
           ${tabs.map((tab) => `
             <button
               class="admin-tab"
+              id="admin-tab-${tab.id}"
               role="tab"
               type="button"
               data-admin-action="tab"
               data-admin-tab="${tab.id}"
               aria-selected="${activeTab === tab.id ? "true" : "false"}"
+              aria-controls="admin-panel-${tab.id}"
+              tabindex="${activeTab === tab.id ? "0" : "-1"}"
             >${escapeHtml(tab.label)}</button>
           `).join("")}
         </nav>
@@ -229,7 +232,9 @@ export function renderAuthenticated(): void {
       <div class="admin-main">
         ${renderPublishBanner(currentState)}
         ${renderStatus()}
-        ${renderActiveTab(currentState)}
+        <div id="admin-panel-${activeTab}" role="tabpanel" aria-labelledby="admin-tab-${activeTab}">
+          ${renderActiveTab(currentState)}
+        </div>
       </div>
     </section>
   `;
@@ -243,7 +248,7 @@ function renderDenied(): void {
   root.innerHTML = `
     <section class="admin-denied" aria-busy="${isBusy ? "true" : "false"}">
       <p class="admin-kicker">Panel operativo</p>
-      <h1 class="admin-title">Sin acceso</h1>
+      <h1 class="admin-title" tabindex="-1" data-admin-view-heading>Sin acceso</h1>
       ${renderStatus()}
       <div class="admin-denied__panel">
         <p class="admin-muted">${escapeHtml(message)}</p>
@@ -277,7 +282,7 @@ function renderAvailabilityTab(state: AdminOperationalState): string {
     <section class="admin-section">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Disponibilidad</h2>
-        <p class="admin-section__copy">Oculta o vuelve a mostrar items visibles. El servicio muestra solo menu del dia o parrilla segun cada local; menu fijo queda separado.</p>
+        <p class="admin-section__copy">Ocultá o volvé a mostrar items visibles. El servicio muestra solo menú del día o parrilla según cada local; menú fijo queda separado.</p>
       </div>
       ${renderAvailabilityFilters(state)}
       ${renderAvailabilityRows(state)}
@@ -292,7 +297,7 @@ function renderServiceTab(state: AdminOperationalState): string {
     <section class="admin-section admin-service">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Servicio</h2>
-        <p class="admin-section__copy">Elegi que servicio muestra cada local y edita el menu del dia o la parrilla operativa. El menu fijo queda separado como catalogo estable compartido.</p>
+        <p class="admin-section__copy">Elegí qué servicio muestra cada local y editá el menú del día o la parrilla operativa. El menú fijo queda separado como catálogo estable compartido.</p>
       </div>
       ${serviceEditor ? `
         ${renderServiceSectionNav()}
@@ -314,17 +319,17 @@ function renderServiceSectionNav(): string {
     {
       id: "active-service",
       label: "Servicio activo",
-      copy: "Define si cada local muestra menu del dia o parrilla.",
+      copy: "Definí si cada local muestra menú del día o parrilla.",
     },
     {
       id: "daily-menu",
-      label: "Menu del dia",
+      label: "Menú del día",
       copy: "Edita platos y precios globales del servicio diario.",
     },
     {
       id: "grill",
       label: "Parrilla",
-      copy: "Administra productos, opciones y precios de parrilla.",
+      copy: "Administrá productos, opciones y precios de parrilla.",
     },
   ];
   const sections = allSections.filter((section) => isServiceSectionAvailable(state, section.id));
@@ -368,8 +373,8 @@ function renderDailyMenuEditor(state: AdminOperationalState): string {
   return `
     <section class="admin-daily-panel">
       <div class="admin-daily-panel__header">
-        <h3 class="admin-daily-panel__title">Menu del dia</h3>
-        <p class="admin-row__meta">Edita los dos platos y sus precios globales. Se veran en el menu publico despues de publicar cambios.</p>
+        <h3 class="admin-daily-panel__title">Menú del día</h3>
+        <p class="admin-row__meta">Editá los dos platos y sus precios globales. Se verán en el menú público después de publicar cambios.</p>
       </div>
       <form class="admin-form-grid admin-daily-form" data-admin-form="daily-menu">
         ${renderDailyFieldset("Menu regular", "regular", regular)}
@@ -377,14 +382,14 @@ function renderDailyMenuEditor(state: AdminOperationalState): string {
         <div class="admin-row admin-callout admin-daily-submit">
           <div class="admin-row__main">
             <p class="admin-row__title">Guardar platos</p>
-            <p class="admin-row__meta">Actualiza las dos opciones visibles del servicio diario.</p>
+            <p class="admin-row__meta">Actualizá las dos opciones visibles del servicio diario.</p>
           </div>
           <div class="admin-row__actions">
-            <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar menu del dia</button>
+            <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar menú del día</button>
           </div>
         </div>
       </form>
-      ${renderFixedPriceRows(dailyPrices, "No hay precios del menu del dia editables.")}
+      ${renderFixedPriceRows(dailyPrices, "No hay precios del menú del día editables.")}
     </section>
   `;
 }
@@ -397,7 +402,7 @@ function renderGrillEditor(state: AdminOperationalState): string {
     <section class="admin-daily-panel admin-grill-editor">
       <div class="admin-daily-panel__header">
         <h3 class="admin-daily-panel__title">Parrilla</h3>
-        <p class="admin-row__meta">Administra productos de parrilla y sus opciones de precio. El menu publico se actualiza despues de publicar cambios.</p>
+        <p class="admin-row__meta">Administrá productos de parrilla y sus opciones de precio. El menú público se actualiza después de publicar cambios.</p>
       </div>
       ${renderGrillProductForm()}
       ${families.length > 0
@@ -412,7 +417,7 @@ function renderGrillProductForm(): string {
     <form class="admin-card admin-fixed-form" data-admin-form="grill-product">
       <div class="admin-fixed-form__header">
         <h4 class="admin-card__legend">Agregar producto de parrilla</h4>
-        <p class="admin-row__meta">Crea un producto nuevo con su primera opcion y precio.</p>
+        <p class="admin-row__meta">Creá un producto nuevo con su primera opción y precio.</p>
       </div>
       <input type="hidden" name="family_id" data-grill-product-id />
       <input type="hidden" name="item_id" data-grill-id />
@@ -421,7 +426,7 @@ function renderGrillProductForm(): string {
         <input class="admin-input" name="title" data-grill-product-name required />
       </label>
       <label class="admin-field">
-        <span class="admin-label">Primera opcion</span>
+        <span class="admin-label">Primera opción</span>
         <input class="admin-input" name="variant_name" data-grill-name required />
       </label>
       <label class="admin-field">
@@ -454,7 +459,7 @@ function renderGrillProductEditor(state: AdminOperationalState, family: GrillFam
       <div class="admin-grid">
         ${items.length > 0
           ? items.map((item) => renderGrillOptionRow(item, items.length > 1)).join("")
-          : renderEmpty("No hay opciones en este producto. Agrega la primera con el formulario.")}
+          : renderEmpty("No hay opciones en este producto. Agregá la primera con el formulario.")}
       </div>
       <div class="admin-row__actions">
         <button
@@ -466,7 +471,7 @@ function renderGrillProductEditor(state: AdminOperationalState, family: GrillFam
         >
           Eliminar producto
         </button>
-        <span class="admin-row__state-note admin-fixed-delete-note">Elimina el producto completo y todas sus opciones despues de publicar.</span>
+        <span class="admin-row__state-note admin-fixed-delete-note">Eliminá el producto completo y todas sus opciones después de publicar.</span>
       </div>
     </section>
   `;
@@ -476,14 +481,14 @@ function renderGrillOptionForm(family: GrillFamilyState): string {
   return `
     <form class="admin-card admin-fixed-form admin-grill-option-add" data-admin-form="grill-item">
       <div class="admin-fixed-form__header">
-        <h4 class="admin-card__legend">Agregar opcion</h4>
+        <h4 class="admin-card__legend">Agregar opción</h4>
         <p class="admin-row__meta">Se agrega al final de ${escapeHtml(family.title)}.</p>
       </div>
       <input type="hidden" name="family_id" value="${escapeHtml(family.family_id)}" />
       <input type="hidden" name="product_name" value="${escapeHtml(family.title)}" />
       <input type="hidden" name="item_id" data-grill-id />
       <label class="admin-field">
-        <span class="admin-label">Opcion</span>
+        <span class="admin-label">Opción</span>
         <input class="admin-input" name="variant_name" data-grill-name required />
       </label>
       <label class="admin-field">
@@ -491,7 +496,7 @@ function renderGrillOptionForm(family: GrillFamilyState): string {
         <input class="admin-input" type="number" name="amount" min="0" step="1" inputmode="numeric" required />
       </label>
       <div class="admin-row__actions admin-fixed-form__actions">
-        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Agregar opcion</button>
+        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Agregar opción</button>
       </div>
     </form>
   `;
@@ -514,7 +519,7 @@ function renderGrillOptionRow(item: GrillItemState, canDelete: boolean): string 
           </div>
         </div>
         <label class="admin-field">
-          <span class="admin-label">Opcion</span>
+          <span class="admin-label">Opción</span>
           <input class="admin-input" name="variant_name" value="${escapeHtml(optionName)}" required />
         </label>
         <label class="admin-field admin-price-field">
@@ -535,7 +540,7 @@ function renderGrillOptionRow(item: GrillItemState, canDelete: boolean): string 
         >
           Eliminar
         </button>
-        <span class="admin-row__state-note admin-fixed-delete-note">${canDelete ? "Se quitara del menu publico despues de publicar." : "Debe quedar al menos una opcion. Para quitar todo, elimina el producto."}</span>
+        <span class="admin-row__state-note admin-fixed-delete-note">${canDelete ? "Se quitará del menú público después de publicar." : "Debe quedar al menos una opción. Para quitar todo, eliminá el producto."}</span>
       </div>
     </div>
   `;
@@ -549,8 +554,8 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
     return `
       <section class="admin-section">
         <div class="admin-section__header">
-          <h2 class="admin-section__title">Menu fijo</h2>
-        <p class="admin-section__copy">Tu usuario no tiene permiso para editar items del menu fijo.</p>
+          <h2 class="admin-section__title">Menú fijo</h2>
+        <p class="admin-section__copy">Tu usuario no tiene permiso para editar items del menú fijo.</p>
         </div>
       </section>
     `;
@@ -560,10 +565,10 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
     return `
       <section class="admin-section">
         <div class="admin-section__header">
-          <h2 class="admin-section__title">Menu fijo</h2>
-          <p class="admin-section__copy">Administra el catalogo estable compartido. Para crear secciones o cambiar el orden, avisale a quien administra el sitio.</p>
+          <h2 class="admin-section__title">Menú fijo</h2>
+          <p class="admin-section__copy">Administrá el catálogo estable compartido. Para crear secciones o cambiar el orden, avisale a quien administra el sitio.</p>
         </div>
-        ${renderEmpty("No hay secciones del menu fijo disponibles.")}
+        ${renderEmpty("No hay secciones del menú fijo disponibles.")}
       </section>
     `;
   }
@@ -573,24 +578,24 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
   const items = getFixedLocationItems(editor, section, group);
   const editMode = getFixedMenuEditMode(section);
   const sectionCopy = editMode === "options-only"
-    ? "Administra solo sabores de esta subcategoria. No se pueden agregar, editar ni eliminar items desde esta pantalla."
-    : "Agrega, edita nombre/descripcion o elimina items puntuales del catalogo estable. Los cambios quedan guardados, pero el menu publico se actualiza despues de publicar.";
+    ? "Administrá solo sabores de esta subcategoría. No se pueden agregar, editar ni eliminar items desde esta pantalla."
+    : "Agregá, editá nombre/descripción o eliminá items puntuales del catálogo estable. Los cambios quedan guardados, pero el menú público se actualiza después de publicar.";
 
   return `
     <section class="admin-section admin-fixed">
       <div class="admin-section__header">
-        <h2 class="admin-section__title">Menu fijo</h2>
-        <p class="admin-section__copy">Administra el catalogo estable compartido. ${escapeHtml(sectionCopy)}</p>
+        <h2 class="admin-section__title">Menú fijo</h2>
+        <p class="admin-section__copy">Administrá el catálogo estable compartido. ${escapeHtml(sectionCopy)}</p>
       </div>
       ${editMode === "items" ? `<div class="admin-row admin-callout admin-fixed-guide">
         <div class="admin-row__main">
-          <p class="admin-row__title">Como usar esta pantalla</p>
-          <p class="admin-row__meta">Elegi la ubicacion, completa el nombre visible y agrega el item.</p>
+          <p class="admin-row__title">Cómo usar esta pantalla</p>
+          <p class="admin-row__meta">Elegí la ubicación, completá el nombre visible y agregá el item.</p>
         </div>
       </div>` : ""}
       <div class="admin-toolbar admin-fixed-toolbar">
         <label class="admin-field">
-          <span class="admin-label">Seccion</span>
+          <span class="admin-label">Sección</span>
           <select class="admin-select" data-admin-filter="fixed-section">
             ${editor.sections
               .map((entry) => `<option value="${escapeHtml(entry.section_id)}" ${entry.section_id === section.section_id ? "selected" : ""}>${escapeHtml(getFixedSectionAdminTitle(entry))}</option>`)
@@ -612,7 +617,7 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
       ${editMode === "options-only"
         ? ""
         : section.content_kind === "groups" && !group
-        ? renderEmpty("La seccion seleccionada no tiene grupos disponibles para agregar items.")
+        ? renderEmpty("La sección seleccionada no tiene grupos disponibles para agregar items.")
         : renderCatalogItemForm(section, group)}
       ${renderCatalogItemList(state, items, editMode)}
     </section>
@@ -632,7 +637,7 @@ function renderFixedMenuSharedPriceEditor(
 
   return renderPriceEditorSection(
     "Precio compartido del grupo",
-    `Este precio aplica a todos los items de ${group.title}. Guardar requiere publicacion.`,
+    `Este precio aplica a todos los items de ${group.title}. Guardar requiere publicación.`,
     fixedRows,
     variantRows,
   );
@@ -651,8 +656,8 @@ function renderPriceEditorSection(
         <p class="admin-row__meta">${escapeHtml(copy)}</p>
       </div>
       <div class="admin-price-grid">
-        ${renderFixedPriceRows(fixedRows, "No hay precios fijos editables en esta ubicacion.")}
-        ${renderVariantPriceRows(variantRows, "No hay variantes editables en esta ubicacion.")}
+        ${renderFixedPriceRows(fixedRows, "No hay precios fijos editables en esta ubicación.")}
+        ${renderVariantPriceRows(variantRows, "No hay variantes editables en esta ubicación.")}
       </div>
     </section>
   `;
@@ -681,19 +686,19 @@ function renderAccountTab(): string {
     <section class="admin-section">
       <div class="admin-section__header">
         <h2 class="admin-section__title">Cuenta</h2>
-        <p class="admin-section__copy">Actualiza tu contrasena de acceso al panel.</p>
+        <p class="admin-section__copy">Actualizá tu contraseña de acceso al panel.</p>
       </div>
       <form class="admin-form-grid" data-admin-form="change-password">
         <label class="admin-field">
-          <span class="admin-label">Nueva contrasena</span>
+          <span class="admin-label">Nueva contraseña</span>
           <input class="admin-input" type="password" name="password" autocomplete="new-password" minlength="8" required />
         </label>
         <label class="admin-field">
-          <span class="admin-label">Confirmar contrasena</span>
+          <span class="admin-label">Confirmar contraseña</span>
           <input class="admin-input" type="password" name="password_confirmation" autocomplete="new-password" minlength="8" required />
         </label>
         <div class="admin-row__actions">
-          <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar contrasena</button>
+          <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar contraseña</button>
         </div>
       </form>
     </section>
@@ -708,8 +713,8 @@ function renderPublishBanner(state: AdminOperationalState): string {
   return `
     <div class="admin-banner">
       <span>${state.publication.publish_requested
-        ? "Publicacion solicitada: el deploy esta en curso. El aviso desaparece cuando cargues la nueva version del admin."
-        : "Falta publicar: hay cambios guardados que no estan publicados."}</span>
+        ? "Publicación solicitada: el deploy está en curso. El aviso desaparece cuando cargues la nueva versión del admin."
+        : "Falta publicar: hay cambios guardados que no están publicados."}</span>
       ${state.publication.publish_requested
         ? ""
         : `<button class="admin-button" type="button" data-admin-action="publish" ${isBusy ? "disabled" : ""}>Publicar ahora</button>`}
@@ -731,7 +736,7 @@ function renderStatus(): string {
   }
 
   return `
-    <div class="admin-status" data-tone="${status.tone}" data-busy="${currentBusyText ? "true" : "false"}" aria-live="polite">
+    <div class="admin-status" data-tone="${status.tone}" data-busy="${currentBusyText ? "true" : "false"}" role="status" aria-live="polite">
       <span>${escapeHtml(status.text)}</span>
     </div>
   `;
@@ -840,7 +845,7 @@ function renderAvailabilityRows(state: AdminOperationalState): string {
 
   return `
     ${renderAvailabilityTargetSection(state, "Servicio activo", serviceTargets, { collapseGrillFamilies: true })}
-    ${renderAvailabilityTargetSection(state, "Menu fijo", catalogTargets)}
+    ${renderAvailabilityTargetSection(state, "Menú fijo", catalogTargets)}
   `;
 }
 
@@ -898,7 +903,7 @@ function renderServiceModeForms(state: AdminOperationalState): string {
       <section class="admin-daily-panel">
         <div class="admin-daily-panel__header">
           <h3 class="admin-daily-panel__title">Servicio activo por local</h3>
-          <p class="admin-row__meta">Cambiar entre menu del dia y parrilla se vera en el menu publico despues de publicar.</p>
+          <p class="admin-row__meta">Cambiar entre menú del día y parrilla se verá en el menú público después de publicar.</p>
         </div>
         ${renderEmpty("No hay locales para configurar.")}
       </section>
@@ -909,12 +914,12 @@ function renderServiceModeForms(state: AdminOperationalState): string {
     <section class="admin-daily-panel">
       <div class="admin-daily-panel__header">
         <h3 class="admin-daily-panel__title">Servicio activo por local</h3>
-        <p class="admin-row__meta">Elegir el servicio activo cambia que ve cada local. Se vera en el menu publico despues de publicar.</p>
+        <p class="admin-row__meta">Elegir el servicio activo cambia qué ve cada local. Se verá en el menú público después de publicar.</p>
       </div>
       <div class="admin-grid">
         ${state.profiles.map((profile) => {
           const currentService = findServiceKind(state, profile.id);
-          const serviceLabel = currentService === "daily-menu" ? "Menu del dia activo" : "Parrilla activa";
+          const serviceLabel = currentService === "daily-menu" ? "Menú del día activo" : "Parrilla activa";
 
           return `
             <form class="admin-row admin-daily-service-row" data-admin-form="service-kind" data-current-service="${currentService}" data-profile-title="${escapeHtml(profile.title)}">
@@ -922,13 +927,13 @@ function renderServiceModeForms(state: AdminOperationalState): string {
                 <p class="admin-row__title">${escapeHtml(profile.title)}</p>
                 <div class="admin-row__status">
                   <span class="admin-pill" data-tone="${currentService === "daily-menu" ? "success" : "neutral"}">${escapeHtml(serviceLabel)}</span>
-                  <span class="admin-row__state-note">Se vera despues de publicar si cambia.</span>
+                  <span class="admin-row__state-note">Se verá después de publicar si cambia.</span>
                 </div>
               </div>
               <div class="admin-row__actions">
                 <input type="hidden" name="profile_id" value="${escapeHtml(profile.id)}" />
                 <select class="admin-select" name="service_kind" aria-label="Servicio activo para ${escapeHtml(profile.title)}">
-                  <option value="daily-menu" ${currentService === "daily-menu" ? "selected" : ""}>Menu del dia</option>
+                  <option value="daily-menu" ${currentService === "daily-menu" ? "selected" : ""}>Menú del día</option>
                   <option value="grill" ${currentService === "grill" ? "selected" : ""}>Parrilla</option>
                 </select>
                 <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Guardar</button>
@@ -1012,7 +1017,7 @@ function renderAvailabilityStatus(
 
   return `
     <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">
-      ${effectiveAvailable ? "Se muestra en el menu" : "Oculto en el menu"}
+      ${effectiveAvailable ? "Se muestra en el menú" : "Oculto en el menú"}
     </span>
     <span class="admin-row__state-note">
       ${hasOverlay ? "Cambio manual activo" : "Sin cambio manual"}
@@ -1061,7 +1066,7 @@ function renderDailyFieldset(
   prefix: "regular" | "vegetarian",
   item: DailyMenuState | undefined,
 ): string {
-  const fieldLabel = prefix === "regular" ? "menu regular" : "menu vegetariano";
+  const fieldLabel = prefix === "regular" ? "menú regular" : "menú vegetariano";
 
   return `
     <fieldset class="admin-card admin-daily-card">
@@ -1071,7 +1076,7 @@ function renderDailyFieldset(
         <input class="admin-input" name="${prefix}_name" value="${escapeHtml(item?.name ?? "")}" required />
       </label>
       <label class="admin-field admin-field--wide">
-        <span class="admin-label">Descripcion del ${fieldLabel}</span>
+        <span class="admin-label">Descripción del ${fieldLabel}</span>
         <textarea class="admin-textarea" name="${prefix}_description">${escapeHtml(item?.description ?? "")}</textarea>
       </label>
     </fieldset>
@@ -1080,14 +1085,14 @@ function renderDailyFieldset(
 
 function formatAvailabilityKindLabel(target: AvailabilityTargetState): string {
   if (target.target_kind === "daily-menu") {
-    return "Menu del dia";
+    return "Menú del día";
   }
 
   if (target.target_kind === "grill") {
     return "Parrilla";
   }
 
-  return "Menu fijo";
+  return "Menú fijo";
 }
 
 function renderCatalogItemForm(
@@ -1109,27 +1114,27 @@ function renderCatalogItemForm(
       <label class="admin-field">
         <span class="admin-label">Nombre visible</span>
         <input class="admin-input" name="name" data-catalog-name required />
-        <span class="admin-help">Es el nombre que va a leer el cliente en el menu.</span>
+        <span class="admin-help">Es el nombre que va a leer el cliente en el menú.</span>
       </label>
       ${requiresPrice ? `
         <label class="admin-field">
           <span class="admin-label">Precio</span>
           <input class="admin-input" type="number" name="amount" min="0" step="1" inputmode="numeric" required />
-          <span class="admin-help">Usa numeros sin simbolo de peso.</span>
+          <span class="admin-help">Usá números sin símbolo de peso.</span>
         </label>
       ` : `
         <div class="admin-fixed-form__note">
           <span class="admin-label">Precio</span>
-          <p>Usa el precio compartido de este grupo.</p>
+          <p>Usá el precio compartido de este grupo.</p>
         </div>
       `}
         ${renderCatalogDescriptionField({
           fieldName: "description",
           description: null,
-          helpText: "Texto corto debajo del nombre. Inclui aclaraciones aca si hacen falta.",
+          helpText: "Texto corto debajo del nombre. Incluí aclaraciones acá si hacen falta.",
         })}
       <div class="admin-row__actions admin-fixed-form__actions">
-        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Agregar al menu fijo</button>
+        <button class="admin-button" type="submit" ${isBusy ? "disabled" : ""}>Agregar al menú fijo</button>
       </div>
     </form>
   `;
@@ -1142,13 +1147,13 @@ function renderCatalogItemList(
 ): string {
   if (items.length === 0) {
     return renderEmpty(editMode === "options-only"
-      ? "No hay subcategorias con sabores editables en esta ubicacion."
-      : "No hay items en esta ubicacion. Agrega el primero con el formulario de arriba.");
+      ? "No hay subcategorías con sabores editables en esta ubicación."
+      : "No hay items en esta ubicación. Agregá el primero con el formulario de arriba.");
   }
 
   return `
     <div class="admin-list-header">
-      <span>${items.length} ${editMode === "options-only" ? "subcategorias" : "items"}</span>
+      <span>${items.length} ${editMode === "options-only" ? "subcategorías" : "items"}</span>
       <span>${editMode === "options-only" ? "Agregar, editar o eliminar sabores requiere publicar cambios." : "Editar o eliminar requiere publicar cambios."}</span>
     </div>
     <div class="admin-grid">
@@ -1168,8 +1173,8 @@ function renderCatalogItemRow(
     ? `${item.option_count} opciones asociadas`
     : "Sin opciones";
   const deleteHelp = canDelete
-    ? "Se quitara del menu publico despues de publicar."
-    : "No se puede eliminar porque debe quedar al menos un item en esta ubicacion.";
+    ? "Se quitará del menú público después de publicar."
+    : "No se puede eliminar porque debe quedar al menos un item en esta ubicación.";
   const editDescriptionField = renderCatalogDescriptionField({
     fieldName: "description",
     description: item.description,
@@ -1235,7 +1240,7 @@ function renderCatalogDescriptionField(input: {
   return `
     <div class="admin-field admin-field--wide admin-description-field${hasDescription ? "" : " admin-description-field--hidden"}">
       <div class="admin-description-field__header">
-        <span class="admin-label">Descripcion</span>
+        <span class="admin-label">Descripción</span>
         <label class="admin-description-toggle">
           <input
             class="admin-description-toggle__input"
@@ -1243,7 +1248,7 @@ function renderCatalogDescriptionField(input: {
             data-admin-description-toggle
             ${hasDescription ? "checked" : ""}
           />
-          <span class="admin-description-toggle__text">Mostrar descripcion</span>
+          <span class="admin-description-toggle__text">Mostrar descripción</span>
         </label>
       </div>
       <div class="admin-description-field__body" data-admin-description-body>
@@ -1259,7 +1264,7 @@ function renderCatalogItemIntegratedPriceFields(state: AdminOperationalState, it
     return `
       <div class="admin-fixed-form__note">
         <span class="admin-label">Precio</span>
-        <p>Usa el precio compartido del grupo seleccionado.</p>
+        <p>Usá el precio compartido del grupo seleccionado.</p>
       </div>
     `;
   }
@@ -1329,7 +1334,7 @@ function renderCatalogItemPriceEditor(state: AdminOperationalState, item: Catalo
     <section class="admin-inline-price-panel">
       <div class="admin-fixed-options__header">
         <p class="admin-label">Precio</p>
-        <span class="admin-row__state-note">Guardar requiere publicacion.</span>
+        <span class="admin-row__state-note">Guardar requiere publicación.</span>
       </div>
       ${fixedRows.map(renderFixedPriceRow).join("")}
       ${variantRows.map(renderVariantPriceRow).join("")}
@@ -1344,8 +1349,8 @@ function renderCatalogItemOptions(item: CatalogItemState): string {
 
   const canDeleteOptions = item.options.length > 1;
   const deleteHelp = canDeleteOptions
-    ? "Puedes quitar sabores individuales; el cambio se publica despues."
-    : "Debe quedar al menos un sabor en esta subcategoria.";
+    ? "Podés quitar sabores individuales; el cambio se publica después."
+    : "Debe quedar al menos un sabor en esta subcategoría.";
 
   return `
     <section class="admin-fixed-options">
@@ -1376,7 +1381,7 @@ function renderCatalogItemOptions(item: CatalogItemState): string {
 
 function renderCatalogItemOptionRow(option: CatalogItemOptionState, canDelete: boolean): string {
   const deleteHelp = canDelete
-    ? "Se quitara del menu publico despues de publicar."
+    ? "Se quitará del menú público después de publicar."
     : "No se puede eliminar porque debe quedar al menos un sabor.";
 
   return `
@@ -1390,7 +1395,7 @@ function renderCatalogItemOptionRow(option: CatalogItemOptionState, canDelete: b
         <input class="admin-input" name="name" value="${escapeHtml(option.name)}" required />
       </label>
       <div class="admin-row__actions">
-        <button class="admin-button admin-button--secondary" type="submit" ${isBusy ? "disabled" : ""}>Guardar opcion</button>
+        <button class="admin-button admin-button--secondary" type="submit" ${isBusy ? "disabled" : ""}>Guardar opción</button>
         <button
           class="admin-button admin-button--danger"
           type="button"
@@ -1505,7 +1510,7 @@ function getAllowedTabs(state: AdminOperationalState): Array<{ id: AdminTabId; l
   }
 
   if (state.permissions.can_edit_menu_content) {
-    tabs.push({ id: "fixed", label: "Menu fijo" });
+    tabs.push({ id: "fixed", label: "Menú fijo" });
   }
 
   tabs.push({ id: "account", label: "Cuenta" });

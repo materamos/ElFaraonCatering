@@ -46,7 +46,7 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         await context.loadAdminState(
-          result.changed ? "Disponibilidad actualizada. Ya se ve en el menu publico." : "Sin cambios.",
+          result.changed ? "Disponibilidad actualizada. Ya se ve en el menú público." : "Sin cambios.",
           "success",
         );
       }, available ? "Mostrando item..." : "Ocultando item...");
@@ -66,7 +66,7 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         await context.loadAdminState(
-          result.changed ? "Ajuste quitado. Ya se ve en el menu publico." : "Sin cambios.",
+          result.changed ? "Ajuste quitado. Ya se ve en el menú público." : "Sin cambios.",
           "success",
         );
       }, "Quitando ajuste...");
@@ -95,7 +95,7 @@ export function createAdminOperations(context: AdminOperationContext) {
         const changed = results.some((result) => result.changed);
 
         await context.loadAdminState(
-          changed ? "Disponibilidad actualizada. Ya se ve en el menu publico." : "Sin cambios.",
+          changed ? "Disponibilidad actualizada. Ya se ve en el menú público." : "Sin cambios.",
           "success",
         );
       }, available ? "Mostrando items..." : "Ocultando items...");
@@ -123,7 +123,7 @@ export function createAdminOperations(context: AdminOperationContext) {
         const changed = results.some((result) => result.changed);
 
         await context.loadAdminState(
-          changed ? "Ajuste quitado. Ya se ve en el menu publico." : "Sin cambios.",
+          changed ? "Ajuste quitado. Ya se ve en el menú público." : "Sin cambios.",
           "success",
         );
       }, "Quitando ajuste...");
@@ -145,12 +145,12 @@ export function createAdminOperations(context: AdminOperationContext) {
         await context.loadAdminState(
           publicationStatus(
             result.changed,
-            "Menu guardado. Falta publicar los cambios.",
-            "Menu guardado. No hay cambios pendientes de publicacion.",
+            "Menú guardado. Falta publicar los cambios.",
+            "Menú guardado. No hay cambios pendientes de publicación.",
           ),
           "success",
         );
-      }, "Guardando menu del dia...");
+      }, "Guardando menú del día...");
     },
 
     saveServiceKind(form: HTMLFormElement): Promise<void> {
@@ -168,7 +168,7 @@ export function createAdminOperations(context: AdminOperationContext) {
           publicationStatus(
             result.changed,
             "Servicio guardado. Falta publicar los cambios.",
-            "Servicio guardado. No hay cambios pendientes de publicacion.",
+            "Servicio guardado. No hay cambios pendientes de publicación.",
           ),
           "success",
         );
@@ -192,12 +192,12 @@ export function createAdminOperations(context: AdminOperationContext) {
         await context.loadAdminState(
           publicationStatus(
             result.changed,
-            "Opcion de parrilla agregada. Falta publicar los cambios.",
-            "Opcion de parrilla agregada. No hay cambios pendientes de publicacion.",
+            "Opción de parrilla agregada. Falta publicar los cambios.",
+            "Opción de parrilla agregada. No hay cambios pendientes de publicación.",
           ),
           "success",
         );
-      }, "Agregando opcion de parrilla...");
+      }, "Agregando opción de parrilla...");
     },
 
     saveGrillProduct(form: HTMLFormElement): Promise<void> {
@@ -218,7 +218,7 @@ export function createAdminOperations(context: AdminOperationContext) {
           publicationStatus(
             result.changed,
             "Producto de parrilla agregado. Falta publicar los cambios.",
-            "Producto de parrilla agregado. No hay cambios pendientes de publicacion.",
+            "Producto de parrilla agregado. No hay cambios pendientes de publicación.",
           ),
           "success",
         );
@@ -240,7 +240,7 @@ export function createAdminOperations(context: AdminOperationContext) {
           publicationStatus(
             result.changed,
             "Producto de parrilla actualizado. Falta publicar los cambios.",
-            "Producto de parrilla actualizado. No hay cambios pendientes de publicacion.",
+            "Producto de parrilla actualizado. No hay cambios pendientes de publicación.",
           ),
           "success",
         );
@@ -250,45 +250,50 @@ export function createAdminOperations(context: AdminOperationContext) {
     saveGrillItemEdit(form: HTMLFormElement): Promise<void> {
       return context.runBusy(async () => {
         const results: RpcResult[] = [];
-        const optionName = getFormString(form, "variant_name");
-        const result = await context.callMutation("update_grill_item", {
-          item_id: getFormString(form, "item_id"),
-          name: optionName,
-          variant_name: optionName,
-        });
 
-        if (!result.ok) {
-          throw new Error(resultMessage(result));
-        }
-
-        results.push(result);
-
-        const fixedPricingKey = getFormString(form, "fixed_pricing_key");
-
-        if (fixedPricingKey) {
-          const priceResult = await context.callMutation("set_global_fixed_price", {
-            pricing_key: fixedPricingKey,
-            amount: getFormInteger(form, "fixed_price_amount"),
+        try {
+          const optionName = getFormString(form, "variant_name");
+          const result = await context.callMutation("update_grill_item", {
+            item_id: getFormString(form, "item_id"),
+            name: optionName,
+            variant_name: optionName,
           });
 
-          if (!priceResult.ok) {
-            throw new Error(resultMessage(priceResult));
+          if (!result.ok) {
+            throw new Error(resultMessage(result));
           }
 
-          results.push(priceResult);
+          results.push(result);
+
+          const fixedPricingKey = getFormString(form, "fixed_pricing_key");
+
+          if (fixedPricingKey) {
+            const priceResult = await context.callMutation("set_global_fixed_price", {
+              pricing_key: fixedPricingKey,
+              amount: getFormInteger(form, "fixed_price_amount"),
+            });
+
+            if (!priceResult.ok) {
+              throw new Error(resultMessage(priceResult));
+            }
+
+            results.push(priceResult);
+          }
+
+          const changed = results.some((entry) => entry.changed);
+
+          await context.loadAdminState(
+            publicationStatus(
+              changed,
+            "Opción de parrilla actualizada. Falta publicar los cambios.",
+            "Opción de parrilla actualizada. No hay cambios pendientes de publicación.",
+            ),
+            "success",
+          );
+        } catch (error) {
+          throw partialMutationError(error, results);
         }
-
-        const changed = results.some((entry) => entry.changed);
-
-        await context.loadAdminState(
-          publicationStatus(
-            changed,
-            "Opcion de parrilla actualizada. Falta publicar los cambios.",
-            "Opcion de parrilla actualizada. No hay cambios pendientes de publicacion.",
-          ),
-          "success",
-        );
-      }, "Guardando opcion de parrilla...");
+      }, "Guardando opción de parrilla...");
     },
 
     deleteGrillItem(item: GrillItemState): Promise<void> {
@@ -304,12 +309,12 @@ export function createAdminOperations(context: AdminOperationContext) {
         await context.loadAdminState(
           publicationStatus(
             result.changed,
-            "Opcion de parrilla eliminada. Falta publicar los cambios.",
-            "Opcion de parrilla eliminada. No hay cambios pendientes de publicacion.",
+            "Opción de parrilla eliminada. Falta publicar los cambios.",
+            "Opción de parrilla eliminada. No hay cambios pendientes de publicación.",
           ),
           "success",
         );
-      }, "Eliminando opcion de parrilla...");
+      }, "Eliminando opción de parrilla...");
     },
 
     deleteGrillProduct(family: GrillFamilyState): Promise<void> {
@@ -326,7 +331,7 @@ export function createAdminOperations(context: AdminOperationContext) {
           publicationStatus(
             result.changed,
             "Producto de parrilla eliminado. Falta publicar los cambios.",
-            "Producto de parrilla eliminado. No hay cambios pendientes de publicacion.",
+            "Producto de parrilla eliminado. No hay cambios pendientes de publicación.",
           ),
           "success",
         );
@@ -348,7 +353,7 @@ export function createAdminOperations(context: AdminOperationContext) {
           publicationStatus(
             result.changed,
             "Precio guardado. Falta publicar los cambios.",
-            "Precio guardado. No hay cambios pendientes de publicacion.",
+            "Precio guardado. No hay cambios pendientes de publicación.",
           ),
           "success",
         );
@@ -374,7 +379,7 @@ export function createAdminOperations(context: AdminOperationContext) {
           publicationStatus(
             result.changed,
             "Variante guardada. Falta publicar los cambios.",
-            "Variante guardada. No hay cambios pendientes de publicacion.",
+            "Variante guardada. No hay cambios pendientes de publicación.",
           ),
           "success",
         );
@@ -401,7 +406,7 @@ export function createAdminOperations(context: AdminOperationContext) {
           publicationStatus(
             result.changed,
             "Item agregado. Falta publicar los cambios.",
-            "Item agregado. No hay cambios pendientes de publicacion.",
+            "Item agregado. No hay cambios pendientes de publicación.",
           ),
           "success",
         );
@@ -424,7 +429,7 @@ export function createAdminOperations(context: AdminOperationContext) {
           publicationStatus(
             result.changed,
             "Item eliminado. Falta publicar los cambios.",
-            "Item eliminado. No hay cambios pendientes de publicacion.",
+            "Item eliminado. No hay cambios pendientes de publicación.",
           ),
           "success",
         );
@@ -434,60 +439,28 @@ export function createAdminOperations(context: AdminOperationContext) {
     saveCatalogItemEdit(form: HTMLFormElement): Promise<void> {
       return context.runBusy(async () => {
         const results: RpcResult[] = [];
-        const itemResult = await context.callMutation("update_catalog_item", {
-          section_id: getFormString(form, "section_id"),
-          group_id: getFormString(form, "group_id"),
-          item_id: getFormString(form, "item_id"),
-          name: getFormString(form, "name"),
-          description: getNullableFormString(form, "description"),
-        });
 
-        if (!itemResult.ok) {
-          throw new Error(resultMessage(itemResult));
-        }
-
-        results.push(itemResult);
-
-        const fixedPricingKey = getFormString(form, "fixed_pricing_key");
-
-        if (fixedPricingKey) {
-          const priceResult = await context.callMutation("set_global_fixed_price", {
-            pricing_key: fixedPricingKey,
-            amount: getFormInteger(form, "fixed_price_amount"),
+        try {
+          const itemResult = await context.callMutation("update_catalog_item", {
+            section_id: getFormString(form, "section_id"),
+            group_id: getFormString(form, "group_id"),
+            item_id: getFormString(form, "item_id"),
+            name: getFormString(form, "name"),
+            description: getNullableFormString(form, "description"),
           });
 
-          if (!priceResult.ok) {
-            throw new Error(resultMessage(priceResult));
+          if (!itemResult.ok) {
+            throw new Error(resultMessage(itemResult));
           }
 
-          results.push(priceResult);
-        }
+          results.push(itemResult);
 
-        const variantPricingKey = getFormString(form, "variant_pricing_key");
+          const fixedPricingKey = getFormString(form, "fixed_pricing_key");
 
-        if (variantPricingKey) {
-          const formData = new FormData(form);
-          const variantIds = formData.getAll("variant_id");
-          const variantAmounts = formData.getAll("variant_amount");
-
-          for (let index = 0; index < variantIds.length; index += 1) {
-            const variantId = variantIds[index];
-            const amountValue = variantAmounts[index];
-
-            if (typeof variantId !== "string" || typeof amountValue !== "string") {
-              continue;
-            }
-
-            const amount = Number(amountValue.trim());
-
-            if (!Number.isInteger(amount) || amount < 0) {
-              throw new Error("El importe no es valido.");
-            }
-
-            const priceResult = await context.callMutation("set_global_price_variant", {
-              pricing_key: variantPricingKey,
-              variant_id: variantId,
-              amount,
+          if (fixedPricingKey) {
+            const priceResult = await context.callMutation("set_global_fixed_price", {
+              pricing_key: fixedPricingKey,
+              amount: getFormInteger(form, "fixed_price_amount"),
             });
 
             if (!priceResult.ok) {
@@ -496,18 +469,55 @@ export function createAdminOperations(context: AdminOperationContext) {
 
             results.push(priceResult);
           }
+
+          const variantPricingKey = getFormString(form, "variant_pricing_key");
+
+          if (variantPricingKey) {
+            const formData = new FormData(form);
+            const variantIds = formData.getAll("variant_id");
+            const variantAmounts = formData.getAll("variant_amount");
+
+            for (let index = 0; index < variantIds.length; index += 1) {
+              const variantId = variantIds[index];
+              const amountValue = variantAmounts[index];
+
+              if (typeof variantId !== "string" || typeof amountValue !== "string") {
+                continue;
+              }
+
+              const amount = Number(amountValue.trim());
+
+              if (!Number.isInteger(amount) || amount < 0) {
+                throw new Error("El importe no es válido.");
+              }
+
+              const priceResult = await context.callMutation("set_global_price_variant", {
+                pricing_key: variantPricingKey,
+                variant_id: variantId,
+                amount,
+              });
+
+              if (!priceResult.ok) {
+                throw new Error(resultMessage(priceResult));
+              }
+
+              results.push(priceResult);
+            }
+          }
+
+          const changed = results.some((result) => result.changed);
+
+          await context.loadAdminState(
+            publicationStatus(
+              changed,
+              "Item actualizado. Falta publicar los cambios.",
+              "Item actualizado. No hay cambios pendientes de publicación.",
+            ),
+            "success",
+          );
+        } catch (error) {
+          throw partialMutationError(error, results);
         }
-
-        const changed = results.some((result) => result.changed);
-
-        await context.loadAdminState(
-          publicationStatus(
-            changed,
-            "Item actualizado. Falta publicar los cambios.",
-            "Item actualizado. No hay cambios pendientes de publicacion.",
-          ),
-          "success",
-        );
       }, "Guardando item...");
     },
 
@@ -528,12 +538,12 @@ export function createAdminOperations(context: AdminOperationContext) {
         await context.loadAdminState(
           publicationStatus(
             result.changed,
-            "Opcion agregada. Falta publicar los cambios.",
-            "Opcion agregada. No hay cambios pendientes de publicacion.",
+            "Opción agregada. Falta publicar los cambios.",
+            "Opción agregada. No hay cambios pendientes de publicación.",
           ),
           "success",
         );
-      }, "Agregando opcion...");
+      }, "Agregando opción...");
     },
 
     saveCatalogOptionEdit(form: HTMLFormElement): Promise<void> {
@@ -553,12 +563,12 @@ export function createAdminOperations(context: AdminOperationContext) {
         await context.loadAdminState(
           publicationStatus(
             result.changed,
-            "Opcion actualizada. Falta publicar los cambios.",
-            "Opcion actualizada. No hay cambios pendientes de publicacion.",
+            "Opción actualizada. Falta publicar los cambios.",
+            "Opción actualizada. No hay cambios pendientes de publicación.",
           ),
           "success",
         );
-      }, "Guardando opcion...");
+      }, "Guardando opción...");
     },
 
     deleteCatalogOption(option: CatalogItemOptionState): Promise<void> {
@@ -577,12 +587,12 @@ export function createAdminOperations(context: AdminOperationContext) {
         await context.loadAdminState(
           publicationStatus(
             result.changed,
-            "Opcion eliminada. Falta publicar los cambios.",
-            "Opcion eliminada. No hay cambios pendientes de publicacion.",
+            "Opción eliminada. Falta publicar los cambios.",
+            "Opción eliminada. No hay cambios pendientes de publicación.",
           ),
           "success",
         );
-      }, "Eliminando opcion...");
+      }, "Eliminando opción...");
     },
 
     publishChanges(): Promise<void> {
@@ -593,7 +603,7 @@ export function createAdminOperations(context: AdminOperationContext) {
         if (result.message === "publish_queued") {
           context.markCurrentPublicationRequested();
           await context.loadAdminState(
-            "Publicacion solicitada. El boton vuelve a aparecer si haces cambios nuevos antes de que termine el deploy.",
+            "Publicación solicitada. El botón vuelve a aparecer si hacés cambios nuevos antes de que termine el deploy.",
             "success",
           );
           return;
@@ -601,7 +611,7 @@ export function createAdminOperations(context: AdminOperationContext) {
 
         if (result.message === "publish_recently_queued") {
           await context.loadAdminState(
-            `Ya se pidio una publicacion hace poco${formatCooldownSuffix(result)}. Los cambios quedan guardados; volve a publicar cuando este disponible.`,
+            `Ya se pidió una publicación hace poco${formatCooldownSuffix(result)}. Los cambios quedan guardados; volvé a publicar cuando esté disponible.`,
             "neutral",
           );
           return;
@@ -625,4 +635,16 @@ function publicationStatus(
 
     return state.publication.has_unpublished_changes ? pendingMessage : cleanMessage;
   };
+}
+
+function partialMutationError(error: unknown, results: RpcResult[]): Error {
+  const message = error instanceof Error ? error.message : "No se pudo completar la operación.";
+
+  if (!results.some((result) => result.ok)) {
+    return new Error(message);
+  }
+
+  return new Error(
+    `Algunos cambios pueden haberse guardado, pero la operación no terminó completa. Revisá el item antes de volver a intentar. Detalle: ${message}`,
+  );
 }

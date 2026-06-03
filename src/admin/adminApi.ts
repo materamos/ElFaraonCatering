@@ -30,7 +30,7 @@ export async function signInWithPassword(
   const body = await readJsonBody(response);
 
   if (!response.ok || !isAuthResponse(body)) {
-    throw new Error("No se pudo iniciar sesion.");
+    throw new Error("No se pudo iniciar sesión.");
   }
 
   return createSession(body);
@@ -134,7 +134,7 @@ export async function callMutation(
   const result = Array.isArray(response) ? response[0] : response;
 
   if (!isRpcResult(result)) {
-    throw new Error("El panel recibio una respuesta inesperada. Actualiza e intenta de nuevo.");
+    throw new Error("El panel recibió una respuesta inesperada. Actualizá e intentá de nuevo.");
   }
 
   return result;
@@ -182,7 +182,7 @@ async function callRpc<T>(
   const responseBody = await readJsonBody(response);
 
   if (response.status === 401) {
-    throw new Error("La sesion expiro. Volve a iniciar sesion.");
+    throw new Error("La sesión expiró. Volvé a iniciar sesión.");
   }
 
   if (!response.ok) {

@@ -232,55 +232,55 @@ export function roleLabel(role: StaffRole): string {
 
 export function resultMessage(result: RpcResult): string {
   const messages: Record<string, string> = {
-    permission_denied: "No tenes permisos para esta accion.",
-    publish_queued: "Publicacion solicitada. El aviso se actualiza cuando termine el deploy y cargues la nueva version del admin.",
-    publish_recently_queued: "Ya se pidio una publicacion hace poco.",
+    permission_denied: "No tenés permisos para esta acción.",
+    publish_queued: "Publicación solicitada. El aviso se actualiza cuando termine el deploy y cargues la nueva versión del admin.",
+    publish_recently_queued: "Ya se pidió una publicación hace poco.",
     publish_failed: "No se pudo publicar.",
-    invalid_amount: "El importe no es valido.",
-    daily_menu_name_required: "El nombre del menu es obligatorio.",
-    daily_menu_available_required: "La disponibilidad del menu es obligatoria.",
-    invalid_service_kind: "El servicio seleccionado no es valido.",
-    catalog_item_id_required: "No se pudo generar el identificador del item. Revisa el nombre.",
-    invalid_catalog_item_id: "No se pudo generar un identificador valido para el item. Revisa el nombre.",
+    invalid_amount: "El importe no es válido.",
+    daily_menu_name_required: "El nombre del menú es obligatorio.",
+    daily_menu_available_required: "La disponibilidad del menú es obligatoria.",
+    invalid_service_kind: "El servicio seleccionado no es válido.",
+    catalog_item_id_required: "No se pudo generar el identificador del item. Revisá el nombre.",
+    invalid_catalog_item_id: "No se pudo generar un identificador válido para el item. Revisá el nombre.",
     catalog_item_name_required: "El nombre del item es obligatorio.",
-    catalog_section_not_found: "La seccion seleccionada no existe.",
-    invalid_catalog_group: "La seccion seleccionada no acepta grupo.",
+    catalog_section_not_found: "La sección seleccionada no existe.",
+    invalid_catalog_group: "La sección seleccionada no acepta grupo.",
     catalog_group_required: "Selecciona un grupo existente.",
     catalog_group_not_found: "El grupo seleccionado no existe.",
-    catalog_item_exists: "Ya existe un item equivalente en esta ubicacion.",
+    catalog_item_exists: "Ya existe un item equivalente en esta ubicación.",
     catalog_item_unchanged: "Sin cambios.",
     catalog_item_updated: "Item actualizado.",
-    invalid_catalog_option_id: "No se pudo generar un identificador valido para el sabor. Revisa el nombre.",
-    catalog_option_exists: "Ya existe un sabor equivalente en esta subcategoria.",
-    catalog_options_not_enabled: "Solo se pueden administrar sabores en subcategorias que ya usan opciones.",
-    catalog_option_id_required: "No se pudo generar el identificador de la opcion. Revisa el nombre.",
-    catalog_option_name_required: "El nombre de la opcion es obligatorio.",
-    catalog_option_added: "Opcion agregada.",
-    catalog_option_not_found: "La opcion seleccionada ya no existe.",
+    invalid_catalog_option_id: "No se pudo generar un identificador válido para el sabor. Revisá el nombre.",
+    catalog_option_exists: "Ya existe un sabor equivalente en esta subcategoría.",
+    catalog_options_not_enabled: "Solo se pueden administrar sabores en subcategorías que ya usan opciones.",
+    catalog_option_id_required: "No se pudo generar el identificador de la opción. Revisá el nombre.",
+    catalog_option_name_required: "El nombre de la opción es obligatorio.",
+    catalog_option_added: "Opción agregada.",
+    catalog_option_not_found: "La opción seleccionada ya no existe.",
     catalog_option_unchanged: "Sin cambios.",
-    catalog_option_updated: "Opcion actualizada.",
-    catalog_option_deleted: "Opcion eliminada.",
-    catalog_option_must_keep_one: "La subcategoria debe conservar al menos un sabor.",
+    catalog_option_updated: "Opción actualizada.",
+    catalog_option_deleted: "Opción eliminada.",
+    catalog_option_must_keep_one: "La subcategoría debe conservar al menos un sabor.",
     catalog_price_key_conflict: "Ya existe un precio incompatible para ese item.",
     catalog_item_not_found: "El item seleccionado ya no existe.",
-    catalog_item_locked: "Esta seccion solo permite administrar sabores desde Menu fijo.",
-    catalog_location_must_keep_item: "No se puede eliminar el ultimo item de una seccion o grupo.",
-    grill_product_id_required: "No se pudo generar el identificador del producto de parrilla. Revisa el nombre.",
-    invalid_grill_product_id: "No se pudo generar un identificador valido para el producto. Revisa el nombre.",
+    catalog_item_locked: "Esta sección solo permite administrar sabores desde Menú fijo.",
+    catalog_location_must_keep_item: "No se puede eliminar el último item de una sección o grupo.",
+    grill_product_id_required: "No se pudo generar el identificador del producto de parrilla. Revisá el nombre.",
+    invalid_grill_product_id: "No se pudo generar un identificador válido para el producto. Revisá el nombre.",
     grill_product_name_required: "El nombre del producto de parrilla es obligatorio.",
     grill_product_exists: "Ya existe un producto de parrilla equivalente.",
     grill_product_unchanged: "Sin cambios.",
     grill_product_updated: "Producto de parrilla actualizado.",
     grill_product_added: "Producto de parrilla agregado.",
     grill_product_deleted: "Producto de parrilla eliminado.",
-    grill_option_name_required: "El nombre de la opcion de parrilla es obligatorio.",
-    grill_item_id_required: "No se pudo generar el identificador del item de parrilla. Revisa el nombre.",
-    invalid_grill_item_id: "No se pudo generar un identificador valido para el item. Revisa el nombre.",
+    grill_option_name_required: "El nombre de la opción de parrilla es obligatorio.",
+    grill_item_id_required: "No se pudo generar el identificador del item de parrilla. Revisá el nombre.",
+    invalid_grill_item_id: "No se pudo generar un identificador válido para el item. Revisá el nombre.",
     grill_item_name_required: "El nombre del item de parrilla es obligatorio.",
     grill_family_not_found: "La familia de parrilla seleccionada no existe.",
     grill_item_exists: "Ya existe un item de parrilla equivalente.",
     grill_item_not_found: "El item de parrilla seleccionado ya no existe.",
-    grill_family_must_keep_item: "No se puede eliminar el ultimo item de una familia.",
+    grill_family_must_keep_item: "No se puede eliminar el último item de una familia.",
     grill_price_key_conflict: "Ya existe un precio incompatible para ese item.",
     grill_item_unchanged: "Sin cambios.",
     grill_item_updated: "Item de parrilla actualizado.",
@@ -315,7 +315,7 @@ export function getFormInteger(form: HTMLFormElement, name: string): number {
   const value = Number(getFormString(form, name));
 
   if (!Number.isInteger(value) || value < 0) {
-    throw new Error("El importe no es valido.");
+    throw new Error("El importe no es válido.");
   }
 
   return value;
@@ -352,7 +352,7 @@ export function readErrorMessage(body: unknown): string {
     }
   }
 
-  return "No se pudo completar la operacion.";
+  return "No se pudo completar la operación.";
 }
 
 export function toOperationalErrorMessage(message: string): string {
@@ -360,7 +360,7 @@ export function toOperationalErrorMessage(message: string): string {
   const lowerMessage = trimmedMessage.toLowerCase();
 
   if (!trimmedMessage) {
-    return "No se pudo completar la operacion.";
+    return "No se pudo completar la operación.";
   }
 
   if (
@@ -369,7 +369,7 @@ export function toOperationalErrorMessage(message: string): string {
     || lowerMessage.includes("session")
     || lowerMessage.includes("expired")
   ) {
-    return "La sesion expiro. Volve a iniciar sesion.";
+    return "La sesión expiró. Volvé a iniciar sesión.";
   }
 
   if (
@@ -379,7 +379,7 @@ export function toOperationalErrorMessage(message: string): string {
     || lowerMessage.includes("not authorized")
     || lowerMessage.includes("unauthorized")
   ) {
-    return "No tenes permisos para esta accion.";
+    return "No tenés permisos para esta acción.";
   }
 
   if (
@@ -387,7 +387,7 @@ export function toOperationalErrorMessage(message: string): string {
     || lowerMessage.includes("violates")
     || lowerMessage.includes("constraint")
   ) {
-    return "Hay un dato invalido. Revisalo e intenta guardar de nuevo.";
+    return "Hay un dato inválido. Revisalo e intentá guardar de nuevo.";
   }
 
   if (
@@ -397,7 +397,7 @@ export function toOperationalErrorMessage(message: string): string {
     || lowerMessage.includes("schema")
     || lowerMessage.includes("function")
   ) {
-    return "No se pudo completar la operacion. Actualiza el panel e intenta de nuevo.";
+    return "No se pudo completar la operación. Actualizá el panel e intentá de nuevo.";
   }
 
   return trimmedMessage;
@@ -458,7 +458,7 @@ export function formatPricingLabel(value: string, fallbackTag: string): PricingL
   const parts = value.split(":").filter(Boolean);
 
   if (parts[0] === "catalog") {
-    const section = formatIdLabel(parts[1] ?? "Catalogo");
+    const section = formatIdLabel(parts[1] ?? "Catálogo");
     const groupIndex = parts.indexOf("group");
     const itemIndex = parts.indexOf("item");
     const labelPart = groupIndex >= 0
@@ -469,7 +469,7 @@ export function formatPricingLabel(value: string, fallbackTag: string): PricingL
 
     return {
       title: formatIdLabel(labelPart ?? value),
-      tags: ["Catalogo", section, fallbackTag],
+      tags: ["Catálogo", section, fallbackTag],
     };
   }
 
@@ -483,7 +483,7 @@ export function formatPricingLabel(value: string, fallbackTag: string): PricingL
   if (value.startsWith("menu-")) {
     return {
       title: formatIdLabel(value),
-      tags: ["Menu del dia", fallbackTag],
+      tags: ["Menú del día", fallbackTag],
     };
   }
 

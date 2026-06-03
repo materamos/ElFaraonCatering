@@ -69,8 +69,8 @@ const getDailyServiceSection = (
 
   return {
     sectionId: "menu-del-dia",
-    title: "Menu del dia",
-    description: "Opcion principal del dia.",
+    title: "Menú del día",
+    description: "Opción principal del día.",
     order: 10,
     items: dailyMenu.items,
   };
@@ -96,7 +96,7 @@ const validateMenuContentIntegrity = ({
 
   validateSectionIds("daily menu service", {
     sectionId: "menu-del-dia",
-    title: "Menu del dia",
+    title: "Menú del día",
     order: 10,
     items: dailyMenu.items,
   });

@@ -73,6 +73,35 @@ let isBusy = false;
 let requestedPublishHash = "";
 
 type AdminStatusText = string | ((state: AdminOperationalState) => string);
+type RenderFocusMode = "preserve" | "view" | "tab";
+
+interface RenderOptions {
+  focus?: RenderFocusMode;
+  tabId?: AdminTabId;
+  revealStatus?: boolean;
+}
+
+interface InteractionSnapshot {
+  scrollX: number;
+  scrollY: number;
+  formKind: string;
+  fieldName: string;
+  formKeys: Record<string, string>;
+}
+
+const formBaselines = new WeakMap<HTMLFormElement, string>();
+const formKeyNames = [
+  "profile_id",
+  "section_id",
+  "group_id",
+  "item_id",
+  "option_id",
+  "family_id",
+  "pricing_key",
+  "variant_id",
+  "fixed_pricing_key",
+  "variant_pricing_key",
+] as const;
 
 if (!rootElement) {
   throw new Error("Admin root element was not found.");
@@ -112,7 +141,24 @@ root.addEventListener("submit", (event) => {
   }
 
   event.preventDefault();
+
+  if (!confirmUnsavedChanges(form)) {
+    return;
+  }
+
   void handleFormSubmit(form).catch(handleUnexpectedError);
+});
+
+root.addEventListener("keydown", (event) => {
+  const tab = event.target instanceof HTMLElement
+    ? event.target.closest<HTMLButtonElement>('.admin-tab[role="tab"]')
+    : null;
+
+  if (!tab || !root.contains(tab)) {
+    return;
+  }
+
+  handleTabKeydown(event, tab);
 });
 
 root.addEventListener("change", (event) => {
@@ -129,21 +175,30 @@ root.addEventListener("change", (event) => {
     return;
   }
 
+  if (!confirmUnsavedChanges()) {
+    field.value = field.dataset.previousValue ?? "";
+    return;
+  }
+
   setAdminFilter(field.dataset.adminFilter, field.value);
+  field.dataset.previousValue = field.value;
   renderCurrentView();
 });
 
 root.addEventListener("input", (event) => {
-  const field = event.target instanceof HTMLInputElement ? event.target : null;
+  const target = event.target;
 
-  if (!field) {
+  if (target instanceof HTMLInputElement) {
+    handleCatalogItemInput(target);
+    handleCatalogOptionInput(target);
+    handleGrillItemInput(target);
+    handleGrillProductInput(target);
     return;
   }
 
-  handleCatalogItemInput(field);
-  handleCatalogOptionInput(field);
-  handleGrillItemInput(field);
-  handleGrillProductInput(field);
+  if (target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) {
+    markContainingFormDirty(target);
+  }
 });
 
 void startAdmin().catch(handleUnexpectedError);
@@ -152,6 +207,7 @@ async function startAdmin(): Promise<void> {
   if (!supabaseUrl || !supabaseAnonKey) {
     syncAdminViewContext();
     renderConfigurationError();
+    focusViewStart();
     return;
   }
 
@@ -160,8 +216,8 @@ async function startAdmin(): Promise<void> {
   if (passwordSession) {
     currentSession = passwordSession;
     authView = "set-password";
-    currentStatus = { text: "Defini una nueva contrasena para activar tu acceso.", tone: "neutral" };
-    renderCurrentView();
+    currentStatus = { text: "Definí una nueva contraseña para activar tu acceso.", tone: "neutral" };
+    renderCurrentView({ focus: "view" });
     return;
   }
 
@@ -169,31 +225,43 @@ async function startAdmin(): Promise<void> {
 
   if (!currentSession) {
     authView = "login";
-    renderCurrentView();
+    renderCurrentView({ focus: "view" });
     return;
   }
 
-  await loadAdminState();
+  await loadAdminState(undefined, "neutral", "view");
 }
 
 async function handleAction(target: HTMLElement): Promise<void> {
   const action = target.dataset.adminAction;
 
   if (action === "show-reset-request") {
+    if (!confirmUnsavedChanges()) {
+      return;
+    }
+
     authView = "reset-request";
     currentStatus = null;
-    renderCurrentView();
+    renderCurrentView({ focus: "view" });
     return;
   }
 
   if (action === "show-login") {
+    if (!confirmUnsavedChanges()) {
+      return;
+    }
+
     authView = "login";
     currentStatus = null;
-    renderCurrentView();
+    renderCurrentView({ focus: "view" });
     return;
   }
 
   if (action === "logout") {
+    if (!confirmUnsavedChanges()) {
+      return;
+    }
+
     await logout();
     return;
   }
@@ -209,8 +277,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     const tab = target.dataset.adminTab as AdminTabId | undefined;
 
     if (tab) {
-      setAdminActiveTab(tab);
-      renderCurrentView();
+      selectAdminTab(tab, "tab");
     }
 
     return;
@@ -224,6 +291,10 @@ async function handleAction(target: HTMLElement): Promise<void> {
       && (section === "active-service" || section === "daily-menu" || section === "grill")
       && isServiceSectionAvailable(currentState, section)
     ) {
+      if (!confirmUnsavedChanges()) {
+        return;
+      }
+
       setAdminServiceSection(section);
       renderCurrentView();
     }
@@ -232,6 +303,10 @@ async function handleAction(target: HTMLElement): Promise<void> {
   }
 
   if (action === "set-overlay") {
+    if (!confirmUnsavedChanges()) {
+      return;
+    }
+
     const familyKey = target.dataset.familyKey;
     const targetKey = target.dataset.targetKey;
     const available = target.dataset.available === "true";
@@ -240,7 +315,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
       const familyTargets = findAvailabilityFamilyTargets(familyKey);
 
       if (familyTargets.length === 0) {
-        setStatus("No se encontro la familia seleccionada.", "danger");
+        setStatus("No se encontró la familia seleccionada.", "danger");
         return;
       }
 
@@ -256,7 +331,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     const availabilityTarget = targetKey ? findAvailabilityTarget(targetKey) : undefined;
 
     if (!availabilityTarget) {
-      setStatus("No se encontro el item seleccionado.", "danger");
+      setStatus("No se encontró el item seleccionado.", "danger");
       return;
     }
 
@@ -270,6 +345,10 @@ async function handleAction(target: HTMLElement): Promise<void> {
   }
 
   if (action === "clear-overlay") {
+    if (!confirmUnsavedChanges()) {
+      return;
+    }
+
     const familyKey = target.dataset.familyKey;
     const targetKey = target.dataset.targetKey;
 
@@ -277,7 +356,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
       const familyTargets = findAvailabilityFamilyTargets(familyKey);
 
       if (familyTargets.length === 0) {
-        setStatus("No se encontro la familia seleccionada.", "danger");
+        setStatus("No se encontró la familia seleccionada.", "danger");
         return;
       }
 
@@ -288,7 +367,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     const availabilityTarget = targetKey ? findAvailabilityTarget(targetKey) : undefined;
 
     if (!availabilityTarget) {
-      setStatus("No se encontro el item seleccionado.", "danger");
+      setStatus("No se encontró el item seleccionado.", "danger");
       return;
     }
 
@@ -303,7 +382,11 @@ async function handleAction(target: HTMLElement): Promise<void> {
     const item = sectionId && itemId ? findCatalogItem(sectionId, groupId, itemId) : undefined;
 
     if (!item) {
-      setStatus("No se encontro el item seleccionado.", "danger");
+      setStatus("No se encontró el item seleccionado.", "danger");
+      return;
+    }
+
+    if (!confirmUnsavedChanges() || !confirmDeleteCatalogItem(item.name)) {
       return;
     }
 
@@ -316,7 +399,11 @@ async function handleAction(target: HTMLElement): Promise<void> {
     const item = itemId ? findGrillItem(itemId) : undefined;
 
     if (!item) {
-      setStatus("No se encontro la opcion de parrilla seleccionada.", "danger");
+      setStatus("No se encontró la opción de parrilla seleccionada.", "danger");
+      return;
+    }
+
+    if (!confirmUnsavedChanges() || !confirmDeleteGrillItem(item.variant_name ?? item.name)) {
       return;
     }
 
@@ -329,11 +416,11 @@ async function handleAction(target: HTMLElement): Promise<void> {
     const family = familyId ? findGrillFamily(familyId) : undefined;
 
     if (!family) {
-      setStatus("No se encontro el producto de parrilla seleccionado.", "danger");
+      setStatus("No se encontró el producto de parrilla seleccionado.", "danger");
       return;
     }
 
-    if (!confirmDeleteGrillProduct(family.title)) {
+    if (!confirmUnsavedChanges() || !confirmDeleteGrillProduct(family.title)) {
       return;
     }
 
@@ -351,7 +438,11 @@ async function handleAction(target: HTMLElement): Promise<void> {
       : undefined;
 
     if (!option) {
-      setStatus("No se encontro la opcion seleccionada.", "danger");
+      setStatus("No se encontró la opción seleccionada.", "danger");
+      return;
+    }
+
+    if (!confirmUnsavedChanges() || !confirmDeleteCatalogOption(option.name)) {
       return;
     }
 
@@ -360,12 +451,51 @@ async function handleAction(target: HTMLElement): Promise<void> {
   }
 
   if (action === "publish") {
-    if (!confirmPublishChanges()) {
+    if (!confirmUnsavedChanges() || !confirmPublishChanges()) {
       return;
     }
 
     await adminOperations.publishChanges();
   }
+}
+
+function handleTabKeydown(event: KeyboardEvent, currentTab: HTMLButtonElement): void {
+  const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('.admin-tab[role="tab"]'));
+  const currentIndex = tabs.indexOf(currentTab);
+
+  if (currentIndex < 0) {
+    return;
+  }
+
+  let nextIndex = currentIndex;
+
+  if (event.key === "ArrowRight") {
+    nextIndex = (currentIndex + 1) % tabs.length;
+  } else if (event.key === "ArrowLeft") {
+    nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+  } else if (event.key === "Home") {
+    nextIndex = 0;
+  } else if (event.key === "End") {
+    nextIndex = tabs.length - 1;
+  } else {
+    return;
+  }
+
+  event.preventDefault();
+  const tab = tabs[nextIndex]?.dataset.adminTab as AdminTabId | undefined;
+
+  if (tab) {
+    selectAdminTab(tab, "tab");
+  }
+}
+
+function selectAdminTab(tab: AdminTabId, focus: RenderFocusMode = "preserve"): void {
+  if (!confirmUnsavedChanges()) {
+    return;
+  }
+
+  setAdminActiveTab(tab);
+  renderCurrentView({ focus, tabId: tab });
 }
 
 async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
@@ -388,7 +518,7 @@ async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
 
   if (!currentSession) {
     authView = "login";
-    renderCurrentView();
+    renderCurrentView({ focus: "view" });
     return;
   }
 
@@ -462,7 +592,7 @@ async function login(form: HTMLFormElement): Promise<void> {
   const password = getFormString(form, "password");
 
   if (!email || !password) {
-    setStatus("Completa email y contrasena.", "danger");
+    setStatus("Completa email y contraseña.", "danger");
     return;
   }
 
@@ -470,8 +600,8 @@ async function login(form: HTMLFormElement): Promise<void> {
     currentSession = await signInWithPassword(adminApiConfig, email, password);
     authView = "login";
     saveStoredSession(currentSession);
-    await loadAdminState("Sesion iniciada.", "success");
-  }, "Iniciando sesion...");
+    await loadAdminState("Sesión iniciada.", "success", "view");
+  }, "Iniciando sesión...");
 }
 
 async function requestPasswordReset(form: HTMLFormElement): Promise<void> {
@@ -485,11 +615,11 @@ async function requestPasswordReset(form: HTMLFormElement): Promise<void> {
   await runBusy(async () => {
     await requestPasswordResetEmail(adminApiConfig, email, getPasswordRedirectUrl());
     currentStatus = {
-      text: "Te enviamos un link para definir una nueva contrasena. Revisa tu email.",
+      text: "Te enviamos un link para definir una nueva contraseña. Revisá tu email.",
       tone: "success",
     };
     authView = "login";
-    renderCurrentView();
+    renderCurrentView({ focus: "view", revealStatus: true });
   }, "Enviando link...");
 }
 
@@ -498,7 +628,7 @@ async function setPassword(form: HTMLFormElement): Promise<void> {
 
   if (!session) {
     authView = "login";
-    renderCurrentView();
+    renderCurrentView({ focus: "view" });
     return;
   }
 
@@ -513,8 +643,8 @@ async function setPassword(form: HTMLFormElement): Promise<void> {
     await updatePassword(session, password);
     saveStoredSession(session);
     authView = "login";
-    await loadAdminState("Contrasena actualizada.", "success");
-  }, "Actualizando contrasena...");
+    await loadAdminState("Contraseña actualizada.", "success", "view");
+  }, "Actualizando contraseña...");
 }
 
 async function changePassword(form: HTMLFormElement): Promise<void> {
@@ -528,8 +658,8 @@ async function changePassword(form: HTMLFormElement): Promise<void> {
 
   await runBusy(async () => {
     await updatePassword(session, password);
-    await loadAdminState("Contrasena actualizada.", "success");
-  }, "Actualizando contrasena...");
+    await loadAdminState("Contraseña actualizada.", "success");
+  }, "Actualizando contraseña...");
 }
 
 async function updatePassword(session: AuthSession, password: string): Promise<void> {
@@ -547,13 +677,14 @@ async function logout(): Promise<void> {
     await logoutRequest(adminApiConfig, session);
   }
 
-  currentStatus = { text: "Sesion cerrada.", tone: "success" };
-  renderCurrentView();
+  currentStatus = { text: "Sesión cerrada.", tone: "success" };
+  renderCurrentView({ focus: "view", revealStatus: true });
 }
 
 async function loadAdminState(
   statusText?: AdminStatusText,
   statusTone: StatusTone = "neutral",
+  focus: RenderFocusMode = "preserve",
 ): Promise<AdminOperationalState> {
   const session = await requireSession();
   const state = await loadAdminOperationalState(adminApiConfig, session);
@@ -562,7 +693,7 @@ async function loadAdminState(
   currentStatus = statusText ? { text: getAdminStatusText(statusText, currentState), tone: statusTone } : currentStatus;
   syncAdminViewContext();
   ensureActiveTab();
-  renderAuthenticated();
+  renderCurrentView({ focus, revealStatus: Boolean(statusText) });
   return currentState;
 }
 
@@ -611,8 +742,8 @@ async function requireSession(): Promise<AuthSession> {
   const session = await getValidSession();
 
   if (!session) {
-    renderCurrentView();
-    throw new Error("La sesion expiro. Volve a iniciar sesion.");
+    renderCurrentView({ focus: "view" });
+    throw new Error("La sesión expiró. Volvé a iniciar sesión.");
   }
 
   currentSession = session;
@@ -646,6 +777,8 @@ async function refreshSession(session: AuthSession): Promise<AuthSession | null>
 }
 
 function handleCatalogItemInput(field: HTMLInputElement): void {
+  markContainingFormDirty(field);
+
   const form = field.closest<HTMLFormElement>('form[data-admin-form="catalog-item"]');
 
   if (!form) {
@@ -681,6 +814,8 @@ function toggleCatalogDescriptionField(field: HTMLInputElement): void {
 }
 
 function handleCatalogOptionInput(field: HTMLInputElement): void {
+  markContainingFormDirty(field);
+
   const form = field.closest<HTMLFormElement>('form[data-admin-form="catalog-option"]');
 
   if (!form) {
@@ -706,6 +841,8 @@ function handleCatalogOptionInput(field: HTMLInputElement): void {
 }
 
 function handleGrillItemInput(field: HTMLInputElement): void {
+  markContainingFormDirty(field);
+
   const form = field.closest<HTMLFormElement>('form[data-admin-form="grill-item"]');
 
   if (!form) {
@@ -733,6 +870,8 @@ function handleGrillItemInput(field: HTMLInputElement): void {
 }
 
 function handleGrillProductInput(field: HTMLInputElement): void {
+  markContainingFormDirty(field);
+
   const form = field.closest<HTMLFormElement>('form[data-admin-form="grill-product"]');
 
   if (!form) {
@@ -766,19 +905,37 @@ function handleGrillProductInput(field: HTMLInputElement): void {
 
 function confirmPublishChanges(): boolean {
   return window.confirm(
-    "Vas a publicar los cambios guardados de platos, parrilla, menu fijo, servicio activo y precios. La disponibilidad ya se aplica al instante. Continuar?",
+    "Vas a publicar los cambios guardados de platos, parrilla, menú fijo, servicio activo y precios. La disponibilidad ya se aplica al instante. ¿Continuar?",
   );
 }
 
 function confirmDeleteGrillProduct(title: string): boolean {
   return window.confirm(
-    `Vas a eliminar ${title} y todas sus opciones de parrilla. El cambio se vera despues de publicar. Continuar?`,
+    `Vas a eliminar ${title} y todas sus opciones de parrilla. El cambio se verá después de publicar. ¿Continuar?`,
+  );
+}
+
+function confirmDeleteCatalogItem(name: string): boolean {
+  return window.confirm(
+    `Vas a eliminar ${name} del menú fijo. El cambio se verá después de publicar. ¿Continuar?`,
+  );
+}
+
+function confirmDeleteGrillItem(name: string): boolean {
+  return window.confirm(
+    `Vas a eliminar la opción ${name} de parrilla. El cambio se verá después de publicar. ¿Continuar?`,
+  );
+}
+
+function confirmDeleteCatalogOption(name: string): boolean {
+  return window.confirm(
+    `Vas a eliminar el sabor ${name}. El cambio se verá después de publicar. ¿Continuar?`,
   );
 }
 
 function setStatus(text: string, tone: StatusTone): void {
   currentStatus = { text, tone };
-  renderCurrentView();
+  renderCurrentView({ revealStatus: true });
 }
 
 async function runBusy(action: () => Promise<void>, busyText = "Procesando..."): Promise<void> {
@@ -800,33 +957,192 @@ async function runBusy(action: () => Promise<void>, busyText = "Procesando..."):
 
 function handleUnexpectedError(error: unknown): void {
   const message = error instanceof TypeError && error.message === "Failed to fetch"
-    ? "No se pudo conectar. Revisa la conexion e intenta de nuevo."
+    ? "No se pudo conectar. Revisá la conexión e intentá de nuevo."
     : error instanceof Error
       ? toOperationalErrorMessage(error.message)
-      : "Ocurrio un error inesperado.";
+      : "Ocurrió un error inesperado.";
   currentStatus = { text: message, tone: "danger" };
-  renderCurrentView();
+  renderCurrentView({ revealStatus: true });
 }
 
-function renderCurrentView(): void {
+function renderCurrentView(options: RenderOptions = {}): void {
+  const focus = options.focus ?? "preserve";
+  const snapshot = focus === "preserve" ? captureInteraction() : null;
+
   syncAdminViewContext();
 
   if (currentSession && currentState) {
     renderAuthenticated();
-    return;
-  }
-
-  if (authView === "reset-request") {
+  } else if (authView === "reset-request") {
     renderPasswordResetRequest();
-    return;
-  }
-
-  if (authView === "set-password") {
+  } else if (authView === "set-password") {
     renderSetPassword();
+  } else {
+    renderLogin();
+  }
+
+  syncFormBaselines();
+  syncFilterValues();
+
+  if (focus === "view") {
+    focusViewStart();
+  } else if (focus === "tab" && options.tabId) {
+    focusTab(options.tabId);
+  } else if (snapshot) {
+    restoreInteraction(snapshot);
+  }
+
+  if (options.revealStatus) {
+    revealStatus();
+  }
+}
+
+function captureInteraction(): InteractionSnapshot {
+  const activeElement = document.activeElement;
+  const field = activeElement instanceof HTMLInputElement
+    || activeElement instanceof HTMLSelectElement
+    || activeElement instanceof HTMLTextAreaElement
+    ? activeElement
+    : null;
+  const form = field?.closest<HTMLFormElement>("form");
+
+  return {
+    scrollX: window.scrollX,
+    scrollY: window.scrollY,
+    formKind: form?.dataset.adminForm ?? "",
+    fieldName: field?.name ?? "",
+    formKeys: form ? getFormKeys(form) : {},
+  };
+}
+
+function restoreInteraction(snapshot: InteractionSnapshot): void {
+  window.scrollTo(snapshot.scrollX, snapshot.scrollY);
+
+  if (!snapshot.formKind || !snapshot.fieldName) {
     return;
   }
 
-  renderLogin();
+  const form = findMatchingForm(snapshot);
+  const field = form?.elements.namedItem(snapshot.fieldName);
+
+  if (
+    field instanceof HTMLInputElement
+    || field instanceof HTMLSelectElement
+    || field instanceof HTMLTextAreaElement
+  ) {
+    field.focus({ preventScroll: true });
+  }
+}
+
+function findMatchingForm(snapshot: InteractionSnapshot): HTMLFormElement | null {
+  const forms = Array.from(root.querySelectorAll<HTMLFormElement>("form"));
+
+  return forms.find((form) =>
+    form.dataset.adminForm === snapshot.formKind
+    && formKeysMatch(getFormKeys(form), snapshot.formKeys)
+  ) ?? null;
+}
+
+function formKeysMatch(current: Record<string, string>, expected: Record<string, string>): boolean {
+  return Object.entries(expected).every(([key, value]) => current[key] === value);
+}
+
+function getFormKeys(form: HTMLFormElement): Record<string, string> {
+  const keys: Record<string, string> = {};
+
+  formKeyNames.forEach((key) => {
+    const value = getFormValue(form, key);
+
+    if (value) {
+      keys[key] = value;
+    }
+  });
+
+  return keys;
+}
+
+function getFormValue(form: HTMLFormElement, name: string): string {
+  const field = form.elements.namedItem(name);
+
+  if (
+    field instanceof HTMLInputElement
+    || field instanceof HTMLSelectElement
+    || field instanceof HTMLTextAreaElement
+  ) {
+    return field.value;
+  }
+
+  return "";
+}
+
+function syncFormBaselines(): void {
+  root.querySelectorAll<HTMLFormElement>("form").forEach((form) => {
+    formBaselines.set(form, serializeForm(form));
+    delete form.dataset.dirty;
+  });
+}
+
+function syncFilterValues(): void {
+  root.querySelectorAll<HTMLSelectElement>("select[data-admin-filter]").forEach((field) => {
+    field.dataset.previousValue = field.value;
+  });
+}
+
+function markContainingFormDirty(field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement): void {
+  const form = field.closest<HTMLFormElement>("form");
+
+  if (!form) {
+    return;
+  }
+
+  form.dataset.dirty = isDirtyForm(form) ? "true" : "false";
+}
+
+function isDirtyForm(form: HTMLFormElement): boolean {
+  const baseline = formBaselines.get(form);
+
+  if (baseline === undefined) {
+    formBaselines.set(form, serializeForm(form));
+    return false;
+  }
+
+  return serializeForm(form) !== baseline;
+}
+
+function getDirtyForms(exceptForm?: HTMLFormElement): HTMLFormElement[] {
+  return Array.from(root.querySelectorAll<HTMLFormElement>("form"))
+    .filter((form) => form !== exceptForm && isDirtyForm(form));
+}
+
+function confirmUnsavedChanges(exceptForm?: HTMLFormElement): boolean {
+  if (getDirtyForms(exceptForm).length === 0) {
+    return true;
+  }
+
+  return window.confirm(
+    "Hay cambios sin guardar en otro formulario. Si continuás, esos cambios se van a perder. ¿Continuar?",
+  );
+}
+
+function serializeForm(form: HTMLFormElement): string {
+  return JSON.stringify(
+    Array.from(new FormData(form).entries()).map(([key, value]) => [key, String(value)]),
+  );
+}
+
+function focusViewStart(): void {
+  const target = root.querySelector<HTMLElement>("[data-admin-initial-focus]")
+    ?? root.querySelector<HTMLElement>("[data-admin-view-heading]");
+
+  target?.focus({ preventScroll: true });
+}
+
+function focusTab(tabId: AdminTabId): void {
+  root.querySelector<HTMLElement>(`[data-admin-tab="${tabId}"]`)?.focus({ preventScroll: true });
+}
+
+function revealStatus(): void {
+  root.querySelector<HTMLElement>(".admin-status")?.scrollIntoView({ block: "nearest" });
 }
 
 function syncAdminViewContext(): void {
@@ -841,17 +1157,17 @@ function syncAdminViewContext(): void {
 
 function isValidNewPassword(password: string, passwordConfirmation: string): boolean {
   if (!password || !passwordConfirmation) {
-    setStatus("Completa la nueva contrasena y su confirmacion.", "danger");
+    setStatus("Completa la nueva contraseña y su confirmación.", "danger");
     return false;
   }
 
   if (password.length < 8) {
-    setStatus("La contrasena debe tener al menos 8 caracteres.", "danger");
+    setStatus("La contraseña debe tener al menos 8 caracteres.", "danger");
     return false;
   }
 
   if (password !== passwordConfirmation) {
-    setStatus("Las contrasenas no coinciden.", "danger");
+    setStatus("Las contraseñas no coinciden.", "danger");
     return false;
   }
 

@@ -13,7 +13,7 @@ export const getPricingText = (value: MenuPricing) => {
   }
 
   if (value.kind === "included") {
-    return "Incluida como opci\u00f3n";
+    return "Incluida como opción";
   }
 
   return null;
