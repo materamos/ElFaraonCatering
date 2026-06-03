@@ -133,7 +133,14 @@ src/
   admin/
     admin.css
     admin.ts
+    adminApi.ts
+    adminOperations.ts
+    adminSession.ts
+    adminTypes.ts
+    adminUtils.ts
+    adminView.ts
   components/
+    CompactMenuItem.astro
     DishCard.astro
     MenuInfoPanel.astro
     MenuPage.astro
@@ -253,7 +260,7 @@ RPCs y funciones relevantes:
 
 - `get_admin_operational_state()`: lectura controlada para `/admin/`.
 - `set_menu_availability_overlay(...)` y `clear_menu_availability_overlay(...)`: cambios runtime de disponibilidad.
-- `set_daily_menu(...)`, `set_profile_service_kind(...)`, `add_grill_product(...)`, `update_grill_product(...)`, `delete_grill_product(...)`, `add_grill_item(...)`, `update_grill_item(...)`, `delete_grill_item(...)`, `add_catalog_item(...)`, `update_catalog_item(...)`, `update_catalog_item_option(...)`, `delete_catalog_item(...)`, `set_global_fixed_price(...)` y `set_global_price_variant(...)`: cambios build-time que requieren publicacion y no editan disponibilidad.
+- `set_daily_menu(...)`, `set_profile_service_kind(...)`, `add_grill_product(...)`, `update_grill_product(...)`, `delete_grill_product(...)`, `add_grill_item(...)`, `update_grill_item(...)`, `delete_grill_item(...)`, `add_catalog_item(...)`, `update_catalog_item(...)`, `delete_catalog_item(...)`, `add_catalog_item_option(...)`, `update_catalog_item_option(...)`, `delete_catalog_item_option(...)`, `set_global_fixed_price(...)` y `set_global_price_variant(...)`: cambios build-time que requieren publicacion y no editan disponibilidad.
 - `can_edit_availability(text)`, `can_edit_menu_content()`, `can_manage_staff()` y `can_publish_menu()`: helpers de permisos.
 - `reserve_menu_publish_request(...)` y `complete_menu_publish_request(...)`: helpers `security definer` service-role-only usados por la Edge Function.
 

@@ -104,7 +104,7 @@ Los archivos de esta carpeta sirven para revisar, auditar o reconstruir con cont
 
 ## Migraciones canonicas
 
-Las migraciones aplicables a bases existentes viven en `../../supabase/migrations/` y deben mantenerse en orden cronologico:
+Las migraciones aplicables a bases existentes viven en `../../supabase/migrations/`, que es la lista canonica y ordenada cronologicamente por nombre de archivo. La tabla siguiente es una referencia no exhaustiva del historial, pensada para consolidarse en un baseline limpio antes del lanzamiento; ante cualquier diferencia con el repositorio, vale el contenido de `../../supabase/migrations/`:
 
 | Migracion | Proposito |
 | --- | --- |
