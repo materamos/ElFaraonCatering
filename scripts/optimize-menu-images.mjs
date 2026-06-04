@@ -36,6 +36,37 @@ const NAME_MAP = {
     outputSlug: "cuarto-pollo",
     role: "primary",
   },
+  "3 empanadas": {
+    itemId: "empanadas",
+    outputSlug: "empanadas-3",
+    role: "additional",
+    orderIndex: 1,
+  },
+  "empanada": {
+    itemId: "empanadas",
+    outputSlug: "empanadas",
+    role: "primary",
+  },
+  "ensalada 1": {
+    itemId: "ensalada-tres-sabores",
+    outputSlug: "ensalada-tres-sabores",
+    role: "primary",
+  },
+  "ensalada 2": {
+    itemId: "ensalada-completa-pollo",
+    outputSlug: "ensalada-completa-pollo",
+    role: "primary",
+  },
+  "ensalada caesar": {
+    itemId: "ensalada-caesar",
+    outputSlug: "ensalada-caesar",
+    role: "primary",
+  },
+  "mila de pollo c guarnicion": {
+    itemId: "suprema-pollo",
+    outputSlug: "suprema-pollo",
+    role: "primary",
+  },
   "mila peceto c guarnicion": {
     itemId: "milanesa-peceto",
     outputSlug: "milanesa-peceto",
@@ -69,21 +100,29 @@ const NAME_MAP = {
     role: "primary",
     replaceExisting: true,
   },
+  "tarta": {
+    itemId: "tartas",
+    outputSlug: "tartas",
+    role: "additional",
+    orderIndex: 1,
+  },
+  "tarta 2": {
+    itemId: "tartas",
+    outputSlug: "tartas-2",
+    role: "primary",
+  },
+  "tarta 3": {
+    itemId: "tartas",
+    outputSlug: "tartas-3",
+    role: "additional",
+    orderIndex: 2,
+  },
   "tortilla c guarnicion": {
     itemId: "tortilla",
     outputSlug: "tortilla",
     role: "primary",
   },
 };
-
-const slugify = (value) =>
-  value
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/gu, "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 
 const formatKb = (bytes) => `${(bytes / 1024).toFixed(0)} KB`;
 
