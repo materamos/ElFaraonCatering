@@ -1,9 +1,6 @@
 ---
 import type { MenuItem, MenuOption, MenuPricing, MenuPricingVariant } from "../types/menu";
-import {
-  getSafeMenuImagePath,
-  isMenuPlaceholderImagePath,
-} from "../utils/menuImage";
+import { getSafeMenuImagePath } from "../utils/menuImage";
 import { getPricingText, getVariantPricingText } from "../utils/menuPricing";
 
 interface Props {
@@ -18,6 +15,7 @@ interface Props {
   inheritedPricing?: MenuPricing;
   options?: MenuOption[];
   image?: MenuItem["image"];
+  images?: MenuItem["images"];
 }
 
 const {
@@ -32,14 +30,17 @@ const {
   inheritedPricing,
   options,
   image,
+  images,
 } = Astro.props;
-const displayImage = getSafeMenuImagePath(image);
-const displayImageLabel = isMenuPlaceholderImagePath(displayImage)
-  ? "Ver imagen"
-  : "Ver foto";
-const displayImageAltPrefix = isMenuPlaceholderImagePath(displayImage)
-  ? "Imagen de"
-  : "Foto de";
+const displayImages = [
+  ...new Set(
+    [image, ...(images ?? [])]
+      .map((imagePath) => getSafeMenuImagePath(imagePath))
+      .filter((imagePath): imagePath is string => Boolean(imagePath)),
+  ),
+];
+const displayImage = displayImages[0];
+const photoButtonLabel = displayImages.length > 1 ? "Ver fotos" : "Ver foto";
 const effectivePricing = pricing ?? inheritedPricing;
 const hasVariantPricing = effectivePricing?.kind === "variants";
 const variants = effectivePricing?.kind === "variants" ? effectivePricing.variants : [];
@@ -122,9 +123,10 @@ const directPricingText =
             data-photo-trigger
             data-photo-name={name}
             data-photo-src={displayImage}
-            data-photo-alt={`${displayImageAltPrefix} ${name}`}
+            data-photo-srcs={JSON.stringify(displayImages)}
+            data-photo-alt={`Foto de ${name}`}
           >
-            {displayImageLabel}
+            {photoButtonLabel}
           </a>
         )}
 
@@ -190,9 +192,10 @@ const directPricingText =
         data-photo-trigger
         data-photo-name={name}
         data-photo-src={displayImage}
-        data-photo-alt={`${displayImageAltPrefix} ${name}`}
+        data-photo-srcs={JSON.stringify(displayImages)}
+        data-photo-alt={`Foto de ${name}`}
       >
-        {displayImageLabel}
+        {photoButtonLabel}
       </a>
     )}
   </div>

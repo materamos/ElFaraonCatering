@@ -82,6 +82,15 @@ const publicSupabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
       </h2>
 
       <div class="photo-frame" data-photo-frame></div>
+      <div class="photo-sheet__controls" data-photo-controls hidden>
+        <button class="photo-sheet__nav" type="button" data-photo-prev>
+          Anterior
+        </button>
+        <span class="photo-sheet__count" data-photo-count></span>
+        <button class="photo-sheet__nav" type="button" data-photo-next>
+          Siguiente
+        </button>
+      </div>
     </div>
   </dialog>
   <script is:inline type="module" src="/scripts/menu-photo-sheet.js"></script>

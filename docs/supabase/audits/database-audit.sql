@@ -60,6 +60,7 @@ with documented_relations(schema_name, object_name, object_type, status) as (
     ('menu_content', 'menu_catalog_sections', 'table', 'active'),
     ('menu_content', 'menu_catalog_groups', 'table', 'active'),
     ('menu_content', 'menu_catalog_items', 'table', 'active'),
+    ('menu_content', 'menu_catalog_item_images', 'table', 'active'),
     ('menu_content', 'menu_catalog_item_options', 'table', 'active'),
     ('menu_content', 'menu_grill_families', 'table', 'active'),
     ('menu_content', 'menu_grill_catalog_items', 'table', 'active'),

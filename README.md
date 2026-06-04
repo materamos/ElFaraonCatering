@@ -226,6 +226,7 @@ Reglas principales:
 - Si un grupo no tiene precio compartido, cada item del grupo debe definir el suyo.
 - Las variantes son planas y sus montos son numericos.
 - Las imagenes deben ser paths locales bajo `/uploads/`.
+- `image_path` conserva la foto principal de un item; `menu_catalog_item_images` permite fotos adicionales ordenadas para casos puntuales.
 
 ## Frontera build-time/runtime
 

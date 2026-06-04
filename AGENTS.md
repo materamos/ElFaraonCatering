@@ -161,6 +161,7 @@ Pricing rules:
 Image rules:
 
 - Menu item images are optional.
+- Most items use at most one image; items may define additional ordered images in `menu_catalog_item_images` while `image_path` remains the primary compatibility image.
 - Store images under `public/uploads/`.
 - Reference images with public paths like `/uploads/example.webp`.
 - Do not allow external URLs, data URLs, query strings, fragments, backslashes, empty path segments, `.`, or `..`.

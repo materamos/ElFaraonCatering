@@ -7,6 +7,7 @@ const databaseUrl = process.env[privateDatabaseUrlEnvName];
 const technicalIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const uploadsBasePath = "/uploads/";
 const allowedMenuImageExtensions = [".avif", ".jpeg", ".jpg", ".png", ".svg", ".webp"];
+const menuPlaceholderBasePath = "/uploads/menu-placeholders/";
 
 const expectedDailyItemIds = [
   "menu-del-dia",
@@ -29,6 +30,7 @@ const expectedIndexes = [
   "menu_catalog_groups_section_id_order_index_key",
   "menu_catalog_items_section_id_group_id_item_id_key",
   "menu_catalog_items_section_id_group_id_order_index_key",
+  "menu_catalog_item_images_catalog_item_id_order_index_key",
   "menu_catalog_item_options_catalog_item_id_order_index_key",
   "menu_grill_families_order_index_key",
   "menu_grill_catalog_items_item_id_key",
@@ -45,6 +47,7 @@ const expectedTables = [
   "menu_catalog_sections",
   "menu_catalog_groups",
   "menu_catalog_items",
+  "menu_catalog_item_images",
   "menu_catalog_item_options",
   "menu_grill_families",
   "menu_grill_catalog_items",
@@ -304,6 +307,26 @@ function validateItem(scope, item, errors) {
     errors.push(`${scope} image must be a local file under /uploads/.`);
   }
 
+  if (isMenuPlaceholderImagePath(item.image)) {
+    errors.push(`${scope} image must be a real menu image, not a placeholder.`);
+  }
+
+  if (item.images !== undefined) {
+    if (!Array.isArray(item.images)) {
+      errors.push(`${scope} images must be an array.`);
+    } else {
+      item.images.forEach((image, index) => {
+        if (!isSafeMenuImagePath(image)) {
+          errors.push(`${scope} images[${index}] must be a local file under /uploads/.`);
+        }
+
+        if (isMenuPlaceholderImagePath(image)) {
+          errors.push(`${scope} images[${index}] must be a real menu image, not a placeholder.`);
+        }
+      });
+    }
+  }
+
   if (item.options !== undefined) {
     if (!Array.isArray(item.options)) {
       errors.push(`${scope} options must be an array.`);
@@ -537,6 +560,16 @@ function isSafeMenuImagePath(value) {
   const lowerCasePath = trimmedValue.toLowerCase();
 
   return allowedMenuImageExtensions.some((extension) => lowerCasePath.endsWith(extension));
+}
+
+function isMenuPlaceholderImagePath(value) {
+  if (typeof value !== "string") {
+    return false;
+  }
+
+  const trimmedValue = value.trim();
+
+  return isSafeMenuImagePath(trimmedValue) && trimmedValue.startsWith(menuPlaceholderBasePath);
 }
 
 function sanitizeError(error) {

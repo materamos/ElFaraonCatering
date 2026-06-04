@@ -16,6 +16,7 @@ export const loadRows = async (sql) => {
     catalogSections,
     catalogGroups,
     catalogItems,
+    catalogItemImages,
     catalogItemOptions,
     grillFamilies,
     grillItems,
@@ -29,6 +30,7 @@ export const loadRows = async (sql) => {
     sql`select * from menu_content.menu_catalog_sections order by order_index`,
     sql`select * from menu_content.menu_catalog_groups order by section_id, order_index`,
     sql`select * from menu_content.menu_catalog_items order by section_id, group_id, order_index`,
+    sql`select * from menu_content.menu_catalog_item_images order by catalog_item_id, order_index`,
     sql`select * from menu_content.menu_catalog_item_options order by catalog_item_id, order_index`,
     sql`select * from menu_content.menu_grill_families order by order_index`,
     sql`select * from menu_content.menu_grill_catalog_items order by order_index`,
@@ -44,6 +46,7 @@ export const loadRows = async (sql) => {
     catalogSections,
     catalogGroups,
     catalogItems,
+    catalogItemImages,
     catalogItemOptions,
     grillFamilies,
     grillItems,
@@ -52,10 +55,14 @@ export const loadRows = async (sql) => {
 
 export const createSnapshot = (rows, options = {}) => {
   const transformImage = options.transformImage ?? identity;
+  const transformImages =
+    options.transformImages ??
+    ((values) => values.filter((value) => typeof value === "string" && value.length > 0));
   const priceMap = createPriceMap(rows.prices, rows.priceVariants);
   const factsByProfile = groupByStringKey(rows.facts, "profile_id");
   const catalogItemsBySection = groupByStringKey(rows.catalogItems, "section_id");
   const catalogGroupsBySection = groupByStringKey(rows.catalogGroups, "section_id");
+  const imagesByCatalogItem = groupByNumberKey(rows.catalogItemImages ?? [], "catalog_item_id");
   const optionsByCatalogItem = groupByNumberKey(rows.catalogItemOptions, "catalog_item_id");
   const grillItemsByFamily = groupByStringKey(rows.grillItems, "family_id");
 
@@ -88,14 +95,16 @@ export const createSnapshot = (rows, options = {}) => {
         section,
         groups: catalogGroupsBySection.get(section.section_id) ?? [],
         items: catalogItemsBySection.get(section.section_id) ?? [],
+        imagesByCatalogItem,
         optionsByCatalogItem,
         priceMap,
         transformImage,
+        transformImages,
       }),
     ),
     dailyMenu: {
       items: rows.dailyItems.map((item) =>
-        createFlatItem(item, [], priceMap, transformImage),
+        createFlatItem(item, [], priceMap, transformImage, transformImages),
       ),
     },
     profileServiceSettings: rows.profileServiceSettings.map((entry) => ({
@@ -156,9 +165,11 @@ const createCatalogSection = ({
   section,
   groups,
   items,
+  imagesByCatalogItem,
   optionsByCatalogItem,
   priceMap,
   transformImage,
+  transformImages,
 }) => {
   const baseSection = cleanOptional({
     sectionId: section.section_id,
@@ -180,6 +191,8 @@ const createCatalogSection = ({
             optionsByCatalogItem.get(Number(item.id)) ?? [],
             priceMap,
             transformImage,
+            transformImages,
+            imagesByCatalogItem.get(Number(item.id)) ?? [],
           ),
         ),
     };
@@ -204,6 +217,8 @@ const createCatalogSection = ({
             optionsByCatalogItem.get(Number(item.id)) ?? [],
             priceMap,
             transformImage,
+            transformImages,
+            imagesByCatalogItem.get(Number(item.id)) ?? [],
           ),
         ),
       }),
@@ -211,8 +226,21 @@ const createCatalogSection = ({
   };
 };
 
-const createFlatItem = (item, options, priceMap, transformImage) =>
-  cleanOptional({
+const createFlatItem = (
+  item,
+  options,
+  priceMap,
+  transformImage,
+  transformImages = (values) =>
+    values.filter((value) => typeof value === "string" && value.length > 0),
+  imageRows = [],
+) => {
+  const imagePaths = transformImages([
+    "image_path" in item ? item.image_path ?? undefined : undefined,
+    ...imageRows.map((image) => image.image_path),
+  ]);
+
+  return cleanOptional({
     itemId: item.item_id,
     name: item.name,
     description: item.description ?? undefined,
@@ -228,9 +256,12 @@ const createFlatItem = (item, options, priceMap, transformImage) =>
             }),
           )
         : undefined,
-    image:
-      "image_path" in item ? transformImage(item.image_path ?? undefined) : undefined,
+    image: imagePaths[0] ?? (
+      "image_path" in item ? transformImage(item.image_path ?? undefined) : undefined
+    ),
+    images: imagePaths.length > 0 ? imagePaths : undefined,
   });
+};
 
 const createPriceMap = (prices, variants) => {
   const variantsByPrice = groupByStringKey(variants, "pricing_key");

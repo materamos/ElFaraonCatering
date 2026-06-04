@@ -12,6 +12,7 @@ with expected_tables (table_name, expectation) as (
     ('menu_catalog_sections', 'flat build-time catalog sections'),
     ('menu_catalog_groups', 'flat build-time catalog groups'),
     ('menu_catalog_items', 'flat build-time catalog items'),
+    ('menu_catalog_item_images', 'optional ordered build-time catalog item images'),
     ('menu_catalog_item_options', 'flat build-time catalog item options'),
     ('menu_grill_families', 'fixed build-time grill families'),
     ('menu_grill_catalog_items', 'fixed build-time grill item list')
@@ -75,6 +76,7 @@ with expected_indexes (index_name, table_name, expectation) as (
     ('menu_catalog_groups_section_id_order_index_key', 'menu_catalog_groups', 'unique group order per section'),
     ('menu_catalog_items_section_id_group_id_item_id_key', 'menu_catalog_items', 'unique item id per section/group context'),
     ('menu_catalog_items_section_id_group_id_order_index_key', 'menu_catalog_items', 'unique item order per section/group context'),
+    ('menu_catalog_item_images_catalog_item_id_order_index_key', 'menu_catalog_item_images', 'unique image order per catalog item'),
     ('menu_catalog_item_options_catalog_item_id_order_index_key', 'menu_catalog_item_options', 'unique option order per catalog item'),
     ('menu_grill_families_order_index_key', 'menu_grill_families', 'unique grill family order'),
     ('menu_grill_catalog_items_item_id_key', 'menu_grill_catalog_items', 'unique grill item id'),

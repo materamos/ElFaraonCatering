@@ -6,7 +6,7 @@ import type {
   MenuProfileServiceSettings,
   MenuSectionData,
 } from "../types/menu";
-import { getSafeMenuImagePath } from "./menuImage";
+import { getSafeMenuImagePath, getSafeMenuImagePaths } from "./menuImage";
 import { createSnapshot, loadRows } from "./menuSupabaseSnapshot.mjs";
 
 interface MenuProfileRecord {
@@ -42,6 +42,7 @@ export const loadSupabaseMenuContentSnapshot = async (): Promise<MenuContentSnap
 
     return createSnapshot(rows, {
       transformImage: getSafeMenuImagePath,
+      transformImages: getSafeMenuImagePaths,
     }) as MenuContentSnapshot;
   } finally {
     await sql.end();

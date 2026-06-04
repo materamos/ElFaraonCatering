@@ -43,6 +43,7 @@ export interface MenuItem {
   pricing?: MenuPricing;
   options?: MenuOption[];
   image?: string;
+  images?: string[];
 }
 
 export interface MenuGroup {

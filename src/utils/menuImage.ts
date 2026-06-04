@@ -43,11 +43,36 @@ export const getSafeMenuImagePath = (value?: string): string | undefined => {
 
   const trimmedValue = value.trim();
 
-  return isSafeMenuImagePath(trimmedValue) ? trimmedValue : undefined;
+  if (!isSafeMenuImagePath(trimmedValue) || isMenuPlaceholderImagePath(trimmedValue)) {
+    return undefined;
+  }
+
+  return trimmedValue;
+};
+
+export const getSafeMenuImagePaths = (values?: readonly unknown[]): string[] => {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+
+  return values.reduce<string[]>((safeImagePaths, value) => {
+    const safeImagePath =
+      typeof value === "string" ? getSafeMenuImagePath(value) : undefined;
+
+    if (safeImagePath && !safeImagePaths.includes(safeImagePath)) {
+      safeImagePaths.push(safeImagePath);
+    }
+
+    return safeImagePaths;
+  }, []);
 };
 
 export const isMenuPlaceholderImagePath = (value?: string): boolean => {
-  const safeImagePath = getSafeMenuImagePath(value);
+  if (typeof value !== "string") {
+    return false;
+  }
 
-  return safeImagePath?.startsWith(menuPlaceholderBasePath) ?? false;
+  const trimmedValue = value.trim();
+
+  return isSafeMenuImagePath(trimmedValue) && trimmedValue.startsWith(menuPlaceholderBasePath);
 };

@@ -27,13 +27,15 @@ const MAX_LONG_EDGE = 1400;
 const WEBP_QUALITY = 80;
 const SOURCE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png"]);
 
-// basename del original (sin extension, en minusculas) -> item_id del menu
+// basename del original (sin extension, en minusculas) -> output slug
 const NAME_MAP = {
   "1_4 de pollo c guarnicion": "cuarto-pollo",
   "mila peceto c guarnicion": "milanesa-peceto",
   "omelet con guarnicion": "omelette",
   "pechuga de pollo c guarnicion": "pechuga-grill",
-  "pure de batata": "pure-papa",
+  "pure de batata": "pure-batata",
+  "pure de calabaza": "pure-calabaza",
+  "pure de papa": "pure-papa",
   "tortilla c guarnicion": "tortilla",
 };
 

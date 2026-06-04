@@ -140,6 +140,13 @@ erDiagram
     int order_index
   }
 
+  MENU_CATALOG_ITEM_IMAGES {
+    bigint id PK
+    bigint catalog_item_id FK
+    text image_path
+    int order_index
+  }
+
   MENU_GRILL_FAMILIES {
     text family_id PK
     text title
@@ -169,6 +176,7 @@ erDiagram
 
   MENU_CATALOG_SECTIONS ||--o{ MENU_CATALOG_GROUPS : physical
   MENU_CATALOG_SECTIONS ||--o{ MENU_CATALOG_ITEMS : physical
+  MENU_CATALOG_ITEMS ||--o{ MENU_CATALOG_ITEM_IMAGES : physical
   MENU_CATALOG_ITEMS ||--o{ MENU_CATALOG_ITEM_OPTIONS : physical
 
   MENU_GRILL_FAMILIES ||--o{ MENU_GRILL_CATALOG_ITEMS : physical
