@@ -8,9 +8,8 @@
 // Las fotos se ven en un modal a pantalla, no como thumbnail: se redimensionan
 // a 1400px de lado largo, webp calidad 80, sin metadata EXIF.
 //
-// El nombre de salida se alinea al item_id del menu via NAME_MAP. Los archivos
-// sin mapeo se procesan igual con un slug derivado del nombre y avisan por consola
-// para que el item_id se defina a mano en la migracion SQL.
+// El nombre de salida se define via NAME_MAP. Cada entrada declara el item_id,
+// el slug del archivo webp y si la foto es principal o adicional.
 
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -27,16 +26,54 @@ const MAX_LONG_EDGE = 1400;
 const WEBP_QUALITY = 80;
 const SOURCE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png"]);
 
-// basename del original (sin extension, en minusculas) -> output slug
+const ITEM_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const IMAGE_ROLES = new Set(["primary", "additional"]);
+
+// basename del original (sin extension, en minusculas) -> metadata de imagen
 const NAME_MAP = {
-  "1_4 de pollo c guarnicion": "cuarto-pollo",
-  "mila peceto c guarnicion": "milanesa-peceto",
-  "omelet con guarnicion": "omelette",
-  "pechuga de pollo c guarnicion": "pechuga-grill",
-  "pure de batata": "pure-batata",
-  "pure de calabaza": "pure-calabaza",
-  "pure de papa": "pure-papa",
-  "tortilla c guarnicion": "tortilla",
+  "1_4 de pollo c guarnicion": {
+    itemId: "cuarto-pollo",
+    outputSlug: "cuarto-pollo",
+    role: "primary",
+  },
+  "mila peceto c guarnicion": {
+    itemId: "milanesa-peceto",
+    outputSlug: "milanesa-peceto",
+    role: "primary",
+  },
+  "omelet con guarnicion": {
+    itemId: "omelette",
+    outputSlug: "omelette",
+    role: "primary",
+  },
+  "pechuga de pollo c guarnicion": {
+    itemId: "pechuga-grill",
+    outputSlug: "pechuga-grill",
+    role: "primary",
+  },
+  "pure de batata": {
+    itemId: "pure",
+    outputSlug: "pure-batata",
+    role: "additional",
+    orderIndex: 1,
+  },
+  "pure de calabaza": {
+    itemId: "pure",
+    outputSlug: "pure-calabaza",
+    role: "additional",
+    orderIndex: 2,
+  },
+  "pure de papa": {
+    itemId: "pure",
+    outputSlug: "pure-papa",
+    role: "primary",
+    replaceExisting: true,
+  },
+  "tortilla c guarnicion": {
+    itemId: "tortilla",
+    outputSlug: "tortilla",
+    role: "primary",
+  },
 };
 
 const slugify = (value) =>
@@ -49,6 +86,110 @@ const slugify = (value) =>
     .replace(/^-+|-+$/g, "");
 
 const formatKb = (bytes) => `${(bytes / 1024).toFixed(0)} KB`;
+
+const getImageKey = (fileName) =>
+  path.basename(fileName, path.extname(fileName)).toLowerCase().trim();
+
+const validateImageConfig = (config, key) => {
+  const errors = [];
+
+  if (!config || typeof config !== "object" || Array.isArray(config)) {
+    return [`${key}: mapping must be an object.`];
+  }
+
+  if (!ITEM_ID_PATTERN.test(config.itemId ?? "")) {
+    errors.push(`${key}: itemId must be ASCII kebab-case.`);
+  }
+
+  if (!ITEM_ID_PATTERN.test(config.outputSlug ?? "")) {
+    errors.push(`${key}: outputSlug must be ASCII kebab-case.`);
+  }
+
+  if (!IMAGE_ROLES.has(config.role)) {
+    errors.push(`${key}: role must be primary or additional.`);
+  }
+
+  if (
+    config.role === "additional" &&
+    (!Number.isInteger(config.orderIndex) || config.orderIndex < 0)
+  ) {
+    errors.push(`${key}: additional images must define orderIndex >= 0.`);
+  }
+
+  if (config.role === "primary" && config.orderIndex !== undefined) {
+    errors.push(`${key}: primary images must not define orderIndex.`);
+  }
+
+  if (config.replaceExisting !== undefined && typeof config.replaceExisting !== "boolean") {
+    errors.push(`${key}: replaceExisting must be boolean when defined.`);
+  }
+
+  return errors;
+};
+
+const assertValidMappings = async (sources) => {
+  const errors = [];
+  const pendingOutputSlugs = new Map();
+  const additionalOrders = new Map();
+
+  for (const [key, config] of Object.entries(NAME_MAP)) {
+    errors.push(...validateImageConfig(config, key));
+  }
+
+  for (const fileName of sources) {
+    const key = getImageKey(fileName);
+    const config = NAME_MAP[key];
+
+    if (!config) {
+      errors.push(`${fileName}: [SIN MAPEO] falta entrada en NAME_MAP.`);
+      continue;
+    }
+
+    const outputSlugFiles = pendingOutputSlugs.get(config.outputSlug) ?? [];
+    outputSlugFiles.push(fileName);
+    pendingOutputSlugs.set(config.outputSlug, outputSlugFiles);
+
+    if (config.role === "additional") {
+      const orderKey = `${config.itemId}:${config.orderIndex}`;
+      const orderFiles = additionalOrders.get(orderKey) ?? [];
+      orderFiles.push(fileName);
+      additionalOrders.set(orderKey, orderFiles);
+    }
+
+    const outputPath = path.join(outputDir, `${config.outputSlug}.webp`);
+    const outputExists = await fs
+      .access(outputPath)
+      .then(() => true)
+      .catch((error) => {
+        if (error.code === "ENOENT") {
+          return false;
+        }
+        throw error;
+      });
+
+    if (outputExists && config.replaceExisting !== true) {
+      errors.push(
+        `${fileName}: output /uploads/menu/${config.outputSlug}.webp already exists; set replaceExisting: true to replace it intentionally.`,
+      );
+    }
+  }
+
+  for (const [outputSlug, files] of pendingOutputSlugs) {
+    if (files.length > 1) {
+      errors.push(`outputSlug ${outputSlug} is used by multiple pending files: ${files.join(", ")}.`);
+    }
+  }
+
+  for (const [orderKey, files] of additionalOrders) {
+    if (files.length > 1) {
+      errors.push(`additional image order ${orderKey} is used by multiple pending files: ${files.join(", ")}.`);
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`No se pueden procesar las imagenes:\n- ${errors.join("\n- ")}`);
+  }
+};
 
 const main = async () => {
   let entries;
@@ -73,14 +214,14 @@ const main = async () => {
   }
 
   await fs.mkdir(outputDir, { recursive: true });
+  await assertValidMappings(sources);
 
   const results = [];
 
   for (const fileName of sources) {
-    const baseName = path.basename(fileName, path.extname(fileName));
-    const key = baseName.toLowerCase().trim();
-    const mapped = NAME_MAP[key];
-    const slug = mapped ?? slugify(baseName);
+    const key = getImageKey(fileName);
+    const config = NAME_MAP[key];
+    const slug = config.outputSlug;
 
     const sourcePath = path.join(pendingDir, fileName);
     const outputPath = path.join(outputDir, `${slug}.webp`);
@@ -100,8 +241,11 @@ const main = async () => {
 
     results.push({
       fileName,
+      itemId: config.itemId,
       slug,
-      mapped: Boolean(mapped),
+      role: config.role,
+      orderIndex: config.orderIndex,
+      replaced: config.replaceExisting === true,
       sourceBytes,
       outputBytes,
       outputRel: path.relative(projectRoot, outputPath).replace(/\\/g, "/"),
@@ -110,9 +254,13 @@ const main = async () => {
 
   console.log(`Procesadas ${results.length} imagen(es):\n`);
   for (const r of results) {
-    const tag = r.mapped ? "" : "  [SIN MAPEO: revisar item_id en la migracion]";
+    const roleText =
+      r.role === "additional"
+        ? `additional orderIndex=${r.orderIndex}`
+        : "primary";
+    const replaceText = r.replaced ? " reemplazo intencional" : "";
     console.log(
-      `- ${r.fileName} -> /uploads/menu/${r.slug}.webp  (${formatKb(r.sourceBytes)} -> ${formatKb(r.outputBytes)})${tag}`,
+      `- ${r.fileName} -> item_id=${r.itemId} ${roleText} /uploads/menu/${r.slug}.webp  (${formatKb(r.sourceBytes)} -> ${formatKb(r.outputBytes)})${replaceText}`,
     );
   }
   console.log("\nOriginales movidos a 'Imagenes full/' (fuera de Pendientes).");
