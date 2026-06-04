@@ -77,6 +77,11 @@ const NAME_MAP = {
     outputSlug: "omelette",
     role: "primary",
   },
+  "omelet con guarnicion2": {
+    itemId: "omelette",
+    outputSlug: "omelette-2",
+    role: "primary",
+  },
   "pechuga de pollo c guarnicion": {
     itemId: "pechuga-grill",
     outputSlug: "pechuga-grill",
