@@ -18,6 +18,6 @@ select
   1
 from menu_content.menu_catalog_items item
 where item.group_id = ''
-  and item.item_id = 'pure-papa'
+  and item.item_id = 'pure'
 on conflict (catalog_item_id, image_path)
 do update set order_index = excluded.order_index;

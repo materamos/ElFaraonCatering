@@ -158,6 +158,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260603062255_remove_cafeteria_promotion_images.sql` | Quita imagenes placeholder de cafeteria y promociones. |
 | `20260603070518_normalize_menu_order_and_spanish_text.sql` | Normaliza orden editorial y textos visibles del menu. |
 | `20260603090000_rename_prelaunch_catalog_section_ids.sql` | Renombra IDs tecnicos pre-lanzamiento de cafeteria y tartas/tortillas/omelettes. |
+| `20260604170000_rename_pure_id.sql` | Renombra el ID tecnico de Pure y su clave de precio para no atarlo solo a papa. |
 | `20260604173500_add_catalog_item_images.sql` | Agrega fotos adicionales ordenadas por item de catalogo sin reemplazar `image_path`. |
 
 ## Baseline pre-lanzamiento
