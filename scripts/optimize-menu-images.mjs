@@ -48,8 +48,8 @@ const NAME_MAP = {
     role: "primary",
   },
   "ensalada 1": {
-    itemId: "ensalada-tres-sabores",
-    outputSlug: "ensalada-tres-sabores",
+    itemId: "ensalada-completa",
+    outputSlug: "ensalada-completa",
     role: "primary",
   },
   "ensalada 2": {
