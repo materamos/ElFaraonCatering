@@ -27,7 +27,7 @@ pnpm-debug.log*
 # TypeScript
 *.tsbuildinfo
 
-# User-uploaded content (no versionar fotos reales subidas por el admin)
+# User-uploaded content (no versionar fotos sueltas subidas en la raiz de uploads)
 public/uploads/*.jpg
 public/uploads/*.jpeg
 public/uploads/*.png
@@ -37,9 +37,15 @@ public/uploads/*.avif
 public/uploads/*.svg
 !public/uploads/menu-placeholders/
 !public/uploads/.gitkeep
+# Fotos curadas del menu (build-time): SI se versionan (webp optimizados)
+!public/uploads/menu/
+!public/uploads/menu/**
 
 # Branding (material de trabajo de diseño, no versionar)
 docs/branding/
+
+# Originales full de fotografía de menú (material fuente, no versionar; al repo solo van los webp optimizados)
+Imagenes full/
 
 # Editor settings
 .vscode/*
