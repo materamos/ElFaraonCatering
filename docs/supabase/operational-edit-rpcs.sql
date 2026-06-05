@@ -685,6 +685,17 @@ begin
     from menu_content.menu_catalog_items item
     where item.section_id = target_section_id
       and item.group_id = target_group_id
+      and app_private.normalize_visible_name(item.name) = app_private.normalize_visible_name(target_name)
+  ) then
+    return query select false, false, true, 'add_catalog_item', 'catalog_item_exists';
+    return;
+  end if;
+
+  if exists (
+    select 1
+    from menu_content.menu_catalog_items item
+    where item.section_id = target_section_id
+      and item.group_id = target_group_id
       and item.item_id = target_item_id
   ) then
     return query select false, false, true, 'add_catalog_item', 'catalog_item_exists';
@@ -990,6 +1001,16 @@ begin
 
   if existing_option_count = 0 then
     return query select false, false, true, 'add_catalog_item_option', 'catalog_options_not_enabled';
+    return;
+  end if;
+
+  if exists (
+    select 1
+    from menu_content.menu_catalog_item_options option
+    where option.catalog_item_id = target_catalog_item_id
+      and app_private.normalize_visible_name(option.name) = app_private.normalize_visible_name(target_name)
+  ) then
+    return query select false, false, true, 'add_catalog_item_option', 'catalog_option_exists';
     return;
   end if;
 
@@ -1363,6 +1384,28 @@ begin
 end;
 $$;
 
+create or replace function app_private.normalize_visible_name(value text)
+returns text
+language plpgsql
+immutable
+set search_path = public, pg_temp
+as $$
+declare
+  normalized text := lower(regexp_replace(btrim(coalesce(normalize_visible_name.value, '')), '\s+', ' ', 'g'));
+begin
+  return translate(
+    normalized,
+    chr(225) || chr(224) || chr(228) || chr(226) || chr(227) ||
+    chr(233) || chr(232) || chr(235) || chr(234) ||
+    chr(237) || chr(236) || chr(239) || chr(238) ||
+    chr(243) || chr(242) || chr(246) || chr(244) || chr(245) ||
+    chr(250) || chr(249) || chr(252) || chr(251) ||
+    chr(241) || chr(231),
+    'aaaaaeeeeiiiiooooouuuunc'
+  );
+end;
+$$;
+
 create or replace function public.add_catalog_item(
   section_id text,
   group_id text,
@@ -1604,6 +1647,7 @@ revoke all on function app_private.set_daily_menu(text, text, text, text) from p
 revoke all on function app_private.set_global_fixed_price(text, integer) from public, anon, authenticated;
 revoke all on function app_private.set_global_price_variant(text, text, integer) from public, anon, authenticated;
 revoke all on function app_private.generate_admin_id(text) from public, anon, authenticated;
+revoke all on function app_private.normalize_visible_name(text) from public, anon, authenticated;
 revoke all on function app_private.add_catalog_item(text, text, text, text, text, integer) from public, anon, authenticated;
 revoke all on function app_private.delete_catalog_item(text, text, text) from public, anon, authenticated;
 revoke all on function app_private.update_catalog_item(text, text, text, text, text) from public, anon, authenticated;

@@ -76,9 +76,13 @@ with expected_indexes (index_name, table_name, expectation) as (
     ('menu_catalog_groups_section_id_order_index_key', 'menu_catalog_groups', 'unique group order per section'),
     ('menu_catalog_items_section_id_group_id_item_id_key', 'menu_catalog_items', 'unique item id per section/group context'),
     ('menu_catalog_items_section_id_group_id_order_index_key', 'menu_catalog_items', 'unique item order per section/group context'),
+    ('menu_catalog_items_location_visible_name_key', 'menu_catalog_items', 'unique normalized visible item name per section/group context'),
     ('menu_catalog_item_images_catalog_item_id_order_index_key', 'menu_catalog_item_images', 'unique image order per catalog item'),
+    ('menu_catalog_item_options_item_visible_name_key', 'menu_catalog_item_options', 'unique normalized visible option name per item'),
     ('menu_catalog_item_options_catalog_item_id_order_index_key', 'menu_catalog_item_options', 'unique option order per catalog item'),
+    ('menu_grill_families_visible_title_key', 'menu_grill_families', 'unique normalized visible grill product title'),
     ('menu_grill_families_order_index_key', 'menu_grill_families', 'unique grill family order'),
+    ('menu_grill_catalog_items_family_visible_name_key', 'menu_grill_catalog_items', 'unique normalized visible grill option name per family'),
     ('menu_grill_catalog_items_item_id_key', 'menu_grill_catalog_items', 'unique grill item id'),
     ('menu_grill_catalog_items_order_index_key', 'menu_grill_catalog_items', 'unique grill item order')
 ),
