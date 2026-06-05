@@ -33,18 +33,6 @@ export function getOverlayKey(overlay: {
   return `${overlay.menu_id}/${overlay.section_id}/${overlay.group_id}/${overlay.item_id}`;
 }
 
-export function createCatalogId(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\u00f1/g, "n")
-    .replace(/\u00d1/g, "n")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/-{2,}/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 export function normalizeAdminState(
   state: AdminOperationalState,
   deployedContentHash = "",
@@ -240,8 +228,8 @@ export function resultMessage(result: RpcResult): string {
     daily_menu_name_required: "El nombre del menú es obligatorio.",
     daily_menu_available_required: "La disponibilidad del menú es obligatoria.",
     invalid_service_kind: "El servicio seleccionado no es válido.",
-    catalog_item_id_required: "No se pudo generar el identificador del item. Revisá el nombre.",
-    invalid_catalog_item_id: "No se pudo generar un identificador válido para el item. Revisá el nombre.",
+    catalog_item_id_required: "No se pudo generar el identificador del item.",
+    invalid_catalog_item_id: "El identificador generado para el item no es valido.",
     catalog_item_name_required: "El nombre del item es obligatorio.",
     catalog_section_not_found: "La sección seleccionada no existe.",
     invalid_catalog_group: "La sección seleccionada no acepta grupo.",
@@ -250,10 +238,10 @@ export function resultMessage(result: RpcResult): string {
     catalog_item_exists: "Ya existe un item equivalente en esta ubicación.",
     catalog_item_unchanged: "Sin cambios.",
     catalog_item_updated: "Item actualizado.",
-    invalid_catalog_option_id: "No se pudo generar un identificador válido para el sabor. Revisá el nombre.",
+    invalid_catalog_option_id: "El identificador generado para el sabor no es valido.",
     catalog_option_exists: "Ya existe un sabor equivalente en esta subcategoría.",
     catalog_options_not_enabled: "Solo se pueden administrar sabores en subcategorías que ya usan opciones.",
-    catalog_option_id_required: "No se pudo generar el identificador de la opción. Revisá el nombre.",
+    catalog_option_id_required: "No se pudo generar el identificador de la opcion.",
     catalog_option_name_required: "El nombre de la opción es obligatorio.",
     catalog_option_added: "Opción agregada.",
     catalog_option_not_found: "La opción seleccionada ya no existe.",
@@ -265,8 +253,8 @@ export function resultMessage(result: RpcResult): string {
     catalog_item_not_found: "El item seleccionado ya no existe.",
     catalog_item_locked: "Esta sección solo permite administrar sabores desde Menú fijo.",
     catalog_location_must_keep_item: "No se puede eliminar el último item de una sección o grupo.",
-    grill_product_id_required: "No se pudo generar el identificador del producto de parrilla. Revisá el nombre.",
-    invalid_grill_product_id: "No se pudo generar un identificador válido para el producto. Revisá el nombre.",
+    grill_product_id_required: "No se pudo generar el identificador del producto de parrilla.",
+    invalid_grill_product_id: "El identificador generado para el producto no es valido.",
     grill_product_name_required: "El nombre del producto de parrilla es obligatorio.",
     grill_product_exists: "Ya existe un producto de parrilla equivalente.",
     grill_product_unchanged: "Sin cambios.",
@@ -274,8 +262,8 @@ export function resultMessage(result: RpcResult): string {
     grill_product_added: "Producto de parrilla agregado.",
     grill_product_deleted: "Producto de parrilla eliminado.",
     grill_option_name_required: "El nombre de la opción de parrilla es obligatorio.",
-    grill_item_id_required: "No se pudo generar el identificador del item de parrilla. Revisá el nombre.",
-    invalid_grill_item_id: "No se pudo generar un identificador válido para el item. Revisá el nombre.",
+    grill_item_id_required: "No se pudo generar el identificador del item de parrilla.",
+    invalid_grill_item_id: "El identificador generado para el item no es valido.",
     grill_item_name_required: "El nombre del item de parrilla es obligatorio.",
     grill_family_not_found: "La familia de parrilla seleccionada no existe.",
     grill_item_exists: "Ya existe un item de parrilla equivalente.",

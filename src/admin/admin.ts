@@ -45,7 +45,6 @@ import {
   isServiceSectionAvailable,
 } from "./adminView";
 import {
-  createCatalogId,
   getFormString,
   getTrimmedValue,
   normalizeAdminState,
@@ -189,10 +188,7 @@ root.addEventListener("input", (event) => {
   const target = event.target;
 
   if (target instanceof HTMLInputElement) {
-    handleCatalogItemInput(target);
-    handleCatalogOptionInput(target);
-    handleGrillItemInput(target);
-    handleGrillProductInput(target);
+    markContainingFormDirty(target);
     return;
   }
 
@@ -776,33 +772,6 @@ async function refreshSession(session: AuthSession): Promise<AuthSession | null>
   return refreshedSession;
 }
 
-function handleCatalogItemInput(field: HTMLInputElement): void {
-  markContainingFormDirty(field);
-
-  const form = field.closest<HTMLFormElement>('form[data-admin-form="catalog-item"]');
-
-  if (!form) {
-    return;
-  }
-
-  if (field.name === "item_id") {
-    field.dataset.manual = "true";
-    return;
-  }
-
-  if (field.name !== "name") {
-    return;
-  }
-
-  const itemIdField = form.elements.namedItem("item_id");
-
-  if (!(itemIdField instanceof HTMLInputElement) || itemIdField.dataset.manual === "true") {
-    return;
-  }
-
-  itemIdField.value = createCatalogId(field.value);
-}
-
 function toggleCatalogDescriptionField(field: HTMLInputElement): void {
   const descriptionField = field.closest<HTMLElement>(".admin-description-field");
 
@@ -811,96 +780,6 @@ function toggleCatalogDescriptionField(field: HTMLInputElement): void {
   }
 
   descriptionField.classList.toggle("admin-description-field--hidden", !field.checked);
-}
-
-function handleCatalogOptionInput(field: HTMLInputElement): void {
-  markContainingFormDirty(field);
-
-  const form = field.closest<HTMLFormElement>('form[data-admin-form="catalog-option"]');
-
-  if (!form) {
-    return;
-  }
-
-  if (field.name === "option_id") {
-    field.dataset.manual = "true";
-    return;
-  }
-
-  if (field.name !== "name") {
-    return;
-  }
-
-  const optionIdField = form.elements.namedItem("option_id");
-
-  if (!(optionIdField instanceof HTMLInputElement) || optionIdField.dataset.manual === "true") {
-    return;
-  }
-
-  optionIdField.value = createCatalogId(field.value);
-}
-
-function handleGrillItemInput(field: HTMLInputElement): void {
-  markContainingFormDirty(field);
-
-  const form = field.closest<HTMLFormElement>('form[data-admin-form="grill-item"]');
-
-  if (!form) {
-    return;
-  }
-
-  if (field.name === "item_id") {
-    field.dataset.manual = "true";
-    return;
-  }
-
-  if (field.name !== "variant_name") {
-    return;
-  }
-
-  const itemIdField = form.elements.namedItem("item_id");
-  const productNameField = form.elements.namedItem("product_name");
-
-  if (!(itemIdField instanceof HTMLInputElement) || itemIdField.dataset.manual === "true") {
-    return;
-  }
-
-  const productName = productNameField instanceof HTMLInputElement ? productNameField.value : "";
-  itemIdField.value = createCatalogId(`${productName} ${field.value}`);
-}
-
-function handleGrillProductInput(field: HTMLInputElement): void {
-  markContainingFormDirty(field);
-
-  const form = field.closest<HTMLFormElement>('form[data-admin-form="grill-product"]');
-
-  if (!form) {
-    return;
-  }
-
-  if (field.name === "family_id" || field.name === "item_id") {
-    field.dataset.manual = "true";
-    return;
-  }
-
-  const familyIdField = form.elements.namedItem("family_id");
-  const itemIdField = form.elements.namedItem("item_id");
-  const titleField = form.elements.namedItem("title");
-  const optionField = form.elements.namedItem("variant_name");
-  const title = titleField instanceof HTMLInputElement ? titleField.value : "";
-  const option = optionField instanceof HTMLInputElement ? optionField.value : "";
-
-  if (field.name === "title" && familyIdField instanceof HTMLInputElement && familyIdField.dataset.manual !== "true") {
-    familyIdField.value = createCatalogId(field.value);
-  }
-
-  if (
-    (field.name === "title" || field.name === "variant_name")
-    && itemIdField instanceof HTMLInputElement
-    && itemIdField.dataset.manual !== "true"
-  ) {
-    itemIdField.value = createCatalogId(`${title} ${option}`);
-  }
 }
 
 function confirmPublishChanges(): boolean {

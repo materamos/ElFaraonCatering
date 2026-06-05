@@ -1,11 +1,20 @@
 import type { AuthSession } from "./adminTypes";
 import { isStoredSession } from "./adminUtils";
 
-const localStorageKey = "el-faraon-admin-session";
+const storageKey = "el-faraon-admin-session";
+
+function clearLegacyStoredSession(): void {
+  try {
+    localStorage.removeItem(storageKey);
+  } catch {
+    // Ignore legacy cleanup failures; sessionStorage is the active store.
+  }
+}
 
 export function readStoredSession(): AuthSession | null {
   try {
-    const rawValue = localStorage.getItem(localStorageKey);
+    const rawValue = sessionStorage.getItem(storageKey);
+    clearLegacyStoredSession();
 
     if (!rawValue) {
       return null;
@@ -24,11 +33,13 @@ export function readStoredSession(): AuthSession | null {
 }
 
 export function saveStoredSession(session: AuthSession): void {
-  localStorage.setItem(localStorageKey, JSON.stringify(session));
+  sessionStorage.setItem(storageKey, JSON.stringify(session));
+  clearLegacyStoredSession();
 }
 
 export function clearStoredSession(): void {
-  localStorage.removeItem(localStorageKey);
+  clearLegacyStoredSession();
+  sessionStorage.removeItem(storageKey);
 }
 
 export function getPasswordRedirectUrl(): string {

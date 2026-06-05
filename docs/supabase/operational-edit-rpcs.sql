@@ -1346,6 +1346,23 @@ as $$
   from app_private.set_global_price_variant($1, $2, $3);
 $$;
 
+create or replace function app_private.generate_admin_id(prefix text)
+returns text
+language plpgsql
+security definer
+set search_path = public, extensions, pg_temp
+as $$
+declare
+  clean_prefix text := nullif(btrim(generate_admin_id.prefix), '');
+begin
+  if clean_prefix is null or clean_prefix !~ '^[a-z0-9]+(?:-[a-z0-9]+)*$' then
+    raise exception 'invalid admin id prefix';
+  end if;
+
+  return clean_prefix || '-' || left(replace(extensions.gen_random_uuid()::text, '-', ''), 12);
+end;
+$$;
+
 create or replace function public.add_catalog_item(
   section_id text,
   group_id text,
@@ -1367,7 +1384,13 @@ set search_path = public, app_private, pg_temp
 as $$
 declare
   target_section_id text := nullif(btrim(add_catalog_item.section_id), '');
+  ignored_item_id text := nullif(btrim(add_catalog_item.item_id), '');
 begin
+  -- Keep the legacy RPC parameter accepted while forcing server-generated IDs.
+  if ignored_item_id is not null then
+    null;
+  end if;
+
   if not public.can_edit_menu_content() then
     return query select false, false, true, 'add_catalog_item', 'permission_denied';
     return;
@@ -1380,7 +1403,14 @@ begin
 
   return query
   select *
-  from app_private.add_catalog_item($1, $2, $3, $4, $5, $6);
+  from app_private.add_catalog_item(
+    $1,
+    $2,
+    app_private.generate_admin_id('item'),
+    $4,
+    $5,
+    $6
+  );
 end;
 $$;
 
@@ -1475,7 +1505,13 @@ security invoker
 set search_path = public, app_private, pg_temp
 as $$
   select *
-  from app_private.add_catalog_item_option($1, $2, $3, $4, $5);
+  from app_private.add_catalog_item_option(
+    $1,
+    $2,
+    $3,
+    app_private.generate_admin_id('option'),
+    $5
+  );
 $$;
 
 create or replace function public.delete_catalog_item_option(
@@ -1567,6 +1603,7 @@ revoke all on function app_private.set_profile_service_kind(text, text) from pub
 revoke all on function app_private.set_daily_menu(text, text, text, text) from public, anon, authenticated;
 revoke all on function app_private.set_global_fixed_price(text, integer) from public, anon, authenticated;
 revoke all on function app_private.set_global_price_variant(text, text, integer) from public, anon, authenticated;
+revoke all on function app_private.generate_admin_id(text) from public, anon, authenticated;
 revoke all on function app_private.add_catalog_item(text, text, text, text, text, integer) from public, anon, authenticated;
 revoke all on function app_private.delete_catalog_item(text, text, text) from public, anon, authenticated;
 revoke all on function app_private.update_catalog_item(text, text, text, text, text) from public, anon, authenticated;
@@ -1582,6 +1619,7 @@ grant execute on function app_private.set_profile_service_kind(text, text) to au
 grant execute on function app_private.set_daily_menu(text, text, text, text) to authenticated;
 grant execute on function app_private.set_global_fixed_price(text, integer) to authenticated;
 grant execute on function app_private.set_global_price_variant(text, text, integer) to authenticated;
+grant execute on function app_private.generate_admin_id(text) to authenticated;
 grant execute on function app_private.add_catalog_item(text, text, text, text, text, integer) to authenticated;
 grant execute on function app_private.delete_catalog_item(text, text, text) to authenticated;
 grant execute on function app_private.update_catalog_item(text, text, text, text, text) to authenticated;

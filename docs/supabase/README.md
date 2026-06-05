@@ -59,7 +59,7 @@ No implementar consultas runtime para menu del dia, precios, servicio activo, ca
 - `/admin/` lee estado operativo mediante `get_admin_operational_state()` y escribe solo mediante RPCs operativas.
 - `/admin/` es un CMS operativo de contenido de menu: puede cubrir disponibilidad, servicio activo, menu del dia, parrilla dentro de familias existentes, contenido de menu fijo, opciones de subcategorias, precios y publicacion, sin abrir escritura editorial general.
 - `/admin/` permite recuperar y cambiar contrasena con Supabase Auth; el redirect de recuperacion debe volver a `/admin/`.
-- La edicion de parrilla puede agregar items, editar nombre/etiqueta y eliminar items dentro de familias existentes, sin administrar familias ni orden. La edicion de menu fijo puede agregar items, editar nombre/descripcion y eliminar items dentro de secciones o grupos existentes, y agregar, editar nombre y eliminar opciones de items que ya usan sabores, sin dejar una lista vacia; no edita disponibilidad, IDs tecnicos, orden, secciones, grupos ni reordenamiento de opciones. Los precios se editan desde RPCs globales de precios presentados en la pantalla del menu correspondiente.
+- La edicion de parrilla puede agregar items, editar nombre/etiqueta y eliminar items dentro de familias existentes, sin administrar familias ni orden. La edicion de menu fijo puede agregar items, editar nombre/descripcion y eliminar items dentro de secciones o grupos existentes, y agregar, editar nombre y eliminar opciones de items que ya usan sabores, sin dejar una lista vacia; no edita disponibilidad, IDs tecnicos, orden, secciones, grupos ni reordenamiento de opciones. Los IDs nuevos se generan en RPCs server-side, no desde nombres visibles en el browser. Los precios se editan desde RPCs globales de precios presentados en la pantalla del menu correspondiente.
 - No hay grants client-facing sobre `menu_content` ni tablas de `app_private`.
 
 Redirects requeridos en Supabase Auth:
@@ -160,6 +160,9 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260603090000_rename_prelaunch_catalog_section_ids.sql` | Renombra IDs tecnicos pre-lanzamiento de cafeteria y tartas/tortillas/omelettes. |
 | `20260604170000_rename_pure_id.sql` | Renombra el ID tecnico de Pure y su clave de precio para no atarlo solo a papa. |
 | `20260604173500_add_catalog_item_images.sql` | Agrega fotos adicionales ordenadas por item de catalogo sin reemplazar `image_path`. |
+| `20260604222000_fix_fixed_menu_scope_and_legacy_grants.sql` | Corrige el bloqueo server-side de secciones option-only y revoca grants legacy de `editor_profiles`. |
+| `20260604223000_generate_admin_ids_server_side.sql` | Genera IDs tecnicos nuevos en RPCs server-side y deja de aceptar IDs derivados por el browser en altas del admin. |
+| `20260604224000_acknowledge_ignored_catalog_item_id.sql` | Mantiene compatibilidad de firma RPC y documenta que `item_id` de alta se ignora para generar IDs server-side. |
 
 ## Baseline pre-lanzamiento
 

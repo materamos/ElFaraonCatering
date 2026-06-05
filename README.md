@@ -208,7 +208,7 @@ El lector build-time arma la forma que consumen `MenuPage`, `MenuSection` y `Dis
 
 Reglas principales:
 
-- Los IDs tecnicos son ASCII/kebab-case y estables.
+- Los IDs tecnicos son ASCII/kebab-case y estables. Las altas desde `/admin/` usan IDs generados por RPC server-side; no se derivan del nombre visible en el browser.
 - `menu_daily_items` define las dos opciones reales del menu del dia: menu comun y menu vegetariano.
 - `menu_profile_service_settings` define por local si el servicio activo es `daily-menu` o `grill`.
 - Si `service_kind` es `daily-menu`, el local muestra las dos opciones de `menu_daily_items`.
@@ -323,7 +323,7 @@ El admin permite:
 
 El link de recuperacion de contrasena vuelve a `/admin/`, donde el cliente lee el token de Supabase Auth y permite definir una nueva contrasena. Supabase Auth debe permitir la URL de redirect de produccion `https://elfaraoncatering.vercel.app/admin/` y, para pruebas locales, `http://localhost:4321/admin/`.
 
-No existe administracion de empleados en la UI actual. No existe CMS editorial amplio. La edicion de parrilla trata las familias como productos visibles y permite crear, renombrar o eliminar productos completos, ademas de administrar sus opciones y precios. No permite reordenar productos u opciones, cambiar IDs tecnicos despues de crearlos, editar disponibilidad ni administrar imagenes. La edicion de items del menu fijo no permite crear, eliminar, renombrar ni reordenar secciones o grupos, ni reordenar opciones, ni editar disponibilidad. En las ubicaciones de solo sabores (`Tartas, tortillas y omelettes` y `Empanadas`) tampoco permite agregar, editar ni eliminar items. Los precios se editan con los RPCs globales de precios, presentados dentro de la pantalla del menu correspondiente, excepto en el editorial de guarniciones incluidas.
+No existe administracion de empleados en la UI actual. No existe CMS editorial amplio. La edicion de parrilla trata las familias como productos visibles y permite crear, renombrar o eliminar productos completos, ademas de administrar sus opciones y precios. No permite reordenar productos u opciones, editar IDs tecnicos, editar disponibilidad ni administrar imagenes; los IDs nuevos se generan del lado de Supabase. La edicion de items del menu fijo no permite crear, eliminar, renombrar ni reordenar secciones o grupos, ni reordenar opciones, ni editar disponibilidad. En las ubicaciones de solo sabores (`Tartas, tortillas y omelettes` y `Empanadas`) tampoco permite agregar, editar ni eliminar items. Los precios se editan con los RPCs globales de precios, presentados dentro de la pantalla del menu correspondiente, excepto en el editorial de guarniciones incluidas.
 
 ## Despliegue
 
