@@ -174,6 +174,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260606214000_fix_flat_availability_overlay_upsert.sql` | Corrige el upsert plano de disponibilidad para evitar ambiguedad entre parametros y columnas. |
 | `20260606215000_consolidate_catalog_item_images.sql` | Consolida todos los paths de imagen del catalogo fijo en `menu_catalog_item_images`, elimina columnas legacy y agrega las imagenes al fingerprint. |
 | `20260606216000_harden_catalog_image_paths.sql` | Impide segmentos vacios en los paths consolidados de imagen. |
+| `20260606217000_sync_catalog_item_identity.sql` | Sincroniza la secuencia identity de `menu_catalog_items.id` con el maximo ID existente. |
 
 ## Baseline pre-lanzamiento
 
