@@ -70,6 +70,7 @@ let currentBusyText: string | null = null;
 let authView: AuthView = "login";
 let isBusy = false;
 let requestedPublishHash = "";
+let publishCooldownEndsAt = 0;
 
 type AdminStatusText = string | ((state: AdminOperationalState) => string);
 type RenderFocusMode = "preserve" | "view" | "tab";
@@ -108,8 +109,11 @@ if (!rootElement) {
 
 const root: HTMLElement = rootElement;
 const deployedContentHash = getTrimmedValue(root.dataset.deployedContentHash) ?? "";
+const defaultPublishCooldownSeconds = 60;
 const requestedPublishHashStorageKey = "el-faraon-admin-requested-publish-hash";
+const publishCooldownStorageKey = "el-faraon-admin-publish-cooldown-ends-at";
 requestedPublishHash = readRequestedPublishHash();
+publishCooldownEndsAt = readPublishCooldownEndsAt();
 const adminOperations = createAdminOperations({
   runBusy,
   callMutation,
@@ -117,6 +121,7 @@ const adminOperations = createAdminOperations({
   requireSession,
   publishMenuChanges: (session) => publishMenuChangesRequest(adminApiConfig, session),
   markCurrentPublicationRequested,
+  rememberPublishCooldown,
 });
 
 root.addEventListener("click", (event) => {
@@ -447,6 +452,16 @@ async function handleAction(target: HTMLElement): Promise<void> {
   }
 
   if (action === "publish") {
+    const cooldownSecondsRemaining = getPublishCooldownSecondsRemaining();
+
+    if (cooldownSecondsRemaining > 0) {
+      setStatus(
+        `Ya se pidió una publicación hace poco (${cooldownSecondsRemaining} segundos restantes). Los cambios quedan guardados; volvé a publicar cuando esté disponible.`,
+        "neutral",
+      );
+      return;
+    }
+
     if (!confirmUnsavedChanges() || !confirmPublishChanges()) {
       return;
     }
@@ -713,6 +728,30 @@ function markCurrentPublicationRequested(): void {
   window.sessionStorage.setItem(requestedPublishHashStorageKey, contentHash);
 }
 
+function rememberPublishCooldown(result: RpcResult): void {
+  const seconds = result.cooldown_seconds_remaining
+    ?? (result.message === "publish_queued" ? defaultPublishCooldownSeconds : 0);
+
+  if (typeof seconds !== "number" || !Number.isSafeInteger(seconds) || seconds <= 0) {
+    return;
+  }
+
+  publishCooldownEndsAt = Date.now() + (seconds * 1000);
+  window.localStorage.setItem(publishCooldownStorageKey, String(publishCooldownEndsAt));
+}
+
+function getPublishCooldownSecondsRemaining(): number {
+  const millisecondsRemaining = publishCooldownEndsAt - Date.now();
+
+  if (millisecondsRemaining <= 0) {
+    publishCooldownEndsAt = 0;
+    window.localStorage.removeItem(publishCooldownStorageKey);
+    return 0;
+  }
+
+  return Math.ceil(millisecondsRemaining / 1000);
+}
+
 function reconcileRequestedPublishHash(state: AdminOperationalState): void {
   if (!requestedPublishHash) {
     return;
@@ -732,6 +771,11 @@ function reconcileRequestedPublishHash(state: AdminOperationalState): void {
 
 function readRequestedPublishHash(): string {
   return window.sessionStorage.getItem(requestedPublishHashStorageKey) ?? "";
+}
+
+function readPublishCooldownEndsAt(): number {
+  const value = Number(window.localStorage.getItem(publishCooldownStorageKey));
+  return Number.isSafeInteger(value) && value > Date.now() ? value : 0;
 }
 
 async function requireSession(): Promise<AuthSession> {

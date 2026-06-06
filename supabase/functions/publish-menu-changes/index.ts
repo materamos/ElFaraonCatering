@@ -428,7 +428,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
       request,
       allowedOrigins,
       200,
-      createResponseBody(true, true, false, "publish_queued"),
+      createResponseBody(true, true, false, "publish_queued", cooldownSeconds),
     );
   } catch (error) {
     console.error("publish_menu_changes unexpected error", {

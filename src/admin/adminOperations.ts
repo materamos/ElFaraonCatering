@@ -27,6 +27,7 @@ interface AdminOperationContext {
   requireSession(): Promise<AuthSession>;
   publishMenuChanges(session: AuthSession): Promise<RpcResult>;
   markCurrentPublicationRequested(): void;
+  rememberPublishCooldown(result: RpcResult): void;
 }
 
 export function createAdminOperations(context: AdminOperationContext) {
@@ -602,6 +603,7 @@ export function createAdminOperations(context: AdminOperationContext) {
 
         if (result.message === "publish_queued") {
           context.markCurrentPublicationRequested();
+          context.rememberPublishCooldown(result);
           await context.loadAdminState(
             "Publicación solicitada. El botón vuelve a aparecer si hacés cambios nuevos antes de que termine el deploy.",
             "success",
@@ -610,6 +612,7 @@ export function createAdminOperations(context: AdminOperationContext) {
         }
 
         if (result.message === "publish_recently_queued") {
+          context.rememberPublishCooldown(result);
           await context.loadAdminState(
             `Ya se pidió una publicación hace poco${formatCooldownSuffix(result)}. Los cambios quedan guardados; volvé a publicar cuando esté disponible.`,
             "neutral",
