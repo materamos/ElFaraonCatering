@@ -71,7 +71,7 @@ with grill_items (
     ('matambre', 'parrilla-matambre-pizza-guarnicion', 'Matambre a la pizza con guarnicion', 'A la pizza con guarnicion', 'parrilla-matambre-pizza-guarnicion', 17000, 7),
     ('matambre', 'parrilla-matambre-fugazzeta-guarnicion', 'Matambre a la fugazzeta con guarnicion', 'A la fugazzeta con guarnicion', 'parrilla-matambre-fugazzeta-guarnicion', 17000, 8),
     ('entrana', 'parrilla-sandwich-entrana-completo', 'Sandwich de entrana completo', 'Sandwich completo', 'parrilla-sandwich-entrana-completo', 19000, 9),
-    ('entrana', 'parrilla-sandwich-entrana-guarnicion', 'Sandwich de entrana completa con guarnicion', 'Sandwich completo con guarnicion', 'parrilla-sandwich-entrana-guarnicion', 22000, 10),
+    ('entrana', 'parrilla-sandwich-entrana-guarnicion', 'Sandwich de entrana completo con guarnicion', 'Sandwich completo con guarnicion', 'parrilla-sandwich-entrana-guarnicion', 22000, 10),
     ('entrana', 'parrilla-entrana-plato-guarnicion', 'Entrana al plato con guarnicion', 'Al plato con guarnicion', 'parrilla-entrana-plato-guarnicion', 23000, 11),
     ('lomo', 'parrilla-sandwich-lomo-completo', 'Sandwich de lomo completo', 'Sandwich completo', 'parrilla-sandwich-lomo-completo', 20000, 12),
     ('lomo', 'parrilla-sandwich-lomo-guarnicion', 'Sandwich de lomo completo con guarnicion', 'Sandwich completo con guarnicion', 'parrilla-sandwich-lomo-guarnicion', 23000, 13),
