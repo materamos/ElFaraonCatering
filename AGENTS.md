@@ -78,9 +78,13 @@ option per product, and edit global fixed prices for options. Do not allow grill
 edits to reorder products or options, change technical IDs after creation,
 change availability, or manage images from `/admin/`.
 
+The fixed catalog is flat: sections contain direct items, every item has its own
+`pricing_key`, and catalog groups or inherited group pricing must not be
+reintroduced.
+
 Fixed-menu admin item edits may add individual catalog items, update item name and
-description, delete individual catalog items only within existing sections or
-groups, or add, update, and delete individual catalog item options for items
+description, delete individual catalog items only within existing sections, or
+add, update, and delete individual catalog item options for items
 that already use options. The fixed-menu admin treats `tartas-tortillas-omelettes`
 as `Tartas, tortillas y omelettes`, shows `tartas`, `tortilla`, and `omelette`
 there, and allows only option edits for items that already use options; it allows
@@ -88,7 +92,7 @@ only `empanadas` option edits in `empanadas`. In those option-only locations, do
 not allow item add, update, or delete operations. Option edits from `/admin/`
 must not leave an item with zero options. Do not allow fixed-menu item edits to
 change prices, availability, technical IDs, order, to reorder options, or to
-create, delete, rename, or reorder catalog sections or groups from `/admin/`.
+create, delete, rename, or reorder catalog sections from `/admin/`.
 For included side-option items in `guarniciones`, except `guarnicion-sola`,
 `/admin/` must not expose price editing. New included side items/options must be
 inserted before the current last option when that rule is available.
@@ -126,7 +130,6 @@ Required content surfaces:
 - active service settings by local
 - fixed grill items
 - catalog sections
-- groups
 - items
 - options
 - fixed, included, and variant prices
@@ -149,11 +152,7 @@ Daily service rules:
 
 Pricing rules:
 
-- Direct section items must define `pricing`.
-- Groups may define shared `pricing`.
-- Items inside a priced group may omit `pricing` and inherit the group price.
-- Items inside a group may define `pricing` as an override.
-- If a group has no shared `pricing`, each item in that group must define `pricing`.
+- Every catalog item must define its own `pricing`.
 - Supported pricing kinds are `fixed`, `included`, and flat `variants`.
 - Price amounts must be numeric in `price.amount`.
 - Do not use free-text price labels or pending price states.
@@ -216,7 +215,7 @@ Runtime overlay:
 - `/admin/` publication-pending UI must compare the current build-time content fingerprint with the static content fingerprint embedded in the currently deployed `/admin/` build. Do not use a session-only "edited" flag or the latest admin-triggered publish request as the source of truth for pending publication.
 - Publish cooldown responses may include `cooldown_seconds_remaining`; keep that contract synchronized across the Edge Function, SQL helpers, and admin UI.
 - The Edge Function runtime uses `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VERCEL_DEPLOY_HOOK_URL`, `PUBLISH_ALLOWED_ORIGINS`, and `PUBLISH_COOLDOWN_SECONDS`. Never expose the service role key or deploy hook to browser code or `PUBLIC_*` variables.
-- `public.editor_profiles` is legacy-only and must not back new policies.
+- `public.editor_profiles` was removed after the `staff_users` backfill; do not recreate or reference it.
 - The first `admin` staff row must be bootstrapped through privileged SQL or service role access, not browser RLS.
 - Public client variables are `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.
 - `/admin/` may use Supabase Auth password recovery and password updates for staff users; recovery redirects must return to `/admin/`.

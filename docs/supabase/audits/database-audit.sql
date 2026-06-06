@@ -37,7 +37,7 @@ select
   case
     when n.nspname = 'app_private' and c.relname in ('menu_publish_requests') then 'keep'
     when n.nspname = 'menu_content' then 'keep'
-    when n.nspname = 'public' and c.relname in ('editor_profiles', 'staff_users', 'menu_availability_overlays') then 'keep'
+    when n.nspname = 'public' and c.relname in ('staff_users', 'menu_availability_overlays') then 'keep'
     else 'review'
   end as suggested_status,
   c.reltuples::bigint as estimated_rows
@@ -58,13 +58,11 @@ with documented_relations(schema_name, object_name, object_type, status) as (
     ('menu_content', 'menu_daily_items', 'table', 'active'),
     ('menu_content', 'menu_profile_service_settings', 'table', 'active'),
     ('menu_content', 'menu_catalog_sections', 'table', 'active'),
-    ('menu_content', 'menu_catalog_groups', 'table', 'active'),
     ('menu_content', 'menu_catalog_items', 'table', 'active'),
     ('menu_content', 'menu_catalog_item_images', 'table', 'active'),
     ('menu_content', 'menu_catalog_item_options', 'table', 'active'),
     ('menu_content', 'menu_grill_families', 'table', 'active'),
     ('menu_content', 'menu_grill_catalog_items', 'table', 'active'),
-    ('public', 'editor_profiles', 'table', 'legacy'),
     ('public', 'staff_users', 'table', 'active'),
     ('public', 'menu_availability_overlays', 'table', 'active')
 ),
@@ -89,13 +87,12 @@ select
   o.object_name,
   o.object_type,
   case
-    when d.status in ('active', 'legacy') then 'keep'
+    when d.status = 'active' then 'keep'
     when d.object_name is null then 'unknown'
     else 'review'
   end as suggested_status,
   case
     when d.status = 'active' then 'Documented active project relation.'
-    when d.status = 'legacy' then 'Documented legacy project relation kept for backfill.'
     else 'Relation is not documented by this project audit.'
   end as reason
 from observed_relations o
@@ -130,7 +127,6 @@ with expected_overlay_select_columns(column_name) as (
   values
     ('menu_id'),
     ('section_id'),
-    ('group_id'),
     ('item_id'),
     ('available_override')
 ),
@@ -180,7 +176,6 @@ where table_schema = 'public'
   and column_name not in (
     'menu_id',
     'section_id',
-    'group_id',
     'item_id',
     'available_override'
   )
@@ -194,7 +189,7 @@ select
   c.relforcerowsecurity as rls_forced,
   case
     when n.nspname = 'app_private' and c.relname = 'menu_publish_requests' and c.relrowsecurity then 'keep'
-    when n.nspname = 'public' and c.relname in ('editor_profiles', 'staff_users', 'menu_availability_overlays') and c.relrowsecurity then 'keep'
+    when n.nspname = 'public' and c.relname in ('staff_users', 'menu_availability_overlays') and c.relrowsecurity then 'keep'
     when n.nspname = 'public' then 'review'
     else 'keep'
   end as suggested_status
@@ -226,17 +221,17 @@ with expected_functions (function_name, identity_arguments, expectation) as (
     ('can_manage_staff', '', 'staff administration role check'),
     ('can_publish_menu', '', 'build-time publish role check'),
     ('get_admin_operational_state', '', 'operational admin read RPC'),
-    ('menu_availability_target_exists', 'target_menu_id text, target_section_id text, target_group_id text, target_item_id text', 'availability target universe validation'),
-    ('set_menu_availability_overlay', 'menu_id text, section_id text, group_id text, item_id text, available_override boolean', 'availability overlay upsert RPC'),
-    ('clear_menu_availability_overlay', 'menu_id text, section_id text, group_id text, item_id text', 'availability overlay clear RPC'),
+    ('menu_availability_target_exists', 'target_menu_id text, target_section_id text, target_item_id text', 'availability target universe validation'),
+    ('set_menu_availability_overlay', 'menu_id text, section_id text, item_id text, available_override boolean', 'availability overlay upsert RPC'),
+    ('clear_menu_availability_overlay', 'menu_id text, section_id text, item_id text', 'availability overlay clear RPC'),
     ('set_profile_service_kind', 'profile_id text, service_kind text', 'active service edit RPC'),
     ('set_daily_menu', 'regular_name text, regular_description text, vegetarian_name text, vegetarian_description text', 'daily menu edit RPC'),
     ('set_global_fixed_price', 'pricing_key text, amount integer', 'fixed price edit RPC'),
     ('set_global_price_variant', 'pricing_key text, variant_id text, amount integer', 'variant price edit RPC'),
-    ('add_catalog_item', 'section_id text, group_id text, item_id text, name text, description text, amount integer', 'fixed menu item add RPC'),
-    ('delete_catalog_item', 'section_id text, group_id text, item_id text', 'fixed menu item delete RPC'),
-    ('update_catalog_item', 'section_id text, group_id text, item_id text, name text, description text', 'fixed menu item text edit RPC'),
-    ('update_catalog_item_option', 'section_id text, group_id text, item_id text, option_id text, name text', 'fixed menu option text edit RPC'),
+    ('add_catalog_item', 'section_id text, item_id text, name text, description text, amount integer', 'fixed menu item add RPC'),
+    ('delete_catalog_item', 'section_id text, item_id text', 'fixed menu item delete RPC'),
+    ('update_catalog_item', 'section_id text, item_id text, name text, description text', 'fixed menu item text edit RPC'),
+    ('update_catalog_item_option', 'section_id text, item_id text, option_id text, name text', 'fixed menu option text edit RPC'),
     ('reserve_menu_publish_request', 'user_id uuid, cooldown_seconds integer', 'private publish reservation helper'),
     ('complete_menu_publish_request', 'request_id bigint, publish_status text, publish_message text, vercel_status_code integer, vercel_job_id text', 'private publish completion helper')
 ),
@@ -343,25 +338,25 @@ order by expected.function_name;
 
 -- 10. Availability overlay targets that do not match possible menu targets.
 with possible_targets as (
-  select profile.id as menu_id, 'menu-del-dia'::text as section_id, ''::text as group_id, item.item_id
+  select profile.id as menu_id, 'menu-del-dia'::text as section_id, item.item_id
   from menu_content.menu_profiles profile
   cross join menu_content.menu_daily_items item
 
   union all
 
-  select profile.id, 'parrilla', '', item.item_id
+  select profile.id, 'parrilla', item.item_id
   from menu_content.menu_profiles profile
   cross join menu_content.menu_grill_catalog_items item
 
   union all
 
-  select profile.id, item.section_id, item.group_id, item.item_id
+  select profile.id, item.section_id, item.item_id
   from menu_content.menu_profiles profile
   cross join menu_content.menu_catalog_items item
 
   union all
 
-  select profile.id, item.section_id, item.group_id, item.item_id || '-' || option.option_id
+  select profile.id, item.section_id, item.item_id || '-' || option.option_id
   from menu_content.menu_profiles profile
   cross join menu_content.menu_catalog_items item
   join menu_content.menu_catalog_item_options option
@@ -370,7 +365,6 @@ with possible_targets as (
 select
   overlay.menu_id,
   overlay.section_id,
-  overlay.group_id,
   overlay.item_id,
   'risk' as suggested_status,
   'Availability overlay row does not match a possible menu target.' as reason
@@ -380,16 +374,15 @@ where not exists (
   from possible_targets target
   where target.menu_id = overlay.menu_id
     and target.section_id = overlay.section_id
-    and target.group_id = coalesce(overlay.group_id, '')
     and target.item_id = overlay.item_id
 )
-order by overlay.menu_id, overlay.section_id, overlay.group_id, overlay.item_id;
+order by overlay.menu_id, overlay.section_id, overlay.item_id;
 
 -- 11. Image paths with invalid format in the active catalog.
 select
   'menu_catalog_items' as object_name,
   section_id,
-  group_id,
+  null::text as context_id,
   item_id,
   image_path
 from menu_content.menu_catalog_items

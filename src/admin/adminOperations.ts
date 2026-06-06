@@ -37,7 +37,6 @@ export function createAdminOperations(context: AdminOperationContext) {
         const result = await context.callMutation("set_menu_availability_overlay", {
           menu_id: target.menu_id,
           section_id: target.section_id,
-          group_id: target.group_id || null,
           item_id: target.item_id,
           available_override: available,
         });
@@ -58,7 +57,6 @@ export function createAdminOperations(context: AdminOperationContext) {
         const result = await context.callMutation("clear_menu_availability_overlay", {
           menu_id: target.menu_id,
           section_id: target.section_id,
-          group_id: target.group_id || null,
           item_id: target.item_id,
         });
 
@@ -81,7 +79,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           const result = await context.callMutation("set_menu_availability_overlay", {
             menu_id: target.menu_id,
             section_id: target.section_id,
-            group_id: target.group_id || null,
             item_id: target.item_id,
             available_override: available,
           });
@@ -110,7 +107,6 @@ export function createAdminOperations(context: AdminOperationContext) {
           const result = await context.callMutation("clear_menu_availability_overlay", {
             menu_id: target.menu_id,
             section_id: target.section_id,
-            group_id: target.group_id || null,
             item_id: target.item_id,
           });
 
@@ -392,7 +388,6 @@ export function createAdminOperations(context: AdminOperationContext) {
         const amountValue = getNullableFormString(form, "amount");
         const result = await context.callMutation("add_catalog_item", {
           section_id: getFormString(form, "section_id"),
-          group_id: getFormString(form, "group_id"),
           item_id: getFormString(form, "item_id"),
           name: getFormString(form, "name"),
           description: getNullableFormString(form, "description"),
@@ -418,7 +413,6 @@ export function createAdminOperations(context: AdminOperationContext) {
       return context.runBusy(async () => {
         const result = await context.callMutation("delete_catalog_item", {
           section_id: item.section_id,
-          group_id: item.group_id,
           item_id: item.item_id,
         });
 
@@ -444,7 +438,6 @@ export function createAdminOperations(context: AdminOperationContext) {
         try {
           const itemResult = await context.callMutation("update_catalog_item", {
             section_id: getFormString(form, "section_id"),
-            group_id: getFormString(form, "group_id"),
             item_id: getFormString(form, "item_id"),
             name: getFormString(form, "name"),
             description: getNullableFormString(form, "description"),
@@ -526,7 +519,6 @@ export function createAdminOperations(context: AdminOperationContext) {
       return context.runBusy(async () => {
         const result = await context.callMutation("add_catalog_item_option", {
           section_id: getFormString(form, "section_id"),
-          group_id: getFormString(form, "group_id"),
           item_id: getFormString(form, "item_id"),
           option_id: getFormString(form, "option_id"),
           name: getFormString(form, "name"),
@@ -551,7 +543,6 @@ export function createAdminOperations(context: AdminOperationContext) {
       return context.runBusy(async () => {
         const result = await context.callMutation("update_catalog_item_option", {
           section_id: getFormString(form, "section_id"),
-          group_id: getFormString(form, "group_id"),
           item_id: getFormString(form, "item_id"),
           option_id: getFormString(form, "option_id"),
           name: getFormString(form, "name"),
@@ -576,7 +567,6 @@ export function createAdminOperations(context: AdminOperationContext) {
       return context.runBusy(async () => {
         const result = await context.callMutation("delete_catalog_item_option", {
           section_id: option.section_id,
-          group_id: option.group_id,
           item_id: option.item_id,
           option_id: option.option_id,
         });

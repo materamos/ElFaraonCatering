@@ -4,16 +4,7 @@ const unavailableText = "No disponible";
 const getRequiredTechnicalId = (value) =>
   value && technicalIdPattern.test(value) ? value : undefined;
 
-const getOptionalTechnicalId = (value) => {
-  if (!value) {
-    return "";
-  }
-
-  return technicalIdPattern.test(value) ? value : undefined;
-};
-
-const getOverlayKey = (sectionId, groupId, itemId) =>
-  `${sectionId}/${groupId}/${itemId}`;
+const getOverlayKey = (sectionId, itemId) => `${sectionId}/${itemId}`;
 
 const getTrimmedValue = (value) => value?.trim() || undefined;
 
@@ -28,7 +19,7 @@ const getSupabaseRestUrl = (supabaseUrl, menuId) => {
   url.searchParams.set("menu_id", `eq.${menuId}`);
   url.searchParams.set(
     "select",
-    "menu_id,section_id,group_id,item_id,available_override",
+    "menu_id,section_id,item_id,available_override",
   );
 
   return url;
@@ -37,18 +28,13 @@ const getSupabaseRestUrl = (supabaseUrl, menuId) => {
 const parseOverlayRow = (row, menuId) => {
   const rowMenuId = typeof row.menu_id === "string" ? row.menu_id : undefined;
   const sectionId = typeof row.section_id === "string" ? row.section_id : undefined;
-  const groupId = row.group_id === null || typeof row.group_id === "string"
-    ? row.group_id
-    : undefined;
   const itemId = typeof row.item_id === "string" ? row.item_id : undefined;
   const parsedSectionId = getRequiredTechnicalId(sectionId);
-  const parsedGroupId = getOptionalTechnicalId(groupId);
   const parsedItemId = getRequiredTechnicalId(itemId);
 
   if (
     rowMenuId !== menuId ||
     !parsedSectionId ||
-    parsedGroupId === undefined ||
     !parsedItemId ||
     typeof row.available_override !== "boolean"
   ) {
@@ -56,7 +42,7 @@ const parseOverlayRow = (row, menuId) => {
   }
 
   return {
-    key: getOverlayKey(parsedSectionId, parsedGroupId, parsedItemId),
+    key: getOverlayKey(parsedSectionId, parsedItemId),
     available: row.available_override,
   };
 };
@@ -131,14 +117,13 @@ const loadAvailabilityOverlays = async () => {
 
   for (const item of items) {
     const sectionId = getRequiredTechnicalId(item.dataset.sectionId);
-    const groupId = getOptionalTechnicalId(item.dataset.groupId);
     const itemId = getRequiredTechnicalId(item.dataset.itemId);
 
-    if (!sectionId || groupId === undefined || !itemId) {
+    if (!sectionId || !itemId) {
       continue;
     }
 
-    itemsByKey.set(getOverlayKey(sectionId, groupId, itemId), item);
+    itemsByKey.set(getOverlayKey(sectionId, itemId), item);
   }
 
   if (itemsByKey.size === 0) {

@@ -93,7 +93,6 @@ const formBaselines = new WeakMap<HTMLFormElement, string>();
 const formKeyNames = [
   "profile_id",
   "section_id",
-  "group_id",
   "item_id",
   "option_id",
   "family_id",
@@ -378,9 +377,8 @@ async function handleAction(target: HTMLElement): Promise<void> {
 
   if (action === "delete-catalog-item") {
     const sectionId = target.dataset.sectionId;
-    const groupId = target.dataset.groupId ?? "";
     const itemId = target.dataset.itemId;
-    const item = sectionId && itemId ? findCatalogItem(sectionId, groupId, itemId) : undefined;
+    const item = sectionId && itemId ? findCatalogItem(sectionId, itemId) : undefined;
 
     if (!item) {
       setStatus("No se encontró el item seleccionado.", "danger");
@@ -431,11 +429,10 @@ async function handleAction(target: HTMLElement): Promise<void> {
 
   if (action === "delete-catalog-option") {
     const sectionId = target.dataset.sectionId;
-    const groupId = target.dataset.groupId ?? "";
     const itemId = target.dataset.itemId;
     const optionId = target.dataset.optionId;
     const option = sectionId && itemId && optionId
-      ? findCatalogItemOption(sectionId, groupId, itemId, optionId)
+      ? findCatalogItemOption(sectionId, itemId, optionId)
       : undefined;
 
     if (!option) {

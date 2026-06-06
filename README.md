@@ -201,7 +201,7 @@ El lector build-time arma la forma que consumen `MenuPage`, `MenuSection` y `Dis
 - servicio activo por local con `service_kind`
 - familias de parrilla con variantes
 - catalogo compartido
-- grupos e items
+- items directos por seccion
 - precios `fixed`, `included` y `variants`
 - opciones
 - imagenes locales bajo `/uploads/`
@@ -219,11 +219,8 @@ Reglas principales:
 - Cuando ambos locales muestran menu del dia, comparten el mismo plato principal.
 - Los precios son globales para todos los locales.
 - La disponibilidad operativa es individual por local/menu y vive solo en `public.menu_availability_overlays`.
-- Las secciones definen `items` o `groups`, no ambos.
-- Los items directos deben definir precio.
-- Un grupo puede definir precio compartido.
-- Un item dentro de un grupo puede omitir precio para heredar o definir precio para sobrescribir.
-- Si un grupo no tiene precio compartido, cada item del grupo debe definir el suyo.
+- Las secciones contienen directamente sus `items`.
+- Cada item define su propio precio; no hay grupos ni precios heredados.
 - Las variantes son planas y sus montos son numericos.
 - Las imagenes deben ser paths locales bajo `/uploads/`.
 - `image_path` conserva la foto principal de un item; `menu_catalog_item_images` permite fotos adicionales ordenadas para casos puntuales.
@@ -314,7 +311,7 @@ El admin permite:
 - editar el menu del dia base
 - cambiar el servicio activo por local entre `daily-menu` y `grill`
 - agregar, renombrar y eliminar productos de parrilla, y agregar, editar o eliminar sus opciones/precios
-- agregar, editar nombre/descripcion y eliminar items puntuales del menu fijo dentro de secciones o grupos existentes
+- agregar, editar nombre/descripcion y eliminar items puntuales del menu fijo dentro de secciones existentes
 - agregar, editar nombre y eliminar opciones de items del menu fijo que ya usan sabores, como empanadas o tartas, sin permitir que una subcategoria quede sin sabores
 - en `Menu fijo`, la seccion operativa `tartas-tortillas-omelettes` se muestra como `Tartas, tortillas y omelettes`, incluye tartas, tortilla y omelette, y solo permite administrar sabores en items que ya usan opciones; `empanadas` tambien permite solo administrar sabores de `empanadas`
 - las guarniciones se administran como opciones incluidas salvo `guarnicion-sola`, que conserva precio fijo; el admin no expone precios para esas altas incluidas y las nuevas opciones se insertan antes de la ultima opcion existente
@@ -323,7 +320,7 @@ El admin permite:
 
 El link de recuperacion de contrasena vuelve a `/admin/`, donde el cliente lee el token de Supabase Auth y permite definir una nueva contrasena. Supabase Auth debe permitir la URL de redirect de produccion `https://elfaraoncatering.vercel.app/admin/` y, para pruebas locales, `http://localhost:4321/admin/`.
 
-No existe administracion de empleados en la UI actual. No existe CMS editorial amplio. La edicion de parrilla trata las familias como productos visibles y permite crear, renombrar o eliminar productos completos, ademas de administrar sus opciones y precios. No permite reordenar productos u opciones, editar IDs tecnicos, editar disponibilidad ni administrar imagenes; los IDs nuevos se generan del lado de Supabase. Las altas y los renombrados rechazan nombres visibles duplicados dentro del mismo contexto operativo con mensajes aptos para el operador. La edicion de items del menu fijo no permite crear, eliminar, renombrar ni reordenar secciones o grupos, ni reordenar opciones, ni editar disponibilidad. En las ubicaciones de solo sabores (`Tartas, tortillas y omelettes` y `Empanadas`) tampoco permite agregar, editar ni eliminar items. Los precios se editan con los RPCs globales de precios, presentados dentro de la pantalla del menu correspondiente, excepto en el editorial de guarniciones incluidas.
+No existe administracion de empleados en la UI actual. No existe CMS editorial amplio. La edicion de parrilla trata las familias como productos visibles y permite crear, renombrar o eliminar productos completos, ademas de administrar sus opciones y precios. No permite reordenar productos u opciones, editar IDs tecnicos, editar disponibilidad ni administrar imagenes; los IDs nuevos se generan del lado de Supabase. Las altas y los renombrados rechazan nombres visibles duplicados dentro del mismo contexto operativo con mensajes aptos para el operador. La edicion de items del menu fijo no permite crear, eliminar, renombrar ni reordenar secciones, ni reordenar opciones, ni editar disponibilidad. En las ubicaciones de solo sabores (`Tartas, tortillas y omelettes` y `Empanadas`) tampoco permite agregar, editar ni eliminar items. Los precios se editan con los RPCs globales de precios, presentados dentro de la pantalla del menu correspondiente, excepto en el editorial de guarniciones incluidas.
 
 ## Despliegue
 

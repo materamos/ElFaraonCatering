@@ -65,7 +65,6 @@ $$;
 create or replace function app_private.menu_availability_target_exists(
   target_menu_id text,
   target_section_id text,
-  target_group_id text,
   target_item_id text
 )
 returns boolean
@@ -80,7 +79,6 @@ as $$
     cross join menu_content.menu_daily_items item
     where profile.id = target_menu_id
       and target_section_id = 'menu-del-dia'
-      and coalesce(nullif(btrim(target_group_id), ''), '') = ''
       and item.item_id = target_item_id
   )
   or exists (
@@ -89,7 +87,6 @@ as $$
     cross join menu_content.menu_grill_catalog_items item
     where profile.id = target_menu_id
       and target_section_id = 'parrilla'
-      and coalesce(nullif(btrim(target_group_id), ''), '') = ''
       and item.item_id = target_item_id
   )
   or exists (
@@ -98,7 +95,6 @@ as $$
     cross join menu_content.menu_catalog_items item
     where profile.id = target_menu_id
       and item.section_id = target_section_id
-      and item.group_id = coalesce(nullif(btrim(target_group_id), ''), '')
       and item.item_id = target_item_id
   )
   or exists (
@@ -109,7 +105,6 @@ as $$
       on option.catalog_item_id = item.id
     where profile.id = target_menu_id
       and item.section_id = target_section_id
-      and item.group_id = coalesce(nullif(btrim(target_group_id), ''), '')
       and item.item_id || '-' || option.option_id = target_item_id
   );
 $$;
@@ -117,7 +112,6 @@ $$;
 create or replace function app_private.set_menu_availability_overlay(
   menu_id text,
   section_id text,
-  group_id text,
   item_id text,
   available_override boolean
 )
@@ -135,7 +129,6 @@ as $$
 declare
   target_menu_id text := set_menu_availability_overlay.menu_id;
   target_section_id text := set_menu_availability_overlay.section_id;
-  target_group_id text := nullif(btrim(set_menu_availability_overlay.group_id), '');
   target_item_id text := set_menu_availability_overlay.item_id;
   target_available_override boolean := set_menu_availability_overlay.available_override;
   previous_override boolean;
@@ -153,7 +146,6 @@ begin
     from app_private.clear_menu_availability_overlay(
       target_menu_id,
       target_section_id,
-      target_group_id,
       target_item_id
     );
     return;
@@ -162,7 +154,6 @@ begin
   if not public.menu_availability_target_exists(
     target_menu_id,
     target_section_id,
-    target_group_id,
     target_item_id
   ) then
     return query select false, false, false, 'set_menu_availability_overlay', 'invalid_availability_target';
@@ -179,7 +170,6 @@ begin
   from public.menu_availability_overlays overlay
   where overlay.menu_id = target_menu_id
     and overlay.section_id = target_section_id
-    and coalesce(overlay.group_id, '') = coalesce(target_group_id, '')
     and overlay.item_id = target_item_id;
 
   if coalesce(row_exists, false) and previous_override is false then
@@ -194,7 +184,6 @@ begin
     updated_by = (select auth.uid())
   where overlay.menu_id = target_menu_id
     and overlay.section_id = target_section_id
-    and coalesce(overlay.group_id, '') = coalesce(target_group_id, '')
     and overlay.item_id = target_item_id;
 
   get diagnostics updated_count = row_count;
@@ -204,7 +193,6 @@ begin
       insert into public.menu_availability_overlays (
         menu_id,
         section_id,
-        group_id,
         item_id,
         available_override,
         updated_at,
@@ -213,7 +201,6 @@ begin
       values (
         target_menu_id,
         target_section_id,
-        target_group_id,
         target_item_id,
         false,
         now(),
@@ -228,7 +215,6 @@ begin
           updated_by = (select auth.uid())
         where overlay.menu_id = target_menu_id
           and overlay.section_id = target_section_id
-          and coalesce(overlay.group_id, '') = coalesce(target_group_id, '')
           and overlay.item_id = target_item_id;
     end;
   end if;
@@ -240,7 +226,6 @@ $$;
 create or replace function app_private.clear_menu_availability_overlay(
   menu_id text,
   section_id text,
-  group_id text,
   item_id text
 )
 returns table (
@@ -257,14 +242,12 @@ as $$
 declare
   target_menu_id text := clear_menu_availability_overlay.menu_id;
   target_section_id text := clear_menu_availability_overlay.section_id;
-  target_group_id text := nullif(btrim(clear_menu_availability_overlay.group_id), '');
   target_item_id text := clear_menu_availability_overlay.item_id;
   deleted_count integer := 0;
 begin
   if not public.menu_availability_target_exists(
     target_menu_id,
     target_section_id,
-    target_group_id,
     target_item_id
   ) then
     return query select false, false, false, 'clear_menu_availability_overlay', 'invalid_availability_target';
@@ -279,7 +262,6 @@ begin
   delete from public.menu_availability_overlays overlay
   where overlay.menu_id = target_menu_id
     and overlay.section_id = target_section_id
-    and coalesce(overlay.group_id, '') = coalesce(target_group_id, '')
     and overlay.item_id = target_item_id;
 
   get diagnostics deleted_count = row_count;
@@ -593,9 +575,9 @@ begin
 end;
 $$;
 
+
 create or replace function app_private.add_catalog_item(
   section_id text,
-  group_id text,
   item_id text,
   name text,
   description text,
@@ -614,13 +596,10 @@ set search_path = public, menu_content, pg_temp
 as $$
 declare
   target_section_id text := nullif(btrim(add_catalog_item.section_id), '');
-  target_group_id text := coalesce(nullif(btrim(add_catalog_item.group_id), ''), '');
   target_item_id text := nullif(btrim(add_catalog_item.item_id), '');
   target_name text := nullif(btrim(add_catalog_item.name), '');
   target_description text := nullif(btrim(add_catalog_item.description), '');
   target_amount integer := add_catalog_item.amount;
-  section_kind text;
-  group_pricing_key text;
   price_key text;
   price_kind text;
   next_order_index integer;
@@ -636,8 +615,7 @@ begin
   end if;
 
   if target_section_id !~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'
-    or target_item_id !~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'
-    or (target_group_id <> '' and target_group_id !~ '^[a-z0-9]+(?:-[a-z0-9]+)*$') then
+    or target_item_id !~ '^[a-z0-9]+(?:-[a-z0-9]+)*$' then
     return query select false, false, true, 'add_catalog_item', 'invalid_catalog_item_id';
     return;
   end if;
@@ -647,113 +625,72 @@ begin
     return;
   end if;
 
-  select section.content_kind
-  into section_kind
-  from menu_content.menu_catalog_sections section
-  where section.section_id = target_section_id;
-
-  if section_kind is null then
+  if not exists (
+    select 1
+    from menu_content.menu_catalog_sections section
+    where section.section_id = target_section_id
+  ) then
     return query select false, false, true, 'add_catalog_item', 'catalog_section_not_found';
     return;
   end if;
 
-  if section_kind = 'items' and target_group_id <> '' then
-    return query select false, false, true, 'add_catalog_item', 'invalid_catalog_group';
-    return;
-  end if;
-
-  if section_kind = 'groups' then
-    if target_group_id = '' then
-      return query select false, false, true, 'add_catalog_item', 'catalog_group_required';
-      return;
-    end if;
-
-    select group_entry.pricing_key
-    into group_pricing_key
-    from menu_content.menu_catalog_groups group_entry
-    where group_entry.section_id = target_section_id
-      and group_entry.group_id = target_group_id;
-
-    if not found then
-      return query select false, false, true, 'add_catalog_item', 'catalog_group_not_found';
-      return;
-    end if;
-  end if;
-
   if exists (
     select 1
     from menu_content.menu_catalog_items item
     where item.section_id = target_section_id
-      and item.group_id = target_group_id
-      and app_private.normalize_visible_name(item.name) = app_private.normalize_visible_name(target_name)
+      and (
+        item.item_id = target_item_id
+        or app_private.normalize_visible_name(item.name) = app_private.normalize_visible_name(target_name)
+      )
   ) then
     return query select false, false, true, 'add_catalog_item', 'catalog_item_exists';
     return;
   end if;
 
-  if exists (
-    select 1
-    from menu_content.menu_catalog_items item
-    where item.section_id = target_section_id
-      and item.group_id = target_group_id
-      and item.item_id = target_item_id
-  ) then
-    return query select false, false, true, 'add_catalog_item', 'catalog_item_exists';
-    return;
-  end if;
+  price_key := 'catalog:' || target_section_id || ':item:' || target_item_id || ':price';
 
-  if section_kind = 'items' or group_pricing_key is null then
-    if target_group_id = '' then
-      price_key := 'catalog:' || target_section_id || ':item:' || target_item_id || ':price';
-    else
-      price_key := 'catalog:' || target_section_id || ':group:' || target_group_id || ':item:' || target_item_id || ':price';
+  select price.kind
+  into price_kind
+  from menu_content.menu_prices price
+  where price.pricing_key = price_key;
+
+  if target_section_id = 'guarniciones' then
+    if price_kind is not null and price_kind <> 'included' then
+      return query select false, false, true, 'add_catalog_item', 'catalog_price_key_conflict';
+      return;
     end if;
 
-    select price.kind
-    into price_kind
-    from menu_content.menu_prices price
-    where price.pricing_key = price_key;
-
-    if target_section_id = 'guarniciones' then
-      if price_kind is not null and price_kind <> 'included' then
-        return query select false, false, true, 'add_catalog_item', 'catalog_price_key_conflict';
-        return;
-      end if;
-
-      insert into menu_content.menu_prices (pricing_key, kind, amount)
-      values (price_key, 'included', null)
-      on conflict (pricing_key) do update
-      set kind = excluded.kind,
-        amount = excluded.amount
-      where menu_content.menu_prices.kind = 'included';
-    else
-      if target_amount is null or target_amount < 0 then
-        return query select false, false, true, 'add_catalog_item', 'invalid_amount';
-        return;
-      end if;
-
-      if price_kind is not null and price_kind <> 'fixed' then
-        return query select false, false, true, 'add_catalog_item', 'catalog_price_key_conflict';
-        return;
-      end if;
-
-      insert into menu_content.menu_prices (pricing_key, kind, amount)
-      values (price_key, 'fixed', target_amount)
-      on conflict (pricing_key) do update
-      set amount = excluded.amount
-      where menu_content.menu_prices.kind = 'fixed';
+    insert into menu_content.menu_prices (pricing_key, kind, amount)
+    values (price_key, 'included', null)
+    on conflict (pricing_key) do update
+    set kind = excluded.kind,
+      amount = excluded.amount
+    where menu_content.menu_prices.kind = 'included';
+  else
+    if target_amount is null or target_amount < 0 then
+      return query select false, false, true, 'add_catalog_item', 'invalid_amount';
+      return;
     end if;
+
+    if price_kind is not null and price_kind <> 'fixed' then
+      return query select false, false, true, 'add_catalog_item', 'catalog_price_key_conflict';
+      return;
+    end if;
+
+    insert into menu_content.menu_prices (pricing_key, kind, amount)
+    values (price_key, 'fixed', target_amount)
+    on conflict (pricing_key) do update
+    set amount = excluded.amount
+    where menu_content.menu_prices.kind = 'fixed';
   end if;
 
   select coalesce(max(item.order_index) + 1, 0)
   into next_order_index
   from menu_content.menu_catalog_items item
-  where item.section_id = target_section_id
-    and item.group_id = target_group_id;
+  where item.section_id = target_section_id;
 
   insert into menu_content.menu_catalog_items (
     section_id,
-    group_id,
     item_id,
     name,
     description,
@@ -764,7 +701,6 @@ begin
   )
   values (
     target_section_id,
-    target_group_id,
     target_item_id,
     target_name,
     target_description,
@@ -780,7 +716,6 @@ $$;
 
 create or replace function app_private.delete_catalog_item(
   section_id text,
-  group_id text,
   item_id text
 )
 returns table (
@@ -796,7 +731,6 @@ set search_path = public, menu_content, pg_temp
 as $$
 declare
   target_section_id text := nullif(btrim(delete_catalog_item.section_id), '');
-  target_group_id text := coalesce(nullif(btrim(delete_catalog_item.group_id), ''), '');
   target_item_id text := nullif(btrim(delete_catalog_item.item_id), '');
   target_catalog_item_id bigint;
   target_pricing_key text;
@@ -811,7 +745,6 @@ begin
   into target_catalog_item_id, target_pricing_key
   from menu_content.menu_catalog_items item
   where item.section_id = target_section_id
-    and item.group_id = target_group_id
     and item.item_id = target_item_id;
 
   if target_catalog_item_id is null then
@@ -822,8 +755,7 @@ begin
   select count(*)
   into sibling_count
   from menu_content.menu_catalog_items item
-  where item.section_id = target_section_id
-    and item.group_id = target_group_id;
+  where item.section_id = target_section_id;
 
   if sibling_count <= 1 then
     return query select false, false, true, 'delete_catalog_item', 'catalog_location_must_keep_item';
@@ -832,7 +764,6 @@ begin
 
   delete from public.menu_availability_overlays overlay
   where overlay.section_id = target_section_id
-    and coalesce(overlay.group_id, '') = target_group_id
     and overlay.item_id in (
       select target_item_id
       union all
@@ -844,9 +775,7 @@ begin
   delete from menu_content.menu_catalog_items item
   where item.id = target_catalog_item_id;
 
-  if target_pricing_key is not null
-    and not exists (select 1 from menu_content.menu_daily_items item where item.pricing_key = target_pricing_key)
-    and not exists (select 1 from menu_content.menu_catalog_groups group_entry where group_entry.pricing_key = target_pricing_key)
+  if not exists (select 1 from menu_content.menu_daily_items item where item.pricing_key = target_pricing_key)
     and not exists (select 1 from menu_content.menu_catalog_items item where item.pricing_key = target_pricing_key)
     and not exists (select 1 from menu_content.menu_grill_catalog_items item where item.pricing_key = target_pricing_key) then
     delete from menu_content.menu_prices price
@@ -859,7 +788,6 @@ $$;
 
 create or replace function app_private.update_catalog_item(
   section_id text,
-  group_id text,
   item_id text,
   name text,
   description text
@@ -877,7 +805,6 @@ set search_path = public, menu_content, pg_temp
 as $$
 declare
   target_section_id text := nullif(btrim(update_catalog_item.section_id), '');
-  target_group_id text := coalesce(nullif(btrim(update_catalog_item.group_id), ''), '');
   target_item_id text := nullif(btrim(update_catalog_item.item_id), '');
   target_name text := nullif(btrim(update_catalog_item.name), '');
   target_description text := nullif(btrim(update_catalog_item.description), '');
@@ -903,7 +830,6 @@ begin
   into current_name, current_description
   from menu_content.menu_catalog_items item
   where item.section_id = target_section_id
-    and item.group_id = target_group_id
     and item.item_id = target_item_id;
 
   if current_name is null then
@@ -921,7 +847,6 @@ begin
     select 1
     from menu_content.menu_catalog_items item
     where item.section_id = target_section_id
-      and item.group_id = target_group_id
       and item.item_id <> target_item_id
       and app_private.normalize_visible_name(item.name) = app_private.normalize_visible_name(target_name)
   ) then
@@ -935,7 +860,6 @@ begin
       name = target_name,
       description = target_description
     where item.section_id = target_section_id
-      and item.group_id = target_group_id
       and item.item_id = target_item_id;
   exception
     when unique_violation then
@@ -949,7 +873,6 @@ $$;
 
 create or replace function app_private.add_catalog_item_option(
   section_id text,
-  group_id text,
   item_id text,
   option_id text,
   name text
@@ -967,7 +890,6 @@ set search_path = public, menu_content, pg_temp
 as $$
 declare
   target_section_id text := nullif(btrim(add_catalog_item_option.section_id), '');
-  target_group_id text := coalesce(nullif(btrim(add_catalog_item_option.group_id), ''), '');
   target_item_id text := nullif(btrim(add_catalog_item_option.item_id), '');
   target_option_id text := nullif(btrim(add_catalog_item_option.option_id), '');
   target_name text := nullif(btrim(add_catalog_item_option.name), '');
@@ -994,8 +916,7 @@ begin
 
   if target_section_id !~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'
     or target_item_id !~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'
-    or target_option_id !~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'
-    or (target_group_id <> '' and target_group_id !~ '^[a-z0-9]+(?:-[a-z0-9]+)*$') then
+    or target_option_id !~ '^[a-z0-9]+(?:-[a-z0-9]+)*$' then
     return query select false, false, true, 'add_catalog_item_option', 'invalid_catalog_option_id';
     return;
   end if;
@@ -1004,7 +925,6 @@ begin
   into target_catalog_item_id, target_item_name
   from menu_content.menu_catalog_items item
   where item.section_id = target_section_id
-    and item.group_id = target_group_id
     and item.item_id = target_item_id;
 
   if target_catalog_item_id is null then
@@ -1026,17 +946,10 @@ begin
     select 1
     from menu_content.menu_catalog_item_options option
     where option.catalog_item_id = target_catalog_item_id
-      and app_private.normalize_visible_name(option.name) = app_private.normalize_visible_name(target_name)
-  ) then
-    return query select false, false, true, 'add_catalog_item_option', 'catalog_option_exists';
-    return;
-  end if;
-
-  if exists (
-    select 1
-    from menu_content.menu_catalog_item_options option
-    where option.catalog_item_id = target_catalog_item_id
-      and option.option_id = target_option_id
+      and (
+        option.option_id = target_option_id
+        or app_private.normalize_visible_name(option.name) = app_private.normalize_visible_name(target_name)
+      )
   ) then
     return query select false, false, true, 'add_catalog_item_option', 'catalog_option_exists';
     return;
@@ -1085,7 +998,6 @@ $$;
 
 create or replace function app_private.delete_catalog_item_option(
   section_id text,
-  group_id text,
   item_id text,
   option_id text
 )
@@ -1102,7 +1014,6 @@ set search_path = public, menu_content, pg_temp
 as $$
 declare
   target_section_id text := nullif(btrim(delete_catalog_item_option.section_id), '');
-  target_group_id text := coalesce(nullif(btrim(delete_catalog_item_option.group_id), ''), '');
   target_item_id text := nullif(btrim(delete_catalog_item_option.item_id), '');
   target_option_id text := nullif(btrim(delete_catalog_item_option.option_id), '');
   target_catalog_item_id bigint;
@@ -1113,16 +1024,10 @@ begin
     return;
   end if;
 
-  if target_section_id is null or target_item_id is null or target_option_id is null then
-    return query select false, false, true, 'delete_catalog_item_option', 'catalog_option_id_required';
-    return;
-  end if;
-
   select item.id
   into target_catalog_item_id
   from menu_content.menu_catalog_items item
   where item.section_id = target_section_id
-    and item.group_id = target_group_id
     and item.item_id = target_item_id;
 
   if target_catalog_item_id is null then
@@ -1160,7 +1065,6 @@ $$;
 
 create or replace function app_private.update_catalog_item_option(
   section_id text,
-  group_id text,
   item_id text,
   option_id text,
   name text
@@ -1178,7 +1082,6 @@ set search_path = public, menu_content, pg_temp
 as $$
 declare
   target_section_id text := nullif(btrim(update_catalog_item_option.section_id), '');
-  target_group_id text := coalesce(nullif(btrim(update_catalog_item_option.group_id), ''), '');
   target_item_id text := nullif(btrim(update_catalog_item_option.item_id), '');
   target_option_id text := nullif(btrim(update_catalog_item_option.option_id), '');
   target_name text := nullif(btrim(update_catalog_item_option.name), '');
@@ -1187,11 +1090,6 @@ declare
 begin
   if not public.can_edit_menu_content() then
     return query select false, false, true, 'update_catalog_item_option', 'permission_denied';
-    return;
-  end if;
-
-  if target_section_id is null or target_item_id is null or target_option_id is null then
-    return query select false, false, true, 'update_catalog_item_option', 'catalog_option_id_required';
     return;
   end if;
 
@@ -1204,7 +1102,6 @@ begin
   into target_catalog_item_id
   from menu_content.menu_catalog_items item
   where item.section_id = target_section_id
-    and item.group_id = target_group_id
     and item.item_id = target_item_id;
 
   if target_catalog_item_id is null then
@@ -1268,7 +1165,6 @@ $$;
 create or replace function public.menu_availability_target_exists(
   target_menu_id text,
   target_section_id text,
-  target_group_id text,
   target_item_id text
 )
 returns boolean
@@ -1277,13 +1173,12 @@ stable
 security invoker
 set search_path = public, app_private, pg_temp
 as $$
-  select app_private.menu_availability_target_exists($1, $2, $3, $4);
+  select app_private.menu_availability_target_exists($1, $2, $3);
 $$;
 
 create or replace function public.set_menu_availability_overlay(
   menu_id text,
   section_id text,
-  group_id text,
   item_id text,
   available_override boolean
 )
@@ -1299,13 +1194,12 @@ security invoker
 set search_path = public, app_private, pg_temp
 as $$
   select *
-  from app_private.set_menu_availability_overlay($1, $2, $3, $4, $5);
+  from app_private.set_menu_availability_overlay($1, $2, $3, $4);
 $$;
 
 create or replace function public.clear_menu_availability_overlay(
   menu_id text,
   section_id text,
-  group_id text,
   item_id text
 )
 returns table (
@@ -1320,7 +1214,7 @@ security invoker
 set search_path = public, app_private, pg_temp
 as $$
   select *
-  from app_private.clear_menu_availability_overlay($1, $2, $3, $4);
+  from app_private.clear_menu_availability_overlay($1, $2, $3);
 $$;
 
 create or replace function public.set_profile_service_kind(
@@ -1441,9 +1335,9 @@ begin
 end;
 $$;
 
+
 create or replace function public.add_catalog_item(
   section_id text,
-  group_id text,
   item_id text,
   name text,
   description text,
@@ -1464,7 +1358,6 @@ declare
   target_section_id text := nullif(btrim(add_catalog_item.section_id), '');
   ignored_item_id text := nullif(btrim(add_catalog_item.item_id), '');
 begin
-  -- Keep the legacy RPC parameter accepted while forcing server-generated IDs.
   if ignored_item_id is not null then
     null;
   end if;
@@ -1483,18 +1376,16 @@ begin
   select *
   from app_private.add_catalog_item(
     $1,
-    $2,
     app_private.generate_admin_id('item'),
+    $3,
     $4,
-    $5,
-    $6
+    $5
   );
 end;
 $$;
 
 create or replace function public.delete_catalog_item(
   section_id text,
-  group_id text,
   item_id text
 )
 returns table (
@@ -1508,28 +1399,23 @@ language plpgsql
 security invoker
 set search_path = public, app_private, pg_temp
 as $$
-declare
-  target_section_id text := nullif(btrim(delete_catalog_item.section_id), '');
 begin
   if not public.can_edit_menu_content() then
     return query select false, false, true, 'delete_catalog_item', 'permission_denied';
     return;
   end if;
 
-  if target_section_id in ('tartas-tortillas-omelettes', 'empanadas') then
+  if nullif(btrim(delete_catalog_item.section_id), '') in ('tartas-tortillas-omelettes', 'empanadas') then
     return query select false, false, true, 'delete_catalog_item', 'catalog_item_locked';
     return;
   end if;
 
-  return query
-  select *
-  from app_private.delete_catalog_item($1, $2, $3);
+  return query select * from app_private.delete_catalog_item($1, $2);
 end;
 $$;
 
 create or replace function public.update_catalog_item(
   section_id text,
-  group_id text,
   item_id text,
   name text,
   description text
@@ -1545,28 +1431,23 @@ language plpgsql
 security invoker
 set search_path = public, app_private, pg_temp
 as $$
-declare
-  target_section_id text := nullif(btrim(update_catalog_item.section_id), '');
 begin
   if not public.can_edit_menu_content() then
     return query select false, false, true, 'update_catalog_item', 'permission_denied';
     return;
   end if;
 
-  if target_section_id in ('tartas-tortillas-omelettes', 'empanadas') then
+  if nullif(btrim(update_catalog_item.section_id), '') in ('tartas-tortillas-omelettes', 'empanadas') then
     return query select false, false, true, 'update_catalog_item', 'catalog_item_locked';
     return;
   end if;
 
-  return query
-  select *
-  from app_private.update_catalog_item($1, $2, $3, $4, $5);
+  return query select * from app_private.update_catalog_item($1, $2, $3, $4);
 end;
 $$;
 
 create or replace function public.add_catalog_item_option(
   section_id text,
-  group_id text,
   item_id text,
   option_id text,
   name text
@@ -1586,15 +1467,13 @@ as $$
   from app_private.add_catalog_item_option(
     $1,
     $2,
-    $3,
     app_private.generate_admin_id('option'),
-    $5
+    $4
   );
 $$;
 
 create or replace function public.delete_catalog_item_option(
   section_id text,
-  group_id text,
   item_id text,
   option_id text
 )
@@ -1609,13 +1488,11 @@ language sql
 security invoker
 set search_path = public, app_private, pg_temp
 as $$
-  select *
-  from app_private.delete_catalog_item_option($1, $2, $3, $4);
+  select * from app_private.delete_catalog_item_option($1, $2, $3);
 $$;
 
 create or replace function public.update_catalog_item_option(
   section_id text,
-  group_id text,
   item_id text,
   option_id text,
   name text
@@ -1631,80 +1508,78 @@ language sql
 security invoker
 set search_path = public, app_private, pg_temp
 as $$
-  select *
-  from app_private.update_catalog_item_option($1, $2, $3, $4, $5);
+  select * from app_private.update_catalog_item_option($1, $2, $3, $4);
 $$;
 
 revoke all on public.menu_availability_overlays from anon, authenticated;
 grant select (
   menu_id,
   section_id,
-  group_id,
   item_id,
   available_override
 ) on public.menu_availability_overlays to anon, authenticated;
 
 revoke all on function public.can_edit_menu_content() from public, anon, authenticated;
-revoke all on function public.menu_availability_target_exists(text, text, text, text) from public, anon, authenticated;
-revoke all on function public.set_menu_availability_overlay(text, text, text, text, boolean) from public, anon, authenticated;
-revoke all on function public.clear_menu_availability_overlay(text, text, text, text) from public, anon, authenticated;
+revoke all on function public.menu_availability_target_exists(text, text, text) from public, anon, authenticated;
+revoke all on function public.set_menu_availability_overlay(text, text, text, boolean) from public, anon, authenticated;
+revoke all on function public.clear_menu_availability_overlay(text, text, text) from public, anon, authenticated;
 revoke all on function public.set_profile_service_kind(text, text) from public, anon, authenticated;
 revoke all on function public.set_daily_menu(text, text, text, text) from public, anon, authenticated;
 revoke all on function public.set_global_fixed_price(text, integer) from public, anon, authenticated;
 revoke all on function public.set_global_price_variant(text, text, integer) from public, anon, authenticated;
-revoke all on function public.add_catalog_item(text, text, text, text, text, integer) from public, anon, authenticated;
-revoke all on function public.delete_catalog_item(text, text, text) from public, anon, authenticated;
-revoke all on function public.update_catalog_item(text, text, text, text, text) from public, anon, authenticated;
-revoke all on function public.add_catalog_item_option(text, text, text, text, text) from public, anon, authenticated;
-revoke all on function public.delete_catalog_item_option(text, text, text, text) from public, anon, authenticated;
-revoke all on function public.update_catalog_item_option(text, text, text, text, text) from public, anon, authenticated;
+revoke all on function public.add_catalog_item(text, text, text, text, integer) from public, anon, authenticated;
+revoke all on function public.delete_catalog_item(text, text) from public, anon, authenticated;
+revoke all on function public.update_catalog_item(text, text, text, text) from public, anon, authenticated;
+revoke all on function public.add_catalog_item_option(text, text, text, text) from public, anon, authenticated;
+revoke all on function public.delete_catalog_item_option(text, text, text) from public, anon, authenticated;
+revoke all on function public.update_catalog_item_option(text, text, text, text) from public, anon, authenticated;
 
 grant execute on function public.can_edit_menu_content() to authenticated;
-grant execute on function public.set_menu_availability_overlay(text, text, text, text, boolean) to authenticated;
-grant execute on function public.clear_menu_availability_overlay(text, text, text, text) to authenticated;
+grant execute on function public.set_menu_availability_overlay(text, text, text, boolean) to authenticated;
+grant execute on function public.clear_menu_availability_overlay(text, text, text) to authenticated;
 grant execute on function public.set_profile_service_kind(text, text) to authenticated;
 grant execute on function public.set_daily_menu(text, text, text, text) to authenticated;
 grant execute on function public.set_global_fixed_price(text, integer) to authenticated;
 grant execute on function public.set_global_price_variant(text, text, integer) to authenticated;
-grant execute on function public.add_catalog_item(text, text, text, text, text, integer) to authenticated;
-grant execute on function public.delete_catalog_item(text, text, text) to authenticated;
-grant execute on function public.update_catalog_item(text, text, text, text, text) to authenticated;
-grant execute on function public.add_catalog_item_option(text, text, text, text, text) to authenticated;
-grant execute on function public.delete_catalog_item_option(text, text, text, text) to authenticated;
-grant execute on function public.update_catalog_item_option(text, text, text, text, text) to authenticated;
+grant execute on function public.add_catalog_item(text, text, text, text, integer) to authenticated;
+grant execute on function public.delete_catalog_item(text, text) to authenticated;
+grant execute on function public.update_catalog_item(text, text, text, text) to authenticated;
+grant execute on function public.add_catalog_item_option(text, text, text, text) to authenticated;
+grant execute on function public.delete_catalog_item_option(text, text, text) to authenticated;
+grant execute on function public.update_catalog_item_option(text, text, text, text) to authenticated;
 
 revoke all on function app_private.can_edit_menu_content() from public, anon, authenticated;
-revoke all on function app_private.menu_availability_target_exists(text, text, text, text) from public, anon, authenticated;
-revoke all on function app_private.set_menu_availability_overlay(text, text, text, text, boolean) from public, anon, authenticated;
-revoke all on function app_private.clear_menu_availability_overlay(text, text, text, text) from public, anon, authenticated;
+revoke all on function app_private.menu_availability_target_exists(text, text, text) from public, anon, authenticated;
+revoke all on function app_private.set_menu_availability_overlay(text, text, text, boolean) from public, anon, authenticated;
+revoke all on function app_private.clear_menu_availability_overlay(text, text, text) from public, anon, authenticated;
 revoke all on function app_private.set_profile_service_kind(text, text) from public, anon, authenticated;
 revoke all on function app_private.set_daily_menu(text, text, text, text) from public, anon, authenticated;
 revoke all on function app_private.set_global_fixed_price(text, integer) from public, anon, authenticated;
 revoke all on function app_private.set_global_price_variant(text, text, integer) from public, anon, authenticated;
 revoke all on function app_private.generate_admin_id(text) from public, anon, authenticated;
 revoke all on function app_private.normalize_visible_name(text) from public, anon, authenticated;
-revoke all on function app_private.add_catalog_item(text, text, text, text, text, integer) from public, anon, authenticated;
-revoke all on function app_private.delete_catalog_item(text, text, text) from public, anon, authenticated;
-revoke all on function app_private.update_catalog_item(text, text, text, text, text) from public, anon, authenticated;
-revoke all on function app_private.add_catalog_item_option(text, text, text, text, text) from public, anon, authenticated;
-revoke all on function app_private.delete_catalog_item_option(text, text, text, text) from public, anon, authenticated;
-revoke all on function app_private.update_catalog_item_option(text, text, text, text, text) from public, anon, authenticated;
+revoke all on function app_private.add_catalog_item(text, text, text, text, integer) from public, anon, authenticated;
+revoke all on function app_private.delete_catalog_item(text, text) from public, anon, authenticated;
+revoke all on function app_private.update_catalog_item(text, text, text, text) from public, anon, authenticated;
+revoke all on function app_private.add_catalog_item_option(text, text, text, text) from public, anon, authenticated;
+revoke all on function app_private.delete_catalog_item_option(text, text, text) from public, anon, authenticated;
+revoke all on function app_private.update_catalog_item_option(text, text, text, text) from public, anon, authenticated;
 
 grant execute on function app_private.can_edit_menu_content() to authenticated;
-grant execute on function app_private.menu_availability_target_exists(text, text, text, text) to authenticated;
-grant execute on function app_private.set_menu_availability_overlay(text, text, text, text, boolean) to authenticated;
-grant execute on function app_private.clear_menu_availability_overlay(text, text, text, text) to authenticated;
+grant execute on function app_private.menu_availability_target_exists(text, text, text) to authenticated;
+grant execute on function app_private.set_menu_availability_overlay(text, text, text, boolean) to authenticated;
+grant execute on function app_private.clear_menu_availability_overlay(text, text, text) to authenticated;
 grant execute on function app_private.set_profile_service_kind(text, text) to authenticated;
 grant execute on function app_private.set_daily_menu(text, text, text, text) to authenticated;
 grant execute on function app_private.set_global_fixed_price(text, integer) to authenticated;
 grant execute on function app_private.set_global_price_variant(text, text, integer) to authenticated;
 grant execute on function app_private.generate_admin_id(text) to authenticated;
-grant execute on function app_private.add_catalog_item(text, text, text, text, text, integer) to authenticated;
-grant execute on function app_private.delete_catalog_item(text, text, text) to authenticated;
-grant execute on function app_private.update_catalog_item(text, text, text, text, text) to authenticated;
-grant execute on function app_private.add_catalog_item_option(text, text, text, text, text) to authenticated;
-grant execute on function app_private.delete_catalog_item_option(text, text, text, text) to authenticated;
-grant execute on function app_private.update_catalog_item_option(text, text, text, text, text) to authenticated;
+grant execute on function app_private.add_catalog_item(text, text, text, text, integer) to authenticated;
+grant execute on function app_private.delete_catalog_item(text, text) to authenticated;
+grant execute on function app_private.update_catalog_item(text, text, text, text) to authenticated;
+grant execute on function app_private.add_catalog_item_option(text, text, text, text) to authenticated;
+grant execute on function app_private.delete_catalog_item_option(text, text, text) to authenticated;
+grant execute on function app_private.update_catalog_item_option(text, text, text, text) to authenticated;
 
 drop policy if exists "Staff can insert menu availability overlays"
   on public.menu_availability_overlays;

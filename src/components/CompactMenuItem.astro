@@ -5,11 +5,10 @@ import { getPricingText, getVariantPricingText } from "../utils/menuPricing";
 interface Props {
   menuId: string;
   sectionId: string;
-  groupId?: string;
   item: MenuItem;
 }
 
-const { menuId, sectionId, groupId, item } = Astro.props;
+const { menuId, sectionId, item } = Astro.props;
 const getDirectPricingText = (pricing?: MenuPricing) =>
   pricing && pricing.kind !== "variants" ? getPricingText(pricing) : null;
 const directPricingText = getDirectPricingText(item.pricing);
@@ -21,7 +20,6 @@ const hasOperationalVariants = variants.some((variant) => variant.availabilityIt
   class="compact-item"
   data-menu-id={hasOperationalVariants ? undefined : menuId}
   data-section-id={hasOperationalVariants ? undefined : sectionId}
-  data-group-id={hasOperationalVariants ? undefined : groupId}
   data-item-id={hasOperationalVariants ? undefined : item.itemId}
   data-available={hasOperationalVariants ? undefined : item.available ? "true" : "false"}
 >
@@ -53,7 +51,6 @@ const hasOperationalVariants = variants.some((variant) => variant.availabilityIt
             class="compact-item__variant"
             data-menu-id={variant.availabilityItemId ? menuId : undefined}
             data-section-id={variant.availabilityItemId ? sectionId : undefined}
-            data-group-id={variant.availabilityItemId ? "" : undefined}
             data-item-id={variant.availabilityItemId}
             data-available={
               variant.availabilityItemId

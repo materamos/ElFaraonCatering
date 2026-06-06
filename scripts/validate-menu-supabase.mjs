@@ -26,10 +26,8 @@ const expectedIndexes = [
   "menu_price_variants_pricing_key_order_index_key",
   "menu_catalog_sections_section_id_key",
   "menu_catalog_sections_order_index_key",
-  "menu_catalog_groups_section_id_group_id_key",
-  "menu_catalog_groups_section_id_order_index_key",
-  "menu_catalog_items_section_id_group_id_item_id_key",
-  "menu_catalog_items_section_id_group_id_order_index_key",
+  "menu_catalog_items_section_id_item_id_key",
+  "menu_catalog_items_section_id_order_index_key",
   "menu_catalog_item_images_catalog_item_id_order_index_key",
   "menu_catalog_item_options_catalog_item_id_order_index_key",
   "menu_grill_families_order_index_key",
@@ -45,7 +43,6 @@ const expectedTables = [
   "menu_daily_items",
   "menu_profile_service_settings",
   "menu_catalog_sections",
-  "menu_catalog_groups",
   "menu_catalog_items",
   "menu_catalog_item_images",
   "menu_catalog_item_options",
@@ -56,6 +53,7 @@ const expectedTables = [
 const retiredTables = [
   "menu_profile_payments",
   "menu_profile_payment_methods",
+  "menu_catalog_groups",
 ];
 
 if (!databaseUrl) {
@@ -225,72 +223,26 @@ function validateSection(scope, section, errors) {
   validateNonEmptyString(section.title, `${scope} title`, errors);
   validateOrder(section.order, `${scope} order`, errors);
 
-  const hasItems = Array.isArray(section.items) && section.items.length > 0;
-  const hasGroups = Array.isArray(section.groups) && section.groups.length > 0;
-
-  if (hasItems === hasGroups) {
-    errors.push(`${scope} must define either items or groups.`);
+  if (!Array.isArray(section.items) || section.items.length === 0) {
+    errors.push(`${scope} must define direct items.`);
     return;
   }
 
-  if (hasItems) {
-    assertUnique(
-      section.items.map((item) => item.itemId),
-      `${scope} item id`,
-      errors,
-    );
+  assertUnique(
+    section.items.map((item) => item.itemId),
+    `${scope} item id`,
+    errors,
+  );
 
-    section.items.forEach((item, index) => {
-      validateItem(`${scope} item ${item.itemId}`, item, errors);
+  section.items.forEach((item, index) => {
+    validateItem(`${scope} item ${item.itemId}`, item, errors);
 
-      if (!item.pricing) {
-        errors.push(`${scope} item ${item.itemId} must define pricing.`);
-      }
+    if (!item.pricing) {
+      errors.push(`${scope} item ${item.itemId} must define pricing.`);
+    }
 
-      validateOrder(index, `${scope} item ${item.itemId} projected order`, errors);
-    });
-  }
-
-  if (hasGroups) {
-    assertUnique(
-      section.groups.map((group) => group.groupId),
-      `${scope} group id`,
-      errors,
-    );
-
-    section.groups.forEach((group, groupIndex) => {
-      validateTechnicalId(group.groupId, `${scope} group ${group.groupId}`, errors);
-      validateNonEmptyString(group.title, `${scope} group ${group.groupId} title`, errors);
-      validatePricing(group.pricing, `${scope} group ${group.groupId}`, errors);
-      validateOrder(groupIndex, `${scope} group ${group.groupId} projected order`, errors);
-
-      if (!Array.isArray(group.items) || group.items.length === 0) {
-        errors.push(`${scope} group ${group.groupId} must have items.`);
-        return;
-      }
-
-      assertUnique(
-        group.items.map((item) => item.itemId),
-        `${scope} group ${group.groupId} item id`,
-        errors,
-      );
-
-      group.items.forEach((item, itemIndex) => {
-        validateItem(`${scope} group ${group.groupId} item ${item.itemId}`, item, errors);
-        validateOrder(
-          itemIndex,
-          `${scope} group ${group.groupId} item ${item.itemId} projected order`,
-          errors,
-        );
-
-        if (!group.pricing && !item.pricing) {
-          errors.push(
-            `${scope} group ${group.groupId} item ${item.itemId} must define or inherit pricing.`,
-          );
-        }
-      });
-    });
-  }
+    validateOrder(index, `${scope} item ${item.itemId} projected order`, errors);
+  });
 }
 
 function validateItem(scope, item, errors) {
@@ -457,6 +409,37 @@ async function validateSchema(sql, errors) {
 
   for (const row of retiredTableRows) {
     errors.push(`Retired menu_content table is still present: ${row.table_name}`);
+  }
+
+  const retiredColumnRows = await sql`
+    select table_schema, table_name, column_name
+    from information_schema.columns
+    where (
+      table_schema = 'menu_content'
+      and (
+        (table_name = 'menu_catalog_sections' and column_name = 'content_kind')
+        or (table_name = 'menu_catalog_items' and column_name = 'group_id')
+      )
+    )
+    or (
+      table_schema = 'public'
+      and table_name = 'menu_availability_overlays'
+      and column_name = 'group_id'
+    )
+  `;
+
+  for (const row of retiredColumnRows) {
+    errors.push(`Retired column is still present: ${row.table_schema}.${row.table_name}.${row.column_name}`);
+  }
+
+  const unpricedItemRows = await sql`
+    select section_id, item_id
+    from menu_content.menu_catalog_items
+    where pricing_key is null
+  `;
+
+  for (const row of unpricedItemRows) {
+    errors.push(`Catalog item must define pricing_key: ${row.section_id}/${row.item_id}`);
   }
 
   const constraintRows = await sql`

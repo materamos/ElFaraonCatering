@@ -4,7 +4,6 @@ import type {
   AvailabilityOverlayState,
   AvailabilityTargetState,
   CatalogEditorState,
-  CatalogGroupState,
   CatalogItemOptionState,
   CatalogItemState,
   CatalogSectionState,
@@ -67,7 +66,6 @@ let isBusy = false;
 let availabilityProfileFilter = "";
 let availabilityGroupFilter = "";
 let fixedSectionFilter = "";
-let fixedGroupFilter = "";
 
 export function setAdminViewContext(context: AdminViewContext): void {
   root = context.root;
@@ -99,12 +97,7 @@ export function setAdminFilter(name: string, value: string): void {
 
   if (name === "fixed-section") {
     fixedSectionFilter = value;
-    fixedGroupFilter = "";
     return;
-  }
-
-  if (name === "fixed-group") {
-    fixedGroupFilter = value;
   }
 }
 
@@ -572,9 +565,7 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
     `;
   }
 
-  const groups = getFixedSectionGroups(editor, section.section_id);
-  const group = section.content_kind === "groups" ? getEffectiveFixedGroup(editor, section.section_id) : undefined;
-  const items = getFixedLocationItems(editor, section, group);
+  const items = getFixedLocationItems(editor, section);
   const editMode = getFixedMenuEditMode(section);
   const sectionCopy = editMode === "options-only"
     ? "Administrá solo sabores de esta subcategoría. No se pueden agregar, editar ni eliminar items desde esta pantalla."
@@ -601,63 +592,9 @@ function renderFixedMenuTab(state: AdminOperationalState): string {
               .join("")}
           </select>
         </label>
-        ${section.content_kind === "groups" ? `
-          <label class="admin-field">
-            <span class="admin-label">Grupo</span>
-            <select class="admin-select" data-admin-filter="fixed-group">
-              ${groups
-                .map((entry) => `<option value="${escapeHtml(entry.group_id)}" ${entry.group_id === group?.group_id ? "selected" : ""}>${escapeHtml(entry.title)}</option>`)
-                .join("")}
-            </select>
-          </label>
-        ` : ""}
       </div>
-      ${renderFixedMenuSharedPriceEditor(state, group)}
-      ${editMode === "options-only"
-        ? ""
-        : section.content_kind === "groups" && !group
-        ? renderEmpty("La sección seleccionada no tiene grupos disponibles para agregar items.")
-        : renderCatalogItemForm(section, group)}
+      ${editMode === "options-only" ? "" : renderCatalogItemForm(section)}
       ${renderCatalogItemList(state, items, editMode)}
-    </section>
-  `;
-}
-
-function renderFixedMenuSharedPriceEditor(
-  state: AdminOperationalState,
-  group: CatalogGroupState | undefined,
-): string {
-  if (!group?.pricing_key) {
-    return "";
-  }
-
-  const fixedRows = state.prices.fixed.filter((price) => price.pricing_key === group.pricing_key);
-  const variantRows = state.prices.variants.filter((variant) => variant.pricing_key === group.pricing_key);
-
-  return renderPriceEditorSection(
-    "Precio compartido del grupo",
-    `Este precio aplica a todos los items de ${group.title}. Guardar requiere publicación.`,
-    fixedRows,
-    variantRows,
-  );
-}
-
-function renderPriceEditorSection(
-  title: string,
-  copy: string,
-  fixedRows: FixedPriceState[],
-  variantRows: VariantPriceState[],
-): string {
-  return `
-    <section class="admin-price-panel">
-      <div class="admin-daily-panel__header">
-        <h3 class="admin-daily-panel__title">${escapeHtml(title)}</h3>
-        <p class="admin-row__meta">${escapeHtml(copy)}</p>
-      </div>
-      <div class="admin-price-grid">
-        ${renderFixedPriceRows(fixedRows, "No hay precios fijos editables en esta ubicación.")}
-        ${renderVariantPriceRows(variantRows, "No hay variantes editables en esta ubicación.")}
-      </div>
     </section>
   `;
 }
@@ -667,15 +604,6 @@ function renderFixedPriceRows(rows: FixedPriceState[], emptyMessage: string): st
     <div class="admin-grid">
       <p class="admin-kicker">Precios</p>
       ${rows.length > 0 ? rows.map(renderFixedPriceRow).join("") : renderEmpty(emptyMessage)}
-    </div>
-  `;
-}
-
-function renderVariantPriceRows(rows: VariantPriceState[], emptyMessage: string): string {
-  return `
-    <div class="admin-grid">
-      <p class="admin-kicker">Variantes</p>
-      ${rows.length > 0 ? rows.map(renderVariantPriceRow).join("") : renderEmpty(emptyMessage)}
     </div>
   `;
 }
@@ -792,7 +720,7 @@ function getAvailabilityGroupKey(target: AvailabilityTargetState): string {
   }
 
   if (target.group_title) {
-    return `group:${target.section_id}:${target.group_id}`;
+    return `family:${target.section_id}:${target.group_title}`;
   }
 
   return `section:${target.section_id}`;
@@ -1091,19 +1019,16 @@ function formatAvailabilityKindLabel(target: AvailabilityTargetState): string {
 
 function renderCatalogItemForm(
   section: CatalogSectionState,
-  group: CatalogGroupState | undefined,
 ): string {
-  const requiresPrice = catalogItemFormRequiresPrice(section, group);
-  const locationTitle = group ? `${section.title} / ${group.title}` : section.title;
+  const requiresPrice = catalogItemFormRequiresPrice(section);
 
   return `
     <form class="admin-card admin-fixed-form" data-admin-form="catalog-item">
       <div class="admin-fixed-form__header">
         <h3 class="admin-card__legend">Agregar item nuevo</h3>
-        <p class="admin-row__meta">Se agrega al final de ${escapeHtml(locationTitle)}. Para cambiar el orden, avisale a quien administra el sitio.</p>
+        <p class="admin-row__meta">Se agrega al final de ${escapeHtml(section.title)}. Para cambiar el orden, avisale a quien administra el sitio.</p>
       </div>
       <input type="hidden" name="section_id" value="${escapeHtml(section.section_id)}" />
-      <input type="hidden" name="group_id" value="${escapeHtml(group?.group_id ?? "")}" />
       <input type="hidden" name="item_id" data-catalog-id />
       <label class="admin-field">
         <span class="admin-label">Nombre visible</span>
@@ -1116,12 +1041,7 @@ function renderCatalogItemForm(
           <input class="admin-input" type="number" name="amount" min="0" step="1" inputmode="numeric" required />
           <span class="admin-help">Usá números sin símbolo de peso.</span>
         </label>
-      ` : `
-        <div class="admin-fixed-form__note">
-          <span class="admin-label">Precio</span>
-          <p>Usá el precio compartido de este grupo.</p>
-        </div>
-      `}
+      ` : ""}
         ${renderCatalogDescriptionField({
           fieldName: "description",
           description: null,
@@ -1183,7 +1103,6 @@ function renderCatalogItemRow(
         </div>
         ${editMode === "items" ? `<form class="admin-fixed-edit-fields" data-admin-form="catalog-item-edit">
           <input type="hidden" name="section_id" value="${escapeHtml(item.section_id)}" />
-          <input type="hidden" name="group_id" value="${escapeHtml(item.group_id)}" />
           <input type="hidden" name="item_id" value="${escapeHtml(item.item_id)}" />
           <label class="admin-field">
             <span class="admin-label">Nombre</span>
@@ -1206,7 +1125,6 @@ function renderCatalogItemRow(
           type="button"
           data-admin-action="delete-catalog-item"
           data-section-id="${escapeHtml(item.section_id)}"
-          data-group-id="${escapeHtml(item.group_id)}"
           data-item-id="${escapeHtml(item.item_id)}"
           ${isBusy || !canDelete ? "disabled" : ""}
         >
@@ -1256,7 +1174,7 @@ function renderCatalogItemIntegratedPriceFields(state: AdminOperationalState, it
     return `
       <div class="admin-fixed-form__note">
         <span class="admin-label">Precio</span>
-        <p>Usá el precio compartido del grupo seleccionado.</p>
+        <p>No hay precio editable para este item.</p>
       </div>
     `;
   }
@@ -1305,7 +1223,7 @@ function renderCatalogItemPriceEditor(state: AdminOperationalState, item: Catalo
     return `
       <div class="admin-inline-price-panel">
         <p class="admin-label">Precio</p>
-        <p class="admin-row__meta">Este item usa el precio compartido del grupo seleccionado.</p>
+        <p class="admin-row__meta">No hay precio editable para este item.</p>
       </div>
     `;
   }
@@ -1352,7 +1270,6 @@ function renderCatalogItemOptions(item: CatalogItemState): string {
       </div>
       <form class="admin-fixed-option-row" data-admin-form="catalog-option">
         <input type="hidden" name="section_id" value="${escapeHtml(item.section_id)}" />
-        <input type="hidden" name="group_id" value="${escapeHtml(item.group_id)}" />
         <input type="hidden" name="item_id" value="${escapeHtml(item.item_id)}" />
         <input type="hidden" name="option_id" data-catalog-option-id />
         <label class="admin-field">
@@ -1379,7 +1296,6 @@ function renderCatalogItemOptionRow(option: CatalogItemOptionState, canDelete: b
   return `
     <form class="admin-fixed-option-row" data-admin-form="catalog-option-edit">
       <input type="hidden" name="section_id" value="${escapeHtml(option.section_id)}" />
-      <input type="hidden" name="group_id" value="${escapeHtml(option.group_id)}" />
       <input type="hidden" name="item_id" value="${escapeHtml(option.item_id)}" />
       <input type="hidden" name="option_id" value="${escapeHtml(option.option_id)}" />
       <label class="admin-field">
@@ -1393,7 +1309,6 @@ function renderCatalogItemOptionRow(option: CatalogItemOptionState, canDelete: b
           type="button"
           data-admin-action="delete-catalog-option"
           data-section-id="${escapeHtml(option.section_id)}"
-          data-group-id="${escapeHtml(option.group_id)}"
           data-item-id="${escapeHtml(option.item_id)}"
           data-option-id="${escapeHtml(option.option_id)}"
           ${isBusy || !canDelete ? "disabled" : ""}
@@ -1408,13 +1323,8 @@ function renderCatalogItemOptionRow(option: CatalogItemOptionState, canDelete: b
 
 function catalogItemFormRequiresPrice(
   section: CatalogSectionState,
-  group: CatalogGroupState | undefined,
 ): boolean {
-  if (section.section_id === "guarniciones") {
-    return false;
-  }
-
-  return section.content_kind === "items" || !group?.pricing_key;
+  return section.section_id !== "guarniciones";
 }
 
 function isIncludedSideOptionItem(item: CatalogItemState): boolean {
@@ -1563,7 +1473,7 @@ function getVisibleAvailabilityTargets(state: AdminOperationalState): Availabili
 }
 
 function getAvailabilityFamilyKey(target: AvailabilityTargetState): string {
-  const familyId = target.group_id || target.group_title || target.item_id;
+  const familyId = target.group_title || target.item_id;
 
   return `family:${target.menu_id}:${target.section_id}:${familyId}`;
 }
@@ -1587,23 +1497,20 @@ export function findAvailabilityFamilyTargets(key: string): AvailabilityTargetSt
 
 export function findCatalogItem(
   sectionId: string,
-  groupId: string,
   itemId: string,
 ): CatalogItemState | undefined {
   return currentState?.catalog_editor.items.find((item) =>
     item.section_id === sectionId
-    && item.group_id === groupId
     && item.item_id === itemId
   );
 }
 
 export function findCatalogItemOption(
   sectionId: string,
-  groupId: string,
   itemId: string,
   optionId: string,
 ): CatalogItemOptionState | undefined {
-  return findCatalogItem(sectionId, groupId, itemId)?.options.find((option) => option.option_id === optionId);
+  return findCatalogItem(sectionId, itemId)?.options.find((option) => option.option_id === optionId);
 }
 
 export function findGrillItem(itemId: string): GrillItemState | undefined {
@@ -1631,37 +1538,14 @@ function getFixedSectionAdminTitle(section: CatalogSectionState): string {
   return getFixedOptionsOnlyRule(section.section_id)?.title ?? section.title;
 }
 
-function getFixedSectionGroups(
-  editor: CatalogEditorState,
-  sectionId: string,
-): CatalogGroupState[] {
-  return editor.groups.filter((group) => group.section_id === sectionId);
-}
-
-function getEffectiveFixedGroup(
-  editor: CatalogEditorState,
-  sectionId: string,
-): CatalogGroupState | undefined {
-  const groups = getFixedSectionGroups(editor, sectionId);
-
-  return groups.find((group) => group.group_id === fixedGroupFilter) ?? groups[0];
-}
-
 function getFixedLocationItems(
   editor: CatalogEditorState,
   section: CatalogSectionState,
-  group: CatalogGroupState | undefined,
 ): CatalogItemState[] {
-  const groupId = section.content_kind === "groups" ? group?.group_id : "";
   const optionsOnlyRule = getFixedOptionsOnlyRule(section.section_id);
-
-  if (groupId === undefined) {
-    return [];
-  }
 
   return editor.items.filter((item) =>
     item.section_id === section.section_id
-    && item.group_id === groupId
     && (!optionsOnlyRule || optionsOnlyRule.itemIds.includes(item.item_id))
   );
 }

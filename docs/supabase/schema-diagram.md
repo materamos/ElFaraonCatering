@@ -104,25 +104,13 @@ erDiagram
     text section_id
     text title
     text description
-    text content_kind
     text presentation
-    int order_index
-  }
-
-  MENU_CATALOG_GROUPS {
-    bigint id PK
-    text section_id FK
-    text group_id
-    text title
-    text description
-    text pricing_key FK
     int order_index
   }
 
   MENU_CATALOG_ITEMS {
     bigint id PK
     text section_id FK
-    text group_id
     text item_id
     text name
     text description
@@ -170,11 +158,9 @@ erDiagram
 
   MENU_PRICES ||--o{ MENU_PRICE_VARIANTS : physical
   MENU_PRICES ||--o{ MENU_DAILY_ITEMS : physical
-  MENU_PRICES ||--o{ MENU_CATALOG_GROUPS : physical
   MENU_PRICES ||--o{ MENU_CATALOG_ITEMS : physical
   MENU_PRICES ||--o{ MENU_GRILL_CATALOG_ITEMS : physical
 
-  MENU_CATALOG_SECTIONS ||--o{ MENU_CATALOG_GROUPS : physical
   MENU_CATALOG_SECTIONS ||--o{ MENU_CATALOG_ITEMS : physical
   MENU_CATALOG_ITEMS ||--o{ MENU_CATALOG_ITEM_IMAGES : physical
   MENU_CATALOG_ITEMS ||--o{ MENU_CATALOG_ITEM_OPTIONS : physical
@@ -188,7 +174,6 @@ erDiagram
 flowchart LR
   AUTH_USERS["auth.users<br/>Supabase-managed"]
   STAFF["public.staff_users<br/>roles operativos"]
-  EDITORS["public.editor_profiles<br/>legacy backfill"]
   OVERLAYS["public.menu_availability_overlays<br/>disponibilidad runtime"]
   READ_RPC["get_admin_operational_state()<br/>lectura admin"]
   WRITE_RPCS["RPCs operativas<br/>edicion controlada"]
@@ -229,12 +214,12 @@ flowchart LR
 ## Frontera build-time/runtime
 
 - `menu_content` se lee para el menu publico solo durante build/validacion con `SUPABASE_DB_URL`.
-- Menu del dia, notas, servicio activo por local, catalogo, secciones, grupos, imagenes y precios son datos build-time.
+- Menu del dia, notas, servicio activo por local, catalogo, secciones, imagenes y precios son datos build-time.
 - Las columnas build-time `available` no representan faltantes operativos; se conservan siempre `true` por compatibilidad.
 - `menu_daily_items` modela dos opciones planas: comun y vegetariano.
 - `/admin/` funciona como CMS operativo de contenido de menu: cubre disponibilidad, servicio activo, menu del dia, parrilla, contenido de menu fijo, opciones existentes, precios y publicacion.
 - `/admin/` puede editar datos operativos build-time, pero esos cambios requieren rebuild/deploy para impactar el menu publico.
-- La edicion de menu fijo desde `/admin/` cubre altas, bajas y cambios de nombre/descripcion de items puntuales dentro de secciones o grupos existentes, y cambios de nombre/descripcion de opciones existentes; no abre CMS editorial general ni edicion libre de secciones, grupos, IDs u orden.
+- La edicion de menu fijo desde `/admin/` cubre altas, bajas y cambios de nombre/descripcion de items puntuales dentro de secciones existentes, y cambios de opciones existentes; no abre CMS editorial general ni edicion libre de secciones, IDs u orden.
 - `public.menu_availability_overlays` es el unico dato editable en runtime sin rebuild.
 - La ausencia de overlay equivale a disponible; marcar disponible en admin debe limpiar el overlay.
 - Los items con opciones exponen target padre y targets de opcion; las opciones usan IDs compuestos `item-id-option-id` como `item_id` del overlay.
@@ -243,5 +228,5 @@ flowchart LR
 - Las RPCs publicas del admin son wrappers `security invoker`; las implementaciones privilegiadas viven en `app_private`, que no debe exponerse por PostgREST.
 - `publish-menu-changes` es la frontera server-side para publicar cambios build-time: valida Auth, usa `can_publish_menu()`, registra auditoria privada con fingerprint del contenido y llama el Deploy Hook desde secretos.
 - El estado `publication` expone el fingerprint build-time actual; `/admin/` lo compara contra el fingerprint embebido en el deploy estatico actual para decidir si falta publicar.
-- `public.editor_profiles` es legacy temporal y no debe respaldar nuevas policies.
+- `public.editor_profiles` fue eliminada luego del backfill inicial; `staff_users` es la unica fuente de permisos operativos.
 - El cliente no debe consultar estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.

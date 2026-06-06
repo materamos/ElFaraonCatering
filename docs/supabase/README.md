@@ -9,7 +9,6 @@ Las migraciones operativas reales viven en `../../supabase/migrations/`. No agre
 - `menu_content`: fuente privada de estructura y operacion build-time.
 - `public.menu_availability_overlays`: unico overlay runtime sin rebuild.
 - `public.staff_users`: empleados y roles para el CMS operativo de menu.
-- `public.editor_profiles`: tabla legacy usada solo como origen de backfill hacia `staff_users`.
 - `public.get_admin_operational_state()`: RPC de lectura controlada para `/admin/`.
 - RPCs operativas: unica superficie de escritura browser para disponibilidad, servicio activo, menu del dia, parrilla, contenido de menu fijo, opciones de subcategorias, precios y publicacion.
 - `app_private.menu_publish_requests`: log privado, reserva de publicaciones y fingerprint del contenido solicitado desde `/admin/`.
@@ -24,7 +23,7 @@ El modelo activo de `menu_content` es plano y orientado al dominio real:
 - Perfiles y facts se leen en build-time. Pagos se modela como el fact `pagos`.
 - `menu_daily_items` contiene las dos opciones reales del menu del dia: comun y vegetariano.
 - `menu_profile_service_settings.service_kind` define por local `daily-menu` o `grill`.
-- `menu_catalog_sections`, `menu_catalog_groups`, `menu_catalog_items` y `menu_catalog_item_options` contienen el catalogo estable.
+- `menu_catalog_sections`, `menu_catalog_items` y `menu_catalog_item_options` contienen el catalogo estable plano.
 - `menu_grill_families` contiene los items visibles de parrilla y `menu_grill_catalog_items` contiene sus variantes con precio.
 - `menu_prices` y `menu_price_variants` contienen precios globales build-time.
 
@@ -54,12 +53,12 @@ No implementar consultas runtime para menu del dia, precios, servicio activo, ca
 - `staff_users.role = 'operator'`: puede editar todo lo que permite `/admin/`, para todos los perfiles, incluyendo publicar cambios.
 - `staff_users.role = 'admin'`: hereda permisos operativos y puede gestionar staff a nivel de base/RPC.
 - El sitio actual no tiene pantalla de gestion de empleados.
-- `editor_profiles` no debe usarse para policies nuevas; queda solo como origen de migracion.
+- `editor_profiles` fue eliminada luego del backfill inicial; no debe recrearse ni usarse para permisos.
 - El primer `admin` debe crearse por SQL privilegiado o service role; no se bootstrapea desde browser RLS.
 - `/admin/` lee estado operativo mediante `get_admin_operational_state()` y escribe solo mediante RPCs operativas.
 - `/admin/` es un CMS operativo de contenido de menu: puede cubrir disponibilidad, servicio activo, menu del dia, parrilla dentro de familias existentes, contenido de menu fijo, opciones de subcategorias, precios y publicacion, sin abrir escritura editorial general.
 - `/admin/` permite recuperar y cambiar contrasena con Supabase Auth; el redirect de recuperacion debe volver a `/admin/`.
-- La edicion de parrilla puede agregar items, editar nombre/etiqueta y eliminar items dentro de familias existentes, sin administrar familias ni orden. La edicion de menu fijo puede agregar items, editar nombre/descripcion y eliminar items dentro de secciones o grupos existentes, y agregar, editar nombre y eliminar opciones de items que ya usan sabores, sin dejar una lista vacia; no edita disponibilidad, IDs tecnicos, orden, secciones, grupos ni reordenamiento de opciones. Los IDs nuevos se generan en RPCs server-side, no desde nombres visibles en el browser. Las altas y los renombrados rechazan nombres visibles duplicados dentro del mismo contexto operativo con mensajes controlados. Los precios se editan desde RPCs globales de precios presentados en la pantalla del menu correspondiente.
+- La edicion de parrilla puede agregar items, editar nombre/etiqueta y eliminar items dentro de familias existentes, sin administrar familias ni orden. La edicion de menu fijo puede agregar items, editar nombre/descripcion y eliminar items dentro de secciones existentes, y agregar, editar nombre y eliminar opciones de items que ya usan sabores, sin dejar una lista vacia; no edita disponibilidad, IDs tecnicos, orden, secciones ni reordenamiento de opciones. Cada item fijo conserva su propio `pricing_key`. Los IDs nuevos se generan en RPCs server-side, no desde nombres visibles en el browser. Las altas y los renombrados rechazan nombres visibles duplicados dentro del mismo contexto operativo con mensajes controlados. Los precios se editan desde RPCs globales de precios presentados en la pantalla del menu correspondiente.
 - No hay grants client-facing sobre `menu_content` ni tablas de `app_private`.
 
 Redirects requeridos en Supabase Auth:
@@ -165,6 +164,10 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260604224000_acknowledge_ignored_catalog_item_id.sql` | Mantiene compatibilidad de firma RPC y documenta que `item_id` de alta se ignora para generar IDs server-side. |
 | `20260604225000_prevent_duplicate_admin_visible_names.sql` | Rechaza altas con nombres visibles duplicados normalizados dentro del mismo contexto operativo. |
 | `20260606210000_handle_duplicate_names_on_admin_updates.sql` | Rechaza renombrados con nombres visibles duplicados y devuelve mensajes controlados en lugar de errores de indice. |
+| `20260606211000_tidy_prelaunch_item_ids.sql` | Corrige IDs tecnicos pre-lanzamiento de yogurt y Gatorade, y ajusta el texto visible de entraña. |
+| `20260606212000_drop_legacy_editor_profiles.sql` | Elimina `public.editor_profiles` luego de confirmar que el backfill y los permisos activos usan `staff_users`. |
+| `20260606213000_drop_catalog_groups.sql` | Elimina grupos del catalogo fijo y `group_id` del overlay, y aplana las firmas RPC relacionadas. |
+| `20260606214000_fix_flat_availability_overlay_upsert.sql` | Corrige el upsert plano de disponibilidad para evitar ambiguedad entre parametros y columnas. |
 
 ## Baseline pre-lanzamiento
 
@@ -262,7 +265,7 @@ No aplicar SQL mutante en Supabase remoto si los audits muestran bloqueos conoci
 - No editar el estado remoto desde el dashboard sin reflejarlo en SQL versionado.
 - Preferir SQL idempotente para cambios futuros cuando sea compatible con la migracion.
 - Mantener nombres tecnicos ASCII/kebab-case donde corresponda.
-- Usar `staff_users` y funciones helper para permisos nuevos del CMS operativo de menu; no reusar `editor_profiles` para nuevas policies.
+- Usar `staff_users` y funciones helper para permisos del CMS operativo de menu; no recrear `editor_profiles`.
 - Usar RPCs operativas para escrituras desde el browser; no otorgar grants directos sobre `menu_content`.
 - Usar `get_admin_operational_state()` para lectura del admin; no consultar `menu_content` ni `app_private` desde el browser.
 - Usar `publish-menu-changes` para publicacion; no exponer el Vercel Deploy Hook, no usar `pg_net`, no exponer `app_private` por PostgREST y no otorgar grants sobre sus tablas.

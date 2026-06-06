@@ -5,12 +5,6 @@ create schema if not exists app_private;
 revoke all on schema app_private from public, anon, authenticated;
 grant usage on schema app_private to authenticated;
 
-create table if not exists public.editor_profiles (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  active boolean not null default true,
-  display_name text
-);
-
 create table if not exists public.staff_users (
   user_id uuid primary key references auth.users(id) on delete cascade,
   display_name text not null check (length(btrim(display_name)) > 0),
@@ -20,25 +14,10 @@ create table if not exists public.staff_users (
   updated_at timestamptz not null default now()
 );
 
-insert into public.staff_users (
-  user_id,
-  display_name,
-  role,
-  active
-)
-select
-  editor.user_id,
-  coalesce(nullif(btrim(editor.display_name), ''), 'Editor'),
-  'operator',
-  editor.active
-from public.editor_profiles editor
-on conflict (user_id) do nothing;
-
 create table if not exists public.menu_availability_overlays (
   id uuid primary key default gen_random_uuid(),
   menu_id text not null,
   section_id text not null,
-  group_id text null,
   item_id text not null,
   available_override boolean not null,
   updated_at timestamptz not null default now(),
@@ -49,7 +28,6 @@ create unique index if not exists menu_availability_overlays_unique_item
   on public.menu_availability_overlays (
     menu_id,
     section_id,
-    (coalesce(group_id, '')),
     item_id
   );
 
@@ -185,7 +163,6 @@ revoke all on public.menu_availability_overlays from anon, authenticated;
 grant select (
   menu_id,
   section_id,
-  group_id,
   item_id,
   available_override
 ) on public.menu_availability_overlays to anon, authenticated;
@@ -209,12 +186,9 @@ grant execute on function app_private.can_edit_availability(text) to authenticat
 grant execute on function app_private.can_manage_staff() to authenticated;
 grant execute on function app_private.can_publish_menu() to authenticated;
 
-alter table public.editor_profiles enable row level security;
 alter table public.staff_users enable row level security;
 alter table public.menu_availability_overlays enable row level security;
 
-drop policy if exists "Editor profiles are readable by their users"
-  on public.editor_profiles;
 drop policy if exists "Staff users can read own active profile"
   on public.staff_users;
 drop policy if exists "Admins can read staff users"
@@ -239,12 +213,6 @@ drop policy if exists "Staff can update menu availability overlays"
   on public.menu_availability_overlays;
 drop policy if exists "Staff can delete menu availability overlays"
   on public.menu_availability_overlays;
-
-create policy "Editor profiles are readable by their users"
-  on public.editor_profiles
-  for select
-  to authenticated
-  using ((select auth.uid()) = user_id);
 
 create policy "Staff users can read own active profile"
   on public.staff_users

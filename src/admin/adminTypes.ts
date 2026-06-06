@@ -4,7 +4,6 @@ export type TargetKind = "daily-menu" | "grill" | "catalog";
 export type AdminTabId = "service" | "availability" | "fixed" | "account";
 export type ServiceSectionId = "active-service" | "daily-menu" | "grill";
 export type StatusTone = "neutral" | "success" | "danger";
-export type CatalogContentKind = "items" | "groups";
 export type FixedMenuEditMode = "items" | "options-only";
 export type AuthView = "login" | "reset-request" | "set-password";
 
@@ -56,7 +55,6 @@ export interface AvailabilityTargetState {
   target_kind: TargetKind;
   section_id: string;
   section_title: string;
-  group_id: string;
   group_title: string | null;
   item_id: string;
   name: string;
@@ -68,7 +66,6 @@ export interface AvailabilityTargetState {
 export interface AvailabilityOverlayState {
   menu_id: string;
   section_id: string;
-  group_id: string;
   item_id: string;
   available_override: boolean;
   updated_at: string;
@@ -113,16 +110,6 @@ export interface GrillEditorState {
 export interface CatalogSectionState {
   section_id: string;
   title: string;
-  content_kind: CatalogContentKind;
-  order_index: number;
-  item_count: number;
-}
-
-export interface CatalogGroupState {
-  section_id: string;
-  group_id: string;
-  title: string;
-  pricing_key: string | null;
   order_index: number;
   item_count: number;
 }
@@ -130,8 +117,6 @@ export interface CatalogGroupState {
 export interface CatalogItemState {
   section_id: string;
   section_title: string;
-  group_id: string;
-  group_title: string | null;
   item_id: string;
   name: string;
   description: string | null;
@@ -144,7 +129,6 @@ export interface CatalogItemState {
 
 export interface CatalogItemOptionState {
   section_id: string;
-  group_id: string;
   item_id: string;
   option_id: string;
   name: string;
@@ -153,7 +137,6 @@ export interface CatalogItemOptionState {
 
 export interface CatalogEditorState {
   sections: CatalogSectionState[];
-  groups: CatalogGroupState[];
   items: CatalogItemState[];
 }
 

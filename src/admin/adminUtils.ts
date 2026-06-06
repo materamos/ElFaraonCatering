@@ -3,7 +3,6 @@ import type {
   AuthApiResponse,
   AuthSession,
   AvailabilityTargetState,
-  CatalogGroupState,
   CatalogItemOptionState,
   CatalogItemState,
   CatalogSectionState,
@@ -18,19 +17,17 @@ import type {
 export function getTargetKey(target: {
   menu_id: string;
   section_id: string;
-  group_id: string;
   item_id: string;
 }): string {
-  return `${target.menu_id}/${target.section_id}/${target.group_id}/${target.item_id}`;
+  return `${target.menu_id}/${target.section_id}/${target.item_id}`;
 }
 
 export function getOverlayKey(overlay: {
   menu_id: string;
   section_id: string;
-  group_id: string;
   item_id: string;
 }): string {
-  return `${overlay.menu_id}/${overlay.section_id}/${overlay.group_id}/${overlay.item_id}`;
+  return `${overlay.menu_id}/${overlay.section_id}/${overlay.item_id}`;
 }
 
 export function normalizeAdminState(
@@ -62,9 +59,6 @@ export function normalizeAdminState(
     catalog_editor: {
       sections: Array.isArray(state.catalog_editor?.sections)
         ? state.catalog_editor.sections.map(normalizeCatalogSection)
-        : [],
-      groups: Array.isArray(state.catalog_editor?.groups)
-        ? state.catalog_editor.groups.map(normalizeCatalogGroup)
         : [],
       items: Array.isArray(state.catalog_editor?.items)
         ? state.catalog_editor.items.map(normalizeCatalogItem)
@@ -132,13 +126,6 @@ function normalizeCatalogSection(section: CatalogSectionState): CatalogSectionSt
   return {
     ...section,
     item_count: normalizeNonnegativeInteger(section.item_count),
-  };
-}
-
-function normalizeCatalogGroup(group: CatalogGroupState): CatalogGroupState {
-  return {
-    ...group,
-    item_count: normalizeNonnegativeInteger(group.item_count),
   };
 }
 

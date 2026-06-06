@@ -46,14 +46,6 @@ export interface MenuItem {
   images?: string[];
 }
 
-export interface MenuGroup {
-  groupId: string;
-  title: string;
-  description?: string;
-  pricing?: MenuPricing;
-  items: MenuItem[];
-}
-
 export type MenuSectionPresentation = "cards" | "compact-list";
 
 export interface MenuSectionBase {
@@ -64,19 +56,9 @@ export interface MenuSectionBase {
   presentation?: MenuSectionPresentation;
 }
 
-export type MenuItemsSectionData = MenuSectionBase & {
+export type MenuCatalogSectionData = MenuSectionBase & {
   items: MenuItem[];
-  groups?: never;
 };
-
-export type MenuGroupsSectionData = MenuSectionBase & {
-  items?: never;
-  groups: MenuGroup[];
-};
-
-export type MenuCatalogSectionData =
-  | MenuItemsSectionData
-  | MenuGroupsSectionData;
 
 export type MenuSectionData = MenuCatalogSectionData;
 

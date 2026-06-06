@@ -6,13 +6,11 @@ import { getPricingText, getVariantPricingText } from "../utils/menuPricing";
 interface Props {
   menuId: string;
   sectionId: string;
-  groupId?: string;
   itemId: string;
   name: MenuItem["name"];
   description?: MenuItem["description"];
   available: boolean;
   pricing?: MenuPricing;
-  inheritedPricing?: MenuPricing;
   options?: MenuOption[];
   image?: MenuItem["image"];
   images?: MenuItem["images"];
@@ -21,13 +19,11 @@ interface Props {
 const {
   menuId,
   sectionId,
-  groupId,
   itemId,
   name,
   description,
   available,
   pricing,
-  inheritedPricing,
   options,
   image,
   images,
@@ -41,7 +37,7 @@ const displayImages = [
 ];
 const displayImage = displayImages[0];
 const photoButtonLabel = displayImages.length > 1 ? "Ver fotos" : "Ver foto";
-const effectivePricing = pricing ?? inheritedPricing;
+const effectivePricing = pricing;
 const hasVariantPricing = effectivePricing?.kind === "variants";
 const variants = effectivePricing?.kind === "variants" ? effectivePricing.variants : [];
 const hasOperationalVariants = variants.some((variant) => variant.availabilityItemId);
@@ -57,7 +53,6 @@ const directPricingText =
   class="dish-row"
   data-menu-id={hasOperationalVariants ? undefined : menuId}
   data-section-id={hasOperationalVariants ? undefined : sectionId}
-  data-group-id={hasOperationalVariants ? undefined : groupId}
   data-item-id={hasOperationalVariants ? undefined : itemId}
   data-available={hasOperationalVariants ? undefined : available ? "true" : "false"}
 >
@@ -92,7 +87,6 @@ const directPricingText =
             class="dish-card__option"
             data-menu-id={menuId}
             data-section-id={sectionId}
-            data-group-id={groupId}
             data-item-id={getOptionAvailabilityItemId(option)}
             data-available={option.available ? "true" : "false"}
           >
@@ -147,7 +141,6 @@ const directPricingText =
               class="dish-card__variant"
               data-menu-id={variant.availabilityItemId ? menuId : undefined}
               data-section-id={variant.availabilityItemId ? sectionId : undefined}
-              data-group-id={variant.availabilityItemId ? "" : undefined}
               data-item-id={variant.availabilityItemId}
               data-available={
                 variant.availabilityItemId

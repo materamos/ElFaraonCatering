@@ -14,7 +14,6 @@ export const loadRows = async (sql) => {
     dailyItems,
     profileServiceSettings,
     catalogSections,
-    catalogGroups,
     catalogItems,
     catalogItemImages,
     catalogItemOptions,
@@ -28,8 +27,7 @@ export const loadRows = async (sql) => {
     sql`select * from menu_content.menu_daily_items order by order_index`,
     sql`select * from menu_content.menu_profile_service_settings order by profile_id`,
     sql`select * from menu_content.menu_catalog_sections order by order_index`,
-    sql`select * from menu_content.menu_catalog_groups order by section_id, order_index`,
-    sql`select * from menu_content.menu_catalog_items order by section_id, group_id, order_index`,
+    sql`select * from menu_content.menu_catalog_items order by section_id, order_index`,
     sql`select * from menu_content.menu_catalog_item_images order by catalog_item_id, order_index`,
     sql`select * from menu_content.menu_catalog_item_options order by catalog_item_id, order_index`,
     sql`select * from menu_content.menu_grill_families order by order_index`,
@@ -44,7 +42,6 @@ export const loadRows = async (sql) => {
     dailyItems,
     profileServiceSettings,
     catalogSections,
-    catalogGroups,
     catalogItems,
     catalogItemImages,
     catalogItemOptions,
@@ -61,7 +58,6 @@ export const createSnapshot = (rows, options = {}) => {
   const priceMap = createPriceMap(rows.prices, rows.priceVariants);
   const factsByProfile = groupByStringKey(rows.facts, "profile_id");
   const catalogItemsBySection = groupByStringKey(rows.catalogItems, "section_id");
-  const catalogGroupsBySection = groupByStringKey(rows.catalogGroups, "section_id");
   const imagesByCatalogItem = groupByNumberKey(rows.catalogItemImages ?? [], "catalog_item_id");
   const optionsByCatalogItem = groupByNumberKey(rows.catalogItemOptions, "catalog_item_id");
   const grillItemsByFamily = groupByStringKey(rows.grillItems, "family_id");
@@ -93,7 +89,6 @@ export const createSnapshot = (rows, options = {}) => {
     catalogSections: rows.catalogSections.map((section) =>
       createCatalogSection({
         section,
-        groups: catalogGroupsBySection.get(section.section_id) ?? [],
         items: catalogItemsBySection.get(section.section_id) ?? [],
         imagesByCatalogItem,
         optionsByCatalogItem,
@@ -163,7 +158,6 @@ const createGrillPricingVariant = (item, priceMap) => {
 
 const createCatalogSection = ({
   section,
-  groups,
   items,
   imagesByCatalogItem,
   optionsByCatalogItem,
@@ -180,48 +174,17 @@ const createCatalogSection = ({
       section.presentation === "compact-list" ? section.presentation : undefined,
   });
 
-  if (section.content_kind === "items") {
-    return {
-      ...baseSection,
-      items: items
-        .filter((item) => item.group_id === "")
-        .map((item) =>
-          createFlatItem(
-            item,
-            optionsByCatalogItem.get(Number(item.id)) ?? [],
-            priceMap,
-            transformImage,
-            transformImages,
-            imagesByCatalogItem.get(Number(item.id)) ?? [],
-          ),
-        ),
-    };
-  }
-
-  const itemsByGroup = groupByStringKey(
-    items.filter((item) => item.group_id !== ""),
-    "group_id",
-  );
-
   return {
     ...baseSection,
-    groups: groups.map((group) =>
-      cleanOptional({
-        groupId: group.group_id,
-        title: group.title,
-        description: group.description ?? undefined,
-        pricing: readPricing(priceMap, group.pricing_key),
-        items: (itemsByGroup.get(group.group_id) ?? []).map((item) =>
-          createFlatItem(
-            item,
-            optionsByCatalogItem.get(Number(item.id)) ?? [],
-            priceMap,
-            transformImage,
-            transformImages,
-            imagesByCatalogItem.get(Number(item.id)) ?? [],
-          ),
-        ),
-      }),
+    items: items.map((item) =>
+      createFlatItem(
+        item,
+        optionsByCatalogItem.get(Number(item.id)) ?? [],
+        priceMap,
+        transformImage,
+        transformImages,
+        imagesByCatalogItem.get(Number(item.id)) ?? [],
+      ),
     ),
   };
 };

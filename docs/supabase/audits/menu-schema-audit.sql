@@ -10,7 +10,6 @@ with expected_tables (table_name, expectation) as (
     ('menu_daily_items', 'two build-time daily menu options'),
     ('menu_profile_service_settings', 'active build-time service per profile'),
     ('menu_catalog_sections', 'flat build-time catalog sections'),
-    ('menu_catalog_groups', 'flat build-time catalog groups'),
     ('menu_catalog_items', 'flat build-time catalog items'),
     ('menu_catalog_item_images', 'optional ordered build-time catalog item images'),
     ('menu_catalog_item_options', 'flat build-time catalog item options'),
@@ -72,11 +71,9 @@ with expected_indexes (index_name, table_name, expectation) as (
     ('menu_price_variants_pricing_key_order_index_key', 'menu_price_variants', 'unique variant order per price'),
     ('menu_catalog_sections_section_id_key', 'menu_catalog_sections', 'unique catalog section id'),
     ('menu_catalog_sections_order_index_key', 'menu_catalog_sections', 'unique catalog section order'),
-    ('menu_catalog_groups_section_id_group_id_key', 'menu_catalog_groups', 'unique group id per section'),
-    ('menu_catalog_groups_section_id_order_index_key', 'menu_catalog_groups', 'unique group order per section'),
-    ('menu_catalog_items_section_id_group_id_item_id_key', 'menu_catalog_items', 'unique item id per section/group context'),
-    ('menu_catalog_items_section_id_group_id_order_index_key', 'menu_catalog_items', 'unique item order per section/group context'),
-    ('menu_catalog_items_location_visible_name_key', 'menu_catalog_items', 'unique normalized visible item name per section/group context'),
+    ('menu_catalog_items_section_id_item_id_key', 'menu_catalog_items', 'unique item id per section'),
+    ('menu_catalog_items_section_id_order_index_key', 'menu_catalog_items', 'unique item order per section'),
+    ('menu_catalog_items_section_visible_name_key', 'menu_catalog_items', 'unique normalized visible item name per section'),
     ('menu_catalog_item_images_catalog_item_id_order_index_key', 'menu_catalog_item_images', 'unique image order per catalog item'),
     ('menu_catalog_item_options_item_visible_name_key', 'menu_catalog_item_options', 'unique normalized visible option name per item'),
     ('menu_catalog_item_options_catalog_item_id_order_index_key', 'menu_catalog_item_options', 'unique option order per catalog item'),
@@ -163,16 +160,11 @@ left join menu_content.menu_profile_service_settings settings
 where settings.profile_id is null;
 
 select
-  'menu_catalog_item_group_missing' as diagnostic,
+  'menu_catalog_item_pricing_missing' as diagnostic,
   item.section_id,
-  item.group_id,
   item.item_id
 from menu_content.menu_catalog_items item
-left join menu_content.menu_catalog_groups menu_group
-  on menu_group.section_id = item.section_id
- and menu_group.group_id = item.group_id
-where item.group_id <> ''
-  and menu_group.group_id is null;
+where item.pricing_key is null;
 
 select
   'build_time_available_not_true' as diagnostic,
@@ -191,14 +183,14 @@ union all
 select
   'build_time_available_not_true',
   'menu_catalog_items',
-  item.section_id || ':' || coalesce(nullif(item.group_id, ''), '-') || ':' || item.item_id
+  item.section_id || ':' || item.item_id
 from menu_content.menu_catalog_items item
 where item.available is distinct from true
 union all
 select
   'build_time_available_not_true',
   'menu_catalog_item_options',
-  item.section_id || ':' || coalesce(nullif(item.group_id, ''), '-') || ':' || item.item_id || ':' || option.option_id
+  item.section_id || ':' || item.item_id || ':' || option.option_id
 from menu_content.menu_catalog_item_options option
 join menu_content.menu_catalog_items item
   on item.id = option.catalog_item_id
@@ -234,3 +226,21 @@ where table_schema = 'menu_content'
     'menu_override_group_items'
   )
 order by table_name;
+
+select
+  'retired_catalog_group_object_present' as diagnostic,
+  object_name
+from (
+  select table_name as object_name
+  from information_schema.tables
+  where table_schema = 'menu_content'
+    and table_name = 'menu_catalog_groups'
+  union all
+  select table_name || '.' || column_name
+  from information_schema.columns
+  where table_schema = 'menu_content'
+    and (
+      (table_name = 'menu_catalog_sections' and column_name = 'content_kind')
+      or (table_name = 'menu_catalog_items' and column_name = 'group_id')
+    )
+) retired;

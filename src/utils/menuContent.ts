@@ -124,32 +124,13 @@ const validateMenuContentIntegrity = ({
 };
 
 const validateSectionIds = (scope: string, section: MenuSectionData) => {
-  if (section.items) {
-    assertUniqueIds(
-      section.items.map((item) => item.itemId),
-      `${scope} item id`,
-    );
-    section.items.forEach((item) =>
-      validateItemChildIds(`${scope} item ${item.itemId}`, item),
-    );
-  }
-
-  if (section.groups) {
-    assertUniqueIds(
-      section.groups.map((group) => group.groupId),
-      `${scope} group id`,
-    );
-
-    section.groups.forEach((group) => {
-      assertUniqueIds(
-        group.items.map((item) => item.itemId),
-        `${scope} group ${group.groupId} item id`,
-      );
-      group.items.forEach((item) =>
-        validateItemChildIds(`${scope} group ${group.groupId} item ${item.itemId}`, item),
-      );
-    });
-  }
+  assertUniqueIds(
+    section.items.map((item) => item.itemId),
+    `${scope} item id`,
+  );
+  section.items.forEach((item) =>
+    validateItemChildIds(`${scope} item ${item.itemId}`, item),
+  );
 };
 
 const validateItemChildIds = (scope: string, item: MenuItem) => {
