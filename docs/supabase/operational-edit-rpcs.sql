@@ -917,13 +917,31 @@ begin
     return;
   end if;
 
-  update menu_content.menu_catalog_items item
-  set
-    name = target_name,
-    description = target_description
-  where item.section_id = target_section_id
-    and item.group_id = target_group_id
-    and item.item_id = target_item_id;
+  if exists (
+    select 1
+    from menu_content.menu_catalog_items item
+    where item.section_id = target_section_id
+      and item.group_id = target_group_id
+      and item.item_id <> target_item_id
+      and app_private.normalize_visible_name(item.name) = app_private.normalize_visible_name(target_name)
+  ) then
+    return query select false, false, true, 'update_catalog_item', 'catalog_item_exists';
+    return;
+  end if;
+
+  begin
+    update menu_content.menu_catalog_items item
+    set
+      name = target_name,
+      description = target_description
+    where item.section_id = target_section_id
+      and item.group_id = target_group_id
+      and item.item_id = target_item_id;
+  exception
+    when unique_violation then
+      return query select false, false, true, 'update_catalog_item', 'catalog_item_exists';
+      return;
+  end;
 
   return query select true, true, true, 'update_catalog_item', 'catalog_item_updated';
 end;
@@ -1210,10 +1228,27 @@ begin
     return;
   end if;
 
-  update menu_content.menu_catalog_item_options option
-  set name = target_name
-  where option.catalog_item_id = target_catalog_item_id
-    and option.option_id = target_option_id;
+  if exists (
+    select 1
+    from menu_content.menu_catalog_item_options option
+    where option.catalog_item_id = target_catalog_item_id
+      and option.option_id <> target_option_id
+      and app_private.normalize_visible_name(option.name) = app_private.normalize_visible_name(target_name)
+  ) then
+    return query select false, false, true, 'update_catalog_item_option', 'catalog_option_exists';
+    return;
+  end if;
+
+  begin
+    update menu_content.menu_catalog_item_options option
+    set name = target_name
+    where option.catalog_item_id = target_catalog_item_id
+      and option.option_id = target_option_id;
+  exception
+    when unique_violation then
+      return query select false, false, true, 'update_catalog_item_option', 'catalog_option_exists';
+      return;
+  end;
 
   return query select true, true, true, 'update_catalog_item_option', 'catalog_option_updated';
 end;

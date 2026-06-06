@@ -59,7 +59,7 @@ No implementar consultas runtime para menu del dia, precios, servicio activo, ca
 - `/admin/` lee estado operativo mediante `get_admin_operational_state()` y escribe solo mediante RPCs operativas.
 - `/admin/` es un CMS operativo de contenido de menu: puede cubrir disponibilidad, servicio activo, menu del dia, parrilla dentro de familias existentes, contenido de menu fijo, opciones de subcategorias, precios y publicacion, sin abrir escritura editorial general.
 - `/admin/` permite recuperar y cambiar contrasena con Supabase Auth; el redirect de recuperacion debe volver a `/admin/`.
-- La edicion de parrilla puede agregar items, editar nombre/etiqueta y eliminar items dentro de familias existentes, sin administrar familias ni orden. La edicion de menu fijo puede agregar items, editar nombre/descripcion y eliminar items dentro de secciones o grupos existentes, y agregar, editar nombre y eliminar opciones de items que ya usan sabores, sin dejar una lista vacia; no edita disponibilidad, IDs tecnicos, orden, secciones, grupos ni reordenamiento de opciones. Los IDs nuevos se generan en RPCs server-side, no desde nombres visibles en el browser. Las altas rechazan nombres visibles duplicados dentro del mismo contexto operativo. Los precios se editan desde RPCs globales de precios presentados en la pantalla del menu correspondiente.
+- La edicion de parrilla puede agregar items, editar nombre/etiqueta y eliminar items dentro de familias existentes, sin administrar familias ni orden. La edicion de menu fijo puede agregar items, editar nombre/descripcion y eliminar items dentro de secciones o grupos existentes, y agregar, editar nombre y eliminar opciones de items que ya usan sabores, sin dejar una lista vacia; no edita disponibilidad, IDs tecnicos, orden, secciones, grupos ni reordenamiento de opciones. Los IDs nuevos se generan en RPCs server-side, no desde nombres visibles en el browser. Las altas y los renombrados rechazan nombres visibles duplicados dentro del mismo contexto operativo con mensajes controlados. Los precios se editan desde RPCs globales de precios presentados en la pantalla del menu correspondiente.
 - No hay grants client-facing sobre `menu_content` ni tablas de `app_private`.
 
 Redirects requeridos en Supabase Auth:
@@ -164,6 +164,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260604223000_generate_admin_ids_server_side.sql` | Genera IDs tecnicos nuevos en RPCs server-side y deja de aceptar IDs derivados por el browser en altas del admin. |
 | `20260604224000_acknowledge_ignored_catalog_item_id.sql` | Mantiene compatibilidad de firma RPC y documenta que `item_id` de alta se ignora para generar IDs server-side. |
 | `20260604225000_prevent_duplicate_admin_visible_names.sql` | Rechaza altas con nombres visibles duplicados normalizados dentro del mismo contexto operativo. |
+| `20260606210000_handle_duplicate_names_on_admin_updates.sql` | Rechaza renombrados con nombres visibles duplicados y devuelve mensajes controlados en lugar de errores de indice. |
 
 ## Baseline pre-lanzamiento
 
