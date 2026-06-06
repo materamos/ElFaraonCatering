@@ -17,6 +17,7 @@ const expectedDailyItemIds = [
 const expectedConstraints = [
   "menu_prices_kind_amount_valid",
   "menu_profile_facts_link_pair_valid",
+  "menu_catalog_item_images_path_valid",
 ];
 
 const expectedIndexes = [
@@ -255,14 +256,6 @@ function validateItem(scope, item, errors) {
 
   validatePricing(item.pricing, scope, errors);
 
-  if (item.image !== undefined && !isSafeMenuImagePath(item.image)) {
-    errors.push(`${scope} image must be a local file under /uploads/.`);
-  }
-
-  if (isMenuPlaceholderImagePath(item.image)) {
-    errors.push(`${scope} image must be a real menu image, not a placeholder.`);
-  }
-
   if (item.images !== undefined) {
     if (!Array.isArray(item.images)) {
       errors.push(`${scope} images must be an array.`);
@@ -276,6 +269,8 @@ function validateItem(scope, item, errors) {
           errors.push(`${scope} images[${index}] must be a real menu image, not a placeholder.`);
         }
       });
+
+      assertUnique(item.images, `${scope} image path`, errors);
     }
   }
 
@@ -419,6 +414,10 @@ async function validateSchema(sql, errors) {
       and (
         (table_name = 'menu_catalog_sections' and column_name = 'content_kind')
         or (table_name = 'menu_catalog_items' and column_name = 'group_id')
+        or (
+          table_name in ('menu_catalog_items', 'menu_daily_items', 'menu_grill_catalog_items')
+          and column_name = 'image_path'
+        )
       )
     )
     or (
@@ -440,6 +439,20 @@ async function validateSchema(sql, errors) {
 
   for (const row of unpricedItemRows) {
     errors.push(`Catalog item must define pricing_key: ${row.section_id}/${row.item_id}`);
+  }
+
+  const invalidImageOrderRows = await sql`
+    select item.section_id, item.item_id
+    from menu_content.menu_catalog_items item
+    join menu_content.menu_catalog_item_images image
+      on image.catalog_item_id = item.id
+    group by item.id, item.section_id, item.item_id
+    having min(image.order_index) <> 0
+      or max(image.order_index) + 1 <> count(*)
+  `;
+
+  for (const row of invalidImageOrderRows) {
+    errors.push(`Catalog image order must be contiguous from zero: ${row.section_id}/${row.item_id}`);
   }
 
   const constraintRows = await sql`

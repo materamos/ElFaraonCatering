@@ -42,7 +42,6 @@ export interface MenuItem {
   available: boolean;
   pricing?: MenuPricing;
   options?: MenuOption[];
-  image?: string;
   images?: string[];
 }
 

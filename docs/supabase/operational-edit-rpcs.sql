@@ -694,7 +694,6 @@ begin
     item_id,
     name,
     description,
-    image_path,
     available,
     pricing_key,
     order_index
@@ -704,7 +703,6 @@ begin
     target_item_id,
     target_name,
     target_description,
-    null,
     true,
     price_key,
     next_order_index

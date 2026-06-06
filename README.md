@@ -223,7 +223,8 @@ Reglas principales:
 - Cada item define su propio precio; no hay grupos ni precios heredados.
 - Las variantes son planas y sus montos son numericos.
 - Las imagenes deben ser paths locales bajo `/uploads/`.
-- `image_path` conserva la foto principal de un item; `menu_catalog_item_images` permite fotos adicionales ordenadas para casos puntuales.
+- `menu_catalog_item_images` es la unica fuente de imagenes del catalogo fijo; `order_index = 0` identifica la principal y los indices siguientes definen el resto.
+- Menu del dia y parrilla no admiten imagenes.
 
 ## Frontera build-time/runtime
 

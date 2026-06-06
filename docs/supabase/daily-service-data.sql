@@ -91,7 +91,6 @@ insert into menu_content.menu_grill_catalog_items (
   item_id,
   name,
   variant_name,
-  image_path,
   available,
   pricing_key,
   order_index
@@ -101,7 +100,6 @@ select
   grill_items.item_id,
   grill_items.name,
   grill_items.variant_name,
-  null,
   true,
   grill_items.pricing_key,
   grill_items.order_index
@@ -111,7 +109,6 @@ set
   family_id = excluded.family_id,
   name = excluded.name,
   variant_name = excluded.variant_name,
-  image_path = excluded.image_path,
   available = excluded.available,
   pricing_key = excluded.pricing_key,
   order_index = excluded.order_index;

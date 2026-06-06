@@ -114,7 +114,6 @@ erDiagram
     text item_id
     text name
     text description
-    text image_path
     bool available
     text pricing_key FK
     int order_index
@@ -147,7 +146,6 @@ erDiagram
     text item_id
     text name
     text variant_name
-    text image_path
     bool available
     text pricing_key FK
     int order_index
@@ -217,6 +215,8 @@ flowchart LR
 - Menu del dia, notas, servicio activo por local, catalogo, secciones, imagenes y precios son datos build-time.
 - Las columnas build-time `available` no representan faltantes operativos; se conservan siempre `true` por compatibilidad.
 - `menu_daily_items` modela dos opciones planas: comun y vegetariano.
+- `menu_catalog_item_images` es la unica fuente de imagenes: el orden cero es la imagen principal de cada item del catalogo fijo.
+- Menu diario y parrilla no soportan imagenes.
 - `/admin/` funciona como CMS operativo de contenido de menu: cubre disponibilidad, servicio activo, menu del dia, parrilla, contenido de menu fijo, opciones existentes, precios y publicacion.
 - `/admin/` puede editar datos operativos build-time, pero esos cambios requieren rebuild/deploy para impactar el menu publico.
 - La edicion de menu fijo desde `/admin/` cubre altas, bajas y cambios de nombre/descripcion de items puntuales dentro de secciones existentes, y cambios de opciones existentes; no abre CMS editorial general ni edicion libre de secciones, IDs u orden.

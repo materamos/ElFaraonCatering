@@ -45,6 +45,7 @@ const forbiddenRuntimeMarkers = [
   "menu_profile_service_settings",
   "menu_catalog_sections",
   "menu_catalog_items",
+  "menu_catalog_item_images",
   "menu_catalog_item_options",
   "menu_grill_families",
   "menu_grill_catalog_items",

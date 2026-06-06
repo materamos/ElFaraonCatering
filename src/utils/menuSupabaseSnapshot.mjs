@@ -3,8 +3,6 @@
 // Node-side validator. Lives under src/ so Astro's bundler can include it; the
 // scripts/ wrapper imports it via a relative path.
 
-const identity = (value) => value;
-
 export const loadRows = async (sql) => {
   const [
     profiles,
@@ -51,7 +49,6 @@ export const loadRows = async (sql) => {
 };
 
 export const createSnapshot = (rows, options = {}) => {
-  const transformImage = options.transformImage ?? identity;
   const transformImages =
     options.transformImages ??
     ((values) => values.filter((value) => typeof value === "string" && value.length > 0));
@@ -93,13 +90,12 @@ export const createSnapshot = (rows, options = {}) => {
         imagesByCatalogItem,
         optionsByCatalogItem,
         priceMap,
-        transformImage,
         transformImages,
       }),
     ),
     dailyMenu: {
       items: rows.dailyItems.map((item) =>
-        createFlatItem(item, [], priceMap, transformImage, transformImages),
+        createFlatItem(item, [], priceMap),
       ),
     },
     profileServiceSettings: rows.profileServiceSettings.map((entry) => ({
@@ -162,7 +158,6 @@ const createCatalogSection = ({
   imagesByCatalogItem,
   optionsByCatalogItem,
   priceMap,
-  transformImage,
   transformImages,
 }) => {
   const baseSection = cleanOptional({
@@ -181,7 +176,6 @@ const createCatalogSection = ({
         item,
         optionsByCatalogItem.get(Number(item.id)) ?? [],
         priceMap,
-        transformImage,
         transformImages,
         imagesByCatalogItem.get(Number(item.id)) ?? [],
       ),
@@ -193,15 +187,11 @@ const createFlatItem = (
   item,
   options,
   priceMap,
-  transformImage,
   transformImages = (values) =>
     values.filter((value) => typeof value === "string" && value.length > 0),
   imageRows = [],
 ) => {
-  const imagePaths = transformImages([
-    "image_path" in item ? item.image_path ?? undefined : undefined,
-    ...imageRows.map((image) => image.image_path),
-  ]);
+  const imagePaths = transformImages(imageRows.map((image) => image.image_path));
 
   return cleanOptional({
     itemId: item.item_id,
@@ -219,9 +209,6 @@ const createFlatItem = (
             }),
           )
         : undefined,
-    image: imagePaths[0] ?? (
-      "image_path" in item ? transformImage(item.image_path ?? undefined) : undefined
-    ),
     images: imagePaths.length > 0 ? imagePaths : undefined,
   });
 };

@@ -155,9 +155,9 @@ const validateImageConfig = (config, key) => {
 
   if (
     config.role === "additional" &&
-    (!Number.isInteger(config.orderIndex) || config.orderIndex < 0)
+    (!Number.isInteger(config.orderIndex) || config.orderIndex < 1)
   ) {
-    errors.push(`${key}: additional images must define orderIndex >= 0.`);
+    errors.push(`${key}: additional images must define orderIndex >= 1.`);
   }
 
   if (config.role === "primary" && config.orderIndex !== undefined) {
@@ -174,7 +174,7 @@ const validateImageConfig = (config, key) => {
 const assertValidMappings = async (sources) => {
   const errors = [];
   const pendingOutputSlugs = new Map();
-  const additionalOrders = new Map();
+  const imageOrders = new Map();
 
   for (const [key, config] of Object.entries(NAME_MAP)) {
     errors.push(...validateImageConfig(config, key));
@@ -193,12 +193,11 @@ const assertValidMappings = async (sources) => {
     outputSlugFiles.push(fileName);
     pendingOutputSlugs.set(config.outputSlug, outputSlugFiles);
 
-    if (config.role === "additional") {
-      const orderKey = `${config.itemId}:${config.orderIndex}`;
-      const orderFiles = additionalOrders.get(orderKey) ?? [];
-      orderFiles.push(fileName);
-      additionalOrders.set(orderKey, orderFiles);
-    }
+    const orderIndex = config.role === "primary" ? 0 : config.orderIndex;
+    const orderKey = `${config.itemId}:${orderIndex}`;
+    const orderFiles = imageOrders.get(orderKey) ?? [];
+    orderFiles.push(fileName);
+    imageOrders.set(orderKey, orderFiles);
 
     const outputPath = path.join(outputDir, `${config.outputSlug}.webp`);
     const outputExists = await fs
@@ -224,9 +223,9 @@ const assertValidMappings = async (sources) => {
     }
   }
 
-  for (const [orderKey, files] of additionalOrders) {
+  for (const [orderKey, files] of imageOrders) {
     if (files.length > 1) {
-      errors.push(`additional image order ${orderKey} is used by multiple pending files: ${files.join(", ")}.`);
+      errors.push(`image order ${orderKey} is used by multiple pending files: ${files.join(", ")}.`);
     }
   }
 
@@ -301,7 +300,7 @@ const main = async () => {
     const roleText =
       r.role === "additional"
         ? `additional orderIndex=${r.orderIndex}`
-        : "primary";
+        : "primary orderIndex=0";
     const replaceText = r.replaced ? " reemplazo intencional" : "";
     console.log(
       `- ${r.fileName} -> item_id=${r.itemId} ${roleText} /uploads/menu/${r.slug}.webp  (${formatKb(r.sourceBytes)} -> ${formatKb(r.outputBytes)})${replaceText}`,

@@ -38,6 +38,10 @@ Editables build-time con rebuild requerido:
 - precios globales en `menu_prices` y `menu_price_variants`
 - catalogo, grupos, secciones, imagenes y textos estructurales
 
+`menu_catalog_item_images` es la unica fuente de paths de imagen y aplica solo
+al catalogo fijo. El orden cero identifica la imagen principal. Menu diario y
+parrilla no soportan imagenes.
+
 Editable runtime sin rebuild:
 
 - disponibilidad por local usando exclusivamente `public.menu_availability_overlays`
@@ -158,7 +162,7 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260603070518_normalize_menu_order_and_spanish_text.sql` | Normaliza orden editorial y textos visibles del menu. |
 | `20260603090000_rename_prelaunch_catalog_section_ids.sql` | Renombra IDs tecnicos pre-lanzamiento de cafeteria y tartas/tortillas/omelettes. |
 | `20260604170000_rename_pure_id.sql` | Renombra el ID tecnico de Pure y su clave de precio para no atarlo solo a papa. |
-| `20260604173500_add_catalog_item_images.sql` | Agrega fotos adicionales ordenadas por item de catalogo sin reemplazar `image_path`. |
+| `20260604173500_add_catalog_item_images.sql` | Agrega fotos adicionales ordenadas por item de catalogo junto al `image_path` de compatibilidad vigente en esa etapa. |
 | `20260604222000_fix_fixed_menu_scope_and_legacy_grants.sql` | Corrige el bloqueo server-side de secciones option-only y revoca grants legacy de `editor_profiles`. |
 | `20260604223000_generate_admin_ids_server_side.sql` | Genera IDs tecnicos nuevos en RPCs server-side y deja de aceptar IDs derivados por el browser en altas del admin. |
 | `20260604224000_acknowledge_ignored_catalog_item_id.sql` | Mantiene compatibilidad de firma RPC y documenta que `item_id` de alta se ignora para generar IDs server-side. |
@@ -168,6 +172,8 @@ Las migraciones aplicables a bases existentes viven en `../../supabase/migration
 | `20260606212000_drop_legacy_editor_profiles.sql` | Elimina `public.editor_profiles` luego de confirmar que el backfill y los permisos activos usan `staff_users`. |
 | `20260606213000_drop_catalog_groups.sql` | Elimina grupos del catalogo fijo y `group_id` del overlay, y aplana las firmas RPC relacionadas. |
 | `20260606214000_fix_flat_availability_overlay_upsert.sql` | Corrige el upsert plano de disponibilidad para evitar ambiguedad entre parametros y columnas. |
+| `20260606215000_consolidate_catalog_item_images.sql` | Consolida todos los paths de imagen del catalogo fijo en `menu_catalog_item_images`, elimina columnas legacy y agrega las imagenes al fingerprint. |
+| `20260606216000_harden_catalog_image_paths.sql` | Impide segmentos vacios en los paths consolidados de imagen. |
 
 ## Baseline pre-lanzamiento
 

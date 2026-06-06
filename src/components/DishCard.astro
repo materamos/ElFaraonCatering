@@ -12,7 +12,6 @@ interface Props {
   available: boolean;
   pricing?: MenuPricing;
   options?: MenuOption[];
-  image?: MenuItem["image"];
   images?: MenuItem["images"];
 }
 
@@ -25,12 +24,11 @@ const {
   available,
   pricing,
   options,
-  image,
   images,
 } = Astro.props;
 const displayImages = [
   ...new Set(
-    [image, ...(images ?? [])]
+    (images ?? [])
       .map((imagePath) => getSafeMenuImagePath(imagePath))
       .filter((imagePath): imagePath is string => Boolean(imagePath)),
   ),

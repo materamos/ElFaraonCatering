@@ -380,40 +380,50 @@ order by overlay.menu_id, overlay.section_id, overlay.item_id;
 
 -- 11. Image paths with invalid format in the active catalog.
 select
-  'menu_catalog_items' as object_name,
-  section_id,
+  'menu_catalog_item_images' as object_name,
+  item.section_id,
   null::text as context_id,
-  item_id,
-  image_path
-from menu_content.menu_catalog_items
-where image_path is not null
-  and not (
-    image_path like '/uploads/%'
-    and image_path not like '//%'
-    and image_path not like '%\%'
-    and image_path not like '%?%'
-    and image_path not like '%#%'
-    and image_path !~ '(^|/)\.\.?(/|$)'
-    and lower(image_path) ~ '\.(avif|jpeg|jpg|png|svg|webp)$'
-  )
-union all
+  item.item_id,
+  image.image_path
+from menu_content.menu_catalog_item_images image
+join menu_content.menu_catalog_items item
+  on item.id = image.catalog_item_id
+where not (
+  image.image_path like '/uploads/%'
+  and image.image_path not like '%//%'
+  and image.image_path not like '%\%'
+  and image.image_path not like '%?%'
+  and image.image_path not like '%#%'
+  and image.image_path !~ '(^|/)\.\.?(/|$)'
+  and lower(image.image_path) ~ '\.(avif|jpeg|jpg|png|svg|webp)$'
+);
+
+-- 11b. Image order must be contiguous from zero for every catalog item.
 select
-  'menu_grill_catalog_items',
-  'parrilla',
-  family_id,
-  item_id,
-  image_path
-from menu_content.menu_grill_catalog_items
-where image_path is not null
-  and not (
-    image_path like '/uploads/%'
-    and image_path not like '//%'
-    and image_path not like '%\%'
-    and image_path not like '%?%'
-    and image_path not like '%#%'
-    and image_path !~ '(^|/)\.\.?(/|$)'
-    and lower(image_path) ~ '\.(avif|jpeg|jpg|png|svg|webp)$'
-  );
+  item.section_id,
+  item.item_id,
+  min(image.order_index) as minimum_order,
+  max(image.order_index) as maximum_order,
+  count(*) as image_count
+from menu_content.menu_catalog_item_images image
+join menu_content.menu_catalog_items item
+  on item.id = image.catalog_item_id
+group by item.id, item.section_id, item.item_id
+having min(image.order_index) <> 0
+  or max(image.order_index) + 1 <> count(*);
+
+-- 11c. Legacy item image columns must remain removed.
+select
+  table_name,
+  column_name
+from information_schema.columns
+where table_schema = 'menu_content'
+  and table_name in (
+    'menu_catalog_items',
+    'menu_daily_items',
+    'menu_grill_catalog_items'
+  )
+  and column_name = 'image_path';
 
 -- 12. Build-time availability must stay normalized to true.
 select

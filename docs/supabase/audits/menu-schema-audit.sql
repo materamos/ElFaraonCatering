@@ -39,7 +39,8 @@ order by expected.table_name;
 with expected_constraints (constraint_name, table_name, expectation) as (
   values
     ('menu_prices_kind_amount_valid', 'menu_prices', 'fixed requires amount; included/variants require null amount'),
-    ('menu_profile_facts_link_pair_valid', 'menu_profile_facts', 'link_text and link_href must both be null or both be present')
+    ('menu_profile_facts_link_pair_valid', 'menu_profile_facts', 'link_text and link_href must both be null or both be present'),
+    ('menu_catalog_item_images_path_valid', 'menu_catalog_item_images', 'image paths must be local uploads')
 ),
 actual_constraints as (
   select
@@ -228,7 +229,7 @@ where table_schema = 'menu_content'
 order by table_name;
 
 select
-  'retired_catalog_group_object_present' as diagnostic,
+  'retired_schema_object_present' as diagnostic,
   object_name
 from (
   select table_name as object_name
@@ -242,5 +243,20 @@ from (
     and (
       (table_name = 'menu_catalog_sections' and column_name = 'content_kind')
       or (table_name = 'menu_catalog_items' and column_name = 'group_id')
+      or (
+        table_name in ('menu_catalog_items', 'menu_daily_items', 'menu_grill_catalog_items')
+        and column_name = 'image_path'
+      )
     )
 ) retired;
+
+select
+  'invalid_catalog_image_order' as diagnostic,
+  item.section_id,
+  item.item_id
+from menu_content.menu_catalog_items item
+join menu_content.menu_catalog_item_images image
+  on image.catalog_item_id = item.id
+group by item.id, item.section_id, item.item_id
+having min(image.order_index) <> 0
+  or max(image.order_index) + 1 <> count(*);
