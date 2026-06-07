@@ -27,7 +27,7 @@ El modelo activo de `menu_content` es plano y orientado al dominio real:
 - `menu_grill_families` contiene los items visibles de parrilla y `menu_grill_catalog_items` contiene sus variantes con precio.
 - `menu_prices` y `menu_price_variants` contienen precios globales build-time.
 
-Las tablas legacy del modelo anterior fueron eliminadas por `20260506002000_drop_legacy_menu_content_model.sql` despues de validar que el loader activo ya no dependia de ellas. El tag historico `yaml-rollback-2026-05-02` existe solo como rollback al estado file-backed anterior; YAML no es fuente activa.
+Las tablas y columnas legacy del modelo anterior no existen en la baseline activa. Su historial incremental permanece preservado en el tag `supabase-prelaunch-history-2026-06-06`. El tag historico `yaml-rollback-2026-05-02` existe solo como rollback al estado file-backed anterior; YAML no es fuente activa.
 
 ## Frontera build-time/runtime
 
@@ -74,9 +74,9 @@ Las RPCs operativas devuelven `ok`, `changed`, `requires_redeploy`, `operation` 
 
 Las funciones publicas del admin deben quedar como wrappers `security invoker`. Los cuerpos `security definer` que necesitan leer o escribir datos protegidos viven en `app_private`, fuera de los schemas expuestos por PostgREST.
 
-Excepcion actual: `public.reserve_menu_publish_request(...)` y `public.complete_menu_publish_request(...)` son helpers `security definer` para la Edge Function `publish-menu-changes`, revocados para `anon` y `authenticated`, y ejecutables solo por `service_role`. No son RPCs del browser ni del admin; moverlos a `app_private` queda reservado para un refactor explicito o para el baseline pre-lanzamiento.
+Excepcion actual: `public.reserve_menu_publish_request(...)` y `public.complete_menu_publish_request(...)` son helpers `security definer` para la Edge Function `publish-menu-changes`, revocados para `anon` y `authenticated`, y ejecutables solo por `service_role`. No son RPCs del browser ni del admin; moverlos a `app_private` queda reservado para un refactor explicito.
 
-`staff_users` y sus helpers (`can_edit_availability(text)`, `can_manage_staff()`, `can_publish_menu()`) son precondicion obligatoria para instalar las RPCs operativas. `can_edit_menu_content()` se introduce en la fase de RPCs operativas; no es precondicion de la migracion de `staff_users`.
+La baseline crea `staff_users` y sus helpers de permisos antes de las RPCs operativas que dependen de ellos. `can_edit_menu_content()` forma parte de la superficie RPC operativa y debe conservar su wrapper y contrato de privilegios actuales.
 
 `publish-menu-changes` usa `can_publish_menu()` para autorizar publicacion, reserva/completa solicitudes mediante helpers service-role-only, registra auditoria y fingerprint de contenido en `app_private`, y llama el Vercel Deploy Hook desde secretos de Supabase Functions. No usa `pg_net`.
 
@@ -105,96 +105,34 @@ Documentacion:
 
 Los archivos de esta carpeta sirven para revisar, auditar o reconstruir con control manual. No reemplazan la historia canonica de `../../supabase/migrations/`.
 
-## Migraciones canonicas
+## Baseline canonico
 
-Las migraciones aplicables a bases existentes viven en `../../supabase/migrations/`, que es la lista canonica y ordenada cronologicamente por nombre de archivo. La tabla siguiente es una referencia no exhaustiva del historial, pensada para consolidarse en un baseline limpio antes del lanzamiento; ante cualquier diferencia con el repositorio, vale el contenido de `../../supabase/migrations/`:
+La migracion activa para bases nuevas es:
 
 | Migracion | Proposito |
 | --- | --- |
-| `20260504000000_drop_menu_prices_currency.sql` | Elimina currency del modelo de precios. |
-| `20260506000000_flatten_menu_content_model.sql` | Crea y puebla el modelo plano activo. |
-| `20260506001000_consolidate_daily_service_model.sql` | Consolida el servicio diario. |
-| `20260506002000_drop_legacy_menu_content_model.sql` | Elimina tablas legacy del modelo anterior. |
-| `20260506003000_remove_menu_override_pricing.sql` | Elimina pricing override no usado por el modelo actual. |
-| `20260507000000_dedupe_menu_content_indexes.sql` | Quita indices redundantes del modelo activo. |
-| `20260508000000_add_staff_users.sql` | Agrega `staff_users`, helpers y overlay runtime. |
-| `20260508001000_add_operational_edit_rpcs.sql` | Agrega RPCs operativas y modelo operativo del menu del dia. |
-| `20260508002000_harden_security_definer_search_path.sql` | Endurece `search_path` de funciones `security definer`. |
-| `20260508003000_add_publish_menu_changes_support.sql` | Agrega `app_private` y helpers privados de publicacion. |
-| `20260508004000_add_admin_operational_state_rpc.sql` | Agrega lectura controlada del admin operativo. |
-| `20260508005000_disambiguate_availability_rpc_arguments.sql` | Desambigua argumentos de RPCs de disponibilidad. |
-| `20260508006000_remove_availability_upsert_ambiguity.sql` | Evita ambiguedad en upsert de disponibilidad. |
-| `20260509001000_remove_service_kind_profile_id_ambiguity.sql` | Desambigua `profile_id` en cambio de servicio activo. |
-| `20260509002000_revoke_staff_users_trigger_helper_execute.sql` | Revoca execute client-facing del trigger helper de staff. |
-| `20260509003000_add_publish_cooldown_remaining.sql` | Agrega segundos restantes al contrato de cooldown de publicacion. |
-| `20260509004000_limit_availability_overlay_public_select.sql` | Limita la lectura publica del overlay a las columnas que consume el cliente. |
-| `20260512000000_add_grill_variant_names.sql` | Agrega etiquetas cortas de variantes de parrilla. |
-| `20260513000000_update_admin_grill_variant_targets.sql` | Expone nombres cortos y precios de variantes de parrilla en el RPC admin. |
-| `20260513001000_remove_daily_menu_drink_options.sql` | Elimina las opciones con bebida del menu del dia y actualiza el RPC de edicion. |
-| `20260513002000_order_admin_availability_targets.sql` | Ordena disponibilidad del admin por orden editorial de secciones, grupos, familias e items. |
-| `20260514000000_remove_empty_grill_family_otros.sql` | Elimina la familia vacia `otros` de parrilla. |
-| `20260514001000_fold_profile_payments_into_facts.sql` | Migra pagos de perfiles a `menu_profile_facts` y elimina las tablas especiales de pagos. |
-| `20260514002000_wrap_security_definer_admin_rpcs.sql` | Mueve cuerpos `security definer` del admin a `app_private` y deja wrappers publicos `security invoker`. |
-| `20260514003000_add_teleinde_whatsapp_link.sql` | Agrega el link de WhatsApp al perfil `teleinde`. |
-| `20260514004000_make_availability_runtime_only.sql` | Normaliza disponibilidad build-time a `true` y deja la disponibilidad operativa solo como overlay runtime. |
-| `20260526000000_add_fixed_menu_item_admin.sql` | Agrega estado y RPCs para alta/baja medida de items del menu fijo desde `/admin/`. |
-| `20260526001000_simplify_staff_roles.sql` | Simplifica roles de staff a `admin` y `operator`, sin alcance por perfil. |
-| `20260526002000_standardize_catalog_item_order.sql` | Reordena items puntuales del catalogo y alinea el estado del admin con el orden editorial. |
-| `20260526003000_refine_catalog_option_order.sql` | Reordena opciones puntuales del catalogo para agrupar sabores y variantes relacionadas. |
-| `20260526004000_add_catalog_item_update_admin.sql` | Agrega RPC medida para editar nombre y descripcion de items del menu fijo desde `/admin/`. |
-| `20260526005000_add_catalog_option_update_admin.sql` | Agrega estado y RPC medida para editar nombre y descripcion de opciones existentes del menu fijo desde `/admin/`. |
-| `20260527000000_add_catalog_option_admin_management.sql` | Agrega RPCs medidas para alta y baja de opciones de subcategorias sin permitir que un item quede sin sabores. |
-| `20260526006000_remove_admin_note_option.sql` | Integra las notas existentes en descripciones y elimina la nota de las RPCs de edicion del admin. |
-| `20260526007000_drop_menu_note_columns.sql` | Elimina las columnas `note` del modelo `menu_content` y reemplaza las funciones que aun las referenciaban. |
-| `20260526008000_drop_option_and_grill_descriptions.sql` | Elimina descripciones de opciones del catalogo y modalidades de parrilla; las opciones quedan editables solo por nombre. |
-| `20260528000000_add_grill_item_admin.sql` | Agrega estado y RPCs medidos para administrar items de parrilla dentro de familias existentes desde `/admin/`. |
-| `20260602000000_add_publish_content_fingerprint.sql` | Registra fingerprints de contenido y expone el estado actual para compararlo contra el hash embebido en el deploy. |
-| `20260602001000_add_grill_product_admin.sql` | Agrega RPCs medidos para administrar productos visibles de parrilla y su primera variante desde `/admin/`. |
-| `20260602002000_insert_side_options_before_last.sql` | Inserta nuevas opciones de guarniciones antes del ultimo item u opcion para preservar el cierre editorial. |
-| `20260602003000_include_guarniciones_admin_items.sql` | Incluye items de guarniciones en el alcance medido de alta del menu fijo desde `/admin/`. |
-| `20260602224312_rename_papas_fritas_id.sql` | Renombra el ID tecnico de Papas Fritas y su clave de precio para evitar ambiguedad con Chips. |
-| `20260602230249_reorder_guarniciones_platos_principales.sql` | Compacta el orden de Guarniciones y agrupa variantes relacionadas en Platos principales. |
-| `20260602232042_reorder_chips_before_ensalada.sql` | Ubica Chips antes de Ensalada tres sabores en Guarniciones. |
-| `20260602232948_reorder_promociones_huevos_revueltos.sql` | Agrupa la promocion de huevos revueltos con las promos de cafe con leche. |
-| `20260603055801_rename_cafeteria_sections.sql` | Renombra titulos visibles de cafeteria y promociones cafeteria. |
-| `20260603061818_update_cafeteria_items.sql` | Actualiza el set operativo de items de cafeteria. |
-| `20260603062255_remove_cafeteria_promotion_images.sql` | Quita imagenes placeholder de cafeteria y promociones. |
-| `20260603070518_normalize_menu_order_and_spanish_text.sql` | Normaliza orden editorial y textos visibles del menu. |
-| `20260603090000_rename_prelaunch_catalog_section_ids.sql` | Renombra IDs tecnicos pre-lanzamiento de cafeteria y tartas/tortillas/omelettes. |
-| `20260604170000_rename_pure_id.sql` | Renombra el ID tecnico de Pure y su clave de precio para no atarlo solo a papa. |
-| `20260604173500_add_catalog_item_images.sql` | Agrega fotos adicionales ordenadas por item de catalogo junto al `image_path` de compatibilidad vigente en esa etapa. |
-| `20260604222000_fix_fixed_menu_scope_and_legacy_grants.sql` | Corrige el bloqueo server-side de secciones option-only y revoca grants legacy de `editor_profiles`. |
-| `20260604223000_generate_admin_ids_server_side.sql` | Genera IDs tecnicos nuevos en RPCs server-side y deja de aceptar IDs derivados por el browser en altas del admin. |
-| `20260604224000_acknowledge_ignored_catalog_item_id.sql` | Mantiene compatibilidad de firma RPC y documenta que `item_id` de alta se ignora para generar IDs server-side. |
-| `20260604225000_prevent_duplicate_admin_visible_names.sql` | Rechaza altas con nombres visibles duplicados normalizados dentro del mismo contexto operativo. |
-| `20260606210000_handle_duplicate_names_on_admin_updates.sql` | Rechaza renombrados con nombres visibles duplicados y devuelve mensajes controlados en lugar de errores de indice. |
-| `20260606211000_tidy_prelaunch_item_ids.sql` | Corrige IDs tecnicos pre-lanzamiento de yogurt y Gatorade, y ajusta el texto visible de entraña. |
-| `20260606212000_drop_legacy_editor_profiles.sql` | Elimina `public.editor_profiles` luego de confirmar que el backfill y los permisos activos usan `staff_users`. |
-| `20260606213000_drop_catalog_groups.sql` | Elimina grupos del catalogo fijo y `group_id` del overlay, y aplana las firmas RPC relacionadas. |
-| `20260606214000_fix_flat_availability_overlay_upsert.sql` | Corrige el upsert plano de disponibilidad para evitar ambiguedad entre parametros y columnas. |
-| `20260606215000_consolidate_catalog_item_images.sql` | Consolida todos los paths de imagen del catalogo fijo en `menu_catalog_item_images`, elimina columnas legacy y agrega las imagenes al fingerprint. |
-| `20260606216000_harden_catalog_image_paths.sql` | Impide segmentos vacios en los paths consolidados de imagen. |
-| `20260606217000_sync_catalog_item_identity.sql` | Sincroniza la secuencia identity de `menu_catalog_items.id` con el maximo ID existente. |
+| `20260606235844_prelaunch_baseline.sql` | Crea schemas, tablas, contenido build-time, funciones, RPCs, fingerprint, RLS, policies, grants, hardening y assertions del estado prelanzamiento. |
 
-## Baseline pre-lanzamiento
+La historia incremental anterior fue retirada del directorio activo y esta
+preservada por el tag anotado `supabase-prelaunch-history-2026-06-06`. No
+mantener una copia legacy dentro del arbol de trabajo.
 
-Mientras el admin operativo y la superficie Supabase sigan en cierre de desarrollo,
-mantener cambios estructurales como migraciones incrementales en `../../supabase/migrations/`.
-No consolidar el historial si todavia se esperan cambios en tablas, RPCs, roles,
-grants, RLS o contrato de la Edge Function.
+El baseline incluye el contenido actual de `menu_content` preservando IDs y
+sincronizando las secuencias identity. Crea vacias estas superficies operativas:
 
-Antes del freeze de produccion, si el modelo actual ya esta estable, hacer un
-corte explicito:
+- `public.staff_users`
+- `public.menu_availability_overlays`
+- `app_private.menu_publish_requests`
 
-1. Crear un tag Git que preserve la historia completa de migraciones pre-lanzamiento.
-2. Auditar Supabase remoto con `audits/`, `npm run menu:validate` y las validaciones del repo.
-3. Reemplazar el historial pre-lanzamiento por una migracion baseline limpia que represente el modelo actual.
-4. Mantener de ahi en adelante solo migraciones nuevas post-baseline.
-5. Actualizar `schema.sql`, `schema-diagram.md`, este README y los audits para que describan el modelo vigente, no cada etapa historica.
+No incluye `auth.users`, secretos de Functions ni configuracion remota de Auth.
+El primer admin debe crearse primero en Supabase Auth y luego insertarse en
+`public.staff_users` mediante SQL privilegiado o service role.
 
-El objetivo del baseline es reducir ruido operativo para bases nuevas y cambios
-futuros. La historia previa debe quedar preservada por tag, no como la interfaz
-principal de mantenimiento diario.
+No ejecutar el baseline sobre una base existente. Para un remoto que ya tiene
+el estado equivalente, primero validar esquema, contenido, funciones, permisos,
+policies y fingerprint; despues reparar solo la tabla de historial de
+migraciones. Toda modificacion futura debe ser una migracion incremental nueva
+posterior al baseline.
 
 ## Orden recomendado
 
@@ -202,18 +140,19 @@ Para una base existente:
 
 1. Ejecutar primero los SQL de `audits/` contra la base apuntada por `SUPABASE_DB_URL`.
 2. Resolver cualquier fila que bloquee constraints, indices o permisos esperados.
-3. Versionar el cambio aplicable en `../../supabase/migrations/`.
-4. Aplicar migraciones con Supabase CLI o SQL revisado, manteniendo orden cronologico.
+3. Crear una migracion incremental posterior al baseline.
+4. Aplicar solo migraciones posteriores pendientes; nunca ejecutar el baseline sobre esa base.
 5. Volver a ejecutar audits.
 6. Ejecutar validaciones del repo.
 7. Aplicar cambios remotos solo si audits y validaciones pasan.
 
 Para una base nueva:
 
-1. Preferir la ruta canonica de Supabase CLI con `../../supabase/migrations/`.
-2. Usar los snapshots de `docs/supabase/*.sql` solo para reconstrucciones manuales controladas o auditorias.
-3. Si se usan snapshots manualmente, verificar despues contra `audits/menu-schema-audit.sql`, `audits/database-audit.sql` y `npm run menu:validate`.
-4. No asumir que un snapshot aislado representa toda la superficie operativa si existen migraciones posteriores.
+1. Aplicar `../../supabase/migrations/` mediante Supabase CLI.
+2. Confirmar que el baseline y cualquier migracion posterior terminan sin errores.
+3. Ejecutar `audits/menu-schema-audit.sql`, `audits/database-audit.sql` y `npm run menu:validate`.
+4. Crear el primer usuario en Supabase Auth y bootstrappear su fila `admin` mediante acceso privilegiado.
+5. Configurar secretos y desplegar `publish-menu-changes`.
 
 ## Variables
 

@@ -157,9 +157,15 @@ as $$
 $$;
 
 revoke all on public.staff_users from anon, authenticated;
+revoke select, insert, update, delete
+  on public.staff_users
+  from service_role;
 grant select, insert, update on public.staff_users to authenticated;
 
 revoke all on public.menu_availability_overlays from anon, authenticated;
+revoke select, insert, update, delete
+  on public.menu_availability_overlays
+  from service_role;
 grant select (
   menu_id,
   section_id,
@@ -193,6 +199,8 @@ drop policy if exists "Staff users can read own active profile"
   on public.staff_users;
 drop policy if exists "Admins can read staff users"
   on public.staff_users;
+drop policy if exists "Staff users can read permitted rows"
+  on public.staff_users;
 drop policy if exists "Admins can insert staff users"
   on public.staff_users;
 drop policy if exists "Admins can update staff users"
@@ -214,30 +222,27 @@ drop policy if exists "Staff can update menu availability overlays"
 drop policy if exists "Staff can delete menu availability overlays"
   on public.menu_availability_overlays;
 
-create policy "Staff users can read own active profile"
+create policy "Staff users can read permitted rows"
   on public.staff_users
   for select
   to authenticated
-  using ((select auth.uid()) = user_id and active = true);
-
-create policy "Admins can read staff users"
-  on public.staff_users
-  for select
-  to authenticated
-  using (public.can_manage_staff());
+  using (
+    ((select auth.uid()) = user_id and active = true)
+    or public.can_manage_staff()
+  );
 
 create policy "Admins can insert staff users"
   on public.staff_users
   for insert
   to authenticated
-  with check (public.can_manage_staff());
+  with check (app_private.can_manage_staff());
 
 create policy "Admins can update staff users"
   on public.staff_users
   for update
   to authenticated
-  using (public.can_manage_staff())
-  with check (public.can_manage_staff());
+  using (app_private.can_manage_staff())
+  with check (app_private.can_manage_staff());
 
 create policy "Menu availability overlays are publicly readable"
   on public.menu_availability_overlays

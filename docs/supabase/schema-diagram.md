@@ -7,14 +7,14 @@ Las columnas `available` dentro de `menu_content` son compatibilidad interna y d
 Fuentes versionadas:
 
 - `schema.sql`: snapshot limpio esperado del schema privado `menu_content`.
-- `../../supabase/migrations/`: historia canonica de migraciones operativas aplicables.
+- `../../supabase/migrations/`: baseline prelanzamiento canonico y migraciones posteriores.
 - `availability-overlay.sql`: referencia del overlay runtime, `staff_users` y helpers base.
 - `operational-edit-rpcs.sql`: referencia de RPCs de escritura operativa.
 - `hardening.sql`: referencia de constraints e indices idempotentes.
 - `audits/menu-schema-audit.sql`: auditoria read-only del modelo activo.
 - `audits/database-audit.sql`: inventario amplio de objetos, exposicion y hallazgos.
 
-Ver `README.md` en esta carpeta para el orden completo de migraciones.
+Ver `README.md` en esta carpeta para las reglas del baseline y cambios posteriores.
 
 ## Mapa de schemas
 

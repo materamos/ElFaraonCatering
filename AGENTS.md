@@ -180,7 +180,7 @@ editorial CMS without an explicit architecture decision.
 
 Build-time structural and operational content:
 
-- `supabase/migrations/` contains real operational Supabase migrations and is the canonical migration location for Supabase CLI and future migrations.
+- `supabase/migrations/` contains the pre-launch baseline and later operational migrations. It is the canonical migration location for Supabase CLI.
 - `docs/supabase/schema.sql` defines the `menu_content` schema.
 - `docs/supabase/daily-service-data.sql` seeds the daily-service settings and fixed grill list.
 - `docs/supabase/hardening.sql` hardens constraints and indexes idempotently.
@@ -189,8 +189,9 @@ Build-time structural and operational content:
 - `docs/supabase/README.md` documents the local-first Supabase workflow, real migration order, and remote-application rules.
 - `docs/supabase/schema-diagram.md` documents the Mermaid ERD for `menu_content` and the runtime overlay.
 - `docs/supabase/` keeps documentation, audits, snapshots, and explanatory SQL; do not place real migrations there.
-- Until the production freeze, keep likely structural Supabase changes as incremental migrations. When the Supabase model is stable, create a Git tag that preserves the pre-launch migration history and consolidate a clean baseline migration for new databases.
-- Do not consolidate the Supabase migration history while table, RPC, role, grant, RLS, or Edge Function contracts are still expected to change.
+- `20260606235844_prelaunch_baseline.sql` is the clean starting point for new databases. The prior incremental history is preserved by Git tag `supabase-prelaunch-history-2026-06-06`.
+- Never run the baseline against an existing database. Align an existing remote migration history only after proving schema, data, function, grant, policy, and fingerprint equivalence.
+- Add every future database change as a new incremental migration after the baseline.
 - Supabase CLI is installed as a dev dependency and should be run through npm scripts, for example `npm run supabase -- <args>`.
 - `npm run supabase:functions:deploy` may deploy only the approved `publish-menu-changes` Edge Function and must keep platform JWT verification disabled for that function.
 - `SUPABASE_DB_URL` is required for build-time structural reads and menu validation.
@@ -199,7 +200,7 @@ Build-time structural and operational content:
 - Menu del dia, active service, prices, catalog, groups, sections, images, and structural text are build-time data even when the operational admin or RPCs edit them.
 - Build-time `available` columns are compatibility fields and must remain `true`; do not use them to represent operational unavailability.
 - Changes to build-time data require rebuild/deploy before affecting `/menu/corpo/` and `/menu/teleinde/`.
-- Legacy menu-content tables were removed by the explicit cleanup migration after flat-model deploy validation.
+- Legacy menu-content tables and columns are absent from the baseline and must not be recreated.
 
 Runtime overlay:
 
@@ -207,12 +208,12 @@ Runtime overlay:
 - `docs/supabase/operational-edit-rpcs.sql` defines the approved RPC write surface for operational CMS edits.
 - `public.get_admin_operational_state()` is the approved read surface for the operational admin. Browser code must not query `menu_content` or `app_private` directly.
 - Public admin RPCs and permission helpers must remain `security invoker` wrappers when they are executable by `authenticated`; privileged `security definer` bodies must live outside exposed API schemas, currently in `app_private`.
-- Current publish helper exception: `public.reserve_menu_publish_request(...)` and `public.complete_menu_publish_request(...)` are `security definer` helpers for the `publish-menu-changes` Edge Function, revoked from `anon` and `authenticated`, and executable only by `service_role`. They are not browser/admin RPCs; moving them to `app_private` requires an explicit refactor or the pre-launch baseline.
+- Current publish helper exception: `public.reserve_menu_publish_request(...)` and `public.complete_menu_publish_request(...)` are `security definer` helpers for the `publish-menu-changes` Edge Function, revoked from `anon` and `authenticated`, and executable only by `service_role`. They are not browser/admin RPCs; moving them to `app_private` requires an explicit refactor.
 - `public.staff_users` defines operational staff roles: `operator` and `admin`.
 - `operator` can edit everything currently exposed by `/admin/` for every profile, including publishing changes.
 - `admin` has operator permissions and may manage staff through privileged SQL/RPC surfaces.
-- `public.staff_users` and the `can_edit_availability(text)`, `can_manage_staff()`, and `can_publish_menu()` helpers are required before operational edit RPCs may be installed.
-- `can_edit_menu_content()` is introduced by the operational edit RPC phase; it is not a precondition of the `staff_users` migration.
+- The baseline must create `public.staff_users` and its permission helpers before operational edit RPCs that depend on them.
+- Keep `can_edit_menu_content()` with the operational edit RPC surface and preserve its current wrapper and privilege contract.
 - `publish-menu-changes` is the only approved Supabase Edge Function. It may publish build-time operational changes by validating Supabase Auth, checking `can_publish_menu()`, reserving/completing publish requests through service-role-only helpers, logging privately in `app_private`, recording a private build-time content fingerprint, and calling the Vercel Deploy Hook from Supabase Function secrets.
 - `/admin/` publication-pending UI must compare the current build-time content fingerprint with the static content fingerprint embedded in the currently deployed `/admin/` build. Do not use a session-only "edited" flag or the latest admin-triggered publish request as the source of truth for pending publication.
 - Publish cooldown responses may include `cooldown_seconds_remaining`; keep that contract synchronized across the Edge Function, SQL helpers, and admin UI.

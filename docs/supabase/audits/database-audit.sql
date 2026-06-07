@@ -212,6 +212,37 @@ from pg_policies
 where schemaname in ('app_private', 'menu_content', 'public')
 order by schemaname, tablename, policyname;
 
+-- 07b. Required public policies after the prelaunch baseline.
+with expected_policies (table_name, policy_name, command) as (
+  values
+    ('staff_users', 'Staff users can read permitted rows', 'SELECT'),
+    ('staff_users', 'Admins can insert staff users', 'INSERT'),
+    ('staff_users', 'Admins can update staff users', 'UPDATE'),
+    ('menu_availability_overlays', 'Menu availability overlays are publicly readable', 'SELECT')
+),
+actual_policies as (
+  select
+    tablename as table_name,
+    policyname as policy_name,
+    cmd as command
+  from pg_policies
+  where schemaname = 'public'
+)
+select
+  expected.table_name,
+  expected.policy_name,
+  expected.command,
+  case
+    when actual.policy_name is null then 'missing'
+    else 'present'
+  end as status
+from expected_policies expected
+left join actual_policies actual
+  on actual.table_name = expected.table_name
+ and actual.policy_name = expected.policy_name
+ and actual.command = expected.command
+order by expected.table_name, expected.policy_name;
+
 -- 08. Staff permission and operational edit functions.
 with expected_functions (function_name, identity_arguments, expectation) as (
   values
@@ -231,7 +262,15 @@ with expected_functions (function_name, identity_arguments, expectation) as (
     ('add_catalog_item', 'section_id text, item_id text, name text, description text, amount integer', 'fixed menu item add RPC'),
     ('delete_catalog_item', 'section_id text, item_id text', 'fixed menu item delete RPC'),
     ('update_catalog_item', 'section_id text, item_id text, name text, description text', 'fixed menu item text edit RPC'),
+    ('add_catalog_item_option', 'section_id text, item_id text, option_id text, name text', 'fixed menu option add RPC'),
+    ('delete_catalog_item_option', 'section_id text, item_id text, option_id text', 'fixed menu option delete RPC'),
     ('update_catalog_item_option', 'section_id text, item_id text, option_id text, name text', 'fixed menu option text edit RPC'),
+    ('add_grill_product', 'family_id text, title text, item_id text, variant_name text, amount integer', 'grill product add RPC'),
+    ('delete_grill_product', 'family_id text', 'grill product delete RPC'),
+    ('update_grill_product', 'family_id text, title text', 'grill product text edit RPC'),
+    ('add_grill_item', 'family_id text, item_id text, name text, variant_name text, amount integer', 'grill option add RPC'),
+    ('delete_grill_item', 'item_id text', 'grill option delete RPC'),
+    ('update_grill_item', 'item_id text, name text, variant_name text', 'grill option text edit RPC'),
     ('reserve_menu_publish_request', 'user_id uuid, cooldown_seconds integer', 'private publish reservation helper'),
     ('complete_menu_publish_request', 'request_id bigint, publish_status text, publish_message text, vercel_status_code integer, vercel_job_id text', 'private publish completion helper')
 ),

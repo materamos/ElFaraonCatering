@@ -273,7 +273,7 @@ La proteccion contra passwords filtradas se habilita en Supabase Auth settings d
 
 SQL disponible:
 
-- `supabase/migrations/`: migraciones operativas aplicables a bases existentes y ubicacion canonica para Supabase CLI.
+- `supabase/migrations/`: baseline prelanzamiento y migraciones posteriores; es la ubicacion canonica para Supabase CLI.
 - `docs/supabase/README.md`: flujo local-first, orden de ejecucion y reglas de aplicacion remota.
 - `docs/supabase/schema-diagram.md`: diagrama Mermaid del schema estructural y runtime operativo.
 - `docs/supabase/schema.sql`: snapshot limpio del schema `menu_content`.
@@ -291,11 +291,13 @@ Flujo local-first para cambios de base:
 4. Ejecutar `npm run menu:validate`, `npm run build`, `npm run verify:dist-secrets` y `npm run check`.
 5. Aplicar SQL mutante en Supabase remoto solo si los audits y validaciones pasan.
 
-Estrategia pre-lanzamiento:
+Baseline prelanzamiento:
 
-- Mientras puedan quedar cambios estructurales en tablas, RPCs, roles, grants, RLS o contrato de `publish-menu-changes`, seguir usando migraciones incrementales.
-- Antes del freeze de produccion, si el modelo Supabase ya esta estable, crear un tag que preserve la historia pre-lanzamiento y consolidar un baseline limpio para bases nuevas.
-- Despues del baseline, mantener solo migraciones nuevas post-baseline y actualizar los snapshots, audits y diagramas para reflejar el modelo vigente.
+- `20260606235844_prelaunch_baseline.sql` crea una base nueva con el modelo, contenido build-time, RPCs, permisos y hardening vigentes.
+- El tag `supabase-prelaunch-history-2026-06-06` preserva la historia incremental anterior.
+- El baseline no incluye usuarios Auth, filas de `staff_users`, overlays de disponibilidad ni logs de publicacion.
+- No ejecutar el baseline sobre una base existente. Las bases ya desplegadas deben alinear solo su historial despues de verificar equivalencia.
+- Todo cambio posterior debe agregarse como una nueva migracion incremental.
 
 ## CMS operativo de menu
 
