@@ -501,3 +501,299 @@ from (
 ) availability_counts
 where false_count > 0
 order by table_name;
+
+-- 13. Exact project function security and volatility shape.
+with expected_functions (schema_name, function_name, identity_arguments, security_definer, volatility, expectation) as (
+  values
+    ('app_private', 'add_catalog_item', 'section_id text, item_id text, name text, description text, amount integer', true, 'v', 'privileged catalog item add implementation'),
+    ('app_private', 'add_catalog_item_option', 'section_id text, item_id text, option_id text, name text', true, 'v', 'privileged catalog option add implementation'),
+    ('app_private', 'add_grill_item', 'family_id text, item_id text, name text, variant_name text, amount integer', true, 'v', 'privileged grill option add implementation'),
+    ('app_private', 'add_grill_product', 'family_id text, title text, item_id text, variant_name text, amount integer', true, 'v', 'privileged grill product add implementation'),
+    ('app_private', 'can_edit_availability', 'target_profile_id text', true, 's', 'privileged availability permission check'),
+    ('app_private', 'can_edit_menu_content', '', true, 's', 'privileged content edit permission check'),
+    ('app_private', 'can_manage_staff', '', true, 's', 'privileged staff management permission check'),
+    ('app_private', 'can_publish_menu', '', true, 's', 'privileged publish permission check'),
+    ('app_private', 'clear_menu_availability_overlay', 'menu_id text, section_id text, item_id text', true, 'v', 'privileged overlay clear implementation'),
+    ('app_private', 'delete_catalog_item', 'section_id text, item_id text', true, 'v', 'privileged catalog item delete implementation'),
+    ('app_private', 'delete_catalog_item_option', 'section_id text, item_id text, option_id text', true, 'v', 'privileged catalog option delete implementation'),
+    ('app_private', 'delete_grill_item', 'item_id text', true, 'v', 'privileged grill option delete implementation'),
+    ('app_private', 'delete_grill_product', 'family_id text', true, 'v', 'privileged grill product delete implementation'),
+    ('app_private', 'generate_admin_id', 'prefix text', true, 'v', 'privileged technical id generator'),
+    ('app_private', 'get_admin_catalog_editor_state', '', true, 's', 'privileged catalog editor state reader'),
+    ('app_private', 'get_admin_grill_editor_state', '', true, 's', 'privileged grill editor state reader'),
+    ('app_private', 'get_admin_operational_state', '', true, 's', 'privileged admin state reader'),
+    ('app_private', 'get_menu_publication_content_hash', '', true, 's', 'privileged publication content hash reader'),
+    ('app_private', 'get_menu_publication_state', '', true, 's', 'privileged publication state reader'),
+    ('app_private', 'is_active_staff', '', true, 's', 'privileged active staff check'),
+    ('app_private', 'menu_availability_target_exists', 'target_menu_id text, target_section_id text, target_item_id text', true, 's', 'privileged overlay target validator'),
+    ('app_private', 'normalize_visible_name', 'value text', false, 'i', 'immutable visible-name normalizer'),
+    ('app_private', 'set_daily_menu', 'regular_name text, regular_description text, vegetarian_name text, vegetarian_description text', true, 'v', 'privileged daily menu edit implementation'),
+    ('app_private', 'set_global_fixed_price', 'pricing_key text, amount integer', true, 'v', 'privileged fixed price edit implementation'),
+    ('app_private', 'set_global_price_variant', 'pricing_key text, variant_id text, amount integer', true, 'v', 'privileged variant price edit implementation'),
+    ('app_private', 'set_menu_availability_overlay', 'menu_id text, section_id text, item_id text, available_override boolean', true, 'v', 'privileged overlay set implementation'),
+    ('app_private', 'set_profile_service_kind', 'profile_id text, service_kind text', true, 'v', 'privileged active service edit implementation'),
+    ('app_private', 'update_catalog_item', 'section_id text, item_id text, name text, description text', true, 'v', 'privileged catalog item update implementation'),
+    ('app_private', 'update_catalog_item_option', 'section_id text, item_id text, option_id text, name text', true, 'v', 'privileged catalog option update implementation'),
+    ('app_private', 'update_grill_item', 'item_id text, name text, variant_name text', true, 'v', 'privileged grill option update implementation'),
+    ('app_private', 'update_grill_product', 'family_id text, title text', true, 'v', 'privileged grill product update implementation'),
+    ('public', 'add_catalog_item', 'section_id text, item_id text, name text, description text, amount integer', false, 'v', 'public catalog item add wrapper'),
+    ('public', 'add_catalog_item_option', 'section_id text, item_id text, option_id text, name text', false, 'v', 'public catalog option add wrapper'),
+    ('public', 'add_grill_item', 'family_id text, item_id text, name text, variant_name text, amount integer', false, 'v', 'public grill option add wrapper'),
+    ('public', 'add_grill_product', 'family_id text, title text, item_id text, variant_name text, amount integer', false, 'v', 'public grill product add wrapper'),
+    ('public', 'can_edit_availability', 'target_profile_id text', false, 's', 'public availability permission wrapper'),
+    ('public', 'can_edit_menu_content', '', false, 's', 'public content edit permission wrapper'),
+    ('public', 'can_manage_staff', '', false, 's', 'public staff management permission wrapper'),
+    ('public', 'can_publish_menu', '', false, 's', 'public publish permission wrapper'),
+    ('public', 'clear_menu_availability_overlay', 'menu_id text, section_id text, item_id text', false, 'v', 'public overlay clear wrapper'),
+    ('public', 'complete_menu_publish_request', 'request_id bigint, publish_status text, publish_message text, vercel_status_code integer, vercel_job_id text', true, 'v', 'service-role-only publish completion helper'),
+    ('public', 'delete_catalog_item', 'section_id text, item_id text', false, 'v', 'public catalog item delete wrapper'),
+    ('public', 'delete_catalog_item_option', 'section_id text, item_id text, option_id text', false, 'v', 'public catalog option delete wrapper'),
+    ('public', 'delete_grill_item', 'item_id text', false, 'v', 'public grill option delete wrapper'),
+    ('public', 'delete_grill_product', 'family_id text', false, 'v', 'public grill product delete wrapper'),
+    ('public', 'get_admin_operational_state', '', false, 's', 'public admin state wrapper'),
+    ('public', 'is_active_staff', '', false, 's', 'public active staff wrapper'),
+    ('public', 'menu_availability_target_exists', 'target_menu_id text, target_section_id text, target_item_id text', false, 's', 'public overlay target validation wrapper'),
+    ('public', 'reserve_menu_publish_request', 'user_id uuid, cooldown_seconds integer', true, 'v', 'service-role-only publish reservation helper'),
+    ('public', 'set_daily_menu', 'regular_name text, regular_description text, vegetarian_name text, vegetarian_description text', false, 'v', 'public daily menu edit wrapper'),
+    ('public', 'set_global_fixed_price', 'pricing_key text, amount integer', false, 'v', 'public fixed price edit wrapper'),
+    ('public', 'set_global_price_variant', 'pricing_key text, variant_id text, amount integer', false, 'v', 'public variant price edit wrapper'),
+    ('public', 'set_menu_availability_overlay', 'menu_id text, section_id text, item_id text, available_override boolean', false, 'v', 'public overlay set wrapper'),
+    ('public', 'set_profile_service_kind', 'profile_id text, service_kind text', false, 'v', 'public active service edit wrapper'),
+    ('public', 'set_staff_users_updated_at', '', true, 'v', 'staff updated_at trigger function'),
+    ('public', 'update_catalog_item', 'section_id text, item_id text, name text, description text', false, 'v', 'public catalog item update wrapper'),
+    ('public', 'update_catalog_item_option', 'section_id text, item_id text, option_id text, name text', false, 'v', 'public catalog option update wrapper'),
+    ('public', 'update_grill_item', 'item_id text, name text, variant_name text', false, 'v', 'public grill option update wrapper'),
+    ('public', 'update_grill_product', 'family_id text, title text', false, 'v', 'public grill product update wrapper')
+),
+actual_functions as (
+  select
+    n.nspname as schema_name,
+    p.proname as function_name,
+    pg_get_function_identity_arguments(p.oid) as identity_arguments,
+    p.prosecdef as security_definer,
+    p.provolatile as volatility
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname in ('app_private', 'public')
+)
+select
+  expected.schema_name,
+  expected.function_name,
+  expected.identity_arguments,
+  case
+    when actual.function_name is null then 'missing'
+    when actual.security_definer <> expected.security_definer then 'security_mismatch'
+    when actual.volatility <> expected.volatility then 'volatility_mismatch'
+    else 'present'
+  end as status,
+  expected.security_definer as expected_security_definer,
+  actual.security_definer as actual_security_definer,
+  expected.volatility as expected_volatility,
+  actual.volatility as actual_volatility,
+  expected.expectation
+from expected_functions expected
+left join actual_functions actual
+  on actual.schema_name = expected.schema_name
+ and actual.function_name = expected.function_name
+ and actual.identity_arguments = expected.identity_arguments
+where actual.function_name is null
+   or actual.security_definer <> expected.security_definer
+   or actual.volatility <> expected.volatility
+order by expected.schema_name, expected.function_name, expected.identity_arguments;
+
+-- 14. Unexpected project functions in public or app_private.
+with expected_functions (schema_name, function_name, identity_arguments) as (
+  values
+    ('app_private', 'add_catalog_item', 'section_id text, item_id text, name text, description text, amount integer'),
+    ('app_private', 'add_catalog_item_option', 'section_id text, item_id text, option_id text, name text'),
+    ('app_private', 'add_grill_item', 'family_id text, item_id text, name text, variant_name text, amount integer'),
+    ('app_private', 'add_grill_product', 'family_id text, title text, item_id text, variant_name text, amount integer'),
+    ('app_private', 'can_edit_availability', 'target_profile_id text'),
+    ('app_private', 'can_edit_menu_content', ''),
+    ('app_private', 'can_manage_staff', ''),
+    ('app_private', 'can_publish_menu', ''),
+    ('app_private', 'clear_menu_availability_overlay', 'menu_id text, section_id text, item_id text'),
+    ('app_private', 'delete_catalog_item', 'section_id text, item_id text'),
+    ('app_private', 'delete_catalog_item_option', 'section_id text, item_id text, option_id text'),
+    ('app_private', 'delete_grill_item', 'item_id text'),
+    ('app_private', 'delete_grill_product', 'family_id text'),
+    ('app_private', 'generate_admin_id', 'prefix text'),
+    ('app_private', 'get_admin_catalog_editor_state', ''),
+    ('app_private', 'get_admin_grill_editor_state', ''),
+    ('app_private', 'get_admin_operational_state', ''),
+    ('app_private', 'get_menu_publication_content_hash', ''),
+    ('app_private', 'get_menu_publication_state', ''),
+    ('app_private', 'is_active_staff', ''),
+    ('app_private', 'menu_availability_target_exists', 'target_menu_id text, target_section_id text, target_item_id text'),
+    ('app_private', 'normalize_visible_name', 'value text'),
+    ('app_private', 'set_daily_menu', 'regular_name text, regular_description text, vegetarian_name text, vegetarian_description text'),
+    ('app_private', 'set_global_fixed_price', 'pricing_key text, amount integer'),
+    ('app_private', 'set_global_price_variant', 'pricing_key text, variant_id text, amount integer'),
+    ('app_private', 'set_menu_availability_overlay', 'menu_id text, section_id text, item_id text, available_override boolean'),
+    ('app_private', 'set_profile_service_kind', 'profile_id text, service_kind text'),
+    ('app_private', 'update_catalog_item', 'section_id text, item_id text, name text, description text'),
+    ('app_private', 'update_catalog_item_option', 'section_id text, item_id text, option_id text, name text'),
+    ('app_private', 'update_grill_item', 'item_id text, name text, variant_name text'),
+    ('app_private', 'update_grill_product', 'family_id text, title text'),
+    ('public', 'add_catalog_item', 'section_id text, item_id text, name text, description text, amount integer'),
+    ('public', 'add_catalog_item_option', 'section_id text, item_id text, option_id text, name text'),
+    ('public', 'add_grill_item', 'family_id text, item_id text, name text, variant_name text, amount integer'),
+    ('public', 'add_grill_product', 'family_id text, title text, item_id text, variant_name text, amount integer'),
+    ('public', 'can_edit_availability', 'target_profile_id text'),
+    ('public', 'can_edit_menu_content', ''),
+    ('public', 'can_manage_staff', ''),
+    ('public', 'can_publish_menu', ''),
+    ('public', 'clear_menu_availability_overlay', 'menu_id text, section_id text, item_id text'),
+    ('public', 'complete_menu_publish_request', 'request_id bigint, publish_status text, publish_message text, vercel_status_code integer, vercel_job_id text'),
+    ('public', 'delete_catalog_item', 'section_id text, item_id text'),
+    ('public', 'delete_catalog_item_option', 'section_id text, item_id text, option_id text'),
+    ('public', 'delete_grill_item', 'item_id text'),
+    ('public', 'delete_grill_product', 'family_id text'),
+    ('public', 'get_admin_operational_state', ''),
+    ('public', 'is_active_staff', ''),
+    ('public', 'menu_availability_target_exists', 'target_menu_id text, target_section_id text, target_item_id text'),
+    ('public', 'reserve_menu_publish_request', 'user_id uuid, cooldown_seconds integer'),
+    ('public', 'set_daily_menu', 'regular_name text, regular_description text, vegetarian_name text, vegetarian_description text'),
+    ('public', 'set_global_fixed_price', 'pricing_key text, amount integer'),
+    ('public', 'set_global_price_variant', 'pricing_key text, variant_id text, amount integer'),
+    ('public', 'set_menu_availability_overlay', 'menu_id text, section_id text, item_id text, available_override boolean'),
+    ('public', 'set_profile_service_kind', 'profile_id text, service_kind text'),
+    ('public', 'set_staff_users_updated_at', ''),
+    ('public', 'update_catalog_item', 'section_id text, item_id text, name text, description text'),
+    ('public', 'update_catalog_item_option', 'section_id text, item_id text, option_id text, name text'),
+    ('public', 'update_grill_item', 'item_id text, name text, variant_name text'),
+    ('public', 'update_grill_product', 'family_id text, title text')
+)
+select
+  n.nspname as schema_name,
+  p.proname as function_name,
+  pg_get_function_identity_arguments(p.oid) as identity_arguments,
+  p.prosecdef as security_definer,
+  'review' as suggested_status,
+  'Function is not part of the documented active project surface.' as reason
+from pg_proc p
+join pg_namespace n on n.oid = p.pronamespace
+left join expected_functions expected
+  on expected.schema_name = n.nspname
+ and expected.function_name = p.proname
+ and expected.identity_arguments = pg_get_function_identity_arguments(p.oid)
+where n.nspname in ('app_private', 'public')
+  and expected.function_name is null
+order by n.nspname, p.proname, pg_get_function_identity_arguments(p.oid);
+
+-- 15. Required trigger for staff_users.updated_at.
+with expected_triggers (event_object_schema, event_object_table, trigger_name, action_timing, event_manipulation, action_statement) as (
+  values
+    ('public', 'staff_users', 'set_staff_users_updated_at', 'BEFORE', 'UPDATE', 'EXECUTE FUNCTION set_staff_users_updated_at()')
+),
+actual_triggers as (
+  select
+    event_object_schema,
+    event_object_table,
+    trigger_name,
+    action_timing,
+    event_manipulation,
+    action_statement
+  from information_schema.triggers
+  where event_object_schema in ('public', 'app_private', 'menu_content')
+)
+select
+  expected.event_object_schema,
+  expected.event_object_table,
+  expected.trigger_name,
+  case
+    when actual.trigger_name is null then 'missing'
+    when actual.action_timing <> expected.action_timing then 'timing_mismatch'
+    when actual.event_manipulation <> expected.event_manipulation then 'event_mismatch'
+    when actual.action_statement <> expected.action_statement then 'statement_mismatch'
+    else 'present'
+  end as status,
+  expected.action_statement as expected_statement,
+  actual.action_statement as actual_statement
+from expected_triggers expected
+left join actual_triggers actual
+  on actual.event_object_schema = expected.event_object_schema
+ and actual.event_object_table = expected.event_object_table
+ and actual.trigger_name = expected.trigger_name
+where actual.trigger_name is null
+   or actual.action_timing <> expected.action_timing
+   or actual.event_manipulation <> expected.event_manipulation
+   or actual.action_statement <> expected.action_statement;
+
+select
+  trigger_schema,
+  event_object_table,
+  trigger_name,
+  'review' as suggested_status,
+  'Unexpected project trigger.' as reason
+from (
+  select
+    event_object_schema as trigger_schema,
+    event_object_table,
+    trigger_name
+  from information_schema.triggers
+  where event_object_schema in ('public', 'app_private', 'menu_content')
+) actual
+where not (
+  trigger_schema = 'public'
+  and event_object_table = 'staff_users'
+  and trigger_name = 'set_staff_users_updated_at'
+)
+order by trigger_schema, event_object_table, trigger_name;
+
+-- 16. Canonical Supabase migration history must include only the prelaunch baseline.
+select
+  version,
+  name,
+  'review' as suggested_status,
+  'Unexpected migration history row for the current prelaunch baseline model.' as reason
+from supabase_migrations.schema_migrations
+where version <> '20260606235844'
+order by version;
+
+select
+  '20260606235844' as expected_version,
+  case
+    when exists (
+      select 1
+      from supabase_migrations.schema_migrations
+      where version = '20260606235844'
+    ) then 'present'
+    else 'missing'
+  end as status;
+
+-- 17. Basic schema usage grants for protected schemas.
+select
+  protected_schema.schema_name,
+  role_name as grantee,
+  'USAGE' as privilege_type,
+  'risk' as suggested_status,
+  'Unexpected client-facing schema privilege.' as reason
+from (values ('menu_content')) protected_schema(schema_name)
+cross join (values ('anon'), ('authenticated'), ('public')) checked_role(role_name)
+where has_schema_privilege(role_name, protected_schema.schema_name, 'USAGE')
+union all
+select
+  protected_schema.schema_name,
+  role_name as grantee,
+  'USAGE' as privilege_type,
+  'risk' as suggested_status,
+  'Unexpected anon/public privilege on app_private schema.' as reason
+from (values ('app_private')) protected_schema(schema_name)
+cross join (values ('anon'), ('public')) checked_role(role_name)
+where has_schema_privilege(role_name, protected_schema.schema_name, 'USAGE')
+order by schema_name, grantee, privilege_type;
+
+-- 18. Private publish request sequence must not be client-facing.
+select
+  object_schema,
+  object_name,
+  grantee,
+  privilege_type,
+  'risk' as suggested_status,
+  'Unexpected client-facing sequence privilege.' as reason
+from information_schema.usage_privileges
+where object_schema = 'app_private'
+  and object_name = 'menu_publish_requests_id_seq'
+  and lower(grantee) in ('anon', 'authenticated', 'public')
+order by grantee, privilege_type;

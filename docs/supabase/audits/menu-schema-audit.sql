@@ -260,3 +260,247 @@ join menu_content.menu_catalog_item_images image
 group by item.id, item.section_id, item.item_id
 having min(image.order_index) <> 0
   or max(image.order_index) + 1 <> count(*);
+
+-- Exact active table column shape.
+with expected_columns (table_schema, table_name, column_name, data_type, is_nullable, column_default) as (
+  values
+    ('app_private', 'menu_publish_requests', 'id', 'bigint', 'NO', null),
+    ('app_private', 'menu_publish_requests', 'requested_by', 'uuid', 'YES', null),
+    ('app_private', 'menu_publish_requests', 'status', 'text', 'NO', null),
+    ('app_private', 'menu_publish_requests', 'message', 'text', 'NO', null),
+    ('app_private', 'menu_publish_requests', 'vercel_status_code', 'integer', 'YES', null),
+    ('app_private', 'menu_publish_requests', 'vercel_job_id', 'text', 'YES', null),
+    ('app_private', 'menu_publish_requests', 'created_at', 'timestamp with time zone', 'NO', 'now()'),
+    ('app_private', 'menu_publish_requests', 'completed_at', 'timestamp with time zone', 'YES', null),
+    ('app_private', 'menu_publish_requests', 'updated_at', 'timestamp with time zone', 'NO', 'now()'),
+    ('app_private', 'menu_publish_requests', 'menu_content_hash', 'text', 'YES', null),
+    ('menu_content', 'menu_profiles', 'id', 'text', 'NO', null),
+    ('menu_content', 'menu_profiles', 'eyebrow', 'text', 'NO', null),
+    ('menu_content', 'menu_profiles', 'title', 'text', 'NO', null),
+    ('menu_content', 'menu_profiles', 'description', 'text', 'NO', null),
+    ('menu_content', 'menu_profiles', 'info_title', 'text', 'NO', null),
+    ('menu_content', 'menu_profile_facts', 'profile_id', 'text', 'NO', null),
+    ('menu_content', 'menu_profile_facts', 'fact_id', 'text', 'NO', null),
+    ('menu_content', 'menu_profile_facts', 'label', 'text', 'NO', null),
+    ('menu_content', 'menu_profile_facts', 'value', 'text', 'NO', null),
+    ('menu_content', 'menu_profile_facts', 'link_text', 'text', 'YES', null),
+    ('menu_content', 'menu_profile_facts', 'link_href', 'text', 'YES', null),
+    ('menu_content', 'menu_profile_facts', 'order_index', 'integer', 'NO', null),
+    ('menu_content', 'menu_prices', 'pricing_key', 'text', 'NO', null),
+    ('menu_content', 'menu_prices', 'kind', 'text', 'NO', null),
+    ('menu_content', 'menu_prices', 'amount', 'integer', 'YES', null),
+    ('menu_content', 'menu_price_variants', 'pricing_key', 'text', 'NO', null),
+    ('menu_content', 'menu_price_variants', 'price_kind', 'text', 'NO', '''variants''::text'),
+    ('menu_content', 'menu_price_variants', 'variant_id', 'text', 'NO', null),
+    ('menu_content', 'menu_price_variants', 'name', 'text', 'NO', null),
+    ('menu_content', 'menu_price_variants', 'amount', 'integer', 'NO', null),
+    ('menu_content', 'menu_price_variants', 'available', 'boolean', 'NO', 'true'),
+    ('menu_content', 'menu_price_variants', 'order_index', 'integer', 'NO', null),
+    ('menu_content', 'menu_daily_items', 'id', 'bigint', 'NO', null),
+    ('menu_content', 'menu_daily_items', 'item_id', 'text', 'NO', null),
+    ('menu_content', 'menu_daily_items', 'name', 'text', 'NO', null),
+    ('menu_content', 'menu_daily_items', 'description', 'text', 'YES', null),
+    ('menu_content', 'menu_daily_items', 'available', 'boolean', 'NO', 'true'),
+    ('menu_content', 'menu_daily_items', 'pricing_key', 'text', 'NO', null),
+    ('menu_content', 'menu_daily_items', 'order_index', 'integer', 'NO', null),
+    ('menu_content', 'menu_profile_service_settings', 'profile_id', 'text', 'NO', null),
+    ('menu_content', 'menu_profile_service_settings', 'service_kind', 'text', 'NO', null),
+    ('menu_content', 'menu_catalog_sections', 'id', 'bigint', 'NO', null),
+    ('menu_content', 'menu_catalog_sections', 'section_id', 'text', 'NO', null),
+    ('menu_content', 'menu_catalog_sections', 'title', 'text', 'NO', null),
+    ('menu_content', 'menu_catalog_sections', 'description', 'text', 'YES', null),
+    ('menu_content', 'menu_catalog_sections', 'order_index', 'integer', 'NO', null),
+    ('menu_content', 'menu_catalog_sections', 'presentation', 'text', 'NO', '''cards''::text'),
+    ('menu_content', 'menu_catalog_items', 'id', 'bigint', 'NO', null),
+    ('menu_content', 'menu_catalog_items', 'section_id', 'text', 'NO', null),
+    ('menu_content', 'menu_catalog_items', 'item_id', 'text', 'NO', null),
+    ('menu_content', 'menu_catalog_items', 'name', 'text', 'NO', null),
+    ('menu_content', 'menu_catalog_items', 'description', 'text', 'YES', null),
+    ('menu_content', 'menu_catalog_items', 'available', 'boolean', 'NO', 'true'),
+    ('menu_content', 'menu_catalog_items', 'pricing_key', 'text', 'NO', null),
+    ('menu_content', 'menu_catalog_items', 'order_index', 'integer', 'NO', null),
+    ('menu_content', 'menu_catalog_item_images', 'id', 'bigint', 'NO', null),
+    ('menu_content', 'menu_catalog_item_images', 'catalog_item_id', 'bigint', 'NO', null),
+    ('menu_content', 'menu_catalog_item_images', 'image_path', 'text', 'NO', null),
+    ('menu_content', 'menu_catalog_item_images', 'order_index', 'integer', 'NO', null),
+    ('menu_content', 'menu_catalog_item_options', 'catalog_item_id', 'bigint', 'NO', null),
+    ('menu_content', 'menu_catalog_item_options', 'option_id', 'text', 'NO', null),
+    ('menu_content', 'menu_catalog_item_options', 'name', 'text', 'NO', null),
+    ('menu_content', 'menu_catalog_item_options', 'available', 'boolean', 'NO', 'true'),
+    ('menu_content', 'menu_catalog_item_options', 'order_index', 'integer', 'NO', null),
+    ('menu_content', 'menu_grill_families', 'family_id', 'text', 'NO', null),
+    ('menu_content', 'menu_grill_families', 'title', 'text', 'NO', null),
+    ('menu_content', 'menu_grill_families', 'order_index', 'integer', 'NO', null),
+    ('menu_content', 'menu_grill_catalog_items', 'id', 'bigint', 'NO', null),
+    ('menu_content', 'menu_grill_catalog_items', 'family_id', 'text', 'NO', null),
+    ('menu_content', 'menu_grill_catalog_items', 'item_id', 'text', 'NO', null),
+    ('menu_content', 'menu_grill_catalog_items', 'name', 'text', 'NO', null),
+    ('menu_content', 'menu_grill_catalog_items', 'variant_name', 'text', 'YES', null),
+    ('menu_content', 'menu_grill_catalog_items', 'available', 'boolean', 'NO', 'true'),
+    ('menu_content', 'menu_grill_catalog_items', 'pricing_key', 'text', 'NO', null),
+    ('menu_content', 'menu_grill_catalog_items', 'order_index', 'integer', 'NO', null),
+    ('public', 'staff_users', 'user_id', 'uuid', 'NO', null),
+    ('public', 'staff_users', 'display_name', 'text', 'NO', null),
+    ('public', 'staff_users', 'role', 'text', 'NO', null),
+    ('public', 'staff_users', 'active', 'boolean', 'NO', 'true'),
+    ('public', 'staff_users', 'created_at', 'timestamp with time zone', 'NO', 'now()'),
+    ('public', 'staff_users', 'updated_at', 'timestamp with time zone', 'NO', 'now()'),
+    ('public', 'menu_availability_overlays', 'id', 'uuid', 'NO', 'gen_random_uuid()'),
+    ('public', 'menu_availability_overlays', 'menu_id', 'text', 'NO', null),
+    ('public', 'menu_availability_overlays', 'section_id', 'text', 'NO', null),
+    ('public', 'menu_availability_overlays', 'item_id', 'text', 'NO', null),
+    ('public', 'menu_availability_overlays', 'available_override', 'boolean', 'NO', null),
+    ('public', 'menu_availability_overlays', 'updated_at', 'timestamp with time zone', 'NO', 'now()'),
+    ('public', 'menu_availability_overlays', 'updated_by', 'uuid', 'YES', null)
+),
+actual_columns as (
+  select
+    table_schema,
+    table_name,
+    column_name,
+    data_type,
+    is_nullable,
+    column_default
+  from information_schema.columns
+  where table_schema in ('app_private', 'menu_content', 'public')
+)
+select
+  'column_shape_mismatch' as diagnostic,
+  expected.table_schema,
+  expected.table_name,
+  expected.column_name,
+  case
+    when actual.column_name is null then 'missing'
+    when actual.data_type <> expected.data_type then 'type_mismatch'
+    when actual.is_nullable <> expected.is_nullable then 'nullability_mismatch'
+    when coalesce(actual.column_default, '') <> coalesce(expected.column_default, '') then 'default_mismatch'
+    else 'present'
+  end as status,
+  expected.data_type as expected_data_type,
+  actual.data_type as actual_data_type,
+  expected.is_nullable as expected_is_nullable,
+  actual.is_nullable as actual_is_nullable,
+  expected.column_default as expected_default,
+  actual.column_default as actual_default
+from expected_columns expected
+left join actual_columns actual
+  on actual.table_schema = expected.table_schema
+ and actual.table_name = expected.table_name
+ and actual.column_name = expected.column_name
+where actual.column_name is null
+   or actual.data_type <> expected.data_type
+   or actual.is_nullable <> expected.is_nullable
+   or coalesce(actual.column_default, '') <> coalesce(expected.column_default, '')
+order by expected.table_schema, expected.table_name, expected.column_name;
+
+with expected_columns (table_schema, table_name, column_name) as (
+  values
+    ('app_private', 'menu_publish_requests', 'id'),
+    ('app_private', 'menu_publish_requests', 'requested_by'),
+    ('app_private', 'menu_publish_requests', 'status'),
+    ('app_private', 'menu_publish_requests', 'message'),
+    ('app_private', 'menu_publish_requests', 'vercel_status_code'),
+    ('app_private', 'menu_publish_requests', 'vercel_job_id'),
+    ('app_private', 'menu_publish_requests', 'created_at'),
+    ('app_private', 'menu_publish_requests', 'completed_at'),
+    ('app_private', 'menu_publish_requests', 'updated_at'),
+    ('app_private', 'menu_publish_requests', 'menu_content_hash'),
+    ('menu_content', 'menu_profiles', 'id'),
+    ('menu_content', 'menu_profiles', 'eyebrow'),
+    ('menu_content', 'menu_profiles', 'title'),
+    ('menu_content', 'menu_profiles', 'description'),
+    ('menu_content', 'menu_profiles', 'info_title'),
+    ('menu_content', 'menu_profile_facts', 'profile_id'),
+    ('menu_content', 'menu_profile_facts', 'fact_id'),
+    ('menu_content', 'menu_profile_facts', 'label'),
+    ('menu_content', 'menu_profile_facts', 'value'),
+    ('menu_content', 'menu_profile_facts', 'link_text'),
+    ('menu_content', 'menu_profile_facts', 'link_href'),
+    ('menu_content', 'menu_profile_facts', 'order_index'),
+    ('menu_content', 'menu_prices', 'pricing_key'),
+    ('menu_content', 'menu_prices', 'kind'),
+    ('menu_content', 'menu_prices', 'amount'),
+    ('menu_content', 'menu_price_variants', 'pricing_key'),
+    ('menu_content', 'menu_price_variants', 'price_kind'),
+    ('menu_content', 'menu_price_variants', 'variant_id'),
+    ('menu_content', 'menu_price_variants', 'name'),
+    ('menu_content', 'menu_price_variants', 'amount'),
+    ('menu_content', 'menu_price_variants', 'available'),
+    ('menu_content', 'menu_price_variants', 'order_index'),
+    ('menu_content', 'menu_daily_items', 'id'),
+    ('menu_content', 'menu_daily_items', 'item_id'),
+    ('menu_content', 'menu_daily_items', 'name'),
+    ('menu_content', 'menu_daily_items', 'description'),
+    ('menu_content', 'menu_daily_items', 'available'),
+    ('menu_content', 'menu_daily_items', 'pricing_key'),
+    ('menu_content', 'menu_daily_items', 'order_index'),
+    ('menu_content', 'menu_profile_service_settings', 'profile_id'),
+    ('menu_content', 'menu_profile_service_settings', 'service_kind'),
+    ('menu_content', 'menu_catalog_sections', 'id'),
+    ('menu_content', 'menu_catalog_sections', 'section_id'),
+    ('menu_content', 'menu_catalog_sections', 'title'),
+    ('menu_content', 'menu_catalog_sections', 'description'),
+    ('menu_content', 'menu_catalog_sections', 'order_index'),
+    ('menu_content', 'menu_catalog_sections', 'presentation'),
+    ('menu_content', 'menu_catalog_items', 'id'),
+    ('menu_content', 'menu_catalog_items', 'section_id'),
+    ('menu_content', 'menu_catalog_items', 'item_id'),
+    ('menu_content', 'menu_catalog_items', 'name'),
+    ('menu_content', 'menu_catalog_items', 'description'),
+    ('menu_content', 'menu_catalog_items', 'available'),
+    ('menu_content', 'menu_catalog_items', 'pricing_key'),
+    ('menu_content', 'menu_catalog_items', 'order_index'),
+    ('menu_content', 'menu_catalog_item_images', 'id'),
+    ('menu_content', 'menu_catalog_item_images', 'catalog_item_id'),
+    ('menu_content', 'menu_catalog_item_images', 'image_path'),
+    ('menu_content', 'menu_catalog_item_images', 'order_index'),
+    ('menu_content', 'menu_catalog_item_options', 'catalog_item_id'),
+    ('menu_content', 'menu_catalog_item_options', 'option_id'),
+    ('menu_content', 'menu_catalog_item_options', 'name'),
+    ('menu_content', 'menu_catalog_item_options', 'available'),
+    ('menu_content', 'menu_catalog_item_options', 'order_index'),
+    ('menu_content', 'menu_grill_families', 'family_id'),
+    ('menu_content', 'menu_grill_families', 'title'),
+    ('menu_content', 'menu_grill_families', 'order_index'),
+    ('menu_content', 'menu_grill_catalog_items', 'id'),
+    ('menu_content', 'menu_grill_catalog_items', 'family_id'),
+    ('menu_content', 'menu_grill_catalog_items', 'item_id'),
+    ('menu_content', 'menu_grill_catalog_items', 'name'),
+    ('menu_content', 'menu_grill_catalog_items', 'variant_name'),
+    ('menu_content', 'menu_grill_catalog_items', 'available'),
+    ('menu_content', 'menu_grill_catalog_items', 'pricing_key'),
+    ('menu_content', 'menu_grill_catalog_items', 'order_index'),
+    ('public', 'staff_users', 'user_id'),
+    ('public', 'staff_users', 'display_name'),
+    ('public', 'staff_users', 'role'),
+    ('public', 'staff_users', 'active'),
+    ('public', 'staff_users', 'created_at'),
+    ('public', 'staff_users', 'updated_at'),
+    ('public', 'menu_availability_overlays', 'id'),
+    ('public', 'menu_availability_overlays', 'menu_id'),
+    ('public', 'menu_availability_overlays', 'section_id'),
+    ('public', 'menu_availability_overlays', 'item_id'),
+    ('public', 'menu_availability_overlays', 'available_override'),
+    ('public', 'menu_availability_overlays', 'updated_at'),
+    ('public', 'menu_availability_overlays', 'updated_by')
+),
+project_tables (table_schema, table_name) as (
+  select distinct table_schema, table_name from expected_columns
+)
+select
+  'unexpected_project_column' as diagnostic,
+  actual.table_schema,
+  actual.table_name,
+  actual.column_name,
+  actual.data_type,
+  actual.is_nullable
+from information_schema.columns actual
+join project_tables project_table
+  on project_table.table_schema = actual.table_schema
+ and project_table.table_name = actual.table_name
+left join expected_columns expected
+  on expected.table_schema = actual.table_schema
+ and expected.table_name = actual.table_name
+ and expected.column_name = actual.column_name
+where expected.column_name is null
+order by actual.table_schema, actual.table_name, actual.column_name;
