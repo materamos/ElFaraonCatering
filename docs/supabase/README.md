@@ -1,8 +1,9 @@
 # Supabase local-first workflow
 
-Esta carpeta contiene documentacion tecnica, snapshots SQL de referencia y auditorias para la base Supabase del menu QR.
+Esta carpeta contiene documentacion tecnica y auditorias read-only para la base Supabase del menu QR.
 
 Las migraciones operativas reales viven en `../../supabase/migrations/`. No agregar migraciones nuevas dentro de `docs/supabase/`.
+Los snapshots y SQL mutantes de referencia fueron retirados para evitar duplicar el baseline canonico.
 
 ## Superficies activas
 
@@ -86,14 +87,6 @@ La alerta `auth_leaked_password_protection` no se resuelve con SQL del repo: se 
 
 ## Archivos en esta carpeta
 
-Snapshots y SQL de referencia:
-
-- `schema.sql`: estado limpio esperado del schema privado `menu_content`.
-- `daily-service-data.sql`: defaults del servicio diario y parrilla fija para bases nuevas o reconstrucciones controladas.
-- `availability-overlay.sql`: tablas, funciones, indices y policies del overlay runtime y roles de staff.
-- `operational-edit-rpcs.sql`: RPCs de edicion operativa para disponibilidad, servicio activo, menu del dia, parrilla, menu fijo medido y precios.
-- `hardening.sql`: constraints e indices idempotentes del modelo activo.
-
 Auditorias read-only:
 
 - `audits/menu-schema-audit.sql`: revisa tablas, constraints, indices y diagnosticos del modelo activo.
@@ -103,7 +96,7 @@ Documentacion:
 
 - `schema-diagram.md`: mapa Mermaid de `menu_content`, overlay runtime, admin operativo y publicacion.
 
-Los archivos de esta carpeta sirven para revisar, auditar o reconstruir con control manual. No reemplazan la historia canonica de `../../supabase/migrations/`.
+Los archivos de esta carpeta sirven para revisar y auditar. No reemplazan la historia canonica de `../../supabase/migrations/`.
 
 ## Baseline canonico
 
@@ -166,8 +159,9 @@ Para una base nueva:
 - `VERCEL_DEPLOY_HOOK_URL`: secreto de Supabase Functions para `publish-menu-changes`; es credencial.
 - `PUBLISH_ALLOWED_ORIGINS`: origins permitidos por CORS para la Edge Function, separados por coma.
 - `PUBLISH_COOLDOWN_SECONDS`: cooldown global de publicacion; default recomendado `60`.
+- `SUPABASE_ACCESS_TOKEN`: token local opcional para comandos de Supabase Management API, como `secrets list`; no pertenece al runtime del sitio ni de Functions.
 
-En este proyecto remoto, `npm run supabase -- secrets list` confirma esos nombres para el runtime de Functions. No exponer `SUPABASE_SERVICE_ROLE_KEY` ni `VERCEL_DEPLOY_HOOK_URL` como `PUBLIC_*`.
+En este proyecto remoto, `npm run supabase -- secrets list` confirma esos nombres para el runtime de Functions. Ese comando requiere `SUPABASE_ACCESS_TOKEN` o una sesion previa con `supabase login`. No exponer `SUPABASE_SERVICE_ROLE_KEY`, `VERCEL_DEPLOY_HOOK_URL` ni `SUPABASE_ACCESS_TOKEN` como `PUBLIC_*`.
 
 ## Supabase CLI
 
@@ -192,7 +186,7 @@ No versionar tokens, passwords, `.env.local` ni archivos temporales generados po
 
 ## Flujo local primero
 
-1. Versionar migraciones aplicables en `../../supabase/migrations/`; conservar en esta carpeta SQL de referencia, documentacion y auditorias.
+1. Versionar migraciones aplicables en `../../supabase/migrations/`; conservar en esta carpeta documentacion y auditorias read-only.
 2. Actualizar `schema-diagram.md` si cambia una tabla, columna clave, relacion o superficie runtime.
 3. Actualizar este README si cambia el orden de ejecucion o la superficie Supabase.
 4. Correr los audits read-only contra la base apuntada por `SUPABASE_DB_URL`.

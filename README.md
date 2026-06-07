@@ -64,6 +64,14 @@ SUPABASE_DB_URL="postgresql://..."
 
 No usar prefijo `PUBLIC_` para `SUPABASE_DB_URL`. Los scripts Node cargan `.env.local` si existe y no pisan variables ya definidas en el entorno.
 
+Variable opcional para auditorias CLI contra la Management API de Supabase:
+
+```bash
+SUPABASE_ACCESS_TOKEN=
+```
+
+Usarla solo en entorno local o sesion de terminal. No es una variable del sitio ni de la Edge Function, y no debe exponerse como `PUBLIC_*`.
+
 Secretos de la Edge Function `publish-menu-changes`:
 
 ```bash
@@ -80,7 +88,7 @@ SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-En el proyecto remoto, `npm run supabase -- secrets list` confirma que esos nombres estan disponibles junto con los secretos custom de publicacion. No deben exponerse como variables `PUBLIC_*` ni usarse desde el browser.
+En el proyecto remoto, `npm run supabase -- secrets list` confirma que esos nombres estan disponibles junto con los secretos custom de publicacion. Ese comando requiere `SUPABASE_ACCESS_TOKEN` o una sesion previa con `supabase login`. No deben exponerse como variables `PUBLIC_*` ni usarse desde el browser.
 
 ### Servidor de desarrollo
 
@@ -184,7 +192,6 @@ docs/
   supabase/
     README.md
     schema-diagram.md
-    *.sql
     audits/
 ```
 
@@ -276,16 +283,11 @@ SQL disponible:
 - `supabase/migrations/`: baseline prelanzamiento y migraciones posteriores; es la ubicacion canonica para Supabase CLI.
 - `docs/supabase/README.md`: flujo local-first, orden de ejecucion y reglas de aplicacion remota.
 - `docs/supabase/schema-diagram.md`: diagrama Mermaid del schema estructural y runtime operativo.
-- `docs/supabase/schema.sql`: snapshot limpio del schema `menu_content`.
-- `docs/supabase/daily-service-data.sql`: datos base para servicio diario y parrilla.
-- `docs/supabase/availability-overlay.sql`: base del overlay runtime de disponibilidad y roles de staff.
-- `docs/supabase/operational-edit-rpcs.sql`: RPCs de edicion operativa.
-- `docs/supabase/hardening.sql`: hardening idempotente de constraints e indices.
 - `docs/supabase/audits/`: auditorias read-only.
 
 Flujo local-first para cambios de base:
 
-1. Versionar migraciones aplicables dentro de `supabase/migrations/`; conservar SQL de referencia, documentacion y auditorias dentro de `docs/supabase/`.
+1. Versionar migraciones aplicables dentro de `supabase/migrations/`; conservar documentacion y auditorias read-only dentro de `docs/supabase/`.
 2. Actualizar `docs/supabase/schema-diagram.md` si cambia el esquema o una relacion.
 3. Ejecutar primero los audits read-only contra la base apuntada por `SUPABASE_DB_URL`.
 4. Ejecutar `npm run menu:validate`, `npm run build`, `npm run verify:dist-secrets` y `npm run check`.

@@ -181,14 +181,11 @@ editorial CMS without an explicit architecture decision.
 Build-time structural and operational content:
 
 - `supabase/migrations/` contains the pre-launch baseline and later operational migrations. It is the canonical migration location for Supabase CLI.
-- `docs/supabase/schema.sql` defines the `menu_content` schema.
-- `docs/supabase/daily-service-data.sql` seeds the daily-service settings and fixed grill list.
-- `docs/supabase/hardening.sql` hardens constraints and indexes idempotently.
 - `docs/supabase/audits/menu-schema-audit.sql` audits expected constraints and indexes.
 - `docs/supabase/audits/database-audit.sql` is a read-only inventory, exposure, unexpected-object, and data-finding audit.
 - `docs/supabase/README.md` documents the local-first Supabase workflow, real migration order, and remote-application rules.
 - `docs/supabase/schema-diagram.md` documents the Mermaid ERD for `menu_content` and the runtime overlay.
-- `docs/supabase/` keeps documentation, audits, snapshots, and explanatory SQL; do not place real migrations there.
+- `docs/supabase/` keeps documentation and read-only audits; do not place real migrations or mutating reference SQL there.
 - `20260606235844_prelaunch_baseline.sql` is the clean starting point for new databases. The prior incremental history is preserved by Git tag `supabase-prelaunch-history-2026-06-06`.
 - Never run the baseline against an existing database. Align an existing remote migration history only after proving schema, data, function, grant, policy, and fingerprint equivalence.
 - Add every future database change as a new incremental migration after the baseline.
@@ -196,6 +193,7 @@ Build-time structural and operational content:
 - `npm run supabase:functions:deploy` may deploy only the approved `publish-menu-changes` Edge Function and must keep platform JWT verification disabled for that function.
 - `SUPABASE_DB_URL` is required for build-time structural reads and menu validation.
 - Local development may define `SUPABASE_DB_URL` in `.env.local`; scripts load it only when an environment value is not already set.
+- `SUPABASE_ACCESS_TOKEN` may be present in `.env.local` for local Supabase Management API CLI audits, such as `secrets list`; never expose it to browser code, Functions runtime, Vercel frontend envs, or committed files.
 - Never expose `SUPABASE_DB_URL` to the client or any `PUBLIC_*` environment variable.
 - Menu del dia, active service, prices, catalog, sections, images, and structural text are build-time data even when the operational admin or RPCs edit them.
 - Build-time `available` columns are compatibility fields and must remain `true`; do not use them to represent operational unavailability.
@@ -204,8 +202,6 @@ Build-time structural and operational content:
 
 Runtime overlay:
 
-- `docs/supabase/availability-overlay.sql` supports the availability overlay.
-- `docs/supabase/operational-edit-rpcs.sql` defines the approved RPC write surface for operational CMS edits.
 - `public.get_admin_operational_state()` is the approved read surface for the operational admin. Browser code must not query `menu_content` or `app_private` directly.
 - Public admin RPCs and permission helpers must remain `security invoker` wrappers when they are executable by `authenticated`; privileged `security definer` bodies must live outside exposed API schemas, currently in `app_private`.
 - Current publish helper exception: `public.reserve_menu_publish_request(...)` and `public.complete_menu_publish_request(...)` are `security definer` helpers for the `publish-menu-changes` Edge Function, revoked from `anon` and `authenticated`, and executable only by `service_role`. They are not browser/admin RPCs; moving them to `app_private` requires an explicit refactor.
