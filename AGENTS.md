@@ -197,7 +197,7 @@ Build-time structural and operational content:
 - `SUPABASE_DB_URL` is required for build-time structural reads and menu validation.
 - Local development may define `SUPABASE_DB_URL` in `.env.local`; scripts load it only when an environment value is not already set.
 - Never expose `SUPABASE_DB_URL` to the client or any `PUBLIC_*` environment variable.
-- Menu del dia, active service, prices, catalog, groups, sections, images, and structural text are build-time data even when the operational admin or RPCs edit them.
+- Menu del dia, active service, prices, catalog, sections, images, and structural text are build-time data even when the operational admin or RPCs edit them.
 - Build-time `available` columns are compatibility fields and must remain `true`; do not use them to represent operational unavailability.
 - Changes to build-time data require rebuild/deploy before affecting `/menu/corpo/` and `/menu/teleinde/`.
 - Legacy menu-content tables and columns are absent from the baseline and must not be recreated.
@@ -219,7 +219,7 @@ Runtime overlay:
 - Publish cooldown responses may include `cooldown_seconds_remaining`; keep that contract synchronized across the Edge Function, SQL helpers, and admin UI.
 - The Edge Function runtime uses `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VERCEL_DEPLOY_HOOK_URL`, `PUBLISH_ALLOWED_ORIGINS`, and `PUBLISH_COOLDOWN_SECONDS`. Never expose the service role key or deploy hook to browser code or `PUBLIC_*` variables.
 - `public.editor_profiles` was removed after the `staff_users` backfill; do not recreate or reference it.
-- The first `admin` staff row must be bootstrapped through privileged SQL or service role access, not browser RLS.
+- The first `admin` staff row must be bootstrapped exclusively through privileged SQL. `service_role` has no direct access to `public.staff_users`, and browser RLS must not be used for bootstrap.
 - Public client variables are `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.
 - `/admin/` may use Supabase Auth password recovery and password updates for staff users; recovery redirects must return to `/admin/`.
 - The overlay may only change visual availability through availability data.
@@ -245,7 +245,7 @@ Preserve the static-first model:
 - browser reads for `/admin/` must use `get_admin_operational_state()` or other explicitly approved read RPCs
 - browser publish requests must use the `publish-menu-changes` Supabase Edge Function
 - do not add direct structural browser queries to `menu_content`
-- do not add runtime queries for daily menu, service kind, prices, catalog, groups, sections, images, or structural text
+- do not add runtime queries for daily menu, service kind, prices, catalog, sections, images, or structural text
 - do not add SSR, server output, adapters, or Vercel Functions
 
 ---

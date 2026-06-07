@@ -228,12 +228,12 @@ Reglas principales:
 
 ## Frontera build-time/runtime
 
-- Menu del dia, descripcion/nota, servicio activo por local, precios globales, catalogo, grupos, secciones, imagenes y textos estructurales son datos build-time.
+- Menu del dia, descripcion, servicio activo por local, precios globales, catalogo, secciones, imagenes y textos estructurales son datos build-time.
 - `/admin/` puede editar parte de esos datos en Supabase, pero cada cambio build-time requiere rebuild/deploy para impactar el menu publico.
 - El unico dato editable en runtime sin rebuild es la disponibilidad por local mediante `public.menu_availability_overlays`.
 - Las columnas build-time `available` se conservan solo por compatibilidad interna y deben permanecer en `true`; "No disponible" nace como overlay runtime.
 - Los items con opciones exponen el target padre y tambien cada opcion con target runtime compuesto como `item-id-option-id`, por ejemplo `tortilla-con-cebolla`.
-- El cliente del menu no consulta estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.
+- El cliente del menu no consulta estructura, precios, menu del dia, servicio activo, catalogo, secciones, imagenes ni textos estructurales.
 
 ## Supabase
 
@@ -253,7 +253,7 @@ Roles operativos:
 - `operator`: edita todo lo que permite `/admin/`, para todos los locales, y puede publicar cambios.
 - `admin`: hereda permisos operativos y puede gestionar empleados a nivel de base/RPC. El sitio no tiene una pantalla de gestion de empleados.
 
-El primer `admin` se crea por SQL privilegiado o service role; no se bootstrapea desde browser RLS.
+El primer `admin` se crea exclusivamente mediante SQL privilegiado; `service_role` no tiene acceso directo a `public.staff_users` y el bootstrap no se realiza desde browser RLS.
 
 RPCs y funciones relevantes:
 

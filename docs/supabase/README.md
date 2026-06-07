@@ -33,10 +33,10 @@ Las tablas y columnas legacy del modelo anterior no existen en la baseline activ
 
 Editables build-time con rebuild requerido:
 
-- menu del dia base: nombre, descripcion y nota
+- menu del dia base: nombre y descripcion
 - servicio activo por local: `daily-menu` o `grill`
 - precios globales en `menu_prices` y `menu_price_variants`
-- catalogo, grupos, secciones, imagenes y textos estructurales
+- catalogo, secciones, imagenes y textos estructurales
 
 `menu_catalog_item_images` es la unica fuente de paths de imagen y aplica solo
 al catalogo fijo. El orden cero identifica la imagen principal. Menu diario y
@@ -50,7 +50,7 @@ Las columnas build-time `available` se conservan solo por compatibilidad interna
 
 Los items con opciones exponen el target padre y tambien cada opcion. Cada opcion de catalogo se expone al overlay con un ID compuesto `item-id-option-id`, por ejemplo `tortilla-con-cebolla`, sin agregar columnas al schema runtime.
 
-No implementar consultas runtime para menu del dia, precios, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.
+No implementar consultas runtime para menu del dia, precios, servicio activo, catalogo, secciones, imagenes ni textos estructurales.
 
 ## Permisos y admin
 
@@ -58,7 +58,7 @@ No implementar consultas runtime para menu del dia, precios, servicio activo, ca
 - `staff_users.role = 'admin'`: hereda permisos operativos y puede gestionar staff a nivel de base/RPC.
 - El sitio actual no tiene pantalla de gestion de empleados.
 - `editor_profiles` fue eliminada luego del backfill inicial; no debe recrearse ni usarse para permisos.
-- El primer `admin` debe crearse por SQL privilegiado o service role; no se bootstrapea desde browser RLS.
+- El primer `admin` debe crearse exclusivamente por SQL privilegiado; `service_role` no tiene acceso directo a `public.staff_users` y el bootstrap no se realiza desde browser RLS.
 - `/admin/` lee estado operativo mediante `get_admin_operational_state()` y escribe solo mediante RPCs operativas.
 - `/admin/` es un CMS operativo de contenido de menu: puede cubrir disponibilidad, servicio activo, menu del dia, parrilla dentro de familias existentes, contenido de menu fijo, opciones de subcategorias, precios y publicacion, sin abrir escritura editorial general.
 - `/admin/` permite recuperar y cambiar contrasena con Supabase Auth; el redirect de recuperacion debe volver a `/admin/`.
@@ -126,7 +126,8 @@ sincronizando las secuencias identity. Crea vacias estas superficies operativas:
 
 No incluye `auth.users`, secretos de Functions ni configuracion remota de Auth.
 El primer admin debe crearse primero en Supabase Auth y luego insertarse en
-`public.staff_users` mediante SQL privilegiado o service role.
+`public.staff_users` exclusivamente mediante SQL privilegiado. `service_role`
+no tiene acceso directo a esa tabla.
 
 No ejecutar el baseline sobre una base existente. Para un remoto que ya tiene
 el estado equivalente, primero validar esquema, contenido, funciones, permisos,
@@ -151,7 +152,7 @@ Para una base nueva:
 1. Aplicar `../../supabase/migrations/` mediante Supabase CLI.
 2. Confirmar que el baseline y cualquier migracion posterior terminan sin errores.
 3. Ejecutar `audits/menu-schema-audit.sql`, `audits/database-audit.sql` y `npm run menu:validate`.
-4. Crear el primer usuario en Supabase Auth y bootstrappear su fila `admin` mediante acceso privilegiado.
+4. Crear el primer usuario en Supabase Auth y bootstrappear su fila `admin` mediante SQL privilegiado.
 5. Configurar secretos y desplegar `publish-menu-changes`.
 
 ## Variables

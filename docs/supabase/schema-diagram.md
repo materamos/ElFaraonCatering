@@ -182,9 +182,7 @@ flowchart LR
   STATIC["HTML estatico<br/>data-menu-id / data-section-id / data-item-id"]
 
   AUTH_USERS -->|"FK fisica: user_id"| STAFF
-  AUTH_USERS -->|"FK fisica: user_id"| EDITORS
   AUTH_USERS -->|"FK fisica: updated_by"| OVERLAYS
-  EDITORS -. "backfill legacy" .-> STAFF
   STAFF -. "RLS helper: can_edit_availability" .-> OVERLAYS
   STAFF -. "helpers de permisos" .-> READ_RPC
   STAFF -. "helpers de permisos" .-> WRITE_RPCS
@@ -203,7 +201,7 @@ flowchart LR
   classDef private fill:#fff4e5,stroke:#8a5a13,color:#3f2c09;
   classDef platform fill:#f6f6f6,stroke:#777,color:#333;
 
-  class STAFF,EDITORS,OVERLAYS,READ_RPC,WRITE_RPCS,EDGE,ADMIN_UI runtime;
+  class STAFF,OVERLAYS,READ_RPC,WRITE_RPCS,EDGE,ADMIN_UI runtime;
   class STATIC,MENU_CONTENT structural;
   class PRIVATE private;
   class AUTH_USERS,VERCEL platform;
@@ -212,7 +210,7 @@ flowchart LR
 ## Frontera build-time/runtime
 
 - `menu_content` se lee para el menu publico solo durante build/validacion con `SUPABASE_DB_URL`.
-- Menu del dia, notas, servicio activo por local, catalogo, secciones, imagenes y precios son datos build-time.
+- Menu del dia, descripcion, servicio activo por local, catalogo, secciones, imagenes y precios son datos build-time.
 - Las columnas build-time `available` no representan faltantes operativos; se conservan siempre `true` por compatibilidad.
 - `menu_daily_items` modela dos opciones planas: comun y vegetariano.
 - `menu_catalog_item_images` es la unica fuente de imagenes: el orden cero es la imagen principal de cada item del catalogo fijo.
@@ -229,4 +227,4 @@ flowchart LR
 - `publish-menu-changes` es la frontera server-side para publicar cambios build-time: valida Auth, usa `can_publish_menu()`, registra auditoria privada con fingerprint del contenido y llama el Deploy Hook desde secretos.
 - El estado `publication` expone el fingerprint build-time actual; `/admin/` lo compara contra el fingerprint embebido en el deploy estatico actual para decidir si falta publicar.
 - `public.editor_profiles` fue eliminada luego del backfill inicial; `staff_users` es la unica fuente de permisos operativos.
-- El cliente no debe consultar estructura, precios, menu del dia, servicio activo, catalogo, grupos, secciones, imagenes ni textos estructurales.
+- El cliente no debe consultar estructura, precios, menu del dia, servicio activo, catalogo, secciones, imagenes ni textos estructurales.
