@@ -27,7 +27,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.8",
     "postgres": "^3.4.9",
-    "supabase": "^2.104.0",
+    "supabase": "^2.105.0",
     "typescript": "^5.9.2"
   }
 }
