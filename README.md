@@ -22,10 +22,10 @@ La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuent
 
 ## Stack tecnico
 
-- Astro 5
+- Astro 6
 - TypeScript
 - Tailwind CSS 4
-- Node 20 LTS
+- Node 22 LTS
 - npm
 - Supabase Postgres para contenido estructural y operativo build-time
 - Supabase Edge Function `publish-menu-changes` para publicacion operativa
@@ -35,7 +35,7 @@ La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuent
 
 ### Requisitos
 
-- Node `20.x`
+- Node `22.x`
 - npm `>=10`
 - `SUPABASE_DB_URL` disponible para build y validacion estructural, por entorno o `.env.local`
 
@@ -360,7 +360,7 @@ No agregar estas capacidades salvo pedido explicito:
 
 ## Decisiones tecnicas actuales
 
-- Se usa **Astro 5** para mantener compatibilidad con **Node 20**.
+- Se usa **Astro 6** con **Node 22 LTS**.
 - Se usa **Tailwind CSS 4** mediante el plugin de Vite.
 - El sitio sigue siendo **static-first** con extensiones cliente no bloqueantes.
 - Supabase `menu_content` es la fuente estructural build-time.

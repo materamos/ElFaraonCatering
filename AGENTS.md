@@ -24,10 +24,10 @@ Current routes:
 
 Current stack:
 
-- Astro 5
+- Astro 6
 - TypeScript
 - Tailwind CSS 4
-- Node 20 LTS
+- Node 22 LTS
 - npm
 - Supabase Postgres for build-time structural and operational menu content
 - Vercel static deployment
@@ -101,7 +101,7 @@ but must remain the explicit global price RPC workflow.
 
 Keep `/admin/` as a static Astro route. Do not add SSR, server output, API routes, Vercel Functions, service role usage in browser, or broad editorial CMS behavior outside the operational menu-content scope.
 
-Keep the project compatible with Node 20 and Astro 5 unless the runtime upgrade is explicitly requested.
+Keep the project compatible with Node 22 and Astro 6 unless the runtime upgrade is explicitly requested.
 
 Use npm only. Do not switch to pnpm, yarn, bun, or another runtime/package manager.
 

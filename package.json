@@ -4,14 +4,14 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": "20.x",
+    "node": "22.x",
     "npm": ">=10"
   },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "node --max-old-space-size=8192 ./node_modules/astro/astro.js check",
+    "check": "node --max-old-space-size=8192 ./node_modules/astro/bin/astro.mjs check",
     "menu:validate": "node scripts/validate-menu-supabase.mjs",
     "verify:dist-secrets": "node scripts/verify-dist-secrets.mjs",
     "supabase": "supabase",
@@ -21,13 +21,14 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",
-    "astro": "^5.18.2",
-    "tailwindcss": "^4.1.13"
+    "astro": "^6.4.5",
+    "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.8",
+    "@astrojs/check": "^0.9.9",
     "postgres": "^3.4.9",
     "supabase": "^2.105.0",
-    "typescript": "^5.9.2"
+    "typescript": "^6.0.3",
+    "vite": "^7.3.5"
   }
 }
