@@ -15,6 +15,7 @@
     "test:admin": "node --test scripts/test-admin-rules-selectors.mjs scripts/test-admin-render-contracts.mjs scripts/test-admin-operations.mjs",
     "menu:validate": "node scripts/validate-menu-supabase.mjs",
     "verify:dist-secrets": "node scripts/verify-dist-secrets.mjs",
+    "supabase:audit": "node scripts/audit-supabase-readonly.mjs",
     "supabase": "supabase",
     "supabase:link": "supabase link",
     "supabase:migrations": "supabase migration list",

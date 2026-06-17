@@ -190,6 +190,7 @@ Build-time structural and operational content:
 - Never run the baseline against an existing database. Align an existing remote migration history only after proving schema, data, function, grant, policy, and fingerprint equivalence.
 - Add every future database change as a new incremental migration after the baseline.
 - Supabase CLI is installed as a dev dependency and should be run through npm scripts, for example `npm run supabase -- <args>`.
+- `npm run supabase:audit` executes the read-only SQL audits in `docs/supabase/audits/` and must fail on risk rows, diagnostics, or unexpected structural statuses.
 - `npm run supabase:functions:deploy` may deploy only the approved `publish-menu-changes` Edge Function and must keep platform JWT verification disabled for that function.
 - `SUPABASE_DB_URL` is required for build-time structural reads and menu validation.
 - Local development may define `SUPABASE_DB_URL` in `.env.local`; scripts load it only when an environment value is not already set.
@@ -315,6 +316,7 @@ Additional checks:
 - Run `npm run test:admin` when working with admin UI, rules, selectors, render contracts, operations, fixed-menu edit policy, or availability grouping.
 - Run `npm run check` for TypeScript/Astro changes.
 - Run `npm run build` and then `npm run verify:dist-secrets` before delivering app changes.
+- Run `npm run supabase:audit` when working with Supabase schema, grants, policies, RPC exposure, or read-only audit expectations.
 - Run `npm run menu:validate` only when working with menu content loading, Supabase schema expectations, menu data shape, or build-time menu content.
 
 Do not claim validation that was not performed.

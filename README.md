@@ -121,6 +121,7 @@ npm run preview
 | `npm run preview` | Sirve el build localmente para revision. |
 | `npm run menu:validate` | Valida contenido estructural y hardening esperado en Supabase. Requiere `SUPABASE_DB_URL`. |
 | `npm run verify:dist-secrets` | Revisa `dist/` para detectar marcadores de secretos despues del build. |
+| `npm run supabase:audit` | Ejecuta los audits SQL read-only y falla ante risks, diagnostics o estados estructurales no esperados. Requiere `SUPABASE_DB_URL`. |
 | `npm run supabase -- <args>` | Ejecuta Supabase CLI local del proyecto. |
 | `npm run supabase:link` | Vincula el checkout local con un proyecto Supabase remoto. Requiere project ref y credenciales. |
 | `npm run supabase:migrations` | Lista migraciones locales/remotas con Supabase CLI. Requiere proyecto vinculado o `-- --db-url`. |
@@ -131,11 +132,12 @@ Validacion recomendada:
 - `npm run test:admin` para cambios en admin UI, reglas, selectores u operaciones.
 - `npm run check` para cambios TypeScript/Astro.
 - `npm run build` y luego `npm run verify:dist-secrets` antes de entregar cambios de app.
-- `npm run menu:validate` solo cuando cambie Supabase, el shape del menu o contenido build-time.
+- `npm run supabase:audit` y `npm run menu:validate` cuando cambie Supabase, el shape del menu o contenido build-time.
 
 Secuencia completa para cambios que tocan app y contenido build-time:
 
 ```bash
+npm run supabase:audit
 npm run menu:validate
 npm run test:admin
 npm run build
@@ -313,7 +315,7 @@ Flujo local-first para cambios de base:
 
 1. Versionar migraciones aplicables dentro de `supabase/migrations/`; conservar documentacion y auditorias read-only dentro de `docs/supabase/`.
 2. Actualizar `docs/supabase/schema-diagram.md` si cambia el esquema o una relacion.
-3. Ejecutar primero los audits read-only contra la base apuntada por `SUPABASE_DB_URL`.
+3. Ejecutar primero `npm run supabase:audit` contra la base apuntada por `SUPABASE_DB_URL`.
 4. Ejecutar `npm run menu:validate`, `npm run build`, `npm run verify:dist-secrets` y `npm run check`.
 5. Aplicar SQL mutante en Supabase remoto solo si los audits y validaciones pasan.
 
