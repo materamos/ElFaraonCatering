@@ -18,6 +18,7 @@ import {
   updatePasswordRequest,
 } from "./adminApi";
 import { createAdminOperations } from "./adminOperations";
+import { adminActions, adminForms } from "./adminContracts";
 import {
   clearStoredSession,
   getPasswordRedirectUrl,
@@ -235,7 +236,7 @@ async function startAdmin(): Promise<void> {
 async function handleAction(target: HTMLElement): Promise<void> {
   const action = target.dataset.adminAction;
 
-  if (action === "show-reset-request") {
+  if (action === adminActions.showResetRequest) {
     if (!confirmUnsavedChanges()) {
       return;
     }
@@ -246,7 +247,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
-  if (action === "show-login") {
+  if (action === adminActions.showLogin) {
     if (!confirmUnsavedChanges()) {
       return;
     }
@@ -257,7 +258,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
-  if (action === "logout") {
+  if (action === adminActions.logout) {
     if (!confirmUnsavedChanges()) {
       return;
     }
@@ -266,14 +267,14 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
-  if (action === "retry-admin-state") {
+  if (action === adminActions.retryAdminState) {
     await runBusy(async () => {
       await loadAdminState();
     }, "Reintentando...");
     return;
   }
 
-  if (action === "tab") {
+  if (action === adminActions.tab) {
     const tab = target.dataset.adminTab as AdminTabId | undefined;
 
     if (tab) {
@@ -283,7 +284,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
-  if (action === "service-section") {
+  if (action === adminActions.serviceSection) {
     const section = target.dataset.adminServiceSection;
 
     if (
@@ -302,7 +303,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
-  if (action === "set-overlay") {
+  if (action === adminActions.setOverlay) {
     if (!confirmUnsavedChanges()) {
       return;
     }
@@ -344,7 +345,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
-  if (action === "clear-overlay") {
+  if (action === adminActions.clearOverlay) {
     if (!confirmUnsavedChanges()) {
       return;
     }
@@ -375,7 +376,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
-  if (action === "delete-catalog-item") {
+  if (action === adminActions.deleteCatalogItem) {
     const sectionId = target.dataset.sectionId;
     const itemId = target.dataset.itemId;
     const item = sectionId && itemId ? findCatalogItem(sectionId, itemId) : undefined;
@@ -393,7 +394,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
-  if (action === "delete-grill-item") {
+  if (action === adminActions.deleteGrillItem) {
     const itemId = target.dataset.itemId;
     const item = itemId ? findGrillItem(itemId) : undefined;
 
@@ -410,7 +411,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
-  if (action === "delete-grill-product") {
+  if (action === adminActions.deleteGrillProduct) {
     const familyId = target.dataset.familyId;
     const family = familyId ? findGrillFamily(familyId) : undefined;
 
@@ -427,7 +428,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
-  if (action === "delete-catalog-option") {
+  if (action === adminActions.deleteCatalogOption) {
     const sectionId = target.dataset.sectionId;
     const itemId = target.dataset.itemId;
     const optionId = target.dataset.optionId;
@@ -448,7 +449,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     return;
   }
 
-  if (action === "publish") {
+  if (action === adminActions.publish) {
     const cooldownSecondsRemaining = getPublishCooldownSecondsRemaining();
 
     if (cooldownSecondsRemaining > 0) {
@@ -509,17 +510,17 @@ function selectAdminTab(tab: AdminTabId, focus: RenderFocusMode = "preserve"): v
 async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
   const formKind = form.dataset.adminForm;
 
-  if (formKind === "login") {
+  if (formKind === adminForms.login) {
     await login(form);
     return;
   }
 
-  if (formKind === "password-reset-request") {
+  if (formKind === adminForms.passwordResetRequest) {
     await requestPasswordReset(form);
     return;
   }
 
-  if (formKind === "set-password") {
+  if (formKind === adminForms.setPassword) {
     await setPassword(form);
     return;
   }
@@ -530,67 +531,67 @@ async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
     return;
   }
 
-  if (formKind === "daily-menu") {
+  if (formKind === adminForms.dailyMenu) {
     await adminOperations.saveDailyMenu(form);
     return;
   }
 
-  if (formKind === "service-kind") {
+  if (formKind === adminForms.serviceKind) {
     await adminOperations.saveServiceKind(form);
     return;
   }
 
-  if (formKind === "grill-item") {
+  if (formKind === adminForms.grillItem) {
     await adminOperations.saveGrillItem(form);
     return;
   }
 
-  if (formKind === "grill-product") {
+  if (formKind === adminForms.grillProduct) {
     await adminOperations.saveGrillProduct(form);
     return;
   }
 
-  if (formKind === "grill-product-edit") {
+  if (formKind === adminForms.grillProductEdit) {
     await adminOperations.saveGrillProductEdit(form);
     return;
   }
 
-  if (formKind === "grill-item-edit") {
+  if (formKind === adminForms.grillItemEdit) {
     await adminOperations.saveGrillItemEdit(form);
     return;
   }
 
-  if (formKind === "fixed-price") {
+  if (formKind === adminForms.fixedPrice) {
     await adminOperations.saveFixedPrice(form);
     return;
   }
 
-  if (formKind === "variant-price") {
+  if (formKind === adminForms.variantPrice) {
     await adminOperations.saveVariantPrice(form);
     return;
   }
 
-  if (formKind === "catalog-item") {
+  if (formKind === adminForms.catalogItem) {
     await adminOperations.saveCatalogItem(form);
     return;
   }
 
-  if (formKind === "catalog-item-edit") {
+  if (formKind === adminForms.catalogItemEdit) {
     await adminOperations.saveCatalogItemEdit(form);
     return;
   }
 
-  if (formKind === "catalog-option") {
+  if (formKind === adminForms.catalogOption) {
     await adminOperations.saveCatalogOption(form);
     return;
   }
 
-  if (formKind === "catalog-option-edit") {
+  if (formKind === adminForms.catalogOptionEdit) {
     await adminOperations.saveCatalogOptionEdit(form);
     return;
   }
 
-  if (formKind === "change-password") {
+  if (formKind === adminForms.changePassword) {
     await changePassword(form);
   }
 }

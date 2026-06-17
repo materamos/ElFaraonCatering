@@ -117,6 +117,7 @@ npm run preview
 | `npm run dev` | Levanta Astro en desarrollo. |
 | `npm run build` | Genera el sitio estatico en `dist/` leyendo `menu_content` en build-time. |
 | `npm run check` | Ejecuta `astro check` con limite de memoria ampliado. |
+| `npm run test:admin` | Ejecuta tests puntuales de reglas, selectores, contratos de render y operaciones del admin. |
 | `npm run preview` | Sirve el build localmente para revision. |
 | `npm run menu:validate` | Valida contenido estructural y hardening esperado en Supabase. Requiere `SUPABASE_DB_URL`. |
 | `npm run verify:dist-secrets` | Revisa `dist/` para detectar marcadores de secretos despues del build. |
@@ -125,10 +126,18 @@ npm run preview
 | `npm run supabase:migrations` | Lista migraciones locales/remotas con Supabase CLI. Requiere proyecto vinculado o `-- --db-url`. |
 | `npm run supabase:functions:deploy` | Despliega solo la Edge Function aprobada `publish-menu-changes` con `--no-verify-jwt`. |
 
-Validacion recomendada para cambios de app, Supabase o contenido build-time:
+Validacion recomendada:
+
+- `npm run test:admin` para cambios en admin UI, reglas, selectores u operaciones.
+- `npm run check` para cambios TypeScript/Astro.
+- `npm run build` y luego `npm run verify:dist-secrets` antes de entregar cambios de app.
+- `npm run menu:validate` solo cuando cambie Supabase, el shape del menu o contenido build-time.
+
+Secuencia completa para cambios que tocan app y contenido build-time:
 
 ```bash
 npm run menu:validate
+npm run test:admin
 npm run build
 npm run verify:dist-secrets
 npm run check
@@ -141,12 +150,23 @@ src/
   admin/
     admin.css
     admin.ts
+    adminAccountView.ts
     adminApi.ts
+    adminAuthView.ts
+    adminAvailabilityView.ts
+    adminContracts.ts
+    adminFixedMenuView.ts
+    adminHtml.ts
     adminOperations.ts
+    adminRules.ts
     adminSession.ts
+    adminSelectors.ts
+    adminServiceView.ts
+    adminShellView.ts
     adminTypes.ts
     adminUtils.ts
     adminView.ts
+    adminViewState.ts
   components/
     CompactMenuItem.astro
     DishCard.astro
@@ -181,6 +201,10 @@ public/
 scripts/
   load-local-env.mjs
   menu-content-supabase.mjs
+  test-admin-helpers.mjs
+  test-admin-operations.mjs
+  test-admin-render-contracts.mjs
+  test-admin-rules-selectors.mjs
   validate-menu-supabase.mjs
   verify-dist-secrets.mjs
 supabase/
