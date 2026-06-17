@@ -455,6 +455,50 @@ async function validateSchema(sql, errors) {
     errors.push(`Catalog image order must be contiguous from zero: ${row.section_id}/${row.item_id}`);
   }
 
+  const orphanAvailabilityOverlayRows = await sql`
+    with possible_targets as (
+      select profile.id as menu_id, 'menu-del-dia'::text as section_id, item.item_id
+      from menu_content.menu_profiles profile
+      cross join menu_content.menu_daily_items item
+
+      union all
+
+      select profile.id, 'parrilla', item.item_id
+      from menu_content.menu_profiles profile
+      cross join menu_content.menu_grill_catalog_items item
+
+      union all
+
+      select profile.id, item.section_id, item.item_id
+      from menu_content.menu_profiles profile
+      cross join menu_content.menu_catalog_items item
+
+      union all
+
+      select profile.id, item.section_id, item.item_id || '-' || option.option_id
+      from menu_content.menu_profiles profile
+      cross join menu_content.menu_catalog_items item
+      join menu_content.menu_catalog_item_options option
+        on option.catalog_item_id = item.id
+    )
+    select overlay.menu_id, overlay.section_id, overlay.item_id
+    from public.menu_availability_overlays overlay
+    where not exists (
+      select 1
+      from possible_targets target
+      where target.menu_id = overlay.menu_id
+        and target.section_id = overlay.section_id
+        and target.item_id = overlay.item_id
+    )
+    order by overlay.menu_id, overlay.section_id, overlay.item_id
+  `;
+
+  for (const row of orphanAvailabilityOverlayRows) {
+    errors.push(
+      `Availability overlay references an unknown menu target: ${row.menu_id}/${row.section_id}/${row.item_id}`,
+    );
+  }
+
   const constraintRows = await sql`
     select conname
     from pg_constraint

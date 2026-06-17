@@ -1679,6 +1679,10 @@ begin
     return;
   end if;
 
+  delete from public.menu_availability_overlays overlay
+  where overlay.section_id = target_section_id
+    and overlay.item_id = target_item_id || '-' || target_option_id;
+
   delete from menu_content.menu_catalog_item_options option
   where option.catalog_item_id = target_catalog_item_id
     and option.option_id = target_option_id;
@@ -1915,6 +1919,10 @@ begin
     return query select false, false, true, 'delete_grill_item', 'grill_family_must_keep_item';
     return;
   end if;
+
+  delete from public.menu_availability_overlays overlay
+  where overlay.section_id = 'parrilla'
+    and overlay.item_id = target_item_id;
 
   delete from menu_content.menu_grill_catalog_items item
   where item.item_id = target_item_id;
