@@ -16,7 +16,7 @@ export const parseAllowedOrigins = (rawValue: string | undefined): Set<string> =
 };
 
 export const isOriginAllowed = (origin: string | null, allowedOrigins: Set<string>): boolean =>
-  origin === null || allowedOrigins.has(origin);
+  origin !== null && allowedOrigins.has(origin);
 
 export const getCorsHeaders = (
   request: Request,
