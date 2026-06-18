@@ -1,5 +1,5 @@
-import type { AuthSession } from "./adminTypes";
-import { isStoredSession } from "./adminUtils";
+import type { AuthSession } from "../core/types";
+import { isStoredSession } from "../core/utils";
 
 const storageKey = "el-faraon-admin-session";
 

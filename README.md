@@ -150,25 +150,29 @@ npm run check
 ```text
 src/
   admin/
-    admin.css
-    admin.ts
-    adminAccountView.ts
-    adminApi.ts
-    adminAuthView.ts
-    adminAvailabilityView.ts
-    adminContracts.ts
-    adminFixedMenuView.ts
-    adminHtml.ts
-    adminOperations.ts
-    adminRules.ts
-    adminSession.ts
-    adminSelectors.ts
-    adminServiceView.ts
-    adminShellView.ts
-    adminTypes.ts
-    adminUtils.ts
-    adminView.ts
-    adminViewState.ts
+    main.ts
+    styles.css
+    api/
+      client.ts
+      sessionStorage.ts
+    core/
+      contracts.ts
+      rules.ts
+      selectors.ts
+      types.ts
+      utils.ts
+      viewState.ts
+    operations/
+      menuOperations.ts
+    views/
+      account.ts
+      auth.ts
+      availability.ts
+      fixedMenu.ts
+      html.ts
+      renderer.ts
+      service.ts
+      shell.ts
   components/
     CompactMenuItem.astro
     DishCard.astro

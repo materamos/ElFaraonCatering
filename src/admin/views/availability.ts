@@ -1,11 +1,11 @@
-import { adminActions } from "./adminContracts";
-import { disabledAttr, renderEmpty } from "./adminHtml";
+import { adminActions } from "../core/contracts";
+import { disabledAttr, renderEmpty } from "./html";
 import type {
   AdminOperationalState,
   AvailabilityOverlayState,
   AvailabilityTargetState,
-} from "./adminTypes";
-import type { AdminViewState } from "./adminViewState";
+} from "../core/types";
+import type { AdminViewState } from "../core/viewState";
 import {
   findOverlay,
   getAvailabilityFamilyKey,
@@ -15,8 +15,8 @@ import {
   getEffectiveAvailabilityProfileFilter,
   getEditableAvailabilityProfiles,
   getVisibleAvailabilityTargets,
-} from "./adminSelectors";
-import { escapeHtml, getTargetKey } from "./adminUtils";
+} from "../core/selectors";
+import { escapeHtml, getTargetKey } from "../core/utils";
 
 export function renderAvailabilityTab(
   state: AdminOperationalState,

@@ -15,12 +15,12 @@ test.after(() => {
 });
 
 const { requireAdminModule } = await compileAdminModules("admin-operations-tests", [
-  "src/admin/adminOperations.ts",
-  "src/admin/adminTypes.ts",
-  "src/admin/adminUtils.ts",
+  "src/admin/operations/menuOperations.ts",
+  "src/admin/core/types.ts",
+  "src/admin/core/utils.ts",
 ]);
 
-const { createAdminOperations } = requireAdminModule("adminOperations");
+const { createAdminOperations } = requireAdminModule("operations/menuOperations");
 
 test("availability save calls set_menu_availability_overlay", async () => {
   const harness = createHarness();

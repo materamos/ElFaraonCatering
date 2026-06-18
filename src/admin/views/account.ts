@@ -1,5 +1,5 @@
-import { adminForms } from "./adminContracts";
-import { disabledAttr } from "./adminHtml";
+import { adminForms } from "../core/contracts";
+import { disabledAttr } from "./html";
 
 export function renderAccountTab(isBusy: boolean): string {
   return `

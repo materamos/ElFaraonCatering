@@ -7,30 +7,30 @@ import type {
   GrillFamilyState,
   GrillItemState,
   StatusMessage,
-} from "./adminTypes";
+} from "../core/types";
 import {
   renderConfigurationErrorHtml,
   renderDeniedView,
   renderLoginView,
   renderPasswordResetRequestView,
   renderSetPasswordView,
-} from "./adminAuthView";
-import { renderAdminShell } from "./adminShellView";
-import { renderAvailabilityTab } from "./adminAvailabilityView";
-import { renderServiceTab } from "./adminServiceView";
-import { renderFixedMenuTab } from "./adminFixedMenuView";
-import { renderAccountTab } from "./adminAccountView";
+} from "./auth";
+import { renderAdminShell } from "./shell";
+import { renderAvailabilityTab } from "./availability";
+import { renderServiceTab } from "./service";
+import { renderFixedMenuTab } from "./fixedMenu";
+import { renderAccountTab } from "./account";
 import {
   getAdminViewState,
   setActiveServiceSectionFallback,
   setAdminActiveTab,
   setAdminFilter,
   setAdminServiceSection,
-} from "./adminViewState";
+} from "../core/viewState";
 import {
   getAllowedTabs,
   isServiceSectionAvailable,
-} from "./adminRules";
+} from "../core/rules";
 import {
   findAvailabilityFamilyTargets as selectAvailabilityFamilyTargets,
   findAvailabilityTarget as selectAvailabilityTarget,
@@ -38,7 +38,7 @@ import {
   findCatalogItemOption as selectCatalogItemOption,
   findGrillFamily as selectGrillFamily,
   findGrillItem as selectGrillItem,
-} from "./adminSelectors";
+} from "../core/selectors";
 
 interface AdminViewContext {
   root: HTMLElement;

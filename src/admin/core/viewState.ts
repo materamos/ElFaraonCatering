@@ -1,4 +1,4 @@
-import type { AdminTabId, ServiceSectionId } from "./adminTypes";
+import type { AdminTabId, ServiceSectionId } from "./types";
 
 export interface AdminViewState {
   activeTab: AdminTabId;

@@ -1,8 +1,8 @@
-import { adminActions } from "./adminContracts";
-import { disabledAttr, renderStatusMessage } from "./adminHtml";
-import type { AdminOperationalState, AdminTabId, StatusMessage } from "./adminTypes";
-import type { AdminViewState } from "./adminViewState";
-import { escapeHtml, roleLabel } from "./adminUtils";
+import { adminActions } from "../core/contracts";
+import { disabledAttr, renderStatusMessage } from "./html";
+import type { AdminOperationalState, AdminTabId, StatusMessage } from "../core/types";
+import type { AdminViewState } from "../core/viewState";
+import { escapeHtml, roleLabel } from "../core/utils";
 
 interface AdminShellInput {
   state: AdminOperationalState;

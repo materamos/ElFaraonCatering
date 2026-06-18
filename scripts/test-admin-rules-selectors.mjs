@@ -6,15 +6,15 @@ import {
 } from "./test-admin-helpers.mjs";
 
 const { requireAdminModule } = await compileAdminModules("admin-rules-selectors-tests", [
-  "src/admin/adminRules.ts",
-  "src/admin/adminSelectors.ts",
-  "src/admin/adminTypes.ts",
-  "src/admin/adminUtils.ts",
+  "src/admin/core/rules.ts",
+  "src/admin/core/selectors.ts",
+  "src/admin/core/types.ts",
+  "src/admin/core/utils.ts",
 ]);
 
-const rules = requireAdminModule("adminRules");
-const selectors = requireAdminModule("adminSelectors");
-const utils = requireAdminModule("adminUtils");
+const rules = requireAdminModule("core/rules");
+const selectors = requireAdminModule("core/selectors");
+const utils = requireAdminModule("core/utils");
 
 test("availability targets match each profile active service", () => {
   const state = createState();

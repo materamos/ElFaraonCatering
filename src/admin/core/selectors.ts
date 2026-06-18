@@ -11,9 +11,9 @@ import type {
   GrillItemState,
   ProfileState,
   ServiceKind,
-} from "./adminTypes";
-import { getOverlayKey, getTargetKey } from "./adminUtils";
-import { getFixedOptionsOnlyRule } from "./adminRules";
+} from "./types";
+import { getOverlayKey, getTargetKey } from "./utils";
+import { getFixedOptionsOnlyRule } from "./rules";
 
 export interface AvailabilityGroupOption {
   key: string;

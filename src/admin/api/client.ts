@@ -1,11 +1,11 @@
-import type { AdminOperationalState, AuthSession, RpcResult } from "./adminTypes";
+import type { AdminOperationalState, AuthSession, RpcResult } from "../core/types";
 import {
   isAuthResponse,
   isRpcResult,
   readErrorMessage,
   readJsonBody,
   resultMessage,
-} from "./adminUtils";
+} from "../core/utils";
 
 interface AdminApiConfig {
   supabaseUrl: string;

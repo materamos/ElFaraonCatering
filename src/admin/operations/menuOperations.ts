@@ -8,14 +8,14 @@ import type {
   GrillItemState,
   RpcResult,
   StatusTone,
-} from "./adminTypes";
+} from "../core/types";
 import {
   formatCooldownSuffix,
   getFormInteger,
   getFormString,
   getNullableFormString,
   resultMessage,
-} from "./adminUtils";
+} from "../core/utils";
 
 interface AdminOperationContext {
   runBusy(action: () => Promise<void>, busyText?: string): Promise<void>;

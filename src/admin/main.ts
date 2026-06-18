@@ -6,7 +6,7 @@ import type {
   RpcResult,
   StatusMessage,
   StatusTone,
-} from "./adminTypes";
+} from "./core/types";
 import {
   callMutation as callAdminMutation,
   loadAdminOperationalState,
@@ -16,16 +16,16 @@ import {
   requestPasswordResetEmail,
   signInWithPassword,
   updatePasswordRequest,
-} from "./adminApi";
-import { createAdminOperations } from "./adminOperations";
-import { adminActions, adminForms } from "./adminContracts";
+} from "./api/client";
+import { createAdminOperations } from "./operations/menuOperations";
+import { adminActions, adminForms } from "./core/contracts";
 import {
   clearStoredSession,
   getPasswordRedirectUrl,
   readPasswordSessionFromLocation,
   readStoredSession,
   saveStoredSession,
-} from "./adminSession";
+} from "./api/sessionStorage";
 import {
   findAvailabilityFamilyTargets,
   ensureActiveTab,
@@ -44,14 +44,14 @@ import {
   setAdminServiceSection,
   setAdminViewContext,
   isServiceSectionAvailable,
-} from "./adminView";
+} from "./views/renderer";
 import {
   getFormString,
   getTrimmedValue,
   normalizeAdminState,
   normalizeSupabaseProjectUrl,
   toOperationalErrorMessage,
-} from "./adminUtils";
+} from "./core/utils";
 
 const rootElement = document.querySelector<HTMLElement>("[data-admin-root]");
 

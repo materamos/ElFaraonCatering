@@ -1,17 +1,17 @@
-import { adminActions, adminForms } from "./adminContracts";
-import { canDeleteFromList, isServiceSectionAvailable, regularDailyId, vegetarianDailyId } from "./adminRules";
-import { disabledAttr, hiddenInput, renderEmpty } from "./adminHtml";
-import { findDailyItem, findServiceKind } from "./adminSelectors";
-import { renderFixedPriceRows } from "./adminFixedMenuView";
+import { adminActions, adminForms } from "../core/contracts";
+import { canDeleteFromList, isServiceSectionAvailable, regularDailyId, vegetarianDailyId } from "../core/rules";
+import { disabledAttr, hiddenInput, renderEmpty } from "./html";
+import { findDailyItem, findServiceKind } from "../core/selectors";
+import { renderFixedPriceRows } from "./fixedMenu";
 import type {
   AdminOperationalState,
   DailyMenuState,
   GrillFamilyState,
   GrillItemState,
   ServiceSectionId,
-} from "./adminTypes";
-import type { AdminViewState } from "./adminViewState";
-import { escapeHtml, formatAmount } from "./adminUtils";
+} from "../core/types";
+import type { AdminViewState } from "../core/viewState";
+import { escapeHtml, formatAmount } from "../core/utils";
 
 export function renderServiceTab(
   state: AdminOperationalState,

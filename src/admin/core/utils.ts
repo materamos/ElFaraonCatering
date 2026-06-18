@@ -12,7 +12,7 @@ import type {
   PricingLabel,
   RpcResult,
   StaffRole,
-} from "./adminTypes";
+} from "./types";
 
 export function getTargetKey(target: {
   menu_id: string;

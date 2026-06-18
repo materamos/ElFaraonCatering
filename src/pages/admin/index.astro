@@ -1,5 +1,5 @@
 ---
-import "../../admin/admin.css";
+import "../../admin/styles.css";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { loadSupabaseMenuPublicationContentHash } from "../../utils/menuSupabaseContent";
 
@@ -23,6 +23,6 @@ const deployedContentHash = await loadSupabaseMenuPublicationContentHash();
   </main>
 
   <script>
-    import "../../admin/admin";
+    import "../../admin/main";
   </script>
 </BaseLayout>

@@ -1,8 +1,8 @@
-import { adminActions, adminForms } from "./adminContracts";
-import { disabledAttr } from "./adminHtml";
-import type { StatusMessage } from "./adminTypes";
-import { escapeHtml } from "./adminUtils";
-import { renderStatusMessage } from "./adminHtml";
+import { adminActions, adminForms } from "../core/contracts";
+import { disabledAttr } from "./html";
+import type { StatusMessage } from "../core/types";
+import { escapeHtml } from "../core/utils";
+import { renderStatusMessage } from "./html";
 
 interface AuthViewInput {
   isBusy: boolean;

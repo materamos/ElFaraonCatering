@@ -7,22 +7,22 @@ import {
 } from "./test-admin-helpers.mjs";
 
 const { requireAdminModule } = await compileAdminModules("admin-render-contracts-tests", [
-  "src/admin/adminAuthView.ts",
-  "src/admin/adminShellView.ts",
-  "src/admin/adminAvailabilityView.ts",
-  "src/admin/adminFixedMenuView.ts",
-  "src/admin/adminServiceView.ts",
-  "src/admin/adminContracts.ts",
-  "src/admin/adminTypes.ts",
-  "src/admin/adminUtils.ts",
+  "src/admin/views/auth.ts",
+  "src/admin/views/shell.ts",
+  "src/admin/views/availability.ts",
+  "src/admin/views/fixedMenu.ts",
+  "src/admin/views/service.ts",
+  "src/admin/core/contracts.ts",
+  "src/admin/core/types.ts",
+  "src/admin/core/utils.ts",
 ]);
 
-const authView = requireAdminModule("adminAuthView");
-const shellView = requireAdminModule("adminShellView");
-const availabilityView = requireAdminModule("adminAvailabilityView");
-const fixedMenuView = requireAdminModule("adminFixedMenuView");
-const serviceView = requireAdminModule("adminServiceView");
-const { adminForms, adminActions } = requireAdminModule("adminContracts");
+const authView = requireAdminModule("views/auth");
+const shellView = requireAdminModule("views/shell");
+const availabilityView = requireAdminModule("views/availability");
+const fixedMenuView = requireAdminModule("views/fixedMenu");
+const serviceView = requireAdminModule("views/service");
+const { adminForms, adminActions } = requireAdminModule("core/contracts");
 
 test("login view exposes the login form contract", () => {
   const html = authView.renderLoginView({

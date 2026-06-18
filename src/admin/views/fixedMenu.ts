@@ -1,10 +1,10 @@
-import { adminActions, adminForms } from "./adminContracts";
-import { canDeleteFromList, catalogItemFormRequiresPrice, getFixedMenuEditMode, getFixedSectionAdminTitle, isIncludedSideOptionItem } from "./adminRules";
-import { disabledAttr, hiddenInput, renderEmpty } from "./adminHtml";
+import { adminActions, adminForms } from "../core/contracts";
+import { canDeleteFromList, catalogItemFormRequiresPrice, getFixedMenuEditMode, getFixedSectionAdminTitle, isIncludedSideOptionItem } from "../core/rules";
+import { disabledAttr, hiddenInput, renderEmpty } from "./html";
 import {
   getEffectiveFixedSection,
   getFixedLocationItems,
-} from "./adminSelectors";
+} from "../core/selectors";
 import type {
   AdminOperationalState,
   CatalogItemOptionState,
@@ -14,14 +14,14 @@ import type {
   FixedPriceState,
   PricingLabel,
   VariantPriceState,
-} from "./adminTypes";
-import type { AdminViewState } from "./adminViewState";
+} from "../core/types";
+import type { AdminViewState } from "../core/viewState";
 import {
   escapeHtml,
   formatAmount,
   formatCatalogItemPrice,
   formatPricingLabel,
-} from "./adminUtils";
+} from "../core/utils";
 
 export function renderFixedMenuTab(
   state: AdminOperationalState,

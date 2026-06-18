@@ -6,7 +6,7 @@ import type {
   FixedMenuEditMode,
   ServiceKind,
   ServiceSectionId,
-} from "./adminTypes";
+} from "./types";
 
 export const regularDailyId = "menu-del-dia";
 export const vegetarianDailyId = "menu-vegetariano-del-dia";
