@@ -114,6 +114,7 @@ Use npm only. Do not switch to pnpm, yarn, bun, or another runtime/package manag
 - Use ASCII-only code-facing text.
 - Do not use accents, the letter n with tilde, emojis, or unnecessary unicode in code, IDs, logs, config keys, file names, or machine-parsed strings.
 - Keep technical IDs ASCII/kebab-case and stable. Do not derive IDs from visible names at runtime.
+- Avoid repeating the parent folder context in file names. For example, use `admin/views/service.ts` and `admin/operations/catalog.ts`; use `index.ts` for a folder facade when that keeps imports clean.
 
 ---
 

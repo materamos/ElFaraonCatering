@@ -15,22 +15,15 @@ import {
 } from "../api/sessionStorage";
 import type {
   AdminOperationalState,
-  AdminTabId,
+  AdminStatusText,
   AuthSession,
   AuthView,
+  RenderFocusMode,
+  RenderOptions,
   StatusMessage,
   StatusTone,
 } from "../core/types";
 import { getFormString } from "../core/utils";
-
-type AdminStatusText = string | ((state: AdminOperationalState) => string);
-type RenderFocusMode = "preserve" | "view" | "tab";
-
-interface RenderOptions {
-  focus?: RenderFocusMode;
-  tabId?: AdminTabId;
-  revealStatus?: boolean;
-}
 
 interface AdminSessionContext {
   config: AdminApiConfig;

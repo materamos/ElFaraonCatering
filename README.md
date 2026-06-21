@@ -155,6 +155,17 @@ src/
     api/
       client.ts
       sessionStorage.ts
+    app/
+      actionHandlers.ts
+      availabilityActionHandlers.ts
+      confirmations.ts
+      deleteActionHandlers.ts
+      eventHandlers.ts
+      formHandlers.ts
+      formState.ts
+      publicationState.ts
+      publishActionHandlers.ts
+      session.ts
     core/
       contracts.ts
       rules.ts
@@ -163,7 +174,15 @@ src/
       utils.ts
       viewState.ts
     operations/
-      menuOperations.ts
+      availability.ts
+      catalog.ts
+      grill.ts
+      helpers.ts
+      index.ts
+      prices.ts
+      publish.ts
+      service.ts
+      types.ts
     views/
       account.ts
       auth.ts
@@ -398,4 +417,5 @@ No agregar estas capacidades salvo pedido explicito:
 - `/admin/` es una ruta Astro estatica con cliente TypeScript y Supabase Auth.
 - La publicacion operativa se concentra en la Supabase Edge Function `publish-menu-changes`.
 - Los nombres tecnicos, archivos y componentes estan en **ingles**.
+- Dentro de carpetas que ya dan contexto, los archivos no repiten ese contexto: por ejemplo `admin/views/service.ts`, `admin/operations/catalog.ts` y `admin/operations/index.ts`.
 - El contenido visible para usuarios esta en **espanol**.

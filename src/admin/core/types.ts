@@ -181,6 +181,15 @@ export interface StatusMessage {
   tone: StatusTone;
 }
 
+export type AdminStatusText = string | ((state: AdminOperationalState) => string);
+export type RenderFocusMode = "preserve" | "view" | "tab";
+
+export interface RenderOptions {
+  focus?: RenderFocusMode;
+  tabId?: AdminTabId;
+  revealStatus?: boolean;
+}
+
 export interface GrillProfileGroup {
   menuId: string;
   profileTitle: string;
