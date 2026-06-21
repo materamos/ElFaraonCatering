@@ -1,8 +1,6 @@
 import type {
   AdminOperationalState,
   AdminTabId,
-  AuthSession,
-  AuthView,
   RpcResult,
   StatusMessage,
   StatusTone,
@@ -10,22 +8,13 @@ import type {
 import {
   callMutation as callAdminMutation,
   loadAdminOperationalState,
-  logoutRequest,
   publishMenuChanges as publishMenuChangesRequest,
-  refreshSessionRequest,
-  requestPasswordResetEmail,
-  signInWithPassword,
-  updatePasswordRequest,
 } from "./api/client";
+import { createAdminFormState } from "./app/formState";
+import { createAdminPublicationState } from "./app/publicationState";
+import { createAdminSessionController } from "./app/session";
 import { createAdminOperations } from "./operations/menuOperations";
 import { adminActions, adminForms } from "./core/contracts";
-import {
-  clearStoredSession,
-  getPasswordRedirectUrl,
-  readPasswordSessionFromLocation,
-  readStoredSession,
-  saveStoredSession,
-} from "./api/sessionStorage";
 import {
   findAvailabilityFamilyTargets,
   ensureActiveTab,
@@ -46,7 +35,6 @@ import {
   isServiceSectionAvailable,
 } from "./views/renderer";
 import {
-  getFormString,
   getTrimmedValue,
   normalizeAdminState,
   normalizeSupabaseProjectUrl,
@@ -64,14 +52,10 @@ const adminApiConfig = {
   supabaseAnonKey: configuredSupabaseAnonKey,
 };
 
-let currentSession: AuthSession | null = null;
 let currentState: AdminOperationalState | null = null;
 let currentStatus: StatusMessage | null = null;
 let currentBusyText: string | null = null;
-let authView: AuthView = "login";
 let isBusy = false;
-let requestedPublishHash = "";
-let publishCooldownEndsAt = 0;
 
 type AdminStatusText = string | ((state: AdminOperationalState) => string);
 type RenderFocusMode = "preserve" | "view" | "tab";
@@ -82,46 +66,32 @@ interface RenderOptions {
   revealStatus?: boolean;
 }
 
-interface InteractionSnapshot {
-  scrollX: number;
-  scrollY: number;
-  formKind: string;
-  fieldName: string;
-  formKeys: Record<string, string>;
-}
-
-const formBaselines = new WeakMap<HTMLFormElement, string>();
-const formKeyNames = [
-  "profile_id",
-  "section_id",
-  "item_id",
-  "option_id",
-  "family_id",
-  "pricing_key",
-  "variant_id",
-  "fixed_pricing_key",
-  "variant_pricing_key",
-] as const;
-
 if (!rootElement) {
   throw new Error("Admin root element was not found.");
 }
 
 const root: HTMLElement = rootElement;
 const deployedContentHash = getTrimmedValue(root.dataset.deployedContentHash) ?? "";
-const defaultPublishCooldownSeconds = 60;
-const requestedPublishHashStorageKey = "el-faraon-admin-requested-publish-hash";
-const publishCooldownStorageKey = "el-faraon-admin-publish-cooldown-ends-at";
-requestedPublishHash = readRequestedPublishHash();
-publishCooldownEndsAt = readPublishCooldownEndsAt();
+const formState = createAdminFormState(root);
+const publicationState = createAdminPublicationState(deployedContentHash);
+const sessionController = createAdminSessionController({
+  config: adminApiConfig,
+  hasApiConfig: Boolean(supabaseUrl && supabaseAnonKey),
+  loadAdminState,
+  renderCurrentView,
+  runBusy,
+  setAdminState,
+  setStatus,
+  setStatusMessage,
+});
 const adminOperations = createAdminOperations({
   runBusy,
   callMutation,
   loadAdminState,
-  requireSession,
+  requireSession: sessionController.requireSession,
   publishMenuChanges: (session) => publishMenuChangesRequest(adminApiConfig, session),
-  markCurrentPublicationRequested,
-  rememberPublishCooldown,
+  markCurrentPublicationRequested: () => publicationState.markCurrentPublicationRequested(currentState),
+  rememberPublishCooldown: publicationState.rememberPublishCooldown,
 });
 
 root.addEventListener("click", (event) => {
@@ -146,7 +116,7 @@ root.addEventListener("submit", (event) => {
 
   event.preventDefault();
 
-  if (!confirmUnsavedChanges(form)) {
+  if (!formState.confirmUnsavedChanges(form)) {
     return;
   }
 
@@ -179,7 +149,7 @@ root.addEventListener("change", (event) => {
     return;
   }
 
-  if (!confirmUnsavedChanges()) {
+  if (!formState.confirmUnsavedChanges()) {
     field.value = field.dataset.previousValue ?? "";
     return;
   }
@@ -193,77 +163,54 @@ root.addEventListener("input", (event) => {
   const target = event.target;
 
   if (target instanceof HTMLInputElement) {
-    markContainingFormDirty(target);
+    formState.markContainingFormDirty(target);
     return;
   }
 
   if (target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) {
-    markContainingFormDirty(target);
+    formState.markContainingFormDirty(target);
   }
 });
 
-void startAdmin().catch(handleUnexpectedError);
+void sessionController.start(renderConfigurationProblem).catch(handleUnexpectedError);
 
-async function startAdmin(): Promise<void> {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    syncAdminViewContext();
-    renderConfigurationError();
-    focusViewStart();
-    return;
-  }
-
-  const passwordSession = readPasswordSessionFromLocation();
-
-  if (passwordSession) {
-    currentSession = passwordSession;
-    authView = "set-password";
-    currentStatus = { text: "Definí una nueva contraseña para activar tu acceso.", tone: "neutral" };
-    renderCurrentView({ focus: "view" });
-    return;
-  }
-
-  currentSession = await getValidSession();
-
-  if (!currentSession) {
-    authView = "login";
-    renderCurrentView({ focus: "view" });
-    return;
-  }
-
-  await loadAdminState(undefined, "neutral", "view");
+function renderConfigurationProblem(): void {
+  syncAdminViewContext();
+  renderConfigurationError();
+  formState.focusViewStart();
 }
 
 async function handleAction(target: HTMLElement): Promise<void> {
   const action = target.dataset.adminAction;
 
   if (action === adminActions.showResetRequest) {
-    if (!confirmUnsavedChanges()) {
+    if (!formState.confirmUnsavedChanges()) {
       return;
     }
 
-    authView = "reset-request";
+    sessionController.setAuthView("reset-request");
     currentStatus = null;
     renderCurrentView({ focus: "view" });
     return;
   }
 
   if (action === adminActions.showLogin) {
-    if (!confirmUnsavedChanges()) {
+    if (!formState.confirmUnsavedChanges()) {
       return;
     }
 
-    authView = "login";
+    sessionController.setAuthView("login");
     currentStatus = null;
     renderCurrentView({ focus: "view" });
     return;
   }
 
   if (action === adminActions.logout) {
-    if (!confirmUnsavedChanges()) {
+    if (!formState.confirmUnsavedChanges()) {
       return;
     }
 
-    await logout();
+    await sessionController.logout();
     return;
   }
 
@@ -292,7 +239,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
       && (section === "active-service" || section === "daily-menu" || section === "grill")
       && isServiceSectionAvailable(currentState, section)
     ) {
-      if (!confirmUnsavedChanges()) {
+      if (!formState.confirmUnsavedChanges()) {
         return;
       }
 
@@ -304,7 +251,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
   }
 
   if (action === adminActions.setOverlay) {
-    if (!confirmUnsavedChanges()) {
+    if (!formState.confirmUnsavedChanges()) {
       return;
     }
 
@@ -346,7 +293,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
   }
 
   if (action === adminActions.clearOverlay) {
-    if (!confirmUnsavedChanges()) {
+    if (!formState.confirmUnsavedChanges()) {
       return;
     }
 
@@ -386,7 +333,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
       return;
     }
 
-    if (!confirmUnsavedChanges() || !confirmDeleteCatalogItem(item.name)) {
+    if (!formState.confirmUnsavedChanges() || !confirmDeleteCatalogItem(item.name)) {
       return;
     }
 
@@ -403,7 +350,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
       return;
     }
 
-    if (!confirmUnsavedChanges() || !confirmDeleteGrillItem(item.variant_name ?? item.name)) {
+    if (!formState.confirmUnsavedChanges() || !confirmDeleteGrillItem(item.variant_name ?? item.name)) {
       return;
     }
 
@@ -420,7 +367,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
       return;
     }
 
-    if (!confirmUnsavedChanges() || !confirmDeleteGrillProduct(family.title)) {
+    if (!formState.confirmUnsavedChanges() || !confirmDeleteGrillProduct(family.title)) {
       return;
     }
 
@@ -441,7 +388,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
       return;
     }
 
-    if (!confirmUnsavedChanges() || !confirmDeleteCatalogOption(option.name)) {
+    if (!formState.confirmUnsavedChanges() || !confirmDeleteCatalogOption(option.name)) {
       return;
     }
 
@@ -450,7 +397,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
   }
 
   if (action === adminActions.publish) {
-    const cooldownSecondsRemaining = getPublishCooldownSecondsRemaining();
+    const cooldownSecondsRemaining = publicationState.getCooldownSecondsRemaining();
 
     if (cooldownSecondsRemaining > 0) {
       setStatus(
@@ -460,7 +407,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
       return;
     }
 
-    if (!confirmUnsavedChanges() || !confirmPublishChanges()) {
+    if (!formState.confirmUnsavedChanges() || !confirmPublishChanges()) {
       return;
     }
 
@@ -499,7 +446,7 @@ function handleTabKeydown(event: KeyboardEvent, currentTab: HTMLButtonElement): 
 }
 
 function selectAdminTab(tab: AdminTabId, focus: RenderFocusMode = "preserve"): void {
-  if (!confirmUnsavedChanges()) {
+  if (!formState.confirmUnsavedChanges()) {
     return;
   }
 
@@ -511,22 +458,22 @@ async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
   const formKind = form.dataset.adminForm;
 
   if (formKind === adminForms.login) {
-    await login(form);
+    await sessionController.login(form);
     return;
   }
 
   if (formKind === adminForms.passwordResetRequest) {
-    await requestPasswordReset(form);
+    await sessionController.requestPasswordReset(form);
     return;
   }
 
   if (formKind === adminForms.setPassword) {
-    await setPassword(form);
+    await sessionController.setPassword(form);
     return;
   }
 
-  if (!currentSession) {
-    authView = "login";
+  if (!sessionController.getCurrentSession()) {
+    sessionController.setAuthView("login");
     renderCurrentView({ focus: "view" });
     return;
   }
@@ -592,102 +539,8 @@ async function handleFormSubmit(form: HTMLFormElement): Promise<void> {
   }
 
   if (formKind === adminForms.changePassword) {
-    await changePassword(form);
+    await sessionController.changePassword(form);
   }
-}
-
-async function login(form: HTMLFormElement): Promise<void> {
-  const email = getFormString(form, "email");
-  const password = getFormString(form, "password");
-
-  if (!email || !password) {
-    setStatus("Completa email y contraseña.", "danger");
-    return;
-  }
-
-  await runBusy(async () => {
-    currentSession = await signInWithPassword(adminApiConfig, email, password);
-    authView = "login";
-    saveStoredSession(currentSession);
-    await loadAdminState("Sesión iniciada.", "success", "view");
-  }, "Iniciando sesión...");
-}
-
-async function requestPasswordReset(form: HTMLFormElement): Promise<void> {
-  const email = getFormString(form, "email");
-
-  if (!email) {
-    setStatus("Ingresa tu email.", "danger");
-    return;
-  }
-
-  await runBusy(async () => {
-    await requestPasswordResetEmail(adminApiConfig, email, getPasswordRedirectUrl());
-    currentStatus = {
-      text: "Te enviamos un link para definir una nueva contraseña. Revisá tu email.",
-      tone: "success",
-    };
-    authView = "login";
-    renderCurrentView({ focus: "view", revealStatus: true });
-  }, "Enviando link...");
-}
-
-async function setPassword(form: HTMLFormElement): Promise<void> {
-  const session = currentSession;
-
-  if (!session) {
-    authView = "login";
-    renderCurrentView({ focus: "view" });
-    return;
-  }
-
-  const password = getFormString(form, "password");
-  const passwordConfirmation = getFormString(form, "password_confirmation");
-
-  if (!isValidNewPassword(password, passwordConfirmation)) {
-    return;
-  }
-
-  await runBusy(async () => {
-    await updatePassword(session, password);
-    saveStoredSession(session);
-    authView = "login";
-    await loadAdminState("Contraseña actualizada.", "success", "view");
-  }, "Actualizando contraseña...");
-}
-
-async function changePassword(form: HTMLFormElement): Promise<void> {
-  const session = await requireSession();
-  const password = getFormString(form, "password");
-  const passwordConfirmation = getFormString(form, "password_confirmation");
-
-  if (!isValidNewPassword(password, passwordConfirmation)) {
-    return;
-  }
-
-  await runBusy(async () => {
-    await updatePassword(session, password);
-    await loadAdminState("Contraseña actualizada.", "success");
-  }, "Actualizando contraseña...");
-}
-
-async function updatePassword(session: AuthSession, password: string): Promise<void> {
-  await updatePasswordRequest(adminApiConfig, session, password);
-}
-
-async function logout(): Promise<void> {
-  const session = currentSession;
-  clearStoredSession();
-  currentSession = null;
-  currentState = null;
-  authView = "login";
-
-  if (session) {
-    await logoutRequest(adminApiConfig, session);
-  }
-
-  currentStatus = { text: "Sesión cerrada.", tone: "success" };
-  renderCurrentView({ focus: "view", revealStatus: true });
 }
 
 async function loadAdminState(
@@ -695,10 +548,10 @@ async function loadAdminState(
   statusTone: StatusTone = "neutral",
   focus: RenderFocusMode = "preserve",
 ): Promise<AdminOperationalState> {
-  const session = await requireSession();
+  const session = await sessionController.requireSession();
   const state = await loadAdminOperationalState(adminApiConfig, session);
-  currentState = normalizeAdminState(state, deployedContentHash, requestedPublishHash);
-  reconcileRequestedPublishHash(currentState);
+  currentState = normalizeAdminState(state, deployedContentHash, publicationState.getRequestedPublishHash());
+  currentState = publicationState.reconcileState(currentState);
   currentStatus = statusText ? { text: getAdminStatusText(statusText, currentState), tone: statusTone } : currentStatus;
   syncAdminViewContext();
   ensureActiveTab();
@@ -711,107 +564,8 @@ function getAdminStatusText(statusText: AdminStatusText, state: AdminOperational
 }
 
 async function callMutation(name: string, body: Record<string, unknown>): Promise<RpcResult> {
-  const session = await requireSession();
+  const session = await sessionController.requireSession();
   return callAdminMutation(adminApiConfig, session, name, body);
-}
-
-function markCurrentPublicationRequested(): void {
-  const contentHash = currentState?.publication.current_content_hash;
-
-  if (!contentHash) {
-    return;
-  }
-
-  requestedPublishHash = contentHash;
-  window.sessionStorage.setItem(requestedPublishHashStorageKey, contentHash);
-}
-
-function rememberPublishCooldown(result: RpcResult): void {
-  const seconds = result.cooldown_seconds_remaining
-    ?? (result.message === "publish_queued" ? defaultPublishCooldownSeconds : 0);
-
-  if (typeof seconds !== "number" || !Number.isSafeInteger(seconds) || seconds <= 0) {
-    return;
-  }
-
-  publishCooldownEndsAt = Date.now() + (seconds * 1000);
-  window.localStorage.setItem(publishCooldownStorageKey, String(publishCooldownEndsAt));
-}
-
-function getPublishCooldownSecondsRemaining(): number {
-  const millisecondsRemaining = publishCooldownEndsAt - Date.now();
-
-  if (millisecondsRemaining <= 0) {
-    publishCooldownEndsAt = 0;
-    window.localStorage.removeItem(publishCooldownStorageKey);
-    return 0;
-  }
-
-  return Math.ceil(millisecondsRemaining / 1000);
-}
-
-function reconcileRequestedPublishHash(state: AdminOperationalState): void {
-  if (!requestedPublishHash) {
-    return;
-  }
-
-  const currentContentHash = state.publication.current_content_hash;
-  const activeDeployedContentHash = state.publication.deployed_content_hash;
-
-  if (requestedPublishHash === currentContentHash && requestedPublishHash !== activeDeployedContentHash) {
-    return;
-  }
-
-  requestedPublishHash = "";
-  window.sessionStorage.removeItem(requestedPublishHashStorageKey);
-  currentState = normalizeAdminState(state, deployedContentHash, requestedPublishHash);
-}
-
-function readRequestedPublishHash(): string {
-  return window.sessionStorage.getItem(requestedPublishHashStorageKey) ?? "";
-}
-
-function readPublishCooldownEndsAt(): number {
-  const value = Number(window.localStorage.getItem(publishCooldownStorageKey));
-  return Number.isSafeInteger(value) && value > Date.now() ? value : 0;
-}
-
-async function requireSession(): Promise<AuthSession> {
-  const session = await getValidSession();
-
-  if (!session) {
-    renderCurrentView({ focus: "view" });
-    throw new Error("La sesión expiró. Volvé a iniciar sesión.");
-  }
-
-  currentSession = session;
-  return session;
-}
-
-async function getValidSession(): Promise<AuthSession | null> {
-  const storedSession = readStoredSession();
-
-  if (!storedSession) {
-    return null;
-  }
-
-  if (storedSession.expiresAt - Date.now() > 60_000) {
-    return storedSession;
-  }
-
-  return refreshSession(storedSession);
-}
-
-async function refreshSession(session: AuthSession): Promise<AuthSession | null> {
-  const refreshedSession = await refreshSessionRequest(adminApiConfig, session);
-
-  if (!refreshedSession) {
-    clearStoredSession();
-    return null;
-  }
-
-  saveStoredSession(refreshedSession);
-  return refreshedSession;
 }
 
 function toggleCatalogDescriptionField(field: HTMLInputElement): void {
@@ -854,6 +608,14 @@ function confirmDeleteCatalogOption(name: string): boolean {
   );
 }
 
+function setAdminState(state: AdminOperationalState | null): void {
+  currentState = state;
+}
+
+function setStatusMessage(message: StatusMessage | null): void {
+  currentStatus = message;
+}
+
 function setStatus(text: string, tone: StatusTone): void {
   currentStatus = { text, tone };
   renderCurrentView({ revealStatus: true });
@@ -888,182 +650,34 @@ function handleUnexpectedError(error: unknown): void {
 
 function renderCurrentView(options: RenderOptions = {}): void {
   const focus = options.focus ?? "preserve";
-  const snapshot = focus === "preserve" ? captureInteraction() : null;
+  const snapshot = focus === "preserve" ? formState.captureInteraction() : null;
 
   syncAdminViewContext();
 
-  if (currentSession && currentState) {
+  if (sessionController.getCurrentSession() && currentState) {
     renderAuthenticated();
-  } else if (authView === "reset-request") {
+  } else if (sessionController.getAuthView() === "reset-request") {
     renderPasswordResetRequest();
-  } else if (authView === "set-password") {
+  } else if (sessionController.getAuthView() === "set-password") {
     renderSetPassword();
   } else {
     renderLogin();
   }
 
-  syncFormBaselines();
-  syncFilterValues();
+  formState.syncFormBaselines();
+  formState.syncFilterValues();
 
   if (focus === "view") {
-    focusViewStart();
+    formState.focusViewStart();
   } else if (focus === "tab" && options.tabId) {
-    focusTab(options.tabId);
+    formState.focusTab(options.tabId);
   } else if (snapshot) {
-    restoreInteraction(snapshot);
+    formState.restoreInteraction(snapshot);
   }
 
   if (options.revealStatus) {
-    revealStatus();
+    formState.revealStatus();
   }
-}
-
-function captureInteraction(): InteractionSnapshot {
-  const activeElement = document.activeElement;
-  const field = activeElement instanceof HTMLInputElement
-    || activeElement instanceof HTMLSelectElement
-    || activeElement instanceof HTMLTextAreaElement
-    ? activeElement
-    : null;
-  const form = field?.closest<HTMLFormElement>("form");
-
-  return {
-    scrollX: window.scrollX,
-    scrollY: window.scrollY,
-    formKind: form?.dataset.adminForm ?? "",
-    fieldName: field?.name ?? "",
-    formKeys: form ? getFormKeys(form) : {},
-  };
-}
-
-function restoreInteraction(snapshot: InteractionSnapshot): void {
-  window.scrollTo(snapshot.scrollX, snapshot.scrollY);
-
-  if (!snapshot.formKind || !snapshot.fieldName) {
-    return;
-  }
-
-  const form = findMatchingForm(snapshot);
-  const field = form?.elements.namedItem(snapshot.fieldName);
-
-  if (
-    field instanceof HTMLInputElement
-    || field instanceof HTMLSelectElement
-    || field instanceof HTMLTextAreaElement
-  ) {
-    field.focus({ preventScroll: true });
-  }
-}
-
-function findMatchingForm(snapshot: InteractionSnapshot): HTMLFormElement | null {
-  const forms = Array.from(root.querySelectorAll<HTMLFormElement>("form"));
-
-  return forms.find((form) =>
-    form.dataset.adminForm === snapshot.formKind
-    && formKeysMatch(getFormKeys(form), snapshot.formKeys)
-  ) ?? null;
-}
-
-function formKeysMatch(current: Record<string, string>, expected: Record<string, string>): boolean {
-  return Object.entries(expected).every(([key, value]) => current[key] === value);
-}
-
-function getFormKeys(form: HTMLFormElement): Record<string, string> {
-  const keys: Record<string, string> = {};
-
-  formKeyNames.forEach((key) => {
-    const value = getFormValue(form, key);
-
-    if (value) {
-      keys[key] = value;
-    }
-  });
-
-  return keys;
-}
-
-function getFormValue(form: HTMLFormElement, name: string): string {
-  const field = form.elements.namedItem(name);
-
-  if (
-    field instanceof HTMLInputElement
-    || field instanceof HTMLSelectElement
-    || field instanceof HTMLTextAreaElement
-  ) {
-    return field.value;
-  }
-
-  return "";
-}
-
-function syncFormBaselines(): void {
-  root.querySelectorAll<HTMLFormElement>("form").forEach((form) => {
-    formBaselines.set(form, serializeForm(form));
-    delete form.dataset.dirty;
-  });
-}
-
-function syncFilterValues(): void {
-  root.querySelectorAll<HTMLSelectElement>("select[data-admin-filter]").forEach((field) => {
-    field.dataset.previousValue = field.value;
-  });
-}
-
-function markContainingFormDirty(field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement): void {
-  const form = field.closest<HTMLFormElement>("form");
-
-  if (!form) {
-    return;
-  }
-
-  form.dataset.dirty = isDirtyForm(form) ? "true" : "false";
-}
-
-function isDirtyForm(form: HTMLFormElement): boolean {
-  const baseline = formBaselines.get(form);
-
-  if (baseline === undefined) {
-    formBaselines.set(form, serializeForm(form));
-    return false;
-  }
-
-  return serializeForm(form) !== baseline;
-}
-
-function getDirtyForms(exceptForm?: HTMLFormElement): HTMLFormElement[] {
-  return Array.from(root.querySelectorAll<HTMLFormElement>("form"))
-    .filter((form) => form !== exceptForm && isDirtyForm(form));
-}
-
-function confirmUnsavedChanges(exceptForm?: HTMLFormElement): boolean {
-  if (getDirtyForms(exceptForm).length === 0) {
-    return true;
-  }
-
-  return window.confirm(
-    "Hay cambios sin guardar en otro formulario. Si continuás, esos cambios se van a perder. ¿Continuar?",
-  );
-}
-
-function serializeForm(form: HTMLFormElement): string {
-  return JSON.stringify(
-    Array.from(new FormData(form).entries()).map(([key, value]) => [key, String(value)]),
-  );
-}
-
-function focusViewStart(): void {
-  const target = root.querySelector<HTMLElement>("[data-admin-initial-focus]")
-    ?? root.querySelector<HTMLElement>("[data-admin-view-heading]");
-
-  target?.focus({ preventScroll: true });
-}
-
-function focusTab(tabId: AdminTabId): void {
-  root.querySelector<HTMLElement>(`[data-admin-tab="${tabId}"]`)?.focus({ preventScroll: true });
-}
-
-function revealStatus(): void {
-  root.querySelector<HTMLElement>(".admin-status")?.scrollIntoView({ block: "nearest" });
 }
 
 function syncAdminViewContext(): void {
@@ -1074,23 +688,4 @@ function syncAdminViewContext(): void {
     currentBusyText,
     isBusy,
   });
-}
-
-function isValidNewPassword(password: string, passwordConfirmation: string): boolean {
-  if (!password || !passwordConfirmation) {
-    setStatus("Completa la nueva contraseña y su confirmación.", "danger");
-    return false;
-  }
-
-  if (password.length < 8) {
-    setStatus("La contraseña debe tener al menos 8 caracteres.", "danger");
-    return false;
-  }
-
-  if (password !== passwordConfirmation) {
-    setStatus("Las contraseñas no coinciden.", "danger");
-    return false;
-  }
-
-  return true;
 }

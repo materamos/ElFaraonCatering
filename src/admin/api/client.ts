@@ -7,7 +7,7 @@ import {
   resultMessage,
 } from "../core/utils";
 
-interface AdminApiConfig {
+export interface AdminApiConfig {
   supabaseUrl: string;
   supabaseAnonKey: string;
 }
