@@ -83,6 +83,7 @@
   .photo-button:focus-visible,
   .photo-sheet__close:focus-visible,
   .photo-sheet__nav:focus-visible,
+  .menu-page__fact-link:focus-visible,
   .menu-info-panel__link:focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 3px;
@@ -127,23 +128,48 @@
 
   .menu-page__hero {
     display: grid;
-    gap: 1.25rem;
+    gap: 1rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid var(--color-line);
   }
 
-  .menu-page__intro {
+  .menu-page__hero-top {
     display: grid;
-    gap: 0.9rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 1rem;
   }
 
-  .menu-page__title {
-    max-width: 48rem;
-    font-size: clamp(2.25rem, 9vw, 3.6rem);
+  .menu-page__hero-label {
+    overflow-wrap: anywhere;
+    color: var(--color-ink);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.35;
+    text-transform: uppercase;
   }
 
-  .menu-page__description {
-    max-width: 42rem;
+  .menu-page__hero-label:last-child {
+    text-align: right;
+  }
+
+  .menu-page__logo-space {
+    justify-self: center;
+    width: min(100%, 24rem);
+    min-height: 6.5rem;
+  }
+
+  .menu-page__facts {
+    display: grid;
+    gap: 0.45rem;
+    color: var(--color-ink);
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+
+  .menu-page__fact-link {
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
   }
 
   .menu-page__sections {
@@ -620,8 +646,7 @@
 }
 
 @media (min-width: 960px) {
-  .placeholder,
-  .menu-page__hero {
+  .placeholder {
     grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
     align-items: start;
   }
