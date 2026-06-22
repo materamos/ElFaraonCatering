@@ -445,7 +445,7 @@
     overflow-wrap: anywhere;
     color: var(--color-ink);
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.375rem;
   }
 
@@ -469,6 +469,10 @@
     white-space: nowrap;
   }
 
+  .compact-item__variant-price {
+    font-weight: 400;
+  }
+
   .compact-item__variants,
   .dish-card__variant-list,
   .dish-card__option-list {
@@ -486,7 +490,7 @@
     gap: 1rem;
     color: var(--color-ink);
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.25rem;
   }
 

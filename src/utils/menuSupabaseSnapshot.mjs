@@ -105,8 +105,6 @@ export const createSnapshot = (rows, options = {}) => {
     grillSection: {
       sectionId: "parrilla",
       title: "Parrilla",
-      description:
-        "Productos de parrilla. La disponibilidad puede variar durante el día.",
       order: 10,
       presentation: "compact-list",
       items: rows.grillFamilies
