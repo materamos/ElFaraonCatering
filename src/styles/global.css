@@ -181,13 +181,14 @@
   .page-shell.menu-page {
     box-sizing: border-box;
     width: min(100% - 2rem, 68rem);
-    padding: 1rem 1rem 2.5rem;
+    padding: 2rem 1rem 2.5rem;
   }
 
   .menu-page__hero {
     display: grid;
-    gap: 0.9rem;
-    padding-bottom: 0.625rem;
+    align-content: start;
+    gap: 3.875rem;
+    min-height: 13.875rem;
   }
 
   .menu-page__hero-top {
@@ -215,8 +216,8 @@
     display: grid;
     justify-self: center;
     place-items: center;
-    width: min(100%, 22.5rem);
-    min-height: 5.2rem;
+    width: min(100%, 18.75rem);
+    min-height: 4.1875rem;
   }
 
   .menu-page__logo {
@@ -231,6 +232,9 @@
     justify-content: center;
     gap: 1.125rem;
     min-height: 0.9375rem;
+    margin-top: 0.625rem;
+    border-bottom: 1px solid var(--color-line);
+    border-top: 1px solid var(--color-line);
   }
 
   .menu-page__fact-label {
@@ -258,11 +262,13 @@
 
   .menu-page__payment-card {
     display: grid;
+    justify-items: center;
     gap: 0.625rem;
     margin-top: 0.625rem;
     padding-block: 0.625rem;
     border-bottom: 1px solid var(--color-line);
     border-top: 1px solid var(--color-line);
+    text-align: center;
   }
 
   .menu-page__payment-value {
@@ -271,6 +277,7 @@
     font-weight: 400;
     line-height: 0.875rem;
     letter-spacing: 0.01875rem;
+    text-align: center;
   }
 
   .menu-page__sections {
