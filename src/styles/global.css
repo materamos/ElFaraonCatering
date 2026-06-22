@@ -180,7 +180,7 @@
 
   .page-shell.menu-page {
     box-sizing: border-box;
-    width: min(100% - 2rem, 68rem);
+    width: 100%;
     padding: 2rem 1rem 2.5rem;
   }
 
@@ -772,6 +772,10 @@
 @media (min-width: 640px) {
   .page-shell {
     padding-block: 2rem;
+  }
+
+  .page-shell.menu-page {
+    width: min(100% - 2rem, 68rem);
   }
 
   .photo-sheet {
