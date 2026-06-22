@@ -180,7 +180,7 @@
 
   .page-shell.menu-page {
     box-sizing: border-box;
-    width: min(100%, 24.375rem);
+    width: min(100% - 2rem, 68rem);
     padding: 1rem 1rem 2.5rem;
   }
 
