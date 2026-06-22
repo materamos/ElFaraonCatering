@@ -386,11 +386,6 @@
     display: grid;
   }
 
-  .menu-section__items,
-  .menu-group__items {
-    border-top: 1px solid var(--color-line);
-  }
-
   .menu-section__groups {
     gap: 1.25rem;
   }
