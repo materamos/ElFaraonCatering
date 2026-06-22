@@ -396,8 +396,7 @@
   }
 
   .menu-section__items,
-  .menu-group__items,
-  .compact-list {
+  .menu-group__items {
     border-top: 1px solid var(--color-line);
   }
 

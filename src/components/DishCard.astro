@@ -47,16 +47,8 @@ const directPricingText =
   effectivePricing && effectivePricing.kind !== "variants"
     ? getPricingText(effectivePricing)
     : null;
-const isPlainPricedItem = Boolean(
-  directPricingText &&
-    !description &&
-    !hasOptions &&
-    !hasVariantPricing &&
-    !displayImage,
-);
 const hasFooterContent = Boolean(
-  (directPricingText && !isPlainPricedItem) ||
-    displayImage ||
+  displayImage ||
     hasVariantPricing,
 );
 ---
@@ -77,7 +69,7 @@ const hasFooterContent = Boolean(
         </p>
       )}
     </div>
-    {((!hasOperationalVariants && !available) || isPlainPricedItem) && (
+    {((!hasOperationalVariants && !available) || directPricingText) && (
       <div class="dish-card__header-meta">
         {!hasOperationalVariants && !available && (
           <span
@@ -88,7 +80,7 @@ const hasFooterContent = Boolean(
             No disponible
           </span>
         )}
-        {isPlainPricedItem && directPricingText && (
+        {directPricingText && (
           <strong class="dish-card__price">
             {directPricingText}
           </strong>
@@ -125,32 +117,22 @@ const hasFooterContent = Boolean(
 
   {hasFooterContent && (
     <div class="dish-card__footer">
-      {((directPricingText && !isPlainPricedItem) || (displayImage && !hasVariantPricing)) && (
-        <div
-          class={`dish-card__price-row${displayImage ? " dish-card__price-row--with-image" : ""}`}
-        >
-          {displayImage && !hasVariantPricing && (
-            <a
-              class="photo-button"
-              href={displayImage}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-haspopup="dialog"
-              data-photo-trigger
-              data-photo-name={name}
-              data-photo-src={displayImage}
-              data-photo-srcs={JSON.stringify(displayImages)}
-              data-photo-alt={`Foto de ${name}`}
-            >
-              {photoButtonLabel}
-            </a>
-          )}
-
-          {directPricingText && !isPlainPricedItem && (
-            <strong class="dish-card__price">
-              {directPricingText}
-            </strong>
-          )}
+      {displayImage && !hasVariantPricing && (
+        <div class="dish-card__price-row dish-card__price-row--with-image">
+          <a
+            class="photo-button"
+            href={displayImage}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-haspopup="dialog"
+            data-photo-trigger
+            data-photo-name={name}
+            data-photo-src={displayImage}
+            data-photo-srcs={JSON.stringify(displayImages)}
+            data-photo-alt={`Foto de ${name}`}
+          >
+            {photoButtonLabel}
+          </a>
         </div>
       )}
 
