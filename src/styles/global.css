@@ -555,16 +555,6 @@
     gap: 0.45rem;
   }
 
-  .dish-card__option-label,
-  .dish-card__variant-label {
-    color: var(--color-muted);
-    font-size: 0.75rem;
-    font-weight: 600;
-    line-height: 1rem;
-    letter-spacing: 0.025rem;
-    text-transform: uppercase;
-  }
-
   .dish-card__option-status,
   .dish-card__variant-status {
     display: block;

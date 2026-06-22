@@ -92,9 +92,6 @@ const hasFooterContent = Boolean(
 
   {hasOptions && (
     <section class="dish-card__options">
-      <p class="dish-card__option-label">
-        Opciones
-      </p>
       <ul class="dish-card__option-list">
         {displayOptions.map((option) => (
           <li
@@ -139,7 +136,6 @@ const hasFooterContent = Boolean(
 
       {hasVariantPricing && (
         <section class="dish-card__variants">
-          <p class="dish-card__variant-label">Modalidades</p>
           <ul class="dish-card__variant-list">
             {variants.map((variant: MenuPricingVariant) => (
               <li
