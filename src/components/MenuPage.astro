@@ -12,13 +12,27 @@ interface Props {
 const { menuId, profile, sections } = Astro.props;
 const publicSupabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const publicSupabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-const heroFactIds = ["horario", "pagos"];
-const heroFacts = heroFactIds
-  .map((factId) => profile.facts.find((fact) => fact.id === factId))
-  .filter((fact): fact is MenuProfileData["facts"][number] => Boolean(fact));
-const getHeroFactValue = (fact: MenuProfileData["facts"][number]) => {
-  return fact.value;
-};
+const scheduleFact = profile.facts.find((fact) => fact.id === "horario");
+const paymentFact = profile.facts.find((fact) => fact.id === "pagos");
+const getPaymentValue = (value: string) =>
+  value
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const normalizedPart = part.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+      if (normalizedPart === "tarjeta credito") {
+        return "Tarjeta de Cr\u00e9dito";
+      }
+
+      if (normalizedPart === "tarjeta debito") {
+        return "Tarjeta de D\u00e9bito";
+      }
+
+      return part;
+    })
+    .join(" • ");
 ---
 
 <BaseLayout
@@ -46,34 +60,22 @@ const getHeroFactValue = (fact: MenuProfileData["facts"][number]) => {
         />
       </div>
 
-      {heroFacts.length > 0 && (
+      {scheduleFact && (
         <div class="menu-page__facts">
-          {heroFacts.map((fact) => (
-            <p>
-              <span class="menu-page__fact-label">
-                {fact.id === "horario" ? "Lun a vie" : fact.label}
-              </span>
-              <span class="menu-page__fact-value">
-                {getHeroFactValue(fact)}
-              </span>
-              {fact.link && (
-                <>
-                  {" "}
-                  <a
-                    class="menu-page__fact-link"
-                    href={fact.link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {fact.link.text}
-                  </a>
-                </>
-              )}
-            </p>
-          ))}
+          <p class="menu-page__schedule">
+            <span class="menu-page__fact-label">LUN A VIER</span>
+            <span class="menu-page__fact-value">{scheduleFact.value}</span>
+          </p>
         </div>
       )}
     </header>
+
+    {paymentFact && (
+      <section class="menu-page__payment-card" aria-label="Medios de pago">
+        <p class="menu-page__fact-label">MEDIOS DE PAGO</p>
+        <p class="menu-page__payment-value">{getPaymentValue(paymentFact.value)}</p>
+      </section>
+    )}
 
     <nav class="menu-index" aria-labelledby="menu-index-title">
       <h2 class="menu-index__title" id="menu-index-title">Secciones</h2>
