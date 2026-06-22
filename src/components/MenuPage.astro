@@ -16,6 +16,15 @@ const heroFactIds = ["horario", "pagos"];
 const heroFacts = heroFactIds
   .map((factId) => profile.facts.find((fact) => fact.id === factId))
   .filter((fact): fact is MenuProfileData["facts"][number] => Boolean(fact));
+const getHeroFactValue = (fact: MenuProfileData["facts"][number]) => {
+  if (fact.id !== "horario") {
+    return fact.value;
+  }
+
+  return /\blun(?:es)?\s+a\s+vie(?:rnes)?\b/i.test(fact.value)
+    ? fact.value
+    : `Lunes a viernes, ${fact.value}`;
+};
 ---
 
 <BaseLayout
@@ -40,7 +49,7 @@ const heroFacts = heroFactIds
         <div class="menu-page__facts">
           {heroFacts.map((fact) => (
             <p>
-              {fact.label}: {fact.value}
+              {fact.label}: {getHeroFactValue(fact)}
               {fact.link && (
                 <>
                   {" "}

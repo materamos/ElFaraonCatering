@@ -39,12 +39,26 @@ const effectivePricing = pricing;
 const hasVariantPricing = effectivePricing?.kind === "variants";
 const variants = effectivePricing?.kind === "variants" ? effectivePricing.variants : [];
 const hasOperationalVariants = variants.some((variant) => variant.availabilityItemId);
+const displayOptions = options ?? [];
+const hasOptions = displayOptions.length > 0;
 const getOptionAvailabilityItemId = (option: MenuOption) => `${itemId}-${option.id}`;
 
 const directPricingText =
   effectivePricing && effectivePricing.kind !== "variants"
     ? getPricingText(effectivePricing)
     : null;
+const isPlainPricedItem = Boolean(
+  directPricingText &&
+    !description &&
+    !hasOptions &&
+    !hasVariantPricing &&
+    !displayImage,
+);
+const hasFooterContent = Boolean(
+  (directPricingText && !isPlainPricedItem) ||
+    displayImage ||
+    hasVariantPricing,
+);
 ---
 
 <article
@@ -63,24 +77,33 @@ const directPricingText =
         </p>
       )}
     </div>
-    {!hasOperationalVariants && !available && (
-      <span
-        class="status-pill"
-        data-availability-status
-        data-state="unavailable"
-      >
-        No disponible
-      </span>
+    {((!hasOperationalVariants && !available) || isPlainPricedItem) && (
+      <div class="dish-card__header-meta">
+        {!hasOperationalVariants && !available && (
+          <span
+            class="status-pill"
+            data-availability-status
+            data-state="unavailable"
+          >
+            No disponible
+          </span>
+        )}
+        {isPlainPricedItem && directPricingText && (
+          <strong class="dish-card__price">
+            {directPricingText}
+          </strong>
+        )}
+      </div>
     )}
   </div>
 
-  {options && options.length > 0 && (
+  {hasOptions && (
     <section class="dish-card__options">
       <p class="dish-card__option-label">
         Opciones
       </p>
       <ul class="dish-card__option-list">
-        {options.map((option) => (
+        {displayOptions.map((option) => (
           <li
             class="dish-card__option"
             data-menu-id={menuId}
@@ -100,94 +123,96 @@ const directPricingText =
     </section>
   )}
 
-  <div class="dish-card__footer">
-    {(directPricingText || (displayImage && !hasVariantPricing)) && (
-      <div
-        class={`dish-card__price-row${displayImage ? " dish-card__price-row--with-image" : ""}`}
-      >
-        {displayImage && !hasVariantPricing && (
-          <a
-            class="photo-button"
-            href={displayImage}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-haspopup="dialog"
-            data-photo-trigger
-            data-photo-name={name}
-            data-photo-src={displayImage}
-            data-photo-srcs={JSON.stringify(displayImages)}
-            data-photo-alt={`Foto de ${name}`}
-          >
-            {photoButtonLabel}
-          </a>
-        )}
-
-        {directPricingText && (
-          <strong class="dish-card__price">
-            {directPricingText}
-          </strong>
-        )}
-      </div>
-    )}
-
-    {hasVariantPricing && (
-      <section class="dish-card__variants">
-        <p class="dish-card__variant-label">Modalidades</p>
-        <ul class="dish-card__variant-list">
-          {variants.map((variant: MenuPricingVariant) => (
-            <li
-              class="dish-card__variant"
-              data-menu-id={variant.availabilityItemId ? menuId : undefined}
-              data-section-id={variant.availabilityItemId ? sectionId : undefined}
-              data-item-id={variant.availabilityItemId}
-              data-available={
-                variant.availabilityItemId
-                  ? variant.available ? "true" : "false"
-                  : undefined
-              }
+  {hasFooterContent && (
+    <div class="dish-card__footer">
+      {((directPricingText && !isPlainPricedItem) || (displayImage && !hasVariantPricing)) && (
+        <div
+          class={`dish-card__price-row${displayImage ? " dish-card__price-row--with-image" : ""}`}
+        >
+          {displayImage && !hasVariantPricing && (
+            <a
+              class="photo-button"
+              href={displayImage}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-haspopup="dialog"
+              data-photo-trigger
+              data-photo-name={name}
+              data-photo-src={displayImage}
+              data-photo-srcs={JSON.stringify(displayImages)}
+              data-photo-alt={`Foto de ${name}`}
             >
-              <span>
-                {variant.name}
-                {variant.availabilityItemId ? (
-                  !variant.available && (
-                    <span
-                      class="dish-card__variant-status"
-                      data-availability-status
-                      data-state="unavailable"
-                    >
+              {photoButtonLabel}
+            </a>
+          )}
+
+          {directPricingText && !isPlainPricedItem && (
+            <strong class="dish-card__price">
+              {directPricingText}
+            </strong>
+          )}
+        </div>
+      )}
+
+      {hasVariantPricing && (
+        <section class="dish-card__variants">
+          <p class="dish-card__variant-label">Modalidades</p>
+          <ul class="dish-card__variant-list">
+            {variants.map((variant: MenuPricingVariant) => (
+              <li
+                class="dish-card__variant"
+                data-menu-id={variant.availabilityItemId ? menuId : undefined}
+                data-section-id={variant.availabilityItemId ? sectionId : undefined}
+                data-item-id={variant.availabilityItemId}
+                data-available={
+                  variant.availabilityItemId
+                    ? variant.available ? "true" : "false"
+                    : undefined
+                }
+              >
+                <span>
+                  {variant.name}
+                  {variant.availabilityItemId ? (
+                    !variant.available && (
+                      <span
+                        class="dish-card__variant-status"
+                        data-availability-status
+                        data-state="unavailable"
+                      >
+                        No disponible
+                      </span>
+                    )
+                  ) : variant.available === false && (
+                    <span class="dish-card__variant-status">
                       No disponible
                     </span>
-                  )
-                ) : variant.available === false && (
-                  <span class="dish-card__variant-status">
-                    No disponible
-                  </span>
-                )}
-              </span>
-              <strong class="dish-card__variant-price">
-                {getVariantPricingText(variant)}
-              </strong>
-            </li>
-          ))}
-        </ul>
-      </section>
-    )}
+                  )}
+                </span>
+                <strong class="dish-card__variant-price">
+                  {getVariantPricingText(variant)}
+                </strong>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-    {displayImage && hasVariantPricing && (
-      <a
-        class="photo-button"
-        href={displayImage}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-haspopup="dialog"
-        data-photo-trigger
-        data-photo-name={name}
-        data-photo-src={displayImage}
-        data-photo-srcs={JSON.stringify(displayImages)}
-        data-photo-alt={`Foto de ${name}`}
-      >
-        {photoButtonLabel}
-      </a>
-    )}
-  </div>
+      {displayImage && hasVariantPricing && (
+        <a
+          class="photo-button"
+          href={displayImage}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-haspopup="dialog"
+          data-photo-trigger
+          data-photo-name={name}
+          data-photo-src={displayImage}
+          data-photo-srcs={JSON.stringify(displayImages)}
+          data-photo-alt={`Foto de ${name}`}
+        >
+          {photoButtonLabel}
+        </a>
+      )}
+    </div>
+  )}
 </article>
