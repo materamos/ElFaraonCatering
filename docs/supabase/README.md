@@ -71,6 +71,14 @@ Redirects requeridos en Supabase Auth:
 - `https://elfaraoncatering.vercel.app/admin/`
 - `http://localhost:4321/admin/` para pruebas locales
 
+### Pruebas Auth remotas y deliverability
+
+Las auditorias SQL read-only, como `npm run supabase:audit`, usan `SUPABASE_DB_URL`, no crean usuarios Auth y no envian emails. El riesgo de rebotes viene de pruebas browser/Auth contra el proyecto remoto cuando se disparan flujos de Supabase Auth que mandan email real.
+
+Para auditorias con Codex, agent-browser u otra automatizacion, usar primero un usuario staff real existente cuando solo se necesite iniciar sesion y recorrer `/admin/`. No crear usuarios Auth temporales en remoto con emails ficticios, no controlados o adivinados. Evitar `signup`, invitaciones, recovery, magic links y OTP contra remoto si la direccion puede rebotar.
+
+Si es indispensable probar un flujo remoto que envia email, usar una casilla real controlada con plus addressing, por ejemplo `cuenta-real+elfaraon-testing@gmail.com`, sin versionar direcciones personales. Al finalizar, eliminar o revocar cualquier usuario temporal creado; esto limpia el acceso, pero no anula emails ya enviados ni previene rebotes previos.
+
 Las RPCs operativas devuelven `ok`, `changed`, `requires_redeploy`, `operation` y `message`. La publicacion puede devolver `cooldown_seconds_remaining`.
 
 Las funciones publicas del admin deben quedar como wrappers `security invoker`. Los cuerpos `security definer` que necesitan leer o escribir datos protegidos viven en `app_private`, fuera de los schemas expuestos por PostgREST.

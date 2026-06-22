@@ -220,6 +220,10 @@ Runtime overlay:
 - The first `admin` staff row must be bootstrapped exclusively through privileged SQL. `service_role` has no direct access to `public.staff_users`, and browser RLS must not be used for bootstrap.
 - Public client variables are `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.
 - `/admin/` may use Supabase Auth password recovery and password updates for staff users; recovery redirects must return to `/admin/`.
+- For Codex, agent-browser, or other automated audits against the remote Supabase project, prefer an existing real staff user for Auth login tests.
+- Do not create temporary remote Supabase Auth users with fake, unowned, or guessed email addresses. Avoid remote `signup`, invite, recovery, magic link, or OTP flows when the target address may bounce.
+- If a remote Auth flow that sends email must be tested, use a real controlled mailbox with plus addressing, for example `controlled-mailbox+elfaraon-testing@gmail.com`; do not commit personal addresses.
+- Delete or revoke temporary Auth users after testing, but remember that cleanup does not prevent bounces from emails already sent.
 - The overlay may only change visual availability through availability data.
 - A missing overlay means available; marking an item available in admin should clear the overlay, not write an explicit `true` override.
 - Catalog items with options expose both the parent item target and each option target; each option uses a composed runtime target ID in the form `item-id-option-id`.

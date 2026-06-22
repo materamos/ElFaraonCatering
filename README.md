@@ -374,6 +374,12 @@ El admin permite:
 
 El link de recuperacion de contrasena vuelve a `/admin/`, donde el cliente lee el token de Supabase Auth y permite definir una nueva contrasena. Supabase Auth debe permitir la URL de redirect de produccion `https://elfaraoncatering.vercel.app/admin/` y, para pruebas locales, `http://localhost:4321/admin/`.
 
+### Pruebas Auth y emails
+
+Los flujos de `/admin/` usan Supabase Auth y pueden enviar emails reales, por ejemplo recuperacion de contrasena, invitaciones, confirmacion, magic links u OTP si se habilitan. En desarrollo o auditorias con browser contra el proyecto remoto, evitar direcciones inventadas porque los rebotes pueden afectar la deliverability del proyecto.
+
+Para pruebas normales de login, usar primero un usuario staff real existente. Si es indispensable probar un flujo que envia email, usar una casilla real controlada con plus addressing, por ejemplo `cuenta-real+elfaraon-testing@gmail.com`. No versionar emails personales. Si se crean usuarios temporales, eliminarlos o revocarlos al terminar; esa limpieza no evita rebotes de emails que ya fueron enviados.
+
 No existe administracion de empleados en la UI actual. No existe CMS editorial amplio. La edicion de parrilla trata las familias como productos visibles y permite crear, renombrar o eliminar productos completos, ademas de administrar sus opciones y precios. No permite reordenar productos u opciones, editar IDs tecnicos, editar disponibilidad ni administrar imagenes; los IDs nuevos se generan del lado de Supabase. Las altas y los renombrados rechazan nombres visibles duplicados dentro del mismo contexto operativo con mensajes aptos para el operador. La edicion de items del menu fijo no permite crear, eliminar, renombrar ni reordenar secciones, ni reordenar opciones, ni editar disponibilidad. En las ubicaciones de solo sabores (`Tartas, tortillas y omelettes` y `Empanadas`) tampoco permite agregar, editar ni eliminar items. Los precios se editan con los RPCs globales de precios, presentados dentro de la pantalla del menu correspondiente, excepto en el editorial de guarniciones incluidas.
 
 ## Despliegue
