@@ -60,15 +60,14 @@ const getPaymentValue = (value: string) =>
         />
       </div>
 
-      {scheduleFact && (
-        <div class="menu-page__facts">
-          <p class="menu-page__schedule">
-            <span class="menu-page__fact-label">LUN A VIER</span>
-            <span class="menu-page__fact-value">{scheduleFact.value}</span>
-          </p>
-        </div>
-      )}
     </header>
+
+    {scheduleFact && (
+      <p class="menu-page__schedule">
+        <span class="menu-page__fact-label">LUN A VIE</span>
+        <span class="menu-page__fact-value">{scheduleFact.value}</span>
+      </p>
+    )}
 
     {paymentFact && (
       <section class="menu-page__payment-card" aria-label="Medios de pago">
