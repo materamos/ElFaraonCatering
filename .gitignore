@@ -41,11 +41,11 @@ public/uploads/*.svg
 !public/uploads/menu/
 !public/uploads/menu/**
 
-# Branding (material de trabajo de diseño, no versionar)
+# Branding (material de trabajo de diseno, no versionar)
 docs/branding/
 
-# Originales full de fotografía de menú (material fuente, no versionar; al repo solo van los webp optimizados)
-Imagenes full/
+# Originales full de imagenes del menu (material fuente, no versionar; al repo solo van los webp optimizados)
+assets/source-images/
 
 # Editor settings
 .vscode/*

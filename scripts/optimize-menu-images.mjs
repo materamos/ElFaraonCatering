@@ -1,9 +1,9 @@
 // Optimiza fotos full de platos a webp para el menu build-time.
 //
 // Flujo:
-// - Lee originales desde "Imagenes full/Pendientes/".
+// - Lee originales desde "assets/source-images/menu/pending/".
 // - Escribe webp optimizados en "public/uploads/menu/" (versionados en git).
-// - Mueve cada original ya procesado a "Imagenes full/" (fuera de Pendientes; carpeta ignorada por git).
+// - Mueve cada original ya procesado a "assets/source-images/menu/used/".
 //
 // Las fotos se ven en un modal a pantalla, no como thumbnail: se redimensionan
 // a 1400px de lado largo, webp calidad 80, sin metadata EXIF.
@@ -18,8 +18,9 @@ import sharp from "sharp";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-const pendingDir = path.join(projectRoot, "Imagenes full", "Pendientes");
-const processedDir = path.join(projectRoot, "Imagenes full");
+const sourceImagesDir = path.join(projectRoot, "assets", "source-images", "menu");
+const pendingDir = path.join(sourceImagesDir, "pending");
+const processedDir = path.join(sourceImagesDir, "used");
 const outputDir = path.join(projectRoot, "public", "uploads", "menu");
 
 const MAX_LONG_EDGE = 1400;
@@ -31,98 +32,98 @@ const IMAGE_ROLES = new Set(["primary", "additional"]);
 
 // basename del original (sin extension, en minusculas) -> metadata de imagen
 const NAME_MAP = {
-  "1_4 de pollo c guarnicion": {
+  "cuarto-pollo": {
     itemId: "cuarto-pollo",
     outputSlug: "cuarto-pollo",
     role: "primary",
   },
-  "3 empanadas": {
+  "empanadas-3": {
     itemId: "empanadas",
     outputSlug: "empanadas-3",
     role: "additional",
     orderIndex: 1,
   },
-  "empanada": {
+  "empanadas": {
     itemId: "empanadas",
     outputSlug: "empanadas",
     role: "primary",
   },
-  "ensalada 1": {
+  "ensalada-el-faraon": {
     itemId: "ensalada-el-faraon",
     outputSlug: "ensalada-el-faraon",
     role: "primary",
   },
-  "ensalada 2": {
+  "ensalada-completa-pollo": {
     itemId: "ensalada-completa-pollo",
     outputSlug: "ensalada-completa-pollo",
     role: "primary",
   },
-  "ensalada caesar": {
+  "ensalada-caesar": {
     itemId: "ensalada-caesar",
     outputSlug: "ensalada-caesar",
     role: "primary",
   },
-  "mila de pollo c guarnicion": {
+  "suprema-pollo": {
     itemId: "suprema-pollo",
     outputSlug: "suprema-pollo",
     role: "primary",
   },
-  "mila peceto c guarnicion": {
+  "milanesa-peceto": {
     itemId: "milanesa-peceto",
     outputSlug: "milanesa-peceto",
     role: "primary",
   },
-  "omelet con guarnicion": {
+  "omelette": {
     itemId: "omelette",
     outputSlug: "omelette",
     role: "primary",
   },
-  "omelet con guarnicion2": {
+  "omelette-2": {
     itemId: "omelette",
     outputSlug: "omelette-2",
     role: "primary",
   },
-  "pechuga de pollo c guarnicion": {
+  "pechuga-grill": {
     itemId: "pechuga-grill",
     outputSlug: "pechuga-grill",
     role: "primary",
   },
-  "pure de batata": {
+  "pure-batata": {
     itemId: "pure",
     outputSlug: "pure-batata",
     role: "additional",
     orderIndex: 1,
   },
-  "pure de calabaza": {
+  "pure-calabaza": {
     itemId: "pure",
     outputSlug: "pure-calabaza",
     role: "additional",
     orderIndex: 2,
   },
-  "pure de papa": {
+  "pure-papa": {
     itemId: "pure",
     outputSlug: "pure-papa",
     role: "primary",
     replaceExisting: true,
   },
-  "tarta": {
+  "tartas": {
     itemId: "tartas",
     outputSlug: "tartas",
     role: "additional",
     orderIndex: 1,
   },
-  "tarta 2": {
+  "tartas-2": {
     itemId: "tartas",
     outputSlug: "tartas-2",
     role: "primary",
   },
-  "tarta 3": {
+  "tartas-3": {
     itemId: "tartas",
     outputSlug: "tartas-3",
     role: "additional",
     orderIndex: 2,
   },
-  "tortilla c guarnicion": {
+  "tortilla": {
     itemId: "tortilla",
     outputSlug: "tortilla",
     role: "primary",
@@ -257,6 +258,7 @@ const main = async () => {
   }
 
   await fs.mkdir(outputDir, { recursive: true });
+  await fs.mkdir(processedDir, { recursive: true });
   await assertValidMappings(sources);
 
   const results = [];
@@ -306,7 +308,7 @@ const main = async () => {
       `- ${r.fileName} -> item_id=${r.itemId} ${roleText} /uploads/menu/${r.slug}.webp  (${formatKb(r.sourceBytes)} -> ${formatKb(r.outputBytes)})${replaceText}`,
     );
   }
-  console.log("\nOriginales movidos a 'Imagenes full/' (fuera de Pendientes).");
+  console.log("\nOriginales movidos a 'assets/source-images/menu/used/'.");
 };
 
 main().catch((error) => {
