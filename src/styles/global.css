@@ -380,13 +380,6 @@
     line-height: 1.75rem;
   }
 
-  .menu-section__description {
-    max-width: 42rem;
-    color: var(--color-muted);
-    font-size: 0.875rem;
-    line-height: 1.3125rem;
-  }
-
   .menu-section__items,
   .menu-section__groups,
   .menu-group__items {

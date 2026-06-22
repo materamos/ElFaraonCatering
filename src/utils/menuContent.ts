@@ -70,7 +70,6 @@ const getDailyServiceSection = (
   return {
     sectionId: "menu-del-dia",
     title: "Menú del día",
-    description: "Opción principal del día.",
     order: 10,
     items: dailyMenu.items,
   };

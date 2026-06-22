@@ -7,7 +7,6 @@ interface Props {
   menuId: string;
   sectionId: string;
   title: string;
-  description?: string;
   items: MenuItem[];
   presentation?: MenuSectionPresentation;
 }
@@ -16,7 +15,6 @@ const {
   menuId,
   sectionId,
   title,
-  description,
   items,
   presentation = "cards",
 } = Astro.props;
@@ -25,9 +23,6 @@ const {
 <section class="menu-section" id={sectionId}>
   <div class="menu-section__header">
     <h2 class="menu-section__title">{title}</h2>
-    {description && (
-      <p class="menu-section__description">{description}</p>
-    )}
   </div>
 
   {presentation === "compact-list" && (

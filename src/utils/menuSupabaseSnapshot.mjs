@@ -161,7 +161,6 @@ const createCatalogSection = ({
   const baseSection = cleanOptional({
     sectionId: section.section_id,
     title: section.title,
-    description: section.description ?? undefined,
     order: section.order_index,
     presentation:
       section.presentation === "compact-list" ? section.presentation : undefined,

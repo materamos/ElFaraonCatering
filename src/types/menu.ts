@@ -50,7 +50,6 @@ export type MenuSectionPresentation = "cards" | "compact-list";
 export interface MenuSectionBase {
   sectionId: string;
   title: string;
-  description?: string;
   order: number;
   presentation?: MenuSectionPresentation;
 }
