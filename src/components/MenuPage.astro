@@ -137,13 +137,10 @@ const getPaymentValue = (value: string) =>
 
     if (menuIndex) {
       const mobileMenuIndexQuery = window.matchMedia("(max-width: 639px)");
-      let updateMenuIndexPending = false;
       const setMenuIndexStuck = (isStuck) => {
         menuIndex.classList.toggle("menu-index--stuck", isStuck);
       };
       const updateMenuIndexState = () => {
-        updateMenuIndexPending = false;
-
         const sentinelTop = menuIndexSentinel
           ? menuIndexSentinel.getBoundingClientRect().top
           : menuIndex.getBoundingClientRect().top;
@@ -153,21 +150,16 @@ const getPaymentValue = (value: string) =>
           mobileMenuIndexQuery.matches && (sentinelTop < 0 || (menuIndexTop <= 0 && window.scrollY > 0))
         );
       };
-      const requestMenuIndexUpdate = () => {
-        if (updateMenuIndexPending) {
-          return;
-        }
-
-        updateMenuIndexPending = true;
-        window.requestAnimationFrame(updateMenuIndexState);
-      };
 
       updateMenuIndexState();
-      window.addEventListener("scroll", requestMenuIndexUpdate, { passive: true });
-      window.addEventListener("touchmove", requestMenuIndexUpdate, { passive: true });
-      window.addEventListener("resize", requestMenuIndexUpdate);
-      window.addEventListener("orientationchange", requestMenuIndexUpdate);
-      window.addEventListener("pageshow", requestMenuIndexUpdate);
+      window.addEventListener("scroll", updateMenuIndexState, { passive: true });
+      document.addEventListener("scroll", updateMenuIndexState, { passive: true });
+      window.addEventListener("touchmove", updateMenuIndexState, { passive: true });
+      window.addEventListener("resize", updateMenuIndexState);
+      window.addEventListener("orientationchange", updateMenuIndexState);
+      window.addEventListener("pageshow", updateMenuIndexState);
+      window.visualViewport?.addEventListener("scroll", updateMenuIndexState, { passive: true });
+      window.setInterval(updateMenuIndexState, 200);
     }
   </script>
   <script is:inline type="module" src="/scripts/menu-photo-sheet.js"></script>
