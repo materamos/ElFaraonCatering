@@ -80,6 +80,7 @@ const getPaymentValue = (value: string) =>
 
     <span class="menu-index-sentinel" data-menu-index-sentinel aria-hidden="true"></span>
     <nav class="menu-index" aria-labelledby="menu-index-title">
+      <span class="menu-index__brand" aria-hidden="true">El Faraon Catering</span>
       <h2 class="menu-index__title" id="menu-index-title">Secciones</h2>
       <ul class="menu-index__list">
         {sections.map((section) => (
@@ -135,24 +136,40 @@ const getPaymentValue = (value: string) =>
     const menuIndexSentinel = document.querySelector("[data-menu-index-sentinel]");
 
     if (menuIndex) {
+      const mobileMenuIndexQuery = window.matchMedia("(max-width: 639px)");
+      let updateMenuIndexPending = false;
       const setMenuIndexStuck = (isStuck) => {
         menuIndex.classList.toggle("menu-index--stuck", isStuck);
+      };
+      const updateMenuIndexState = () => {
+        updateMenuIndexPending = false;
+
+        const sentinelTop = menuIndexSentinel
+          ? menuIndexSentinel.getBoundingClientRect().top
+          : menuIndex.getBoundingClientRect().top;
+
+        setMenuIndexStuck(mobileMenuIndexQuery.matches && sentinelTop < 0);
+      };
+      const requestMenuIndexUpdate = () => {
+        if (updateMenuIndexPending) {
+          return;
+        }
+
+        updateMenuIndexPending = true;
+        window.requestAnimationFrame(updateMenuIndexState);
       };
 
       if (menuIndexSentinel && "IntersectionObserver" in window) {
         const observer = new IntersectionObserver(([entry]) => {
-          setMenuIndexStuck(!entry.isIntersecting);
+          setMenuIndexStuck(mobileMenuIndexQuery.matches && !entry.isIntersecting);
         });
 
         observer.observe(menuIndexSentinel);
-      } else {
-        const updateMenuIndexState = () => {
-          setMenuIndexStuck(menuIndex.getBoundingClientRect().top <= 0 && window.scrollY > 0);
-        };
-
-        updateMenuIndexState();
-        window.addEventListener("scroll", updateMenuIndexState, { passive: true });
       }
+
+      updateMenuIndexState();
+      window.addEventListener("scroll", requestMenuIndexUpdate, { passive: true });
+      window.addEventListener("resize", requestMenuIndexUpdate);
     }
   </script>
   <script is:inline type="module" src="/scripts/menu-photo-sheet.js"></script>
