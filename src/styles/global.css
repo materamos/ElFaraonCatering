@@ -293,28 +293,30 @@
   }
 
   .menu-index {
+    --menu-index-sticky-offset: 96px;
     position: sticky;
     top: 0;
     z-index: 10;
     margin-inline: -1rem;
-    padding: 0.55rem 1rem 0.75rem;
+    padding: 0.75rem 1rem;
     overflow: hidden;
     background: var(--color-page);
     border-bottom: 1px solid var(--color-line);
   }
 
   .menu-index__brand {
-    display: block;
+    display: none;
     width: 7.5rem;
     height: auto;
     margin: 0 auto 0.45rem;
-    visibility: hidden;
-    opacity: 0;
+  }
+
+  .menu-index--stuck {
+    padding-block: 0.55rem 0.75rem;
   }
 
   .menu-index--stuck .menu-index__brand {
-    visibility: visible;
-    opacity: 1;
+    display: block;
   }
 
   .menu-index__title {

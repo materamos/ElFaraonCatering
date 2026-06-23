@@ -12,6 +12,15 @@ const setMenuIndexStuck = (isStuck) => {
   menuIndex.classList.toggle("menu-index--stuck", isStuck);
 };
 
+const getStickyActivationOffset = () => {
+  const value = window
+    .getComputedStyle(menuIndex)
+    .getPropertyValue("--menu-index-sticky-offset")
+    .trim();
+
+  return Number.parseFloat(value) || 0;
+};
+
 const updateMenuIndexState = () => {
   if (!menuIndex) {
     return;
@@ -22,7 +31,9 @@ const updateMenuIndexState = () => {
     : menuIndex.getBoundingClientRect().top;
   const menuIndexTop = menuIndex.getBoundingClientRect().top;
   const isMobile = mobileMenuIndexQuery.matches;
-  const isPastIndexStart = sentinelTop < 0 || (menuIndexTop <= 0 && getScrollY() > 0);
+  const activationOffset = getStickyActivationOffset();
+  const isPastIndexStart =
+    sentinelTop <= activationOffset || (menuIndexTop <= 0 && getScrollY() > 0);
 
   setMenuIndexStuck(isMobile && isPastIndexStart);
 };
