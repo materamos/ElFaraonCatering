@@ -432,9 +432,9 @@ values
   ('3', 'guarniciones', 'Guarniciones', 'Opciones de guarnición para platos y minutas.', 2, 'cards'),
   ('4', 'empanadas', 'Empanadas', null, 3, 'cards'),
   ('5', 'ensaladas', 'Ensaladas', null, 4, 'cards'),
-  ('13', 'cafeteria', 'Cafetería', null, 5, 'cards'),
-  ('7', 'promociones', 'Promociones cafetería', 'Combos vigentes del buffet.', 6, 'cards'),
-  ('8', 'bebidas', 'Bebidas', null, 7, 'cards');
+  ('7', 'promociones', 'Promociones cafetería', 'Combos vigentes del buffet.', 5, 'cards'),
+  ('13', 'cafeteria', 'Cafetería', null, 6, 'compact-list'),
+  ('8', 'bebidas', 'Bebidas', null, 7, 'compact-list');
 
 insert into menu_content."menu_catalog_items" (
   "id",
