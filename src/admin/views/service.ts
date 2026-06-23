@@ -2,7 +2,7 @@ import { adminActions, adminForms } from "../core/contracts";
 import { canDeleteFromList, isServiceSectionAvailable, regularDailyId, vegetarianDailyId } from "../core/rules";
 import { disabledAttr, hiddenInput, renderEmpty } from "./html";
 import { findDailyItem, findServiceKind } from "../core/selectors";
-import { renderFixedPriceRows } from "./fixedMenu";
+import { renderFixedPriceRows } from "./prices";
 import type {
   AdminOperationalState,
   DailyMenuState,
