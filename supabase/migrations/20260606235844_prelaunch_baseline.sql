@@ -511,7 +511,7 @@ Lechuga, rúcula, repollo, tomate, pepino, zanahoria, remolacha, cebolla morada,
   ('32', 'promociones', 'yogur-cereales-barrita', 'Yogur con cereales + barrita de cereal', null, true, 'catalog:promociones:item:yogur-cereales-barrita:price', 4),
   ('33', 'promociones', 'jarrito-exprimido-dos-medialunas', 'Jarrito + exprimido de naranja + dos medialunas', null, true, 'catalog:promociones:item:jarrito-exprimido-dos-medialunas:price', 5),
   ('34', 'promociones', 'licuado-tostado-clasico', 'Licuado + tostado clásico', null, true, 'catalog:promociones:item:licuado-tostado-clasico:price', 6),
-  ('6', 'tartas-tortillas-omelettes', 'tartas', 'Tartas', 'Elegí el sabor y la modalidad.', true, 'catalog:tartas-tortillas-omelettes:item:tartas:price', 0),
+  ('6', 'tartas-tortillas-omelettes', 'tartas', 'Tartas', null, true, 'catalog:tartas-tortillas-omelettes:item:tartas:price', 0),
   ('7', 'tartas-tortillas-omelettes', 'tortilla', 'Tortilla', null, true, 'catalog:tartas-tortillas-omelettes:item:tortilla:price', 1),
   ('8', 'tartas-tortillas-omelettes', 'omelette', 'Omelette', null, true, 'catalog:tartas-tortillas-omelettes:item:omelette:price', 2);
 
@@ -3462,7 +3462,7 @@ begin
   select app_private.get_menu_publication_content_hash()
   into actual_hash;
 
-  if actual_hash <> 'd08cfa13e71eeac94f3aa0e12d9cd96e' then
+  if actual_hash <> '9e8d62525383e99b7aab0a40c9e37480' then
     raise exception 'Unexpected baseline content hash: %', actual_hash;
   end if;
 end

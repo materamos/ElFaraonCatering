@@ -131,37 +131,7 @@ const getPaymentValue = (value: string) =>
       </div>
     </div>
   </dialog>
-  <script is:inline>
-    const menuIndex = document.querySelector(".menu-index");
-    const menuIndexSentinel = document.querySelector("[data-menu-index-sentinel]");
-
-    if (menuIndex) {
-      const mobileMenuIndexQuery = window.matchMedia("(max-width: 639px)");
-      const setMenuIndexStuck = (isStuck) => {
-        menuIndex.classList.toggle("menu-index--stuck", isStuck);
-      };
-      const updateMenuIndexState = () => {
-        const sentinelTop = menuIndexSentinel
-          ? menuIndexSentinel.getBoundingClientRect().top
-          : menuIndex.getBoundingClientRect().top;
-        const menuIndexTop = menuIndex.getBoundingClientRect().top;
-
-        setMenuIndexStuck(
-          mobileMenuIndexQuery.matches && (sentinelTop < 0 || (menuIndexTop <= 0 && window.scrollY > 0))
-        );
-      };
-
-      updateMenuIndexState();
-      window.addEventListener("scroll", updateMenuIndexState, { passive: true });
-      document.addEventListener("scroll", updateMenuIndexState, { passive: true });
-      window.addEventListener("touchmove", updateMenuIndexState, { passive: true });
-      window.addEventListener("resize", updateMenuIndexState);
-      window.addEventListener("orientationchange", updateMenuIndexState);
-      window.addEventListener("pageshow", updateMenuIndexState);
-      window.visualViewport?.addEventListener("scroll", updateMenuIndexState, { passive: true });
-      window.setInterval(updateMenuIndexState, 200);
-    }
-  </script>
+  <script is:inline type="module" src="/scripts/menu-index-sticky.js"></script>
   <script is:inline type="module" src="/scripts/menu-photo-sheet.js"></script>
   <script is:inline type="module" src="/scripts/menu-availability-overlay.js"></script>
 </BaseLayout>
