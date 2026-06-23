@@ -63,6 +63,67 @@ test("availability clear calls clear_menu_availability_overlay", async () => {
   assert.equal(harness.busyTexts[0], "Quitando ajuste...");
 });
 
+test("availability batch save calls set_menu_availability_overlays once", async () => {
+  const harness = createHarness();
+  const operations = createAdminOperations(harness.context);
+  const targets = createState().availability_targets.slice(0, 2);
+
+  await operations.saveAvailabilityOverlayBatch(targets, false);
+
+  assert.deepEqual(harness.calls, [
+    {
+      name: "set_menu_availability_overlays",
+      body: {
+        targets: [
+          {
+            menu_id: "corpo",
+            section_id: "daily",
+            item_id: "main",
+          },
+          {
+            menu_id: "corpo",
+            section_id: "grill",
+            item_id: "bife",
+          },
+        ],
+        available_override: false,
+      },
+    },
+  ]);
+  assert.equal(harness.busyTexts[0], "Ocultando items...");
+  assert.equal(harness.loads[0].tone, "success");
+});
+
+test("availability batch clear calls clear_menu_availability_overlays once", async () => {
+  const harness = createHarness();
+  const operations = createAdminOperations(harness.context);
+  const targets = createState().availability_targets.slice(5, 7);
+
+  await operations.clearAvailabilityOverlayBatch(targets);
+
+  assert.deepEqual(harness.calls, [
+    {
+      name: "clear_menu_availability_overlays",
+      body: {
+        targets: [
+          {
+            menu_id: "teleinde",
+            section_id: "grill",
+            item_id: "entrana",
+          },
+          {
+            menu_id: "teleinde",
+            section_id: "guarniciones",
+            item_id: "ensalada",
+          },
+        ],
+      },
+    },
+  ]);
+  assert.equal(harness.busyTexts[0], "Quitando ajuste...");
+  assert.equal(harness.loads[0].tone, "success");
+});
+
 test("daily menu save calls set_daily_menu", async () => {
   const harness = createHarness();
   const operations = createAdminOperations(harness.context);

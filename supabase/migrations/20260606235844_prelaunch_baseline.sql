@@ -997,6 +997,228 @@ begin
 end;
 $function$;
 
+CREATE OR REPLACE FUNCTION app_private.set_menu_availability_overlays(targets jsonb, available_override boolean)
+ RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'menu_content', 'pg_temp'
+AS $function$
+declare
+  target_entries jsonb := set_menu_availability_overlays.targets;
+  target_available_override boolean := set_menu_availability_overlays.available_override;
+  invalid_count integer := 0;
+  denied_count integer := 0;
+  changed_count integer := 0;
+begin
+  if target_available_override is null then
+    return query select false, false, false, 'set_menu_availability_overlays', 'available_override_required';
+    return;
+  end if;
+
+  if target_entries is null or jsonb_typeof(target_entries) <> 'array' then
+    return query select false, false, false, 'set_menu_availability_overlays', 'availability_targets_required';
+    return;
+  end if;
+
+  if jsonb_array_length(target_entries) = 0 then
+    return query select false, false, false, 'set_menu_availability_overlays', 'availability_targets_required';
+    return;
+  end if;
+
+  with target_rows as (
+    select distinct
+      nullif(btrim(target_entry.value ->> 'menu_id'), '') as target_menu_id,
+      nullif(btrim(target_entry.value ->> 'section_id'), '') as target_section_id,
+      nullif(btrim(target_entry.value ->> 'item_id'), '') as target_item_id
+    from jsonb_array_elements(target_entries) as target_entry(value)
+  )
+  select count(*)
+  into invalid_count
+  from target_rows target
+  where target.target_menu_id is null
+    or target.target_section_id is null
+    or target.target_item_id is null
+    or not public.menu_availability_target_exists(
+      target.target_menu_id,
+      target.target_section_id,
+      target.target_item_id
+    );
+
+  if invalid_count > 0 then
+    return query select false, false, false, 'set_menu_availability_overlays', 'invalid_availability_target';
+    return;
+  end if;
+
+  with target_rows as (
+    select distinct
+      nullif(btrim(target_entry.value ->> 'menu_id'), '') as target_menu_id,
+      nullif(btrim(target_entry.value ->> 'section_id'), '') as target_section_id,
+      nullif(btrim(target_entry.value ->> 'item_id'), '') as target_item_id
+    from jsonb_array_elements(target_entries) as target_entry(value)
+  )
+  select count(*)
+  into denied_count
+  from target_rows target
+  where not public.can_edit_availability(target.target_menu_id);
+
+  if denied_count > 0 then
+    return query select false, false, false, 'set_menu_availability_overlays', 'permission_denied';
+    return;
+  end if;
+
+  if target_available_override is true then
+    with target_rows as (
+      select distinct
+        nullif(btrim(target_entry.value ->> 'menu_id'), '') as target_menu_id,
+        nullif(btrim(target_entry.value ->> 'section_id'), '') as target_section_id,
+        nullif(btrim(target_entry.value ->> 'item_id'), '') as target_item_id
+      from jsonb_array_elements(target_entries) as target_entry(value)
+    )
+    delete from public.menu_availability_overlays overlay
+    using target_rows target
+    where overlay.menu_id = target.target_menu_id
+      and overlay.section_id = target.target_section_id
+      and overlay.item_id = target.target_item_id;
+
+    get diagnostics changed_count = row_count;
+
+    if changed_count = 0 then
+      return query select true, false, false, 'set_menu_availability_overlays', 'availability_overlay_not_found';
+      return;
+    end if;
+
+    return query select true, true, false, 'set_menu_availability_overlays', 'availability_overlay_cleared';
+    return;
+  end if;
+
+  with target_rows as (
+    select distinct
+      nullif(btrim(target_entry.value ->> 'menu_id'), '') as target_menu_id,
+      nullif(btrim(target_entry.value ->> 'section_id'), '') as target_section_id,
+      nullif(btrim(target_entry.value ->> 'item_id'), '') as target_item_id
+    from jsonb_array_elements(target_entries) as target_entry(value)
+  )
+  insert into public.menu_availability_overlays (
+    menu_id,
+    section_id,
+    item_id,
+    available_override,
+    updated_at,
+    updated_by
+  )
+  select
+    target.target_menu_id,
+    target.target_section_id,
+    target.target_item_id,
+    false,
+    now(),
+    (select auth.uid())
+  from target_rows target
+  on conflict (menu_id, section_id, item_id) do update
+  set
+    available_override = false,
+    updated_at = excluded.updated_at,
+    updated_by = excluded.updated_by
+  where public.menu_availability_overlays.available_override is distinct from false;
+
+  get diagnostics changed_count = row_count;
+
+  if changed_count = 0 then
+    return query select true, false, false, 'set_menu_availability_overlays', 'availability_overlay_unchanged';
+    return;
+  end if;
+
+  return query select true, true, false, 'set_menu_availability_overlays', 'availability_overlay_updated';
+end;
+$function$;
+
+CREATE OR REPLACE FUNCTION app_private.clear_menu_availability_overlays(targets jsonb)
+ RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'menu_content', 'pg_temp'
+AS $function$
+declare
+  target_entries jsonb := clear_menu_availability_overlays.targets;
+  invalid_count integer := 0;
+  denied_count integer := 0;
+  changed_count integer := 0;
+begin
+  if target_entries is null or jsonb_typeof(target_entries) <> 'array' then
+    return query select false, false, false, 'clear_menu_availability_overlays', 'availability_targets_required';
+    return;
+  end if;
+
+  if jsonb_array_length(target_entries) = 0 then
+    return query select false, false, false, 'clear_menu_availability_overlays', 'availability_targets_required';
+    return;
+  end if;
+
+  with target_rows as (
+    select distinct
+      nullif(btrim(target_entry.value ->> 'menu_id'), '') as target_menu_id,
+      nullif(btrim(target_entry.value ->> 'section_id'), '') as target_section_id,
+      nullif(btrim(target_entry.value ->> 'item_id'), '') as target_item_id
+    from jsonb_array_elements(target_entries) as target_entry(value)
+  )
+  select count(*)
+  into invalid_count
+  from target_rows target
+  where target.target_menu_id is null
+    or target.target_section_id is null
+    or target.target_item_id is null
+    or not public.menu_availability_target_exists(
+      target.target_menu_id,
+      target.target_section_id,
+      target.target_item_id
+    );
+
+  if invalid_count > 0 then
+    return query select false, false, false, 'clear_menu_availability_overlays', 'invalid_availability_target';
+    return;
+  end if;
+
+  with target_rows as (
+    select distinct
+      nullif(btrim(target_entry.value ->> 'menu_id'), '') as target_menu_id,
+      nullif(btrim(target_entry.value ->> 'section_id'), '') as target_section_id,
+      nullif(btrim(target_entry.value ->> 'item_id'), '') as target_item_id
+    from jsonb_array_elements(target_entries) as target_entry(value)
+  )
+  select count(*)
+  into denied_count
+  from target_rows target
+  where not public.can_edit_availability(target.target_menu_id);
+
+  if denied_count > 0 then
+    return query select false, false, false, 'clear_menu_availability_overlays', 'permission_denied';
+    return;
+  end if;
+
+  with target_rows as (
+    select distinct
+      nullif(btrim(target_entry.value ->> 'menu_id'), '') as target_menu_id,
+      nullif(btrim(target_entry.value ->> 'section_id'), '') as target_section_id,
+      nullif(btrim(target_entry.value ->> 'item_id'), '') as target_item_id
+    from jsonb_array_elements(target_entries) as target_entry(value)
+  )
+  delete from public.menu_availability_overlays overlay
+  using target_rows target
+  where overlay.menu_id = target.target_menu_id
+    and overlay.section_id = target.target_section_id
+    and overlay.item_id = target.target_item_id;
+
+  get diagnostics changed_count = row_count;
+
+  if changed_count = 0 then
+    return query select true, false, false, 'clear_menu_availability_overlays', 'availability_overlay_not_found';
+    return;
+  end if;
+
+  return query select true, true, false, 'clear_menu_availability_overlays', 'availability_overlay_cleared';
+end;
+$function$;
+
 CREATE OR REPLACE FUNCTION app_private.set_profile_service_kind(profile_id text, service_kind text)
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
@@ -2505,6 +2727,22 @@ AS $function$
   select * from app_private.clear_menu_availability_overlay($1, $2, $3);
 $function$;
 
+CREATE OR REPLACE FUNCTION public.set_menu_availability_overlays(targets jsonb, available_override boolean)
+ RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+ LANGUAGE sql
+ SET search_path TO 'public', 'app_private', 'pg_temp'
+AS $function$
+  select * from app_private.set_menu_availability_overlays($1, $2);
+$function$;
+
+CREATE OR REPLACE FUNCTION public.clear_menu_availability_overlays(targets jsonb)
+ RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+ LANGUAGE sql
+ SET search_path TO 'public', 'app_private', 'pg_temp'
+AS $function$
+  select * from app_private.clear_menu_availability_overlays($1);
+$function$;
+
 CREATE OR REPLACE FUNCTION public.set_profile_service_kind(profile_id text, service_kind text)
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE sql
@@ -3253,6 +3491,12 @@ grant execute on function app_private.set_menu_availability_overlay(text,text,te
 revoke all on function app_private.clear_menu_availability_overlay(text,text,text) from public, anon, authenticated, service_role;
 grant execute on function app_private.clear_menu_availability_overlay(text,text,text) to authenticated;
 
+revoke all on function app_private.set_menu_availability_overlays(jsonb,boolean) from public, anon, authenticated, service_role;
+grant execute on function app_private.set_menu_availability_overlays(jsonb,boolean) to authenticated;
+
+revoke all on function app_private.clear_menu_availability_overlays(jsonb) from public, anon, authenticated, service_role;
+grant execute on function app_private.clear_menu_availability_overlays(jsonb) to authenticated;
+
 revoke all on function app_private.set_profile_service_kind(text,text) from public, anon, authenticated, service_role;
 grant execute on function app_private.set_profile_service_kind(text,text) to authenticated;
 
@@ -3317,6 +3561,12 @@ grant execute on function public.set_menu_availability_overlay(text,text,text,bo
 
 revoke all on function public.clear_menu_availability_overlay(text,text,text) from public, anon, authenticated, service_role;
 grant execute on function public.clear_menu_availability_overlay(text,text,text) to authenticated;
+
+revoke all on function public.set_menu_availability_overlays(jsonb,boolean) from public, anon, authenticated, service_role;
+grant execute on function public.set_menu_availability_overlays(jsonb,boolean) to authenticated;
+
+revoke all on function public.clear_menu_availability_overlays(jsonb) from public, anon, authenticated, service_role;
+grant execute on function public.clear_menu_availability_overlays(jsonb) to authenticated;
 
 revoke all on function public.set_profile_service_kind(text,text) from public, anon, authenticated, service_role;
 grant execute on function public.set_profile_service_kind(text,text) to authenticated;

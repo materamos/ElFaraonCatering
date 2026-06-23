@@ -1,4 +1,4 @@
-import type { AvailabilityTargetState, RpcResult } from "../core/types";
+import type { AvailabilityTargetState } from "../core/types";
 import { resultMessage } from "../core/responses";
 import type { AdminOperationContext } from "./types";
 
@@ -45,27 +45,17 @@ export function createAvailabilityOperations(context: AdminOperationContext) {
 
     saveAvailabilityOverlayBatch(targets: AvailabilityTargetState[], available: boolean): Promise<void> {
       return context.runBusy(async () => {
-        const results: RpcResult[] = [];
+        const result = await context.callMutation("set_menu_availability_overlays", {
+          targets: toAvailabilityTargetInputs(targets),
+          available_override: available,
+        });
 
-        for (const target of targets) {
-          const result = await context.callMutation("set_menu_availability_overlay", {
-            menu_id: target.menu_id,
-            section_id: target.section_id,
-            item_id: target.item_id,
-            available_override: available,
-          });
-
-          if (!result.ok) {
-            throw new Error(resultMessage(result));
-          }
-
-          results.push(result);
+        if (!result.ok) {
+          throw new Error(resultMessage(result));
         }
 
-        const changed = results.some((result) => result.changed);
-
         await context.loadAdminState(
-          changed ? "Disponibilidad actualizada. Ya se ve en el menú público." : "Sin cambios.",
+          result.changed ? "Disponibilidad actualizada. Ya se ve en el menú público." : "Sin cambios.",
           "success",
         );
       }, available ? "Mostrando items..." : "Ocultando items...");
@@ -73,29 +63,31 @@ export function createAvailabilityOperations(context: AdminOperationContext) {
 
     clearAvailabilityOverlayBatch(targets: AvailabilityTargetState[]): Promise<void> {
       return context.runBusy(async () => {
-        const results: RpcResult[] = [];
+        const result = await context.callMutation("clear_menu_availability_overlays", {
+          targets: toAvailabilityTargetInputs(targets),
+        });
 
-        for (const target of targets) {
-          const result = await context.callMutation("clear_menu_availability_overlay", {
-            menu_id: target.menu_id,
-            section_id: target.section_id,
-            item_id: target.item_id,
-          });
-
-          if (!result.ok) {
-            throw new Error(resultMessage(result));
-          }
-
-          results.push(result);
+        if (!result.ok) {
+          throw new Error(resultMessage(result));
         }
 
-        const changed = results.some((result) => result.changed);
-
         await context.loadAdminState(
-          changed ? "Ajuste quitado. Ya se ve en el menú público." : "Sin cambios.",
+          result.changed ? "Ajuste quitado. Ya se ve en el menú público." : "Sin cambios.",
           "success",
         );
       }, "Quitando ajuste...");
     },
   };
+}
+
+function toAvailabilityTargetInputs(targets: AvailabilityTargetState[]): Array<{
+  menu_id: string;
+  section_id: string;
+  item_id: string;
+}> {
+  return targets.map((target) => ({
+    menu_id: target.menu_id,
+    section_id: target.section_id,
+    item_id: target.item_id,
+  }));
 }
