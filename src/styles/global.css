@@ -305,14 +305,9 @@
 
   .menu-index__brand {
     display: none;
-    margin-bottom: 0.5rem;
-    color: var(--color-accent);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 0.9375rem;
-    letter-spacing: 0.075rem;
-    text-align: center;
-    text-transform: uppercase;
+    width: 7.5rem;
+    height: auto;
+    margin: 0 auto 0.45rem;
   }
 
   .menu-index--stuck {
