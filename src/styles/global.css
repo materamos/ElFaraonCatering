@@ -293,7 +293,7 @@
   }
 
   .menu-index {
-    --menu-index-sticky-offset: 96px;
+    --menu-index-sticky-offset: 12px;
     position: sticky;
     top: 0;
     z-index: 10;
