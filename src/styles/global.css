@@ -297,25 +297,24 @@
     top: 0;
     z-index: 10;
     margin-inline: -1rem;
-    padding: 0.75rem 1rem;
+    padding: 0.55rem 1rem 0.75rem;
     overflow: hidden;
     background: var(--color-page);
     border-bottom: 1px solid var(--color-line);
   }
 
   .menu-index__brand {
-    display: none;
+    display: block;
     width: 7.5rem;
     height: auto;
     margin: 0 auto 0.45rem;
-  }
-
-  .menu-index--stuck {
-    padding-block: 0.55rem 0.75rem;
+    visibility: hidden;
+    opacity: 0;
   }
 
   .menu-index--stuck .menu-index__brand {
-    display: block;
+    visibility: visible;
+    opacity: 1;
   }
 
   .menu-index__title {
