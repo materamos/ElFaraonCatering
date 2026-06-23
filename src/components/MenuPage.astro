@@ -147,8 +147,11 @@ const getPaymentValue = (value: string) =>
         const sentinelTop = menuIndexSentinel
           ? menuIndexSentinel.getBoundingClientRect().top
           : menuIndex.getBoundingClientRect().top;
+        const menuIndexTop = menuIndex.getBoundingClientRect().top;
 
-        setMenuIndexStuck(mobileMenuIndexQuery.matches && sentinelTop < 0);
+        setMenuIndexStuck(
+          mobileMenuIndexQuery.matches && (sentinelTop < 0 || (menuIndexTop <= 0 && window.scrollY > 0))
+        );
       };
       const requestMenuIndexUpdate = () => {
         if (updateMenuIndexPending) {
@@ -159,17 +162,12 @@ const getPaymentValue = (value: string) =>
         window.requestAnimationFrame(updateMenuIndexState);
       };
 
-      if (menuIndexSentinel && "IntersectionObserver" in window) {
-        const observer = new IntersectionObserver(([entry]) => {
-          setMenuIndexStuck(mobileMenuIndexQuery.matches && !entry.isIntersecting);
-        });
-
-        observer.observe(menuIndexSentinel);
-      }
-
       updateMenuIndexState();
       window.addEventListener("scroll", requestMenuIndexUpdate, { passive: true });
+      window.addEventListener("touchmove", requestMenuIndexUpdate, { passive: true });
       window.addEventListener("resize", requestMenuIndexUpdate);
+      window.addEventListener("orientationchange", requestMenuIndexUpdate);
+      window.addEventListener("pageshow", requestMenuIndexUpdate);
     }
   </script>
   <script is:inline type="module" src="/scripts/menu-photo-sheet.js"></script>
