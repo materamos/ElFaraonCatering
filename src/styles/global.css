@@ -297,7 +297,6 @@
     position: sticky;
     top: 0;
     z-index: 10;
-    margin-inline: -1rem;
     padding: 0.75rem 1rem;
     overflow: hidden;
     background: var(--color-page);
@@ -835,6 +834,10 @@
 
   .menu-index--stuck {
     padding-block: 0.65rem 0.85rem;
+  }
+
+  .menu-index--stuck .menu-index__brand {
+    display: block;
   }
 
   .menu-index__title {
