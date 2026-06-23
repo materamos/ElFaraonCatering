@@ -840,22 +840,6 @@
     display: block;
   }
 
-  .menu-index__title {
-    position: static;
-    width: auto;
-    height: auto;
-    padding: 0;
-    overflow: visible;
-    color: var(--color-muted);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 0.9375rem;
-    letter-spacing: 0.075rem;
-    text-transform: uppercase;
-    white-space: normal;
-    clip-path: none;
-  }
-
   .menu-index__list {
     flex-wrap: wrap;
     overflow-x: visible;
