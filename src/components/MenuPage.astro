@@ -129,6 +129,24 @@ const getPaymentValue = (value: string) =>
       </div>
     </div>
   </dialog>
+  <script is:inline>
+    const menuIndex = document.querySelector(".menu-index");
+
+    if (menuIndex) {
+      let stuckOffset = menuIndex.offsetTop;
+      const updateMenuIndexState = () => {
+        menuIndex.classList.toggle("menu-index--stuck", window.scrollY >= stuckOffset);
+      };
+      const refreshMenuIndexOffset = () => {
+        stuckOffset = menuIndex.offsetTop;
+        updateMenuIndexState();
+      };
+
+      updateMenuIndexState();
+      window.addEventListener("scroll", updateMenuIndexState, { passive: true });
+      window.addEventListener("resize", refreshMenuIndexOffset);
+    }
+  </script>
   <script is:inline type="module" src="/scripts/menu-photo-sheet.js"></script>
   <script is:inline type="module" src="/scripts/menu-availability-overlay.js"></script>
 </BaseLayout>
