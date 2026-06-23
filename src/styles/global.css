@@ -816,16 +816,25 @@
   }
 
   .menu-index {
-    position: static;
+    --menu-index-sticky-offset: 0px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
     display: grid;
     gap: 0.65rem;
     margin-inline: 0;
     padding: 0.85rem 0 1rem;
     overflow: visible;
+    background: var(--color-page);
+    border-bottom: 1px solid var(--color-line);
   }
 
   .menu-index__brand {
     display: none;
+  }
+
+  .menu-index--stuck {
+    padding-block: 0.65rem 0.85rem;
   }
 
   .menu-index__title {

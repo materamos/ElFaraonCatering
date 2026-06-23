@@ -1,7 +1,5 @@
 const menuIndex = document.querySelector(".menu-index");
 const menuIndexSentinel = document.querySelector("[data-menu-index-sentinel]");
-const mobileMenuIndexQuery = window.matchMedia("(max-width: 639px)");
-
 const getScrollY = () => {
   const scrollingElement = document.scrollingElement || document.documentElement;
 
@@ -30,12 +28,11 @@ const updateMenuIndexState = () => {
     ? menuIndexSentinel.getBoundingClientRect().top
     : menuIndex.getBoundingClientRect().top;
   const menuIndexTop = menuIndex.getBoundingClientRect().top;
-  const isMobile = mobileMenuIndexQuery.matches;
   const activationOffset = getStickyActivationOffset();
   const isPastIndexStart =
     sentinelTop <= activationOffset || (menuIndexTop <= 0 && getScrollY() > 0);
 
-  setMenuIndexStuck(isMobile && isPastIndexStart);
+  setMenuIndexStuck(isPastIndexStart);
 };
 
 if (menuIndex) {
