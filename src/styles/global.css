@@ -285,6 +285,13 @@
     margin-top: 1.5rem;
   }
 
+  .menu-index-sentinel {
+    display: block;
+    height: 1px;
+    margin-top: -1px;
+    pointer-events: none;
+  }
+
   .menu-index {
     position: sticky;
     top: 0;

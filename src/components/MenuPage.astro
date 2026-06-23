@@ -78,6 +78,7 @@ const getPaymentValue = (value: string) =>
       </section>
     )}
 
+    <span class="menu-index-sentinel" data-menu-index-sentinel aria-hidden="true"></span>
     <nav class="menu-index" aria-labelledby="menu-index-title">
       <h2 class="menu-index__title" id="menu-index-title">Secciones</h2>
       <ul class="menu-index__list">
@@ -131,20 +132,27 @@ const getPaymentValue = (value: string) =>
   </dialog>
   <script is:inline>
     const menuIndex = document.querySelector(".menu-index");
+    const menuIndexSentinel = document.querySelector("[data-menu-index-sentinel]");
 
     if (menuIndex) {
-      let stuckOffset = menuIndex.offsetTop;
-      const updateMenuIndexState = () => {
-        menuIndex.classList.toggle("menu-index--stuck", window.scrollY >= stuckOffset);
-      };
-      const refreshMenuIndexOffset = () => {
-        stuckOffset = menuIndex.offsetTop;
-        updateMenuIndexState();
+      const setMenuIndexStuck = (isStuck) => {
+        menuIndex.classList.toggle("menu-index--stuck", isStuck);
       };
 
-      updateMenuIndexState();
-      window.addEventListener("scroll", updateMenuIndexState, { passive: true });
-      window.addEventListener("resize", refreshMenuIndexOffset);
+      if (menuIndexSentinel && "IntersectionObserver" in window) {
+        const observer = new IntersectionObserver(([entry]) => {
+          setMenuIndexStuck(!entry.isIntersecting);
+        });
+
+        observer.observe(menuIndexSentinel);
+      } else {
+        const updateMenuIndexState = () => {
+          setMenuIndexStuck(menuIndex.getBoundingClientRect().top <= 0 && window.scrollY > 0);
+        };
+
+        updateMenuIndexState();
+        window.addEventListener("scroll", updateMenuIndexState, { passive: true });
+      }
     }
   </script>
   <script is:inline type="module" src="/scripts/menu-photo-sheet.js"></script>
