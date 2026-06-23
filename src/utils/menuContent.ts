@@ -1,25 +1,9 @@
 import type {
-  MenuCatalogSectionData,
-  MenuDailyMenuData,
+  MenuContentSnapshot,
   MenuItem,
-  MenuProfileServiceSettings,
-  MenuProfileData,
   MenuSectionData,
 } from "../types/menu";
 import { loadSupabaseMenuContentSnapshot } from "./menuSupabaseContent";
-
-interface MenuProfileRecord {
-  id: string;
-  data: MenuProfileData;
-}
-
-interface MenuContentSnapshot {
-  profiles: MenuProfileRecord[];
-  catalogSections: MenuCatalogSectionData[];
-  dailyMenu: MenuDailyMenuData;
-  profileServiceSettings: MenuProfileServiceSettings[];
-  grillSection: MenuSectionData;
-}
 
 let supabaseMenuContentSnapshot: Promise<MenuContentSnapshot> | undefined;
 

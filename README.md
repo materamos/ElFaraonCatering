@@ -117,6 +117,7 @@ npm run preview
 | `npm run dev` | Levanta Astro en desarrollo. |
 | `npm run build` | Genera el sitio estatico en `dist/` leyendo `menu_content` en build-time. |
 | `npm run check` | Ejecuta `astro check` con limite de memoria ampliado. |
+| `npm run check:js` | Ejecuta `node --check` sobre JS/MJS fuera del typecheck de Astro. |
 | `npm run test:admin` | Ejecuta tests puntuales de reglas, selectores, contratos de render y operaciones del admin. |
 | `npm run preview` | Sirve el build localmente para revision. |
 | `npm run menu:validate` | Valida contenido estructural y hardening esperado en Supabase. Requiere `SUPABASE_DB_URL`. |
@@ -131,6 +132,7 @@ Validacion recomendada:
 
 - `npm run test:admin` para cambios en admin UI, reglas, selectores u operaciones.
 - `npm run check` para cambios TypeScript/Astro.
+- `npm run check:js` para cambios en `public/scripts/`, `scripts/` o utilidades `.mjs`.
 - `npm run build` y luego `npm run verify:dist-secrets` antes de entregar cambios de app.
 - `npm run supabase:audit` y `npm run menu:validate` cuando cambie Supabase, el shape del menu o contenido build-time.
 
@@ -140,6 +142,7 @@ Secuencia completa para cambios que tocan app y contenido build-time:
 npm run supabase:audit
 npm run menu:validate
 npm run test:admin
+npm run check:js
 npm run build
 npm run verify:dist-secrets
 npm run check

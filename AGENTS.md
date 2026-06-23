@@ -320,6 +320,7 @@ Additional checks:
 
 - Run `npm run test:admin` when working with admin UI, rules, selectors, render contracts, operations, fixed-menu edit policy, or availability grouping.
 - Run `npm run check` for TypeScript/Astro changes.
+- Run `npm run check:js` when working with public scripts, Node `.mjs` scripts, or shared `.mjs` utilities.
 - Run `npm run build` and then `npm run verify:dist-secrets` before delivering app changes.
 - Run `npm run supabase:audit` when working with Supabase schema, grants, policies, RPC exposure, or read-only audit expectations.
 - Run `npm run menu:validate` only when working with menu content loading, Supabase schema expectations, menu data shape, or build-time menu content.

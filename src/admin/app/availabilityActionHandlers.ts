@@ -2,7 +2,7 @@ import type { AdminActionHandlerContext } from "./actionHandlers";
 import {
   findAvailabilityFamilyTargets,
   findAvailabilityTarget,
-} from "../views/renderer";
+} from "../core/selectors";
 
 export async function handleSetOverlayAction(
   context: AdminActionHandlerContext,
@@ -15,9 +15,10 @@ export async function handleSetOverlayAction(
   const familyKey = target.dataset.familyKey;
   const targetKey = target.dataset.targetKey;
   const available = target.dataset.available === "true";
+  const currentState = context.getCurrentState();
 
   if (familyKey) {
-    const familyTargets = findAvailabilityFamilyTargets(familyKey);
+    const familyTargets = currentState ? findAvailabilityFamilyTargets(currentState, familyKey) : [];
 
     if (familyTargets.length === 0) {
       context.setStatus("No se encontró la familia seleccionada.", "danger");
@@ -33,7 +34,9 @@ export async function handleSetOverlayAction(
     return;
   }
 
-  const availabilityTarget = targetKey ? findAvailabilityTarget(targetKey) : undefined;
+  const availabilityTarget = currentState && targetKey
+    ? findAvailabilityTarget(currentState, targetKey)
+    : undefined;
 
   if (!availabilityTarget) {
     context.setStatus("No se encontró el item seleccionado.", "danger");
@@ -57,9 +60,10 @@ export async function handleClearOverlayAction(
 
   const familyKey = target.dataset.familyKey;
   const targetKey = target.dataset.targetKey;
+  const currentState = context.getCurrentState();
 
   if (familyKey) {
-    const familyTargets = findAvailabilityFamilyTargets(familyKey);
+    const familyTargets = currentState ? findAvailabilityFamilyTargets(currentState, familyKey) : [];
 
     if (familyTargets.length === 0) {
       context.setStatus("No se encontró la familia seleccionada.", "danger");
@@ -70,7 +74,9 @@ export async function handleClearOverlayAction(
     return;
   }
 
-  const availabilityTarget = targetKey ? findAvailabilityTarget(targetKey) : undefined;
+  const availabilityTarget = currentState && targetKey
+    ? findAvailabilityTarget(currentState, targetKey)
+    : undefined;
 
   if (!availabilityTarget) {
     context.setStatus("No se encontró el item seleccionado.", "danger");

@@ -1,13 +1,14 @@
 import postgres from "postgres";
 import { loadSupabaseMenuSnapshot } from "./menu-content-supabase.mjs";
+import {
+  isMenuPlaceholderImagePath,
+  isSafeMenuImagePath,
+} from "../src/utils/menuImagePath.mjs";
 
 const expectedMenuIds = ["corpo", "teleinde"];
 const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
 const databaseUrl = process.env[privateDatabaseUrlEnvName];
 const technicalIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const uploadsBasePath = "/uploads/";
-const allowedMenuImageExtensions = [".avif", ".jpeg", ".jpg", ".png", ".svg", ".webp"];
-const menuPlaceholderBasePath = "/uploads/menu-placeholders/";
 
 const expectedDailyItemIds = [
   "menu-del-dia",
@@ -562,54 +563,6 @@ function assertUnique(values, label, errors) {
 
     seenValues.add(value);
   }
-}
-
-function isSafeMenuImagePath(value) {
-  if (typeof value !== "string") {
-    return false;
-  }
-
-  const trimmedValue = value.trim();
-
-  if (
-    !trimmedValue.startsWith(uploadsBasePath) ||
-    trimmedValue.startsWith("//") ||
-    trimmedValue.includes("\\") ||
-    trimmedValue.includes("?") ||
-    trimmedValue.includes("#")
-  ) {
-    return false;
-  }
-
-  const relativePath = trimmedValue.slice(uploadsBasePath.length);
-
-  if (!relativePath) {
-    return false;
-  }
-
-  const pathSegments = relativePath.split("/");
-
-  if (
-    pathSegments.some(
-      (segment) => segment.length === 0 || segment === "." || segment === "..",
-    )
-  ) {
-    return false;
-  }
-
-  const lowerCasePath = trimmedValue.toLowerCase();
-
-  return allowedMenuImageExtensions.some((extension) => lowerCasePath.endsWith(extension));
-}
-
-function isMenuPlaceholderImagePath(value) {
-  if (typeof value !== "string") {
-    return false;
-  }
-
-  const trimmedValue = value.trim();
-
-  return isSafeMenuImagePath(trimmedValue) && trimmedValue.startsWith(menuPlaceholderBasePath);
 }
 
 function sanitizeError(error) {

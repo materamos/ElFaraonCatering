@@ -89,3 +89,16 @@ export interface MenuProfileData {
   infoTitle: string;
   facts: MenuProfileFact[];
 }
+
+export interface MenuProfileRecord {
+  id: string;
+  data: MenuProfileData;
+}
+
+export interface MenuContentSnapshot {
+  profiles: MenuProfileRecord[];
+  catalogSections: MenuCatalogSectionData[];
+  dailyMenu: MenuDailyMenuData;
+  profileServiceSettings: MenuProfileServiceSettings[];
+  grillSection: MenuSectionData;
+}

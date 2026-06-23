@@ -14,6 +14,7 @@ import {
 import { handlePublishAction } from "./publishActionHandlers";
 import type { createAdminOperations } from "../operations";
 import { adminActions } from "../core/contracts";
+import { isServiceSectionAvailable } from "../core/rules";
 import type {
   AdminOperationalState,
   AdminTabId,
@@ -22,11 +23,10 @@ import type {
   StatusTone,
 } from "../core/types";
 import {
-  isServiceSectionAvailable,
   setAdminActiveTab,
   setAdminFilter,
   setAdminServiceSection,
-} from "../views/renderer";
+} from "../core/viewState";
 
 export interface AdminActionHandlerContext {
   root: HTMLElement;

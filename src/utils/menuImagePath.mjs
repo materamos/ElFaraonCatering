@@ -1,8 +1,12 @@
 const uploadsBasePath = "/uploads/";
 const menuPlaceholderBasePath = "/uploads/menu-placeholders/";
-const allowedMenuImageExtensions = [".avif", ".jpeg", ".jpg", ".png", ".svg", ".webp"] as const;
+const allowedMenuImageExtensions = [".avif", ".jpeg", ".jpg", ".png", ".svg", ".webp"];
 
-const isSafeMenuImagePath = (value: string): boolean => {
+export const isSafeMenuImagePath = (value) => {
+  if (typeof value !== "string") {
+    return false;
+  }
+
   const trimmedValue = value.trim();
 
   if (
@@ -36,7 +40,7 @@ const isSafeMenuImagePath = (value: string): boolean => {
   return allowedMenuImageExtensions.some((extension) => lowerCasePath.endsWith(extension));
 };
 
-export const getSafeMenuImagePath = (value?: string): string | undefined => {
+export const getSafeMenuImagePath = (value) => {
   if (typeof value !== "string") {
     return undefined;
   }
@@ -50,12 +54,12 @@ export const getSafeMenuImagePath = (value?: string): string | undefined => {
   return trimmedValue;
 };
 
-export const getSafeMenuImagePaths = (values?: readonly unknown[]): string[] => {
+export const getSafeMenuImagePaths = (values) => {
   if (!Array.isArray(values)) {
     return [];
   }
 
-  return values.reduce<string[]>((safeImagePaths, value) => {
+  return values.reduce((safeImagePaths, value) => {
     const safeImagePath =
       typeof value === "string" ? getSafeMenuImagePath(value) : undefined;
 
@@ -67,7 +71,7 @@ export const getSafeMenuImagePaths = (values?: readonly unknown[]): string[] => 
   }, []);
 };
 
-export const isMenuPlaceholderImagePath = (value?: string): boolean => {
+export const isMenuPlaceholderImagePath = (value) => {
   if (typeof value !== "string") {
     return false;
   }

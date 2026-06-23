@@ -1,11 +1,6 @@
 import type {
   AdminOperationalState,
   AdminTabId,
-  AvailabilityTargetState,
-  CatalogItemOptionState,
-  CatalogItemState,
-  GrillFamilyState,
-  GrillItemState,
   StatusMessage,
 } from "../core/types";
 import {
@@ -24,21 +19,11 @@ import {
   getAdminViewState,
   setActiveServiceSectionFallback,
   setAdminActiveTab,
-  setAdminFilter,
-  setAdminServiceSection,
 } from "../core/viewState";
 import {
   getAllowedTabs,
   isServiceSectionAvailable,
 } from "../core/rules";
-import {
-  findAvailabilityFamilyTargets as selectAvailabilityFamilyTargets,
-  findAvailabilityTarget as selectAvailabilityTarget,
-  findCatalogItem as selectCatalogItem,
-  findCatalogItemOption as selectCatalogItemOption,
-  findGrillFamily as selectGrillFamily,
-  findGrillItem as selectGrillItem,
-} from "../core/selectors";
 
 interface AdminViewContext {
   root: HTMLElement;
@@ -53,8 +38,6 @@ let currentState: AdminOperationalState | null = null;
 let currentStatus: StatusMessage | null = null;
 let currentBusyText: string | null = null;
 let isBusy = false;
-
-export { setAdminActiveTab, setAdminFilter, setAdminServiceSection, isServiceSectionAvailable };
 
 export function setAdminViewContext(context: AdminViewContext): void {
   root = context.root;
@@ -155,35 +138,4 @@ export function ensureActiveServiceSection(state: AdminOperationalState): void {
   }
 
   setActiveServiceSectionFallback("active-service");
-}
-
-export function findAvailabilityTarget(key: string): AvailabilityTargetState | undefined {
-  return currentState ? selectAvailabilityTarget(currentState, key) : undefined;
-}
-
-export function findAvailabilityFamilyTargets(key: string): AvailabilityTargetState[] {
-  return currentState ? selectAvailabilityFamilyTargets(currentState, key) : [];
-}
-
-export function findCatalogItem(
-  sectionId: string,
-  itemId: string,
-): CatalogItemState | undefined {
-  return currentState ? selectCatalogItem(currentState, sectionId, itemId) : undefined;
-}
-
-export function findCatalogItemOption(
-  sectionId: string,
-  itemId: string,
-  optionId: string,
-): CatalogItemOptionState | undefined {
-  return currentState ? selectCatalogItemOption(currentState, sectionId, itemId, optionId) : undefined;
-}
-
-export function findGrillItem(itemId: string): GrillItemState | undefined {
-  return currentState ? selectGrillItem(currentState, itemId) : undefined;
-}
-
-export function findGrillFamily(familyId: string): GrillFamilyState | undefined {
-  return currentState ? selectGrillFamily(currentState, familyId) : undefined;
 }

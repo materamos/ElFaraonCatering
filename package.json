@@ -12,6 +12,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "node --max-old-space-size=8192 ./node_modules/astro/bin/astro.mjs check",
+    "check:js": "node scripts/check-js-syntax.mjs",
     "test:admin": "node --test scripts/test-admin-rules-selectors.mjs scripts/test-admin-render-contracts.mjs scripts/test-admin-operations.mjs",
     "menu:validate": "node scripts/validate-menu-supabase.mjs",
     "verify:dist-secrets": "node scripts/verify-dist-secrets.mjs",

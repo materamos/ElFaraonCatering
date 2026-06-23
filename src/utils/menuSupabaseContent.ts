@@ -1,26 +1,9 @@
 import postgres from "postgres";
 import type {
-  MenuCatalogSectionData,
-  MenuDailyMenuData,
-  MenuProfileData,
-  MenuProfileServiceSettings,
-  MenuSectionData,
+  MenuContentSnapshot,
 } from "../types/menu";
-import { getSafeMenuImagePaths } from "./menuImage";
+import { getSafeMenuImagePaths } from "./menuImagePath.mjs";
 import { createSnapshot, loadRows } from "./menuSupabaseSnapshot.mjs";
-
-interface MenuProfileRecord {
-  id: string;
-  data: MenuProfileData;
-}
-
-interface MenuContentSnapshot {
-  profiles: MenuProfileRecord[];
-  catalogSections: MenuCatalogSectionData[];
-  dailyMenu: MenuDailyMenuData;
-  profileServiceSettings: MenuProfileServiceSettings[];
-  grillSection: MenuSectionData;
-}
 
 export const loadSupabaseMenuContentSnapshot = async (): Promise<MenuContentSnapshot> => {
   const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
@@ -39,10 +22,13 @@ export const loadSupabaseMenuContentSnapshot = async (): Promise<MenuContentSnap
 
   try {
     const rows = await loadRows(sql);
-
-    return createSnapshot(rows, {
+    const snapshot = createSnapshot(rows, {
       transformImages: getSafeMenuImagePaths,
-    }) as MenuContentSnapshot;
+    });
+
+    assertMenuContentSnapshot(snapshot);
+
+    return snapshot;
   } finally {
     await sql.end();
   }
@@ -87,3 +73,25 @@ const getPrivateEnvironmentValue = (name: string): string | undefined =>
       };
     }
   ).process?.env?.[name];
+
+function assertMenuContentSnapshot(value: unknown): asserts value is MenuContentSnapshot {
+  if (!isRecord(value)) {
+    throw new Error("Supabase menu snapshot must be an object.");
+  }
+
+  if (
+    !Array.isArray(value.profiles) ||
+    !Array.isArray(value.catalogSections) ||
+    !isRecord(value.dailyMenu) ||
+    !Array.isArray(value.dailyMenu.items) ||
+    !Array.isArray(value.profileServiceSettings) ||
+    !isRecord(value.grillSection) ||
+    !Array.isArray(value.grillSection.items)
+  ) {
+    throw new Error("Supabase menu snapshot has an invalid shape.");
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object");
+}

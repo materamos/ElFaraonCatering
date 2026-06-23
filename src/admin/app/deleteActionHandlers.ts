@@ -10,7 +10,7 @@ import {
   findCatalogItemOption,
   findGrillFamily,
   findGrillItem,
-} from "../views/renderer";
+} from "../core/selectors";
 
 export async function handleDeleteCatalogItemAction(
   context: AdminActionHandlerContext,
@@ -18,7 +18,10 @@ export async function handleDeleteCatalogItemAction(
 ): Promise<void> {
   const sectionId = target.dataset.sectionId;
   const itemId = target.dataset.itemId;
-  const item = sectionId && itemId ? findCatalogItem(sectionId, itemId) : undefined;
+  const currentState = context.getCurrentState();
+  const item = currentState && sectionId && itemId
+    ? findCatalogItem(currentState, sectionId, itemId)
+    : undefined;
 
   if (!item) {
     context.setStatus("No se encontró el item seleccionado.", "danger");
@@ -37,7 +40,8 @@ export async function handleDeleteGrillItemAction(
   target: HTMLElement,
 ): Promise<void> {
   const itemId = target.dataset.itemId;
-  const item = itemId ? findGrillItem(itemId) : undefined;
+  const currentState = context.getCurrentState();
+  const item = currentState && itemId ? findGrillItem(currentState, itemId) : undefined;
 
   if (!item) {
     context.setStatus("No se encontró la opción de parrilla seleccionada.", "danger");
@@ -56,7 +60,8 @@ export async function handleDeleteGrillProductAction(
   target: HTMLElement,
 ): Promise<void> {
   const familyId = target.dataset.familyId;
-  const family = familyId ? findGrillFamily(familyId) : undefined;
+  const currentState = context.getCurrentState();
+  const family = currentState && familyId ? findGrillFamily(currentState, familyId) : undefined;
 
   if (!family) {
     context.setStatus("No se encontró el producto de parrilla seleccionado.", "danger");
@@ -77,8 +82,9 @@ export async function handleDeleteCatalogOptionAction(
   const sectionId = target.dataset.sectionId;
   const itemId = target.dataset.itemId;
   const optionId = target.dataset.optionId;
-  const option = sectionId && itemId && optionId
-    ? findCatalogItemOption(sectionId, itemId, optionId)
+  const currentState = context.getCurrentState();
+  const option = currentState && sectionId && itemId && optionId
+    ? findCatalogItemOption(currentState, sectionId, itemId, optionId)
     : undefined;
 
   if (!option) {

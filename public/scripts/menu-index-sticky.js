@@ -1,5 +1,7 @@
 const menuIndex = document.querySelector(".menu-index");
 const menuIndexSentinel = document.querySelector("[data-menu-index-sentinel]");
+let updateScheduled = false;
+
 const getScrollY = () => {
   const scrollingElement = document.scrollingElement || document.documentElement;
 
@@ -35,19 +37,27 @@ const updateMenuIndexState = () => {
   setMenuIndexStuck(isPastIndexStart);
 };
 
-if (menuIndex) {
-  updateMenuIndexState();
-  window.addEventListener("scroll", updateMenuIndexState, { passive: true });
-  document.addEventListener("scroll", updateMenuIndexState, { passive: true });
-  window.addEventListener("touchmove", updateMenuIndexState, { passive: true });
-  window.addEventListener("resize", updateMenuIndexState);
-  window.addEventListener("orientationchange", updateMenuIndexState);
-  window.addEventListener("pageshow", updateMenuIndexState);
-
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener("scroll", updateMenuIndexState, { passive: true });
-    window.visualViewport.addEventListener("resize", updateMenuIndexState);
+const scheduleMenuIndexUpdate = () => {
+  if (updateScheduled) {
+    return;
   }
 
-  window.setInterval(updateMenuIndexState, 200);
+  updateScheduled = true;
+  window.requestAnimationFrame(() => {
+    updateScheduled = false;
+    updateMenuIndexState();
+  });
+};
+
+if (menuIndex) {
+  updateMenuIndexState();
+  window.addEventListener("scroll", scheduleMenuIndexUpdate, { passive: true });
+  window.addEventListener("resize", scheduleMenuIndexUpdate);
+  window.addEventListener("orientationchange", scheduleMenuIndexUpdate);
+  window.addEventListener("pageshow", scheduleMenuIndexUpdate);
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("scroll", scheduleMenuIndexUpdate, { passive: true });
+    window.visualViewport.addEventListener("resize", scheduleMenuIndexUpdate);
+  }
 }

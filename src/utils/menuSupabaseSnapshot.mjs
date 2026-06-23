@@ -3,6 +3,10 @@
 // Node-side validator. Lives under src/ so Astro's bundler can include it; the
 // scripts/ wrapper imports it via a relative path.
 
+/**
+ * @typedef {import("../types/menu").MenuContentSnapshot} MenuContentSnapshot
+ */
+
 export const loadRows = async (sql) => {
   const [
     profiles,
@@ -48,6 +52,7 @@ export const loadRows = async (sql) => {
   };
 };
 
+/** @returns {MenuContentSnapshot} */
 export const createSnapshot = (rows, options = {}) => {
   const transformImages =
     options.transformImages ??
