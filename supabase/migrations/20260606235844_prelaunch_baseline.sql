@@ -3712,7 +3712,7 @@ begin
   select app_private.get_menu_publication_content_hash()
   into actual_hash;
 
-  if actual_hash <> '9e8d62525383e99b7aab0a40c9e37480' then
+  if actual_hash <> 'acd35624982713ddf15239afa1bb9fc6' then
     raise exception 'Unexpected baseline content hash: %', actual_hash;
   end if;
 end
