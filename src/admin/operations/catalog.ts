@@ -3,8 +3,8 @@ import {
   getFormInteger,
   getFormString,
   getNullableFormString,
-  resultMessage,
-} from "../core/utils";
+} from "../core/forms";
+import { resultMessage } from "../core/responses";
 import { partialMutationError, publicationStatus } from "./helpers";
 import type { AdminOperationContext } from "./types";
 

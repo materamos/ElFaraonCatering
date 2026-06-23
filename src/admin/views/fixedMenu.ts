@@ -13,14 +13,8 @@ import type {
   FixedMenuEditMode,
 } from "../core/types";
 import type { AdminViewState } from "../core/viewState";
-import {
-  escapeHtml,
-  formatCatalogItemPrice,
-} from "../core/utils";
-import {
-  renderFixedPriceRow,
-  renderVariantPriceRow,
-} from "./prices";
+import { escapeHtml, formatCatalogItemPrice } from "../core/format";
+import { renderFixedPriceRow, renderVariantPriceRow } from "./prices";
 
 export function renderFixedMenuTab(
   state: AdminOperationalState,

@@ -5,7 +5,7 @@ import {
   readErrorMessage,
   readJsonBody,
   resultMessage,
-} from "../core/utils";
+} from "../core/responses";
 
 export interface AdminApiConfig {
   supabaseUrl: string;

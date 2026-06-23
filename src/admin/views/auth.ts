@@ -1,7 +1,7 @@
 import { adminActions, adminForms } from "../core/contracts";
 import { disabledAttr } from "./html";
 import type { StatusMessage } from "../core/types";
-import { escapeHtml } from "../core/utils";
+import { escapeHtml } from "../core/format";
 import { renderStatusMessage } from "./html";
 
 interface AuthViewInput {

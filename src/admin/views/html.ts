@@ -1,5 +1,5 @@
 import type { StatusMessage } from "../core/types";
-import { escapeHtml } from "../core/utils";
+import { escapeHtml } from "../core/format";
 
 export function disabledAttr(disabled: boolean): string {
   return disabled ? "disabled" : "";

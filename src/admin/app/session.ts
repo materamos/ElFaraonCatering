@@ -23,7 +23,7 @@ import type {
   StatusMessage,
   StatusTone,
 } from "../core/types";
-import { getFormString } from "../core/utils";
+import { getFormString } from "../core/forms";
 
 interface AdminSessionContext {
   config: AdminApiConfig;

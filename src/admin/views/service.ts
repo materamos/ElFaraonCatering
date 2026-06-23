@@ -11,7 +11,7 @@ import type {
   ServiceSectionId,
 } from "../core/types";
 import type { AdminViewState } from "../core/viewState";
-import { escapeHtml, formatAmount } from "../core/utils";
+import { escapeHtml, formatAmount } from "../core/format";
 
 export function renderServiceTab(
   state: AdminOperationalState,

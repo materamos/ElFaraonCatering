@@ -16,7 +16,8 @@ import {
   getEditableAvailabilityProfiles,
   getVisibleAvailabilityTargets,
 } from "../core/selectors";
-import { escapeHtml, getTargetKey } from "../core/utils";
+import { getTargetKey } from "../core/adminState";
+import { escapeHtml } from "../core/format";
 
 export function renderAvailabilityTab(
   state: AdminOperationalState,

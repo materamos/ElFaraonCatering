@@ -2,7 +2,7 @@ import { adminActions } from "../core/contracts";
 import { disabledAttr, renderStatusMessage } from "./html";
 import type { AdminOperationalState, AdminTabId, StatusMessage } from "../core/types";
 import type { AdminViewState } from "../core/viewState";
-import { escapeHtml, roleLabel } from "../core/utils";
+import { escapeHtml, roleLabel } from "../core/format";
 
 interface AdminShellInput {
   state: AdminOperationalState;

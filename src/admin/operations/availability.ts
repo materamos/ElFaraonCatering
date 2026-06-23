@@ -1,5 +1,5 @@
 import type { AvailabilityTargetState, RpcResult } from "../core/types";
-import { resultMessage } from "../core/utils";
+import { resultMessage } from "../core/responses";
 import type { AdminOperationContext } from "./types";
 
 export function createAvailabilityOperations(context: AdminOperationContext) {

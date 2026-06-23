@@ -14,7 +14,6 @@ const { requireAdminModule } = await compileAdminModules("admin-render-contracts
   "src/admin/views/service.ts",
   "src/admin/core/contracts.ts",
   "src/admin/core/types.ts",
-  "src/admin/core/utils.ts",
 ]);
 
 const authView = requireAdminModule("views/auth");

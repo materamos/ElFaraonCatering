@@ -1,4 +1,5 @@
-import { getFormInteger, getFormString, resultMessage } from "../core/utils";
+import { getFormInteger, getFormString } from "../core/forms";
+import { resultMessage } from "../core/responses";
 import { publicationStatus } from "./helpers";
 import type { AdminOperationContext } from "./types";
 

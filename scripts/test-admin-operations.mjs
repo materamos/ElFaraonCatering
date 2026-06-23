@@ -17,7 +17,6 @@ test.after(() => {
 const { requireAdminModule } = await compileAdminModules("admin-operations-tests", [
   "src/admin/operations/index.ts",
   "src/admin/core/types.ts",
-  "src/admin/core/utils.ts",
 ]);
 
 const { createAdminOperations } = requireAdminModule("operations/index");

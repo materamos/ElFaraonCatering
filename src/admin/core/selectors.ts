@@ -12,7 +12,7 @@ import type {
   ProfileState,
   ServiceKind,
 } from "./types";
-import { getOverlayKey, getTargetKey } from "./utils";
+import { getOverlayKey, getTargetKey } from "./adminState";
 import { getFixedOptionsOnlyRule } from "./rules";
 
 export interface AvailabilityGroupOption {

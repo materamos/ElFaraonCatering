@@ -1,5 +1,5 @@
 import type { AdminOperationalState, RpcResult } from "../core/types";
-import { normalizeAdminState } from "../core/utils";
+import { normalizeAdminState } from "../core/adminState";
 
 const requestedPublishHashStorageKey = "el-faraon-admin-requested-publish-hash";
 const publishCooldownStorageKey = "el-faraon-admin-publish-cooldown-ends-at";

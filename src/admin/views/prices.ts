@@ -8,7 +8,7 @@ import {
   escapeHtml,
   formatAmount,
   formatPricingLabel,
-} from "../core/utils";
+} from "../core/format";
 import { disabledAttr, hiddenInput, renderEmpty } from "./html";
 
 export function renderFixedPriceRows(

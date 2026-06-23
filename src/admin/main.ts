@@ -28,12 +28,9 @@ import {
   renderSetPassword,
   setAdminViewContext,
 } from "./views/renderer";
-import {
-  getTrimmedValue,
-  normalizeAdminState,
-  normalizeSupabaseProjectUrl,
-  toOperationalErrorMessage,
-} from "./core/utils";
+import { normalizeAdminState } from "./core/adminState";
+import { toOperationalErrorMessage } from "./core/responses";
+import { getTrimmedValue, normalizeSupabaseProjectUrl } from "./core/url";
 
 const rootElement = document.querySelector<HTMLElement>("[data-admin-root]");
 

@@ -1,20 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  compileAdminModules,
-  createState,
-} from "./test-admin-helpers.mjs";
+import { compileAdminModules, createState } from "./test-admin-helpers.mjs";
 
 const { requireAdminModule } = await compileAdminModules("admin-rules-selectors-tests", [
   "src/admin/core/rules.ts",
   "src/admin/core/selectors.ts",
   "src/admin/core/types.ts",
-  "src/admin/core/utils.ts",
+  "src/admin/core/adminState.ts",
 ]);
 
 const rules = requireAdminModule("core/rules");
 const selectors = requireAdminModule("core/selectors");
-const utils = requireAdminModule("core/utils");
+const adminState = requireAdminModule("core/adminState");
 
 test("availability targets match each profile active service", () => {
   const state = createState();
@@ -50,7 +47,7 @@ test("invalid availability filters fall back to first editable profile and group
     groupFilter: "missing-group",
   });
 
-  assert.deepEqual(targets.map((target) => utils.getTargetKey(target)), [
+  assert.deepEqual(targets.map((target) => adminState.getTargetKey(target)), [
     "corpo/daily/main",
   ]);
 });
