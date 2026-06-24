@@ -467,7 +467,7 @@
   .compact-item__title {
     overflow-wrap: anywhere;
     color: var(--color-ink);
-    font-size: 0.9375rem;
+    font-size: 1rem;
     font-weight: 600;
     line-height: 1.25rem;
   }
@@ -482,8 +482,8 @@
   .dish-card__price,
   .dish-card__variant-price {
     color: var(--color-ink);
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 400;
     line-height: 1rem;
     letter-spacing: 0.025rem;
     text-align: right;
@@ -493,16 +493,12 @@
   .compact-item__price,
   .compact-item__variant-price {
     color: var(--color-ink);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    line-height: 0.875rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1rem;
     letter-spacing: 0.01875rem;
     text-align: right;
     white-space: nowrap;
-  }
-
-  .compact-item__variant-price {
-    font-weight: 600;
   }
 
   .compact-item__variants,
