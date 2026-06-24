@@ -217,6 +217,25 @@ export function createAdminActionHandlers(context: AdminActionHandlerContext) {
     descriptionField.classList.toggle("admin-description-field--hidden", !field.checked);
   }
 
+  function togglePasswordVisibility(button: HTMLButtonElement): void {
+    const form = button.closest<HTMLFormElement>("form");
+
+    if (!form) {
+      return;
+    }
+
+    const passwordFields = Array.from(form.querySelectorAll<HTMLInputElement>('input[type="password"], input[data-admin-visible-password="true"]'));
+    const shouldShow = passwordFields.some((field) => field.type === "password");
+
+    for (const field of passwordFields) {
+      field.type = shouldShow ? "text" : "password";
+      field.dataset.adminVisiblePassword = shouldShow ? "true" : "false";
+    }
+
+    button.setAttribute("aria-pressed", shouldShow ? "true" : "false");
+    button.innerHTML = shouldShow ? "Ocultar contrase&ntilde;a" : "Ver contrase&ntilde;a";
+  }
+
   function selectAdminTab(tab: AdminTabId, focus: RenderFocusMode = "preserve"): void {
     if (!context.formState.confirmUnsavedChanges()) {
       return;
@@ -232,5 +251,6 @@ export function createAdminActionHandlers(context: AdminActionHandlerContext) {
     handleInput,
     handleTabKeydown,
     toggleCatalogDescriptionField,
+    togglePasswordVisibility,
   };
 }

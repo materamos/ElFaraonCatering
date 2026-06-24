@@ -12,6 +12,16 @@ interface AdminEventHandlerContext {
 
 export function bindAdminEventHandlers(context: AdminEventHandlerContext): void {
   context.root.addEventListener("click", (event) => {
+    const passwordToggle = event.target instanceof Element
+      ? event.target.closest<HTMLButtonElement>("[data-admin-password-toggle]")
+      : null;
+
+    if (passwordToggle && context.root.contains(passwordToggle)) {
+      event.preventDefault();
+      context.actionHandlers.togglePasswordVisibility(passwordToggle);
+      return;
+    }
+
     const target = event.target instanceof Element
       ? event.target.closest<HTMLElement>("[data-admin-action]")
       : null;
