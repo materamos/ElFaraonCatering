@@ -28,11 +28,12 @@ const hasOperationalVariants = variants.some((variant) => variant.availabilityIt
       <h3 class="compact-item__title">
         {item.name}
       </h3>
-      {!hasOperationalVariants && !item.available && (
+      {!hasOperationalVariants && (
         <span
           class="compact-availability-status"
           data-availability-status
-          data-state="unavailable"
+          data-state={item.available ? "available" : "unavailable"}
+          aria-hidden={item.available ? "true" : undefined}
         >
           No disponible
         </span>

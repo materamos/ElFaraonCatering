@@ -74,7 +74,7 @@ const createAvailabilityStatus = (item) => {
 
   if (item.classList.contains("dish-card__option")) {
     status.className = "dish-card__option-status";
-    item.querySelector("span")?.append(status);
+    item.append(status);
 
     return status;
   }
@@ -89,16 +89,16 @@ const applyAvailability = (item, available) => {
   const existingStatus = item.querySelector("[data-availability-status]");
 
   if (available) {
-    const statusParent = existingStatus?.parentElement;
-
-    existingStatus?.remove();
-
     if (
-      item.classList.contains("dish-row") &&
-      statusParent?.classList.contains("dish-card__header-meta") &&
-      statusParent.childElementCount === 0
+      existingStatus &&
+      (item.classList.contains("dish-row") ||
+        item.classList.contains("compact-item"))
     ) {
-      statusParent.remove();
+      existingStatus.dataset.state = "available";
+      existingStatus.textContent = unavailableText;
+      existingStatus.setAttribute("aria-hidden", "true");
+    } else {
+      existingStatus?.remove();
     }
 
     item.dataset.available = "true";
@@ -110,6 +110,7 @@ const applyAvailability = (item, available) => {
 
   item.dataset.available = "false";
   status.dataset.state = "unavailable";
+  status.removeAttribute("aria-hidden");
   status.textContent = unavailableText;
 };
 

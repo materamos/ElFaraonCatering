@@ -70,13 +70,14 @@ const hasFooterContent = Boolean(
         </p>
       )}
     </div>
-    {((!hasOperationalVariants && !available) || directPricingText) && (
+    {(!hasOperationalVariants || directPricingText) && (
       <div class="dish-card__header-meta">
-        {!hasOperationalVariants && !available && (
+        {!hasOperationalVariants && (
           <span
             class="status-pill"
             data-availability-status
-            data-state="unavailable"
+            data-state={available ? "available" : "unavailable"}
+            aria-hidden={available ? "true" : undefined}
           >
             No disponible
           </span>
