@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   compileAdminModules,
+  createCatalogItem,
   createState,
+  createTarget,
   createViewState,
 } from "./test-admin-helpers.mjs";
 
@@ -65,6 +67,63 @@ test("availability view exposes set and clear overlay actions", () => {
 
   assert.ok(hasAction(html, adminActions.setOverlay));
   assert.ok(hasAction(html, adminActions.clearOverlay));
+});
+
+test("availability view groups catalog options under their parent item", () => {
+  const sectionId = "tartas-tortillas-omelettes";
+  const state = createState({
+    availability_targets: [
+      createTarget("corpo", "catalog", sectionId, "tartas", "Tartas"),
+      createTarget("corpo", "catalog", sectionId, "tartas-jamon-queso", "Tartas - Jamon y queso"),
+      createTarget("corpo", "catalog", sectionId, "tortilla", "Tortilla"),
+      createTarget("corpo", "catalog", sectionId, "omelette", "Omelette"),
+      createTarget("corpo", "catalog", sectionId, "tartas-jamon-verdeo", "Tartas - Jamon y verdeo"),
+    ],
+    catalog_editor: {
+      sections: [{ section_id: sectionId, title: "Tartas, tortillas y omelettes", order_index: 0, item_count: 3 }],
+      items: [
+        {
+          ...createCatalogItem(sectionId, "tartas", "Tartas", ["jamon-queso", "jamon-verdeo"]),
+          options: [
+            {
+              section_id: sectionId,
+              item_id: "tartas",
+              option_id: "jamon-queso",
+              name: "Jamon y queso",
+              order_index: 0,
+            },
+            {
+              section_id: sectionId,
+              item_id: "tartas",
+              option_id: "jamon-verdeo",
+              name: "Jamon y verdeo",
+              order_index: 1,
+            },
+          ],
+        },
+        createCatalogItem(sectionId, "tortilla", "Tortilla", []),
+        createCatalogItem(sectionId, "omelette", "Omelette", []),
+      ],
+    },
+  });
+  const html = availabilityView.renderAvailabilityTab(
+    state,
+    createViewState({
+      availabilityProfileFilter: "corpo",
+      availabilityGroupFilter: `section:${sectionId}`,
+    }),
+    false,
+  );
+
+  assert.ok(html.includes('data-target-key="corpo/tartas-tortillas-omelettes/tartas-jamon-queso"'));
+  assert.ok(html.includes('class="admin-row admin-row--nested"'));
+  assertOrder(html, [
+    "Tartas",
+    "Jamon y queso",
+    "Jamon y verdeo",
+    "Tortilla",
+    "Omelette",
+  ]);
 });
 
 test("fixed menu view exposes item, option, and price form contracts", () => {
@@ -144,4 +203,15 @@ function hasForm(html, form) {
 
 function hasAction(html, action) {
   return html.includes(`data-admin-action="${action}"`);
+}
+
+function assertOrder(text, values) {
+  let lastIndex = -1;
+
+  for (const value of values) {
+    const index = text.indexOf(value);
+
+    assert.ok(index > lastIndex, `${value} should appear after the previous value`);
+    lastIndex = index;
+  }
 }

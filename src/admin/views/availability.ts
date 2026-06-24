@@ -4,6 +4,7 @@ import type {
   AdminOperationalState,
   AvailabilityOverlayState,
   AvailabilityTargetState,
+  CatalogItemState,
 } from "../core/types";
 import type { AdminViewState } from "../core/viewState";
 import {
@@ -90,7 +91,7 @@ function renderAvailabilityRows(
 
   return `
     ${renderAvailabilityTargetSection(state, "Servicio activo", serviceTargets, isBusy, { collapseGrillFamilies: true })}
-    ${renderAvailabilityTargetSection(state, "Menú fijo", catalogTargets, isBusy)}
+    ${renderAvailabilityTargetSection(state, "Menú fijo", catalogTargets, isBusy, { groupCatalogOptions: true })}
   `;
 }
 
@@ -99,11 +100,13 @@ function renderAvailabilityTargetSection(
   title: string,
   targets: AvailabilityTargetState[],
   isBusy: boolean,
-  options: { collapseGrillFamilies?: boolean } = {},
+  options: { collapseGrillFamilies?: boolean; groupCatalogOptions?: boolean } = {},
 ): string {
   const rows = options.collapseGrillFamilies
     ? buildAvailabilityRows(state, targets, isBusy)
-    : targets.map((target) => renderAvailabilityRow(state, target, isBusy));
+    : options.groupCatalogOptions
+      ? buildCatalogAvailabilityRows(state, targets, isBusy)
+      : targets.map((target) => renderAvailabilityRow(state, target, isBusy));
 
   if (rows.length === 0) {
     return "";
@@ -147,22 +150,89 @@ function buildAvailabilityRows(
   return rows;
 }
 
+function buildCatalogAvailabilityRows(
+  state: AdminOperationalState,
+  targets: AvailabilityTargetState[],
+  isBusy: boolean,
+): string[] {
+  const rows: string[] = [];
+  const targetByKey = new Map(targets.map((target) => [getTargetKey(target), target]));
+  const renderedKeys = new Set<string>();
+  const menuId = targets[0]?.menu_id;
+
+  for (const item of state.catalog_editor.items) {
+    const parentKey = getCatalogTargetKey(menuId, item.section_id, item.item_id);
+    const parentTarget = parentKey ? targetByKey.get(parentKey) : undefined;
+    const optionTargets = item.options
+      .map((option) => {
+        const optionKey = getCatalogTargetKey(menuId, item.section_id, `${item.item_id}-${option.option_id}`);
+
+        return optionKey ? targetByKey.get(optionKey) : undefined;
+      })
+      .filter((target): target is AvailabilityTargetState => Boolean(target));
+
+    if (!parentTarget && optionTargets.length === 0) {
+      continue;
+    }
+
+    if (parentTarget) {
+      rows.push(renderAvailabilityRow(state, parentTarget, isBusy));
+      renderedKeys.add(getTargetKey(parentTarget));
+    }
+
+    for (const optionTarget of optionTargets) {
+      rows.push(renderAvailabilityRow(state, optionTarget, isBusy, {
+        displayName: getCatalogOptionDisplayName(item, optionTarget),
+        metaSuffix: item.name,
+        rowClass: "admin-row--nested",
+      }));
+      renderedKeys.add(getTargetKey(optionTarget));
+    }
+  }
+
+  for (const target of targets) {
+    if (renderedKeys.has(getTargetKey(target))) {
+      continue;
+    }
+
+    rows.push(renderAvailabilityRow(state, target, isBusy));
+  }
+
+  return rows;
+}
+
+function getCatalogTargetKey(menuId: string | undefined, sectionId: string, itemId: string): string | undefined {
+  return menuId ? `${menuId}/${sectionId}/${itemId}` : undefined;
+}
+
+function getCatalogOptionDisplayName(item: CatalogItemState, target: AvailabilityTargetState): string {
+  const optionPrefix = `${item.item_id}-`;
+  const optionId = target.item_id.startsWith(optionPrefix)
+    ? target.item_id.slice(optionPrefix.length)
+    : "";
+  const option = item.options.find((entry) => entry.option_id === optionId);
+
+  return option?.name ?? target.name;
+}
+
 function renderAvailabilityRow(
   state: AdminOperationalState,
   target: AvailabilityTargetState,
   isBusy: boolean,
+  options: { displayName?: string; metaSuffix?: string; rowClass?: string } = {},
 ): string {
   const overlay = findOverlay(state, target);
   const effectiveAvailable = overlay ? overlay.available_override : target.base_available;
   const key = getTargetKey(target);
 
   return `
-    <div class="admin-row">
+    <div class="admin-row${options.rowClass ? ` ${escapeHtml(options.rowClass)}` : ""}">
       <div class="admin-row__main">
-        <p class="admin-row__title">${escapeHtml(target.name)}</p>
+        <p class="admin-row__title">${escapeHtml(options.displayName ?? target.name)}</p>
         <p class="admin-row__meta">
           ${escapeHtml(formatAvailabilityKindLabel(target))} &middot; ${escapeHtml(target.profile_title)} &middot; ${escapeHtml(target.section_title)}
           ${target.group_title ? ` &middot; ${escapeHtml(target.group_title)}` : ""}
+          ${options.metaSuffix ? ` &middot; ${escapeHtml(options.metaSuffix)}` : ""}
         </p>
         ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
         <div class="admin-row__status">

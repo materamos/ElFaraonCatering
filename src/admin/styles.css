@@ -658,6 +658,16 @@
     border-bottom: 1px solid var(--admin-border);
   }
 
+  .admin-row--nested {
+    margin-left: 0.75rem;
+    background: var(--admin-surface);
+  }
+
+  .admin-row--nested .admin-row__title {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
   .admin-row__main {
     display: grid;
     gap: 0.3rem;
