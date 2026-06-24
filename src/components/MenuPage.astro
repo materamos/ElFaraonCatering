@@ -20,25 +20,6 @@ const getSectionNavLabel = (section: MenuSectionData) =>
     : section.sectionId === "promociones"
       ? "Promos cafetería"
       : section.title;
-const getPaymentValue = (value: string) =>
-  value
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .map((part) => {
-      const normalizedPart = part.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-
-      if (normalizedPart === "tarjeta credito") {
-        return "Tarjeta de Cr\u00e9dito";
-      }
-
-      if (normalizedPart === "tarjeta debito") {
-        return "Tarjeta de D\u00e9bito";
-      }
-
-      return part;
-    })
-    .join(" • ");
 ---
 
 <BaseLayout
@@ -78,7 +59,7 @@ const getPaymentValue = (value: string) =>
     {paymentFact && (
       <section class="menu-page__payment-card" aria-label="Medios de pago">
         <p class="menu-page__fact-label">MEDIOS DE PAGO</p>
-        <p class="menu-page__payment-value">{getPaymentValue(paymentFact.value)}</p>
+        <p class="menu-page__payment-value">{paymentFact.value}</p>
       </section>
     )}
 
