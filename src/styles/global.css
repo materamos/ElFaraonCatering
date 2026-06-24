@@ -728,12 +728,17 @@
   }
 
   .photo-sheet__panel {
+    --photo-card-bg: #f6ecdd;
+    --photo-card-ink: #1b0e09;
+    --photo-card-muted: #4a382a;
+    --photo-card-line: #b49a82;
+    --photo-card-accent: #da6031;
     width: 100%;
     max-height: calc(100dvh - 2rem);
     overflow: auto;
     padding: 1rem;
-    background: #f6ecdd;
-    border: 1px solid var(--color-line);
+    background: var(--photo-card-bg);
+    border: 1px solid var(--photo-card-line);
     border-radius: var(--radius-panel);
   }
 
@@ -747,20 +752,24 @@
   .photo-sheet__close {
     min-height: 2.25rem;
     padding: 0.4rem 0.75rem;
-    color: var(--color-ink);
+    color: var(--photo-card-ink);
     font: inherit;
     font-size: 0.9rem;
     font-weight: 650;
     line-height: 1.25;
     cursor: pointer;
     background: transparent;
-    border: 1px solid var(--color-line);
+    border: 1px solid var(--photo-card-line);
     border-radius: var(--radius-small);
+  }
+
+  .photo-sheet__header .eyebrow {
+    color: var(--photo-card-accent);
   }
 
   .photo-sheet__title {
     margin-top: 0.75rem;
-    color: var(--color-ink);
+    color: var(--photo-card-ink);
     font-size: clamp(1.5rem, 6vw, 2rem);
   }
 
@@ -770,7 +779,8 @@
     aspect-ratio: 4 / 3;
     margin-top: 1rem;
     overflow: hidden;
-    background: var(--color-page);
+    background: var(--photo-card-ink);
+    border: 1px solid var(--photo-card-line);
     border-radius: var(--radius-small);
   }
 
@@ -783,7 +793,7 @@
 
   .photo-sheet__message {
     padding-inline: 1.5rem;
-    color: var(--color-muted);
+    color: var(--photo-card-muted);
     font-size: 0.95rem;
     font-weight: 600;
     line-height: 1.5;
@@ -807,19 +817,19 @@
     min-width: 6.5rem;
     min-height: 2.25rem;
     padding: 0.4rem 0.75rem;
-    color: var(--color-ink);
+    color: var(--photo-card-ink);
     font: inherit;
     font-size: 0.9rem;
     font-weight: 650;
     line-height: 1.25;
     cursor: pointer;
     background: transparent;
-    border: 1px solid var(--color-line);
+    border: 1px solid var(--photo-card-line);
     border-radius: var(--radius-small);
   }
 
   .photo-sheet__count {
-    color: var(--color-muted);
+    color: var(--photo-card-muted);
     font-size: 0.9rem;
     font-weight: 650;
     line-height: 1.25;
