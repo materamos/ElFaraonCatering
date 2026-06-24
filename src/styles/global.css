@@ -657,6 +657,7 @@
     align-items: baseline;
     justify-content: flex-start;
     gap: 0.25rem;
+    font-weight: 600;
   }
 
   .dish-card__option:not(:last-child)::after {
