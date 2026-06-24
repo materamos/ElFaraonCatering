@@ -828,6 +828,66 @@
     font-weight: 800;
   }
 
+  .admin-account-grid {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .admin-account-card--wide {
+    grid-column: 1 / -1;
+  }
+
+  .admin-account-list {
+    display: grid;
+    gap: 0.65rem;
+    margin: 0;
+  }
+
+  .admin-account-list div,
+  .admin-account-permissions li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem 0.75rem;
+  }
+
+  .admin-account-list dt,
+  .admin-account-permissions span {
+    color: var(--admin-text-soft);
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .admin-account-list dd {
+    margin: 0;
+    color: var(--admin-text-strong);
+    font-weight: 800;
+  }
+
+  .admin-account-permissions {
+    display: grid;
+    gap: 0.65rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .admin-account-permissions strong {
+    color: var(--admin-text-strong);
+    font-size: 0.86rem;
+  }
+
+  .admin-account-password-form {
+    max-width: 28rem;
+  }
+
+  .admin-field__hint {
+    color: var(--admin-text-faint);
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+
   .admin-callout {
     background: var(--admin-bg);
   }
@@ -1151,6 +1211,18 @@
   .admin-form-grid,
   .admin-price-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-account-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-account-password-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-account-password-actions {
+    justify-content: start;
   }
 
   .admin-fixed-form {

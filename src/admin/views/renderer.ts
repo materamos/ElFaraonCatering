@@ -114,7 +114,7 @@ function renderActiveTab(state: AdminOperationalState, activeTab: AdminTabId): s
     return renderFixedMenuTab(state, viewState, isBusy);
   }
 
-  return renderAccountTab(isBusy);
+  return renderAccountTab(state, isBusy);
 }
 
 export function ensureActiveTab(): void {
