@@ -842,6 +842,7 @@
 
   .menu-index__list {
     flex-wrap: wrap;
+    justify-content: center;
     overflow-x: visible;
     overscroll-behavior-inline: auto;
     scroll-padding-inline: 0;

@@ -16,7 +16,7 @@ const scheduleFact = profile.facts.find((fact) => fact.id === "horario");
 const paymentFact = profile.facts.find((fact) => fact.id === "pagos");
 const getSectionNavLabel = (section: MenuSectionData) =>
   section.sectionId === "platos-principales"
-    ? "Platos principales"
+    ? "Principales"
     : section.sectionId === "promociones"
       ? "Promos cafetería"
       : section.title;
