@@ -23,6 +23,20 @@ if (
   let currentPhotoName = "plato";
   let currentPhotoSources = [];
   let currentPhotoIndex = 0;
+  let lockedScrollY = 0;
+
+  const lockPageScroll = () => {
+    lockedScrollY = window.scrollY;
+    document.body.style.top = `-${lockedScrollY}px`;
+    document.body.classList.add("photo-sheet-lock");
+  };
+
+  const unlockPageScroll = () => {
+    document.body.classList.remove("photo-sheet-lock");
+    document.body.style.top = "";
+    window.scrollTo(0, lockedScrollY);
+    lockedScrollY = 0;
+  };
 
   const setPhotoMessage = (message) => {
     const paragraph = document.createElement("p");
@@ -147,6 +161,7 @@ if (
     currentPhotoIndex = 0;
     photoTitle.textContent = currentPhotoName;
     dialog.showModal();
+    lockPageScroll();
     loadPhoto(0);
   });
 
@@ -167,6 +182,7 @@ if (
   });
 
   dialog.addEventListener("close", () => {
+    unlockPageScroll();
     resetPhotoState();
 
     if (lastTrigger instanceof HTMLElement) {
