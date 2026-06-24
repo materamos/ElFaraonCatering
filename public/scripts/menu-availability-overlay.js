@@ -52,8 +52,15 @@ const createAvailabilityStatus = (item) => {
   status.dataset.availabilityStatus = "";
 
   if (item.classList.contains("dish-row")) {
+    const header = item.querySelector(".dish-card__header");
+    const headerMeta =
+      item.querySelector(".dish-card__header-meta") ??
+      document.createElement("div");
+
+    headerMeta.className = "dish-card__header-meta";
     status.className = "status-pill";
-    item.querySelector(".dish-card__header")?.append(status);
+    headerMeta.prepend(status);
+    header?.append(headerMeta);
 
     return status;
   }
@@ -82,7 +89,18 @@ const applyAvailability = (item, available) => {
   const existingStatus = item.querySelector("[data-availability-status]");
 
   if (available) {
+    const statusParent = existingStatus?.parentElement;
+
     existingStatus?.remove();
+
+    if (
+      item.classList.contains("dish-row") &&
+      statusParent?.classList.contains("dish-card__header-meta") &&
+      statusParent.childElementCount === 0
+    ) {
+      statusParent.remove();
+    }
+
     item.dataset.available = "true";
 
     return;
