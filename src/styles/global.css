@@ -519,7 +519,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    color: var(--color-ink);
+    color: var(--color-muted);
     font-size: 0.875rem;
     font-weight: 400;
     line-height: 1.25rem;
@@ -530,7 +530,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 0.75rem;
-    color: var(--color-ink);
+    color: var(--color-muted);
     font-size: 0.8125rem;
     font-weight: 400;
     line-height: 1.125rem;

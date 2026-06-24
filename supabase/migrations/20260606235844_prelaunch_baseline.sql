@@ -486,7 +486,7 @@ values
   ('69', 'cafeteria', 'baguetin-jamon-queso', 'Baguetin de jamón y queso', null, true, 'catalog:cafeteria:item:baguetin-jamon-queso:price', 16),
   ('70', 'cafeteria', 'baguetin-salame', 'Baguetin salame', null, true, 'catalog:cafeteria:item:baguetin-salame:price', 17),
   ('71', 'cafeteria', 'huevos-revueltos-tostadas', 'Huevos revueltos con tostadas', null, true, 'catalog:cafeteria:item:huevos-revueltos-tostadas:price', 18),
-  ('15', 'empanadas', 'empanadas', 'Empanadas', 'Elegí el sabor.', true, 'catalog:empanadas:item:empanadas:price', 0),
+  ('15', 'empanadas', 'empanadas', 'Empanadas', null, true, 'catalog:empanadas:item:empanadas:price', 0),
   ('16', 'ensaladas', 'ensalada-caesar', 'Caesar', 'Lechuga, croutones, queso parmesano y aderezo Caesar.', true, 'catalog:ensaladas:item:ensalada-caesar:price', 0),
   ('17', 'ensaladas', 'ensalada-completa', 'Completa', 'Lechuga, tomate, zanahoria, huevo y choclo.', true, 'catalog:ensaladas:item:ensalada-completa:price', 1),
   ('18', 'ensaladas', 'ensalada-completa-pollo', 'Completa con pollo', 'Lechuga, tomate, zanahoria, huevo, choclo y pollo.', true, 'catalog:ensaladas:item:ensalada-completa-pollo:price', 2),
