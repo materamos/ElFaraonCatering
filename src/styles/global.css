@@ -646,6 +646,23 @@
     gap: 0.35rem;
   }
 
+  .dish-card__option-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .dish-card__option {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 0.25rem;
+  }
+
+  .dish-card__option:not(:last-child)::after {
+    content: "-";
+  }
+
   .status-pill {
     display: inline-flex;
     flex-shrink: 0;
