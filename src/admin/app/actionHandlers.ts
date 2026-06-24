@@ -218,22 +218,18 @@ export function createAdminActionHandlers(context: AdminActionHandlerContext) {
   }
 
   function togglePasswordVisibility(button: HTMLButtonElement): void {
-    const form = button.closest<HTMLFormElement>("form");
+    const field = button.closest<HTMLElement>(".admin-password-field");
+    const input = field?.querySelector<HTMLInputElement>("input");
 
-    if (!form) {
+    if (!input) {
       return;
     }
 
-    const passwordFields = Array.from(form.querySelectorAll<HTMLInputElement>('input[type="password"], input[data-admin-visible-password="true"]'));
-    const shouldShow = passwordFields.some((field) => field.type === "password");
+    const shouldShow = input.type === "password";
 
-    for (const field of passwordFields) {
-      field.type = shouldShow ? "text" : "password";
-      field.dataset.adminVisiblePassword = shouldShow ? "true" : "false";
-    }
-
+    input.type = shouldShow ? "text" : "password";
+    button.setAttribute("aria-label", shouldShow ? "Ocultar contrasena" : "Mostrar contrasena");
     button.setAttribute("aria-pressed", shouldShow ? "true" : "false");
-    button.innerHTML = shouldShow ? "Ocultar contrase&ntilde;a" : "Ver contrase&ntilde;a";
   }
 
   function selectAdminTab(tab: AdminTabId, focus: RenderFocusMode = "preserve"): void {
