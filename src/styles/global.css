@@ -316,8 +316,19 @@
   .menu-index__brand {
     display: none;
     width: 7.5rem;
-    height: auto;
     margin: 0 auto 0.45rem;
+    border-radius: 0.25rem;
+  }
+
+  .menu-index__brand:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 0.25rem;
+  }
+
+  .menu-index__brand-image {
+    display: block;
+    width: 100%;
+    height: auto;
   }
 
   .menu-index--stuck {

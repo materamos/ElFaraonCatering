@@ -28,6 +28,7 @@ const getSectionNavLabel = (section: MenuSectionData) =>
   bodyClass="menu-body"
 >
   <main
+    id="menu-top"
     class="page-shell menu-page"
     data-menu-id={menuId}
     data-supabase-url={publicSupabaseUrl}
@@ -65,14 +66,16 @@ const getSectionNavLabel = (section: MenuSectionData) =>
 
     <span class="menu-index-sentinel" data-menu-index-sentinel aria-hidden="true"></span>
     <nav class="menu-index" aria-labelledby="menu-index-title">
-      <img
-        class="menu-index__brand"
-        src="/brand/el-faraon-logo-reduced.png"
-        width="3720"
-        height="833"
-        alt=""
-        aria-hidden="true"
-      />
+      <a class="menu-index__brand" href="#menu-top" aria-label="Volver al inicio del menu">
+        <img
+          class="menu-index__brand-image"
+          src="/brand/el-faraon-logo-reduced.png"
+          width="3720"
+          height="833"
+          alt=""
+          aria-hidden="true"
+        />
+      </a>
       <h2 class="menu-index__title" id="menu-index-title">Secciones</h2>
       <ul class="menu-index__list">
         {sections.map((section) => (
