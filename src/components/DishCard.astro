@@ -116,22 +116,20 @@ const hasFooterContent = Boolean(
   {hasFooterContent && (
     <div class="dish-card__footer">
       {displayImage && !hasVariantPricing && (
-        <div class="dish-card__price-row dish-card__price-row--with-image">
-          <a
-            class="photo-button"
-            href={displayImage}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-haspopup="dialog"
-            data-photo-trigger
-            data-photo-name={name}
-            data-photo-src={displayImage}
-            data-photo-srcs={JSON.stringify(displayImages)}
-            data-photo-alt={`Foto de ${name}`}
-          >
-            {photoButtonLabel}
-          </a>
-        </div>
+        <a
+          class="photo-button"
+          href={displayImage}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-haspopup="dialog"
+          data-photo-trigger
+          data-photo-name={name}
+          data-photo-src={displayImage}
+          data-photo-srcs={JSON.stringify(displayImages)}
+          data-photo-alt={`Foto de ${name}`}
+        >
+          {photoButtonLabel}
+        </a>
       )}
 
       {hasVariantPricing && (

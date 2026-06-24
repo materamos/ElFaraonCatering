@@ -639,18 +639,6 @@
     letter-spacing: 0.01875rem;
   }
 
-  .dish-card__price-row {
-    display: flex;
-    align-items: baseline;
-    justify-content: flex-end;
-    gap: 1rem;
-  }
-
-  .dish-card__price-row--with-image {
-    align-items: center;
-    justify-content: space-between;
-  }
-
   .dish-card__variants {
     display: grid;
     gap: 0.45rem;
@@ -747,7 +735,6 @@
     --photo-card-ink: #1b0e09;
     --photo-card-muted: #4a382a;
     --photo-card-line: #b49a82;
-    --photo-card-accent: #da6031;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
     gap: 1rem;
