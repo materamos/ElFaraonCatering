@@ -101,15 +101,13 @@ const getSectionNavLabel = (section: MenuSectionData) =>
   <dialog class="photo-sheet" data-photo-sheet aria-labelledby="photo-sheet-title">
     <div class="photo-sheet__panel">
       <div class="photo-sheet__header">
-        <p class="eyebrow">Imagen</p>
+        <h2 class="photo-sheet__title" id="photo-sheet-title" data-photo-title>
+          Foto del plato
+        </h2>
         <button class="photo-sheet__close" type="button" data-photo-close>
           Cerrar
         </button>
       </div>
-
-      <h2 class="photo-sheet__title" id="photo-sheet-title" data-photo-title>
-        Foto del plato
-      </h2>
 
       <div class="photo-frame" data-photo-frame></div>
       <div class="photo-sheet__controls" data-photo-controls hidden>

@@ -28,10 +28,12 @@ if (
   const lockPageScroll = () => {
     lockedScrollY = window.scrollY;
     document.body.style.top = `-${lockedScrollY}px`;
+    document.documentElement.classList.add("photo-sheet-lock");
     document.body.classList.add("photo-sheet-lock");
   };
 
   const unlockPageScroll = () => {
+    document.documentElement.classList.remove("photo-sheet-lock");
     document.body.classList.remove("photo-sheet-lock");
     document.body.style.top = "";
     window.scrollTo(0, lockedScrollY);
