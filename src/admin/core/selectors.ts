@@ -39,6 +39,12 @@ export function getVisibleAvailabilityTargets(state: AdminOperationalState): Ava
   );
 }
 
+export function getHiddenAvailabilityTargets(state: AdminOperationalState): AvailabilityTargetState[] {
+  return getVisibleAvailabilityTargets(state).filter((target) =>
+    findOverlay(state, target)?.available_override === false
+  );
+}
+
 export function getEditableAvailabilityProfiles(state: AdminOperationalState): ProfileState[] {
   return state.profiles.filter((profile) => profile.can_edit_availability);
 }

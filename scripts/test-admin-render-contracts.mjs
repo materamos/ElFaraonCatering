@@ -69,6 +69,65 @@ test("availability view exposes set and clear overlay actions", () => {
   assert.ok(hasAction(html, adminActions.clearOverlay));
 });
 
+test("availability view renders hidden summary before filters", () => {
+  const html = availabilityView.renderAvailabilityTab(
+    createHiddenAvailabilityState(),
+    createViewState({
+      availabilityProfileFilter: "corpo",
+      availabilityGroupFilter: "section:guarniciones",
+    }),
+    false,
+  );
+  const summaryIndex = html.indexOf("admin-availability-summary");
+  const filtersIndex = html.indexOf('data-admin-filter="availability-profile"');
+
+  assert.ok(summaryIndex > -1);
+  assert.ok(filtersIndex > -1);
+  assert.ok(summaryIndex < filtersIndex);
+});
+
+test("availability hidden summary shows both profiles and ignores active filters", () => {
+  const state = createHiddenAvailabilityState();
+  const corpoHtml = availabilityView.renderAvailabilityTab(
+    state,
+    createViewState({
+      availabilityProfileFilter: "corpo",
+      availabilityGroupFilter: "section:guarniciones",
+    }),
+    false,
+  );
+  const teleindeHtml = availabilityView.renderAvailabilityTab(
+    state,
+    createViewState({
+      availabilityProfileFilter: "teleinde",
+      availabilityGroupFilter: "section:parrilla",
+    }),
+    false,
+  );
+  const summaryHtml = getSummaryHtml(corpoHtml);
+
+  assert.equal(summaryHtml, getSummaryHtml(teleindeHtml));
+  assert.ok(summaryHtml.includes("Items ocultos"));
+  assert.ok(summaryHtml.includes("corpo"));
+  assert.ok(summaryHtml.includes("teleinde"));
+  assert.ok(summaryHtml.includes("Servicio activo"));
+  assert.ok(summaryHtml.includes("Menu fijo"));
+  assert.ok(summaryHtml.includes("Volver a mostrar"));
+  assert.ok(summaryHtml.includes(`data-admin-action="${adminActions.setOverlay}"`));
+  assert.ok(summaryHtml.includes('data-available="true"'));
+  assert.ok(summaryHtml.includes('data-family-key="family:teleinde:parrilla:Parrilla"'));
+});
+
+test("availability hidden summary renders an empty state", () => {
+  const html = availabilityView.renderAvailabilityTab(
+    createState(),
+    createViewState(),
+    false,
+  );
+
+  assert.ok(getSummaryHtml(html).includes("No hay items ocultos."));
+});
+
 test("availability view renders catalog options as nested rows", () => {
   const sectionId = "tartas-tortillas-omelettes";
   const state = createState({
@@ -195,6 +254,51 @@ function renderShell(state) {
     currentBusyText: null,
     isBusy: false,
   });
+}
+
+function createHiddenAvailabilityState() {
+  return createState({
+    availability_overlays: [
+      {
+        menu_id: "corpo",
+        section_id: "guarniciones",
+        item_id: "papas",
+        available_override: false,
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+      {
+        menu_id: "teleinde",
+        section_id: "parrilla",
+        item_id: "vacio",
+        available_override: false,
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+      {
+        menu_id: "teleinde",
+        section_id: "parrilla",
+        item_id: "entrana",
+        available_override: false,
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+      {
+        menu_id: "teleinde",
+        section_id: "guarniciones",
+        item_id: "ensalada",
+        available_override: false,
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+    ],
+  });
+}
+
+function getSummaryHtml(html) {
+  const startIndex = html.indexOf("admin-availability-summary");
+  const endIndex = html.indexOf('data-admin-filter="availability-profile"');
+
+  assert.ok(startIndex > -1);
+  assert.ok(endIndex > startIndex);
+
+  return html.slice(startIndex, endIndex);
 }
 
 function hasForm(html, form) {

@@ -28,6 +28,46 @@ test("availability targets match each profile active service", () => {
   ]);
 });
 
+test("hidden availability targets include both profiles and only false visible overlays", () => {
+  const state = createState({
+    availability_overlays: [
+      {
+        menu_id: "corpo",
+        section_id: "guarniciones",
+        item_id: "papas",
+        available_override: false,
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+      {
+        menu_id: "corpo",
+        section_id: "parrilla",
+        item_id: "bife",
+        available_override: false,
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+      {
+        menu_id: "teleinde",
+        section_id: "parrilla",
+        item_id: "vacio",
+        available_override: true,
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+      {
+        menu_id: "teleinde",
+        section_id: "guarniciones",
+        item_id: "ensalada",
+        available_override: false,
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+    ],
+  });
+
+  assert.deepEqual(selectors.getHiddenAvailabilityTargets(state).map((target) => adminState.getTargetKey(target)), [
+    "corpo/guarniciones/papas",
+    "teleinde/guarniciones/ensalada",
+  ]);
+});
+
 test("availability grouping collapses grill and keeps catalog groups", () => {
   const state = createState();
   const teleindeTargets = selectors.getVisibleAvailabilityTargets(state).filter((target) =>

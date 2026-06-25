@@ -14,6 +14,7 @@ import {
   getEffectiveAvailabilityGroupFilter,
   getEffectiveAvailabilityProfileFilter,
   getEditableAvailabilityProfiles,
+  getHiddenAvailabilityTargets,
   getVisibleAvailabilityTargets,
 } from "../core/selectors";
 import { getTargetKey } from "../core/adminState";
@@ -30,10 +31,137 @@ export function renderAvailabilityTab(
         <h2 class="admin-section__title">Disponibilidad</h2>
         <p class="admin-section__copy">Ocultá o volvé a mostrar items visibles. El servicio muestra solo menú del día o parrilla según cada local; menú fijo queda separado.</p>
       </div>
+      ${renderHiddenAvailabilitySummary(state, isBusy)}
       ${renderAvailabilityFilters(state, viewState)}
       ${renderAvailabilityRows(state, viewState, isBusy)}
     </section>
   `;
+}
+
+function renderHiddenAvailabilitySummary(state: AdminOperationalState, isBusy: boolean): string {
+  const hiddenTargets = getHiddenAvailabilityTargets(state);
+
+  if (hiddenTargets.length === 0) {
+    return `
+      <section class="admin-availability-group admin-availability-summary">
+        <div class="admin-list-header">
+          <span>Items ocultos</span>
+          <span>0 items</span>
+        </div>
+        ${renderEmpty("No hay items ocultos.")}
+      </section>
+    `;
+  }
+
+  const profileGroups = groupAvailabilityTargetsByProfile(hiddenTargets);
+
+  return `
+    <section class="admin-availability-group admin-availability-summary">
+      <div class="admin-list-header">
+        <span>Items ocultos</span>
+        <span>${hiddenTargets.length} items &middot; todos los locales</span>
+      </div>
+      ${profileGroups.map((group) => renderHiddenAvailabilityProfileGroup(state, group, isBusy)).join("")}
+    </section>
+  `;
+}
+
+function groupAvailabilityTargetsByProfile(
+  targets: AvailabilityTargetState[],
+): Array<{ menuId: string; profileTitle: string; targets: AvailabilityTargetState[] }> {
+  const groups: Array<{ menuId: string; profileTitle: string; targets: AvailabilityTargetState[] }> = [];
+  const groupMap = new Map<string, { menuId: string; profileTitle: string; targets: AvailabilityTargetState[] }>();
+
+  for (const target of targets) {
+    let group = groupMap.get(target.menu_id);
+
+    if (!group) {
+      group = { menuId: target.menu_id, profileTitle: target.profile_title, targets: [] };
+      groupMap.set(target.menu_id, group);
+      groups.push(group);
+    }
+
+    group.targets.push(target);
+  }
+
+  return groups;
+}
+
+function renderHiddenAvailabilityProfileGroup(
+  state: AdminOperationalState,
+  group: { profileTitle: string; targets: AvailabilityTargetState[] },
+  isBusy: boolean,
+): string {
+  const serviceTargets = group.targets.filter((target) => target.target_kind !== "catalog");
+  const catalogTargets = group.targets.filter((target) => target.target_kind === "catalog");
+  const serviceRows = buildHiddenServiceRows(state, serviceTargets, isBusy);
+  const catalogRows = catalogTargets.map((target) => renderCatalogAvailabilityRow(state, target, isBusy));
+
+  return `
+    <section class="admin-availability-group">
+      <div class="admin-list-header">
+        <span>${escapeHtml(group.profileTitle)}</span>
+        <span>${group.targets.length} items ocultos</span>
+      </div>
+      ${renderHiddenAvailabilitySubsection("Servicio activo", serviceRows)}
+      ${renderHiddenAvailabilitySubsection("Menu fijo", catalogRows)}
+    </section>
+  `;
+}
+
+function renderHiddenAvailabilitySubsection(title: string, rows: string[]): string {
+  if (rows.length === 0) {
+    return "";
+  }
+
+  return `
+    <section class="admin-availability-group">
+      <div class="admin-list-header">
+        <span>${escapeHtml(title)}</span>
+        <span>${rows.length} items</span>
+      </div>
+      <div class="admin-grid">${rows.join("")}</div>
+    </section>
+  `;
+}
+
+function buildHiddenServiceRows(
+  state: AdminOperationalState,
+  hiddenTargets: AvailabilityTargetState[],
+  isBusy: boolean,
+): string[] {
+  const rows: string[] = [];
+  const grillFamilyMap = new Map<string, AvailabilityTargetState[]>();
+
+  for (const target of hiddenTargets) {
+    if (target.target_kind !== "grill") {
+      rows.push(renderAvailabilityRow(state, target, isBusy));
+      continue;
+    }
+
+    const familyKey = getAvailabilityFamilyKey(target);
+    const familyTargets = grillFamilyMap.get(familyKey) ?? [];
+    familyTargets.push(target);
+    grillFamilyMap.set(familyKey, familyTargets);
+  }
+
+  const visibleTargets = getVisibleAvailabilityTargets(state);
+
+  for (const [familyKey, hiddenFamilyTargets] of grillFamilyMap.entries()) {
+    const visibleFamilyTargets = visibleTargets.filter((target) =>
+      target.target_kind === "grill" && getAvailabilityFamilyKey(target) === familyKey
+    );
+    const isWholeFamilyHidden = visibleFamilyTargets.length > 0
+      && visibleFamilyTargets.every((target) => findOverlay(state, target)?.available_override === false);
+
+    if (isWholeFamilyHidden) {
+      rows.push(renderAvailabilityFamilyRow(state, visibleFamilyTargets, isBusy));
+    } else {
+      rows.push(...hiddenFamilyTargets.map((target) => renderAvailabilityRow(state, target, isBusy)));
+    }
+  }
+
+  return rows;
 }
 
 function renderAvailabilityFilters(state: AdminOperationalState, viewState: AdminViewState): string {
