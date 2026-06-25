@@ -53,7 +53,7 @@ function renderHiddenAvailabilitySummary(state: AdminOperationalState, isBusy: b
     `;
   }
 
-  const profileGroups = groupAvailabilityTargetsByProfile(hiddenTargets);
+  const profileGroups = groupAvailabilityTargetsByProfile(state, hiddenTargets);
 
   return `
     <section class="admin-availability-group admin-availability-summary">
@@ -61,30 +61,22 @@ function renderHiddenAvailabilitySummary(state: AdminOperationalState, isBusy: b
         <span>Items ocultos</span>
         <span>${hiddenTargets.length} items &middot; todos los locales</span>
       </div>
-      ${profileGroups.map((group) => renderHiddenAvailabilityProfileGroup(state, group, isBusy)).join("")}
+      <div class="admin-availability-summary__grid">
+        ${profileGroups.map((group) => renderHiddenAvailabilityProfileGroup(state, group, isBusy)).join("")}
+      </div>
     </section>
   `;
 }
 
 function groupAvailabilityTargetsByProfile(
+  state: AdminOperationalState,
   targets: AvailabilityTargetState[],
 ): Array<{ menuId: string; profileTitle: string; targets: AvailabilityTargetState[] }> {
-  const groups: Array<{ menuId: string; profileTitle: string; targets: AvailabilityTargetState[] }> = [];
-  const groupMap = new Map<string, { menuId: string; profileTitle: string; targets: AvailabilityTargetState[] }>();
-
-  for (const target of targets) {
-    let group = groupMap.get(target.menu_id);
-
-    if (!group) {
-      group = { menuId: target.menu_id, profileTitle: target.profile_title, targets: [] };
-      groupMap.set(target.menu_id, group);
-      groups.push(group);
-    }
-
-    group.targets.push(target);
-  }
-
-  return groups;
+  return getEditableAvailabilityProfiles(state).map((profile) => ({
+    menuId: profile.id,
+    profileTitle: profile.title,
+    targets: targets.filter((target) => target.menu_id === profile.id),
+  }));
 }
 
 function renderHiddenAvailabilityProfileGroup(
@@ -98,11 +90,12 @@ function renderHiddenAvailabilityProfileGroup(
   const catalogRows = catalogTargets.map((target) => renderCatalogAvailabilityRow(state, target, isBusy));
 
   return `
-    <section class="admin-availability-group">
+    <section class="admin-availability-group admin-availability-summary__profile">
       <div class="admin-list-header">
         <span>${escapeHtml(group.profileTitle)}</span>
         <span>${group.targets.length} items ocultos</span>
       </div>
+      ${group.targets.length === 0 ? renderEmpty("No hay items ocultos.") : ""}
       ${renderHiddenAvailabilitySubsection("Servicio activo", serviceRows)}
       ${renderHiddenAvailabilitySubsection("Menu fijo", catalogRows)}
     </section>
@@ -147,17 +140,13 @@ function buildHiddenServiceRows(
 
   const visibleTargets = getVisibleAvailabilityTargets(state);
 
-  for (const [familyKey, hiddenFamilyTargets] of grillFamilyMap.entries()) {
+  for (const familyKey of grillFamilyMap.keys()) {
     const visibleFamilyTargets = visibleTargets.filter((target) =>
       target.target_kind === "grill" && getAvailabilityFamilyKey(target) === familyKey
     );
-    const isWholeFamilyHidden = visibleFamilyTargets.length > 0
-      && visibleFamilyTargets.every((target) => findOverlay(state, target)?.available_override === false);
 
-    if (isWholeFamilyHidden) {
+    if (visibleFamilyTargets.length > 0) {
       rows.push(renderAvailabilityFamilyRow(state, visibleFamilyTargets, isBusy));
-    } else {
-      rows.push(...hiddenFamilyTargets.map((target) => renderAvailabilityRow(state, target, isBusy)));
     }
   }
 
@@ -333,7 +322,7 @@ function renderAvailabilityRow(
   return `
     <div class="admin-row${options.rowClass ? ` ${escapeHtml(options.rowClass)}` : ""}">
       <div class="admin-row__main">
-        <p class="admin-row__title">${escapeHtml(options.displayName ?? target.name)} - ${escapeHtml(target.profile_title)}</p>
+        <p class="admin-row__title">${escapeHtml(options.displayName ?? target.name)} <span class="admin-row__title-meta">- ${escapeHtml(target.profile_title)}</span></p>
         <div class="admin-row__status">
           ${renderAvailabilityStatus(effectiveAvailable)}
         </div>
@@ -358,7 +347,7 @@ function renderAvailabilityFamilyRow(
   return `
     <div class="admin-row">
       <div class="admin-row__main">
-        <p class="admin-row__title">${escapeHtml(familyTarget.group_title ?? familyTarget.name)} - ${escapeHtml(familyTarget.profile_title)}</p>
+        <p class="admin-row__title">${escapeHtml(familyTarget.group_title ?? familyTarget.name)} <span class="admin-row__title-meta">- ${escapeHtml(familyTarget.profile_title)}</span></p>
         <div class="admin-row__status">
           ${renderAvailabilityStatus(effectiveAvailable)}
         </div>

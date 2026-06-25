@@ -79,7 +79,7 @@ test("availability rows show item name with profile only", () => {
     false,
   );
 
-  assert.ok(html.includes("Papas - corpo"));
+  assert.ok(html.includes('Papas <span class="admin-row__title-meta">- corpo</span>'));
   assert.equal(html.includes("Menú fijo · corpo · guarniciones"), false);
   assert.equal(html.includes("guarniciones · Papas"), false);
 });
@@ -123,6 +123,8 @@ test("availability hidden summary shows both profiles and ignores active filters
 
   assert.equal(summaryHtml, getSummaryHtml(teleindeHtml));
   assert.ok(summaryHtml.includes("Items ocultos"));
+  assert.ok(summaryHtml.includes("admin-availability-summary__grid"));
+  assert.ok(summaryHtml.includes("admin-availability-summary__profile"));
   assert.ok(summaryHtml.includes("corpo"));
   assert.ok(summaryHtml.includes("teleinde"));
   assert.ok(summaryHtml.includes("Servicio activo"));
@@ -131,6 +133,28 @@ test("availability hidden summary shows both profiles and ignores active filters
   assert.ok(summaryHtml.includes(`data-admin-action="${adminActions.setOverlay}"`));
   assert.ok(summaryHtml.includes('data-available="true"'));
   assert.ok(summaryHtml.includes('data-family-key="family:teleinde:parrilla:Parrilla"'));
+});
+
+test("availability hidden summary restores grill as a family when partially hidden", () => {
+  const html = availabilityView.renderAvailabilityTab(
+    createState({
+      availability_overlays: [
+        {
+          menu_id: "teleinde",
+          section_id: "parrilla",
+          item_id: "vacio",
+          available_override: false,
+          updated_at: "2026-01-01T00:00:00Z",
+        },
+      ],
+    }),
+    createViewState(),
+    false,
+  );
+  const summaryHtml = getSummaryHtml(html);
+
+  assert.ok(summaryHtml.includes('data-family-key="family:teleinde:parrilla:Parrilla"'));
+  assert.equal(summaryHtml.includes('data-target-key="teleinde/parrilla/vacio"'), false);
 });
 
 test("availability hidden summary renders an empty state", () => {
