@@ -4,7 +4,6 @@ import type {
   AdminOperationalState,
   AvailabilityOverlayState,
   AvailabilityTargetState,
-  CatalogItemState,
 } from "../core/types";
 import type { AdminViewState } from "../core/viewState";
 import {
@@ -105,7 +104,7 @@ function renderAvailabilityTargetSection(
   const rows = options.collapseGrillFamilies
     ? buildAvailabilityRows(state, targets, isBusy)
     : options.groupCatalogOptions
-      ? buildCatalogAvailabilityRows(state, targets, isBusy)
+      ? targets.map((target) => renderCatalogAvailabilityRow(state, target, isBusy))
       : targets.map((target) => renderAvailabilityRow(state, target, isBusy));
 
   if (rows.length === 0) {
@@ -150,69 +149,48 @@ function buildAvailabilityRows(
   return rows;
 }
 
-function buildCatalogAvailabilityRows(
+function renderCatalogAvailabilityRow(
   state: AdminOperationalState,
-  targets: AvailabilityTargetState[],
+  target: AvailabilityTargetState,
   isBusy: boolean,
-): string[] {
-  const rows: string[] = [];
-  const targetByKey = new Map(targets.map((target) => [getTargetKey(target), target]));
-  const renderedKeys = new Set<string>();
-  const menuId = targets[0]?.menu_id;
+): string {
+  const optionDisplay = getCatalogOptionDisplay(state, target);
 
+  if (!optionDisplay) {
+    return renderAvailabilityRow(state, target, isBusy);
+  }
+
+  return renderAvailabilityRow(state, target, isBusy, {
+    displayName: optionDisplay.optionName,
+    metaSuffix: optionDisplay.itemName,
+    rowClass: "admin-row--nested",
+  });
+}
+
+function getCatalogOptionDisplay(
+  state: AdminOperationalState,
+  target: AvailabilityTargetState,
+): { itemName: string; optionName: string } | undefined {
   for (const item of state.catalog_editor.items) {
-    const parentKey = getCatalogTargetKey(menuId, item.section_id, item.item_id);
-    const parentTarget = parentKey ? targetByKey.get(parentKey) : undefined;
-    const optionTargets = item.options
-      .map((option) => {
-        const optionKey = getCatalogTargetKey(menuId, item.section_id, `${item.item_id}-${option.option_id}`);
-
-        return optionKey ? targetByKey.get(optionKey) : undefined;
-      })
-      .filter((target): target is AvailabilityTargetState => Boolean(target));
-
-    if (!parentTarget && optionTargets.length === 0) {
+    if (item.section_id !== target.section_id) {
       continue;
     }
 
-    if (parentTarget) {
-      rows.push(renderAvailabilityRow(state, parentTarget, isBusy));
-      renderedKeys.add(getTargetKey(parentTarget));
-    }
+    const optionPrefix = `${item.item_id}-`;
 
-    for (const optionTarget of optionTargets) {
-      rows.push(renderAvailabilityRow(state, optionTarget, isBusy, {
-        displayName: getCatalogOptionDisplayName(item, optionTarget),
-        metaSuffix: item.name,
-        rowClass: "admin-row--nested",
-      }));
-      renderedKeys.add(getTargetKey(optionTarget));
-    }
-  }
-
-  for (const target of targets) {
-    if (renderedKeys.has(getTargetKey(target))) {
+    if (!target.item_id.startsWith(optionPrefix)) {
       continue;
     }
 
-    rows.push(renderAvailabilityRow(state, target, isBusy));
+    const optionId = target.item_id.slice(optionPrefix.length);
+    const option = item.options.find((entry) => entry.option_id === optionId);
+
+    if (option) {
+      return { itemName: item.name, optionName: option.name };
+    }
   }
 
-  return rows;
-}
-
-function getCatalogTargetKey(menuId: string | undefined, sectionId: string, itemId: string): string | undefined {
-  return menuId ? `${menuId}/${sectionId}/${itemId}` : undefined;
-}
-
-function getCatalogOptionDisplayName(item: CatalogItemState, target: AvailabilityTargetState): string {
-  const optionPrefix = `${item.item_id}-`;
-  const optionId = target.item_id.startsWith(optionPrefix)
-    ? target.item_id.slice(optionPrefix.length)
-    : "";
-  const option = item.options.find((entry) => entry.option_id === optionId);
-
-  return option?.name ?? target.name;
+  return undefined;
 }
 
 function renderAvailabilityRow(

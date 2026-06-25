@@ -69,15 +69,15 @@ test("availability view exposes set and clear overlay actions", () => {
   assert.ok(hasAction(html, adminActions.clearOverlay));
 });
 
-test("availability view groups catalog options under their parent item", () => {
+test("availability view renders catalog options as nested rows", () => {
   const sectionId = "tartas-tortillas-omelettes";
   const state = createState({
     availability_targets: [
       createTarget("corpo", "catalog", sectionId, "tartas", "Tartas"),
       createTarget("corpo", "catalog", sectionId, "tartas-jamon-queso", "Tartas - Jamon y queso"),
+      createTarget("corpo", "catalog", sectionId, "tartas-jamon-verdeo", "Tartas - Jamon y verdeo"),
       createTarget("corpo", "catalog", sectionId, "tortilla", "Tortilla"),
       createTarget("corpo", "catalog", sectionId, "omelette", "Omelette"),
-      createTarget("corpo", "catalog", sectionId, "tartas-jamon-verdeo", "Tartas - Jamon y verdeo"),
     ],
     catalog_editor: {
       sections: [{ section_id: sectionId, title: "Tartas, tortillas y omelettes", order_index: 0, item_count: 3 }],
