@@ -599,7 +599,7 @@
   }
 
   [data-availability-status][data-state="available"] {
-    visibility: hidden;
+    display: none;
   }
 
   .dish-card__main {
