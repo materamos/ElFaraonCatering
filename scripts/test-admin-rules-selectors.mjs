@@ -35,7 +35,7 @@ test("availability grouping collapses grill and keeps catalog groups", () => {
   );
 
   assert.deepEqual(selectors.getAvailabilityGroupOptions(teleindeTargets), [
-    { key: "section:grill", label: "Parrilla" },
+    { key: "section:parrilla", label: "Parrilla" },
     { key: "section:guarniciones", label: "guarniciones" },
   ]);
 });
@@ -48,7 +48,7 @@ test("invalid availability filters fall back to first editable profile and group
   });
 
   assert.deepEqual(targets.map((target) => adminState.getTargetKey(target)), [
-    "corpo/daily/main",
+    "corpo/menu-del-dia/main",
   ]);
 });
 
@@ -130,11 +130,18 @@ test("service sections are available only when active in at least one profile", 
 
 test("selectors find availability targets and grill family targets", () => {
   const state = createState();
-  const target = selectors.findAvailabilityTarget(state, "teleinde/grill/vacio");
-  const familyTargets = selectors.findAvailabilityFamilyTargets(state, "family:teleinde:grill:Parrilla");
+  const target = selectors.findAvailabilityTarget(state, "teleinde/parrilla/vacio");
+  const familyTargets = selectors.findAvailabilityFamilyTargets(state, "family:teleinde:parrilla:Parrilla");
 
   assert.equal(target.name, "Vacio");
   assert.deepEqual(familyTargets.map((entry) => entry.item_id), ["vacio", "entrana"]);
+});
+
+test("selectors do not resolve inactive service availability targets", () => {
+  const state = createState();
+
+  assert.equal(selectors.findAvailabilityTarget(state, "corpo/parrilla/bife"), undefined);
+  assert.deepEqual(selectors.findAvailabilityFamilyTargets(state, "family:corpo:parrilla:Parrilla"), []);
 });
 
 test("selectors find catalog options and grill families", () => {

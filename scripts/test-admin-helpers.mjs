@@ -89,12 +89,12 @@ export function createState(overrides = {}) {
       },
     ],
     availability_targets: [
-      createTarget("corpo", "daily-menu", "daily", "main", "Menu"),
-      createTarget("corpo", "grill", "grill", "bife", "Bife", "Parrilla"),
+      createTarget("corpo", "daily-menu", "menu-del-dia", "main", "Menu"),
+      createTarget("corpo", "grill", "parrilla", "bife", "Bife", "Parrilla"),
       createTarget("corpo", "catalog", "guarniciones", "papas", "Papas"),
-      createTarget("teleinde", "daily-menu", "daily", "main", "Menu"),
-      createTarget("teleinde", "grill", "grill", "vacio", "Vacio", "Parrilla"),
-      createTarget("teleinde", "grill", "grill", "entrana", "Entrana", "Parrilla"),
+      createTarget("teleinde", "daily-menu", "menu-del-dia", "main", "Menu"),
+      createTarget("teleinde", "grill", "parrilla", "vacio", "Vacio", "Parrilla"),
+      createTarget("teleinde", "grill", "parrilla", "entrana", "Entrana", "Parrilla"),
       createTarget("teleinde", "catalog", "guarniciones", "ensalada", "Ensalada"),
     ],
     availability_overlays: [

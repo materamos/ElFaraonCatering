@@ -33,7 +33,7 @@ test("availability save calls set_menu_availability_overlay", async () => {
       name: "set_menu_availability_overlay",
       body: {
         menu_id: "corpo",
-        section_id: "daily",
+        section_id: "menu-del-dia",
         item_id: "main",
         available_override: false,
       },
@@ -55,7 +55,7 @@ test("availability clear calls clear_menu_availability_overlay", async () => {
       name: "clear_menu_availability_overlay",
       body: {
         menu_id: "corpo",
-        section_id: "daily",
+        section_id: "menu-del-dia",
         item_id: "main",
       },
     },
@@ -77,12 +77,12 @@ test("availability batch save calls set_menu_availability_overlays once", async 
         targets: [
           {
             menu_id: "corpo",
-            section_id: "daily",
+            section_id: "menu-del-dia",
             item_id: "main",
           },
           {
             menu_id: "corpo",
-            section_id: "grill",
+            section_id: "parrilla",
             item_id: "bife",
           },
         ],
@@ -108,7 +108,7 @@ test("availability batch clear calls clear_menu_availability_overlays once", asy
         targets: [
           {
             menu_id: "teleinde",
-            section_id: "grill",
+            section_id: "parrilla",
             item_id: "entrana",
           },
           {

@@ -142,14 +142,14 @@ export function findAvailabilityTarget(
   state: AdminOperationalState,
   key: string,
 ): AvailabilityTargetState | undefined {
-  return state.availability_targets.find((target) => getTargetKey(target) === key);
+  return getVisibleAvailabilityTargets(state).find((target) => getTargetKey(target) === key);
 }
 
 export function findAvailabilityFamilyTargets(
   state: AdminOperationalState,
   key: string,
 ): AvailabilityTargetState[] {
-  return state.availability_targets.filter((target) =>
+  return getVisibleAvailabilityTargets(state).filter((target) =>
     target.target_kind === "grill" && getAvailabilityFamilyKey(target) === key
   );
 }

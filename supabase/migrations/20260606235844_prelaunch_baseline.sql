@@ -793,17 +793,23 @@ AS $function$
   select exists (
     select 1
     from menu_content.menu_profiles profile
+    join menu_content.menu_profile_service_settings settings
+      on settings.profile_id = profile.id
     cross join menu_content.menu_daily_items item
     where profile.id = target_menu_id
       and target_section_id = 'menu-del-dia'
+      and settings.service_kind = 'daily-menu'
       and item.item_id = target_item_id
   )
   or exists (
     select 1
     from menu_content.menu_profiles profile
+    join menu_content.menu_profile_service_settings settings
+      on settings.profile_id = profile.id
     cross join menu_content.menu_grill_catalog_items item
     where profile.id = target_menu_id
       and target_section_id = 'parrilla'
+      and settings.service_kind = 'grill'
       and item.item_id = target_item_id
   )
   or exists (
