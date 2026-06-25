@@ -123,8 +123,8 @@ test("availability hidden summary shows both profiles and ignores active filters
 
   assert.equal(summaryHtml, getSummaryHtml(teleindeHtml));
   assert.ok(summaryHtml.includes("Items ocultos"));
-  assert.ok(summaryHtml.includes("admin-availability-summary__summary"));
-  assert.ok(summaryHtml.includes("Ver lista"));
+  assert.ok(summaryHtml.includes("admin-availability-summary__header"));
+  assert.equal(summaryHtml.includes("Ver lista"), false);
   assert.ok(summaryHtml.includes("Corpo: 1"));
   assert.ok(summaryHtml.includes("Teleinde: 3"));
   assert.ok(summaryHtml.includes("admin-availability-summary__grid"));
