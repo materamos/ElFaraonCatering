@@ -764,14 +764,15 @@
   }
 
   .admin-availability-chip-list {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.42rem;
   }
 
   .admin-availability-chip {
     display: flex;
     width: 100%;
+    min-width: 0;
     max-width: 100%;
     align-items: center;
     justify-content: space-between;
@@ -783,6 +784,7 @@
     color: var(--admin-text-strong);
     font-size: 0.82rem;
     line-height: 1.2;
+    overflow: hidden;
   }
 
   .admin-availability-chip__name {
@@ -791,6 +793,7 @@
     align-items: baseline;
     gap: 0.25rem;
     min-width: 0;
+    overflow: hidden;
     font-weight: 750;
   }
 
@@ -1303,9 +1306,13 @@
     align-items: center;
   }
 
+  .admin-availability-chip-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .admin-availability-chip {
-    width: auto;
-    max-width: min(100%, 24rem);
+    width: 100%;
+    max-width: 100%;
   }
 
   .admin-header__main {
