@@ -730,40 +730,63 @@
     margin-top: 0;
   }
 
-  .admin-availability-summary__grid {
-    display: grid;
-    gap: 0.75rem;
-  }
-
   .admin-availability-summary__header {
     gap: 0.35rem 0.7rem;
   }
 
-  .admin-availability-summary__profile {
-    gap: 0.55rem;
-    align-content: start;
+  .admin-availability-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.42rem;
   }
 
-  .admin-availability-summary .admin-grid {
-    gap: 0.45rem;
-  }
-
-  .admin-availability-summary .admin-row {
+  .admin-availability-chip {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
     gap: 0.35rem;
-    padding: 0.36rem 0.5rem;
+    padding: 0.28rem 0.32rem 0.28rem 0.5rem;
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 999px;
+    color: var(--admin-text-strong);
+    font-size: 0.82rem;
+    line-height: 1.2;
   }
 
-  .admin-availability-summary .admin-row__main {
-    gap: 0.12rem;
+  .admin-availability-chip__profile {
+    flex: 0 0 auto;
+    color: var(--admin-text-soft);
+    font-size: 0.76rem;
+    font-weight: 750;
   }
 
-  .admin-availability-summary .admin-row__title {
-    font-size: 0.9rem;
-    line-height: 1.25;
+  .admin-availability-chip__name {
+    min-width: 0;
+    overflow: hidden;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .admin-availability-summary .admin-row__status {
-    display: none;
+  .admin-availability-chip__action {
+    flex: 0 0 auto;
+    min-height: 1.55rem;
+    padding: 0.18rem 0.5rem;
+    background: var(--admin-surface-card);
+    border: 1px solid var(--admin-danger-soft);
+    border-radius: 999px;
+    color: var(--admin-danger);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .admin-availability-chip__action:disabled {
+    cursor: wait;
+    opacity: 0.6;
   }
 
   .admin-row__state-note {
@@ -1232,9 +1255,8 @@
     align-items: center;
   }
 
-  .admin-availability-summary__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
+  .admin-availability-chip {
+    max-width: min(100%, 24rem);
   }
 
   .admin-header__main {

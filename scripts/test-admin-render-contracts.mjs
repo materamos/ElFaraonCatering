@@ -127,13 +127,13 @@ test("availability hidden summary shows both profiles and ignores active filters
   assert.equal(summaryHtml.includes("Ver lista"), false);
   assert.ok(summaryHtml.includes("Corpo: 1"));
   assert.ok(summaryHtml.includes("Teleinde: 3"));
-  assert.ok(summaryHtml.includes("admin-availability-summary__grid"));
-  assert.ok(summaryHtml.includes("admin-availability-summary__profile"));
+  assert.ok(summaryHtml.includes("admin-availability-chip-list"));
+  assert.ok(summaryHtml.includes("admin-availability-chip"));
   assert.ok(summaryHtml.includes("corpo"));
   assert.ok(summaryHtml.includes("teleinde"));
   assert.equal(summaryHtml.includes("Servicio activo"), false);
   assert.equal(summaryHtml.includes("Menu fijo"), false);
-  assert.ok(summaryHtml.includes("Volver a mostrar"));
+  assert.ok(summaryHtml.includes("Mostrar"));
   assert.ok(summaryHtml.includes(`data-admin-action="${adminActions.setOverlay}"`));
   assert.ok(summaryHtml.includes('data-available="true"'));
   assert.ok(summaryHtml.includes('data-family-key="family:teleinde:parrilla:Parrilla"'));

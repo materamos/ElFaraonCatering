@@ -64,8 +64,8 @@ function renderHiddenAvailabilitySummary(state: AdminOperationalState, isBusy: b
         <span>Items ocultos</span>
         <span>${escapeHtml(summaryLabel)}</span>
       </div>
-      <div class="admin-availability-summary__grid">
-        ${profileGroups.map((group) => renderHiddenAvailabilityProfileGroup(state, group, isBusy)).join("")}
+      <div class="admin-availability-chip-list">
+        ${profileGroups.map((group) => renderHiddenAvailabilityProfileChips(state, group, isBusy)).join("")}
       </div>
     </section>
   `;
@@ -82,41 +82,34 @@ function groupAvailabilityTargetsByProfile(
   }));
 }
 
-function renderHiddenAvailabilityProfileGroup(
+function renderHiddenAvailabilityProfileChips(
   state: AdminOperationalState,
   group: { profileTitle: string; targets: AvailabilityTargetState[] },
   isBusy: boolean,
 ): string {
   const serviceTargets = group.targets.filter((target) => target.target_kind !== "catalog");
   const catalogTargets = group.targets.filter((target) => target.target_kind === "catalog");
-  const rows = [
-    ...buildHiddenServiceRows(state, serviceTargets, isBusy),
-    ...catalogTargets.map((target) => renderCatalogAvailabilityRow(state, target, isBusy)),
+  const chips = [
+    ...buildHiddenServiceChips(state, serviceTargets, isBusy),
+    ...catalogTargets.map((target) => renderCatalogAvailabilityChip(state, target, isBusy)),
   ];
 
   return `
-    <section class="admin-availability-group admin-availability-summary__profile">
-      <div class="admin-list-header">
-        <span>${escapeHtml(group.profileTitle)}</span>
-        <span>${group.targets.length} items ocultos</span>
-      </div>
-      ${group.targets.length === 0 ? renderEmpty("No hay items ocultos.") : ""}
-      ${rows.length > 0 ? `<div class="admin-grid">${rows.join("")}</div>` : ""}
-    </section>
+    ${chips.join("")}
   `;
 }
 
-function buildHiddenServiceRows(
+function buildHiddenServiceChips(
   state: AdminOperationalState,
   hiddenTargets: AvailabilityTargetState[],
   isBusy: boolean,
 ): string[] {
-  const rows: string[] = [];
+  const chips: string[] = [];
   const grillFamilyMap = new Map<string, AvailabilityTargetState[]>();
 
   for (const target of hiddenTargets) {
     if (target.target_kind !== "grill") {
-      rows.push(renderAvailabilityRow(state, target, isBusy));
+      chips.push(renderAvailabilityChip(target, isBusy));
       continue;
     }
 
@@ -134,11 +127,11 @@ function buildHiddenServiceRows(
     );
 
     if (visibleFamilyTargets.length > 0) {
-      rows.push(renderAvailabilityFamilyRow(state, visibleFamilyTargets, isBusy));
+      chips.push(renderAvailabilityFamilyChip(visibleFamilyTargets, isBusy));
     }
   }
 
-  return rows;
+  return chips;
 }
 
 function renderAvailabilityFilters(state: AdminOperationalState, viewState: AdminViewState): string {
@@ -271,6 +264,18 @@ function renderCatalogAvailabilityRow(
   });
 }
 
+function renderCatalogAvailabilityChip(
+  state: AdminOperationalState,
+  target: AvailabilityTargetState,
+  isBusy: boolean,
+): string {
+  const optionDisplay = getCatalogOptionDisplay(state, target);
+
+  return renderAvailabilityChip(target, isBusy, {
+    displayName: optionDisplay?.optionName,
+  });
+}
+
 function getCatalogOptionDisplay(
   state: AdminOperationalState,
   target: AvailabilityTargetState,
@@ -295,6 +300,39 @@ function getCatalogOptionDisplay(
   }
 
   return undefined;
+}
+
+function renderAvailabilityChip(
+  target: AvailabilityTargetState,
+  isBusy: boolean,
+  options: { displayName?: string } = {},
+): string {
+  return `
+    <span class="admin-availability-chip">
+      <span class="admin-availability-chip__profile">${escapeHtml(target.profile_title)}</span>
+      <span class="admin-availability-chip__name">${escapeHtml(options.displayName ?? target.name)}</span>
+      <button class="admin-availability-chip__action" type="button" data-admin-action="${adminActions.setOverlay}" data-target-key="${escapeHtml(getTargetKey(target))}" data-available="true" ${disabledAttr(isBusy)}>
+        Mostrar
+      </button>
+    </span>
+  `;
+}
+
+function renderAvailabilityFamilyChip(
+  familyTargets: AvailabilityTargetState[],
+  isBusy: boolean,
+): string {
+  const familyTarget = familyTargets[0];
+
+  return `
+    <span class="admin-availability-chip">
+      <span class="admin-availability-chip__profile">${escapeHtml(familyTarget.profile_title)}</span>
+      <span class="admin-availability-chip__name">${escapeHtml(familyTarget.group_title ?? familyTarget.name)}</span>
+      <button class="admin-availability-chip__action" type="button" data-admin-action="${adminActions.setOverlay}" data-family-key="${escapeHtml(getAvailabilityFamilyKey(familyTarget))}" data-available="true" ${disabledAttr(isBusy)}>
+        Mostrar
+      </button>
+    </span>
+  `;
 }
 
 function renderAvailabilityRow(
