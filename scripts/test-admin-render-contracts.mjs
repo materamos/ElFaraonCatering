@@ -127,8 +127,8 @@ test("availability hidden summary shows both profiles and ignores active filters
   assert.ok(summaryHtml.includes("admin-availability-summary__profile"));
   assert.ok(summaryHtml.includes("corpo"));
   assert.ok(summaryHtml.includes("teleinde"));
-  assert.ok(summaryHtml.includes("Servicio activo"));
-  assert.ok(summaryHtml.includes("Menu fijo"));
+  assert.equal(summaryHtml.includes("Servicio activo"), false);
+  assert.equal(summaryHtml.includes("Menu fijo"), false);
   assert.ok(summaryHtml.includes("Volver a mostrar"));
   assert.ok(summaryHtml.includes(`data-admin-action="${adminActions.setOverlay}"`));
   assert.ok(summaryHtml.includes('data-available="true"'));

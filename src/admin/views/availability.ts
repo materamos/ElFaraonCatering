@@ -86,8 +86,10 @@ function renderHiddenAvailabilityProfileGroup(
 ): string {
   const serviceTargets = group.targets.filter((target) => target.target_kind !== "catalog");
   const catalogTargets = group.targets.filter((target) => target.target_kind === "catalog");
-  const serviceRows = buildHiddenServiceRows(state, serviceTargets, isBusy);
-  const catalogRows = catalogTargets.map((target) => renderCatalogAvailabilityRow(state, target, isBusy));
+  const rows = [
+    ...buildHiddenServiceRows(state, serviceTargets, isBusy),
+    ...catalogTargets.map((target) => renderCatalogAvailabilityRow(state, target, isBusy)),
+  ];
 
   return `
     <section class="admin-availability-group admin-availability-summary__profile">
@@ -96,24 +98,7 @@ function renderHiddenAvailabilityProfileGroup(
         <span>${group.targets.length} items ocultos</span>
       </div>
       ${group.targets.length === 0 ? renderEmpty("No hay items ocultos.") : ""}
-      ${renderHiddenAvailabilitySubsection("Servicio activo", serviceRows)}
-      ${renderHiddenAvailabilitySubsection("Menu fijo", catalogRows)}
-    </section>
-  `;
-}
-
-function renderHiddenAvailabilitySubsection(title: string, rows: string[]): string {
-  if (rows.length === 0) {
-    return "";
-  }
-
-  return `
-    <section class="admin-availability-group">
-      <div class="admin-list-header">
-        <span>${escapeHtml(title)}</span>
-        <span>${rows.length} items</span>
-      </div>
-      <div class="admin-grid">${rows.join("")}</div>
+      ${rows.length > 0 ? `<div class="admin-grid">${rows.join("")}</div>` : ""}
     </section>
   `;
 }
