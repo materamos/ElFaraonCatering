@@ -786,11 +786,26 @@
   }
 
   .admin-availability-chip__name {
+    display: inline-flex;
     flex: 1 1 auto;
+    align-items: baseline;
+    gap: 0.25rem;
+    min-width: 0;
+    font-weight: 750;
+  }
+
+  .admin-availability-chip__title {
     min-width: 0;
     overflow: hidden;
-    font-weight: 750;
     text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .admin-availability-chip__meta {
+    flex: 0 0 auto;
+    color: var(--admin-text-soft);
+    font-size: 0.76rem;
+    font-weight: 700;
     white-space: nowrap;
   }
 

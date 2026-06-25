@@ -128,7 +128,7 @@ test("availability hidden summary shows both profiles and ignores active filters
   assert.ok(summaryHtml.includes('data-current="true"'));
   assert.equal(summaryHtml.includes("Ver lista"), false);
   assert.ok(summaryHtml.includes("Corpo: 1"));
-  assert.ok(summaryHtml.includes("Teleinde: 3"));
+  assert.ok(summaryHtml.includes("Teleinde: 2"));
   assert.ok(summaryHtml.includes("admin-availability-chip-list"));
   assert.ok(summaryHtml.includes("admin-availability-chip"));
   assert.equal(summaryHtml.includes("Servicio activo"), false);
@@ -154,10 +154,35 @@ test("availability hidden summary profile filter selects one profile only", () =
   const summaryHtml = getSummaryHtml(html);
 
   assert.ok(summaryHtml.includes("Corpo: 1"));
-  assert.ok(summaryHtml.includes("Teleinde: 3"));
+  assert.ok(summaryHtml.includes("Teleinde: 2"));
   assert.ok(summaryHtml.includes('data-family-key="family:teleinde:parrilla:Parrilla"'));
   assert.ok(summaryHtml.includes('data-target-key="teleinde/guarniciones/ensalada"'));
   assert.equal(summaryHtml.includes('data-target-key="corpo/guarniciones/papas"'), false);
+});
+
+test("availability hidden summary chips show group labels", () => {
+  const state = createHiddenAvailabilityLabelsState();
+  const html = availabilityView.renderAvailabilityTab(
+    state,
+    createViewState({ hiddenAvailabilityProfileFilter: "corpo" }),
+    false,
+  );
+  const summaryHtml = getSummaryHtml(html);
+
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Menu del dia</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Guarniciones</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Empanadas</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Ensaladas</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Cafeteria</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Bebidas</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Principales</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Promos cafeteria</span>'));
+  assert.ok(summaryHtml.includes("Jamon y queso"));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Tarta</span>'));
+  assert.equal(summaryHtml.includes('admin-availability-chip__meta">- Platos principales con guarnicion</span>'), false);
+  assert.equal(summaryHtml.includes('admin-availability-chip__meta">- Promociones cafeteria</span>'), false);
+  assert.equal(summaryHtml.includes('admin-availability-chip__meta">- Tortilla</span>'), false);
+  assert.equal(summaryHtml.includes('admin-availability-chip__meta">- Omelette</span>'), false);
 });
 
 test("availability hidden summary restores grill as a family when partially hidden", () => {
@@ -179,6 +204,7 @@ test("availability hidden summary restores grill as a family when partially hidd
   const summaryHtml = getSummaryHtml(html);
 
   assert.ok(summaryHtml.includes('data-family-key="family:teleinde:parrilla:Parrilla"'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Parrilla</span>'));
   assert.equal(summaryHtml.includes('data-target-key="teleinde/parrilla/vacio"'), false);
 });
 
@@ -352,6 +378,61 @@ function createHiddenAvailabilityState() {
         updated_at: "2026-01-01T00:00:00Z",
       },
     ],
+  });
+}
+
+function createHiddenAvailabilityLabelsState() {
+  const targets = [
+    createTarget("corpo", "daily-menu", "menu-del-dia", "main", "Menu del dia"),
+    createTarget("corpo", "catalog", "guarniciones", "papas", "Papas"),
+    createTarget("corpo", "catalog", "empanadas", "empanadas-carne", "Empanadas - Carne"),
+    createTarget("corpo", "catalog", "ensaladas", "cesar", "Cesar"),
+    createTarget("corpo", "catalog", "cafeteria", "cafe-chico", "Cafe chico"),
+    createTarget("corpo", "catalog", "bebidas", "coca-cola", "Coca-Cola"),
+    createTarget("corpo", "catalog", "platos-principales", "milanesa", "Milanesa"),
+    createTarget("corpo", "catalog", "promociones", "combo-cafe", "Combo cafe"),
+    createTarget("corpo", "catalog", "tartas-tortillas-omelettes", "tartas-jamon-queso", "Tartas - Jamon y queso"),
+    createTarget("corpo", "catalog", "tartas-tortillas-omelettes", "tortilla", "Tortilla"),
+    createTarget("corpo", "catalog", "tartas-tortillas-omelettes", "omelette", "Omelette"),
+  ];
+
+  return createState({
+    availability_targets: targets,
+    availability_overlays: targets.map((target) => ({
+      menu_id: target.menu_id,
+      section_id: target.section_id,
+      item_id: target.item_id,
+      available_override: false,
+      updated_at: "2026-01-01T00:00:00Z",
+    })),
+    catalog_editor: {
+      sections: [
+        { section_id: "guarniciones", title: "Guarniciones", order_index: 0, item_count: 1 },
+        { section_id: "empanadas", title: "Empanadas", order_index: 1, item_count: 1 },
+        { section_id: "ensaladas", title: "Ensaladas", order_index: 2, item_count: 1 },
+        { section_id: "cafeteria", title: "Cafeteria", order_index: 3, item_count: 1 },
+        { section_id: "bebidas", title: "Bebidas", order_index: 4, item_count: 1 },
+        { section_id: "platos-principales", title: "Platos principales con guarnicion", order_index: 5, item_count: 1 },
+        { section_id: "promociones", title: "Promociones cafeteria", order_index: 6, item_count: 1 },
+        { section_id: "tartas-tortillas-omelettes", title: "Tartas, tortillas y omelettes", order_index: 7, item_count: 3 },
+      ],
+      items: [
+        createCatalogItem("empanadas", "empanadas", "Empanadas", ["carne"]),
+        createCatalogItem("tartas-tortillas-omelettes", "tartas", "Tartas", ["jamon-queso"], {
+          options: [
+            {
+              section_id: "tartas-tortillas-omelettes",
+              item_id: "tartas",
+              option_id: "jamon-queso",
+              name: "Jamon y queso",
+              order_index: 0,
+            },
+          ],
+        }),
+        createCatalogItem("tartas-tortillas-omelettes", "tortilla", "Tortilla", []),
+        createCatalogItem("tartas-tortillas-omelettes", "omelette", "Omelette", []),
+      ],
+    },
   });
 }
 

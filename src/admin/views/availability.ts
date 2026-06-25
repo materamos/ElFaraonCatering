@@ -89,14 +89,14 @@ function getEffectiveHiddenAvailabilityProfileFilter(state: AdminOperationalStat
 }
 
 function renderHiddenAvailabilityProfileFilter(
-  group: { menuId: string; profileTitle: string; targets: AvailabilityTargetState[] },
+  group: { menuId: string; profileTitle: string; targets: AvailabilityTargetState[]; hiddenCount: number },
   selectedProfileId: string,
 ): string {
   const isSelected = group.menuId === selectedProfileId;
 
   return `
     <button class="admin-availability-summary__filter" type="button" data-current="${isSelected ? "true" : "false"}" data-admin-action="${adminActions.hiddenAvailabilityProfile}" data-admin-hidden-availability-profile="${escapeHtml(group.menuId)}">
-      ${escapeHtml(group.profileTitle)}: ${group.targets.length}
+      ${escapeHtml(group.profileTitle)}: ${group.hiddenCount}
     </button>
   `;
 }
@@ -104,12 +104,33 @@ function renderHiddenAvailabilityProfileFilter(
 function groupAvailabilityTargetsByProfile(
   state: AdminOperationalState,
   targets: AvailabilityTargetState[],
-): Array<{ menuId: string; profileTitle: string; targets: AvailabilityTargetState[] }> {
-  return getEditableAvailabilityProfiles(state).map((profile) => ({
-    menuId: profile.id,
-    profileTitle: profile.title,
-    targets: targets.filter((target) => target.menu_id === profile.id),
-  }));
+): Array<{ menuId: string; profileTitle: string; targets: AvailabilityTargetState[]; hiddenCount: number }> {
+  return getEditableAvailabilityProfiles(state).map((profile) => {
+    const profileTargets = targets.filter((target) => target.menu_id === profile.id);
+
+    return {
+      menuId: profile.id,
+      profileTitle: profile.title,
+      targets: profileTargets,
+      hiddenCount: countHiddenAvailabilitySummaryItems(profileTargets),
+    };
+  });
+}
+
+function countHiddenAvailabilitySummaryItems(targets: AvailabilityTargetState[]): number {
+  const grillFamilies = new Set<string>();
+  let count = 0;
+
+  for (const target of targets) {
+    if (target.target_kind === "grill") {
+      grillFamilies.add(getAvailabilityFamilyKey(target));
+      continue;
+    }
+
+    count += 1;
+  }
+
+  return count + grillFamilies.size;
 }
 
 function renderHiddenAvailabilityProfileChips(
@@ -303,6 +324,7 @@ function renderCatalogAvailabilityChip(
 
   return renderAvailabilityChip(target, isBusy, {
     displayName: optionDisplay?.optionName,
+    metaLabel: getHiddenAvailabilityGroupLabel(target, optionDisplay),
   });
 }
 
@@ -335,11 +357,11 @@ function getCatalogOptionDisplay(
 function renderAvailabilityChip(
   target: AvailabilityTargetState,
   isBusy: boolean,
-  options: { displayName?: string } = {},
+  options: { displayName?: string; metaLabel?: string } = {},
 ): string {
   return `
     <span class="admin-availability-chip">
-      <span class="admin-availability-chip__name">${escapeHtml(options.displayName ?? target.name)}</span>
+      ${renderAvailabilityChipName(options.displayName ?? target.name, options.metaLabel ?? getHiddenAvailabilityGroupLabel(target))}
       <button class="admin-availability-chip__action" type="button" data-admin-action="${adminActions.setOverlay}" data-target-key="${escapeHtml(getTargetKey(target))}" data-available="true" ${disabledAttr(isBusy)}>
         Mostrar
       </button>
@@ -355,12 +377,68 @@ function renderAvailabilityFamilyChip(
 
   return `
     <span class="admin-availability-chip">
-      <span class="admin-availability-chip__name">${escapeHtml(familyTarget.group_title ?? familyTarget.name)}</span>
+      ${renderAvailabilityChipName(familyTarget.group_title ?? familyTarget.name, getHiddenAvailabilityGroupLabel(familyTarget))}
       <button class="admin-availability-chip__action" type="button" data-admin-action="${adminActions.setOverlay}" data-family-key="${escapeHtml(getAvailabilityFamilyKey(familyTarget))}" data-available="true" ${disabledAttr(isBusy)}>
         Mostrar
       </button>
     </span>
   `;
+}
+
+function renderAvailabilityChipName(name: string, metaLabel: string): string {
+  const meta = metaLabel
+    ? `<span class="admin-availability-chip__meta">- ${escapeHtml(metaLabel)}</span>`
+    : "";
+
+  return `
+    <span class="admin-availability-chip__name">
+      <span class="admin-availability-chip__title">${escapeHtml(name)}</span>
+      ${meta}
+    </span>
+  `;
+}
+
+function getHiddenAvailabilityGroupLabel(
+  target: AvailabilityTargetState,
+  optionDisplay?: { itemName: string; optionName: string },
+): string {
+  if (target.target_kind === "daily-menu") {
+    return "Menu del dia";
+  }
+
+  if (target.target_kind === "grill") {
+    return "Parrilla";
+  }
+
+  if (target.section_id === "platos-principales") {
+    return "Principales";
+  }
+
+  if (target.section_id === "promociones") {
+    return "Promos cafeteria";
+  }
+
+  if (target.section_id === "tartas-tortillas-omelettes") {
+    const itemName = optionDisplay?.itemName ?? target.name;
+
+    if (itemName === "Tartas") {
+      return "Tarta";
+    }
+
+    if (itemName === "Tortilla" || itemName === "Omelette") {
+      return "";
+    }
+  }
+
+  const catalogLabels: Record<string, string> = {
+    guarniciones: "Guarniciones",
+    empanadas: "Empanadas",
+    ensaladas: "Ensaladas",
+    cafeteria: "Cafeteria",
+    bebidas: "Bebidas",
+  };
+
+  return catalogLabels[target.section_id] ?? target.section_title;
 }
 
 function renderAvailabilityRow(
