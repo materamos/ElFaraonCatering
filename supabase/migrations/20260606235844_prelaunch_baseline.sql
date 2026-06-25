@@ -3082,7 +3082,7 @@ begin
       2 as target_kind_order,
       section.order_index as section_order_index,
       null::integer as group_order_index,
-      item.order_index as item_order_index
+      (item.order_index * 1000) as item_order_index
     from visible_profiles profile
     cross join menu_content.menu_catalog_items item
     join menu_content.menu_catalog_sections section
