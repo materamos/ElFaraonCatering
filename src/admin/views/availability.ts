@@ -290,7 +290,6 @@ function renderCatalogAvailabilityRow(
 
   return renderAvailabilityRow(state, target, isBusy, {
     displayName: optionDisplay.optionName,
-    metaSuffix: optionDisplay.itemName,
     rowClass: "admin-row--nested",
   });
 }
@@ -325,7 +324,7 @@ function renderAvailabilityRow(
   state: AdminOperationalState,
   target: AvailabilityTargetState,
   isBusy: boolean,
-  options: { displayName?: string; metaSuffix?: string; rowClass?: string } = {},
+  options: { displayName?: string; rowClass?: string } = {},
 ): string {
   const overlay = findOverlay(state, target);
   const effectiveAvailable = overlay ? overlay.available_override : target.base_available;
@@ -334,13 +333,7 @@ function renderAvailabilityRow(
   return `
     <div class="admin-row${options.rowClass ? ` ${escapeHtml(options.rowClass)}` : ""}">
       <div class="admin-row__main">
-        <p class="admin-row__title">${escapeHtml(options.displayName ?? target.name)}</p>
-        <p class="admin-row__meta">
-          ${escapeHtml(formatAvailabilityKindLabel(target))} &middot; ${escapeHtml(target.profile_title)} &middot; ${escapeHtml(target.section_title)}
-          ${target.group_title ? ` &middot; ${escapeHtml(target.group_title)}` : ""}
-          ${options.metaSuffix ? ` &middot; ${escapeHtml(options.metaSuffix)}` : ""}
-        </p>
-        ${target.description ? `<p class="admin-row__meta">${escapeHtml(target.description)}</p>` : ""}
+        <p class="admin-row__title">${escapeHtml(options.displayName ?? target.name)} - ${escapeHtml(target.profile_title)}</p>
         <div class="admin-row__status">
           ${renderAvailabilityStatus(effectiveAvailable)}
         </div>
@@ -365,10 +358,7 @@ function renderAvailabilityFamilyRow(
   return `
     <div class="admin-row">
       <div class="admin-row__main">
-        <p class="admin-row__title">${escapeHtml(familyTarget.group_title ?? familyTarget.name)}</p>
-        <p class="admin-row__meta">
-          ${escapeHtml(formatAvailabilityKindLabel(familyTarget))} &middot; ${escapeHtml(familyTarget.profile_title)} &middot; ${escapeHtml(familyTarget.section_title)}
-        </p>
+        <p class="admin-row__title">${escapeHtml(familyTarget.group_title ?? familyTarget.name)} - ${escapeHtml(familyTarget.profile_title)}</p>
         <div class="admin-row__status">
           ${renderAvailabilityStatus(effectiveAvailable)}
         </div>
@@ -421,16 +411,4 @@ function renderAvailabilityActions(
       ${clearButton}
     </div>
   `;
-}
-
-function formatAvailabilityKindLabel(target: AvailabilityTargetState): string {
-  if (target.target_kind === "daily-menu") {
-    return "Menú del día";
-  }
-
-  if (target.target_kind === "grill") {
-    return "Parrilla";
-  }
-
-  return "Menú fijo";
 }

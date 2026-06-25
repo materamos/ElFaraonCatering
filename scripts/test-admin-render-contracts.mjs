@@ -69,6 +69,21 @@ test("availability view exposes set and clear overlay actions", () => {
   assert.ok(hasAction(html, adminActions.clearOverlay));
 });
 
+test("availability rows show item name with profile only", () => {
+  const html = availabilityView.renderAvailabilityTab(
+    createState(),
+    createViewState({
+      availabilityProfileFilter: "corpo",
+      availabilityGroupFilter: "section:guarniciones",
+    }),
+    false,
+  );
+
+  assert.ok(html.includes("Papas - corpo"));
+  assert.equal(html.includes("Menú fijo · corpo · guarniciones"), false);
+  assert.equal(html.includes("guarniciones · Papas"), false);
+});
+
 test("availability view renders hidden summary before filters", () => {
   const html = availabilityView.renderAvailabilityTab(
     createHiddenAvailabilityState(),
