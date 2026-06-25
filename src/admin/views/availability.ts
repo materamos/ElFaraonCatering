@@ -54,17 +54,25 @@ function renderHiddenAvailabilitySummary(state: AdminOperationalState, isBusy: b
   }
 
   const profileGroups = groupAvailabilityTargetsByProfile(state, hiddenTargets);
+  const summaryLabel = profileGroups
+    .map((group) => `${group.profileTitle}: ${group.targets.length}`)
+    .join(" · ");
 
   return `
-    <section class="admin-availability-group admin-availability-summary">
-      <div class="admin-list-header">
+    <details class="admin-availability-group admin-availability-summary">
+      <summary class="admin-availability-summary__summary">
+        <span class="admin-availability-summary__summary-main">Items ocultos</span>
+        <span class="admin-availability-summary__summary-counts">${escapeHtml(summaryLabel)}</span>
+        <span class="admin-availability-summary__summary-action">Ver lista</span>
+      </summary>
+      <div class="admin-list-header admin-availability-summary__desktop-header">
         <span>Items ocultos</span>
         <span>${hiddenTargets.length} items &middot; todos los locales</span>
       </div>
       <div class="admin-availability-summary__grid">
         ${profileGroups.map((group) => renderHiddenAvailabilityProfileGroup(state, group, isBusy)).join("")}
       </div>
-    </section>
+    </details>
   `;
 }
 

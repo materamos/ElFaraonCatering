@@ -731,8 +731,65 @@
   }
 
   .admin-availability-summary__grid {
-    display: grid;
+    display: none;
     gap: 0.75rem;
+  }
+
+  .admin-availability-summary[open] .admin-availability-summary__grid {
+    display: grid;
+  }
+
+  .admin-availability-summary__desktop-header {
+    display: none;
+  }
+
+  .admin-availability-summary__summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.25rem 0.7rem;
+    align-items: center;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .admin-availability-summary__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .admin-availability-summary__summary-main {
+    color: var(--admin-text-strong);
+    font-size: 0.98rem;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .admin-availability-summary__summary-counts {
+    color: var(--admin-text-soft);
+    font-size: 0.82rem;
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  .admin-availability-summary__summary-action {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    color: var(--admin-danger);
+    font-size: 0.86rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .admin-availability-summary[open] .admin-availability-summary__summary-action {
+    color: var(--admin-text-soft);
+  }
+
+  .admin-availability-summary[open] .admin-availability-summary__summary-action {
+    font-size: 0;
+  }
+
+  .admin-availability-summary[open] .admin-availability-summary__summary-action::after {
+    content: "Ocultar lista";
+    font-size: 0.86rem;
   }
 
   .admin-availability-summary__profile {
@@ -1232,6 +1289,15 @@
   .admin-availability-summary__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
+    display: grid;
+  }
+
+  .admin-availability-summary__summary {
+    display: none;
+  }
+
+  .admin-availability-summary__desktop-header {
+    display: flex;
   }
 
   .admin-header__main {
