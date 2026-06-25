@@ -154,8 +154,8 @@ function renderCatalogItemRow(
   editMode: FixedMenuEditMode,
   isBusy: boolean,
 ): string {
-  const priceText = formatCatalogItemPrice(item);
-  const optionText = item.option_count > 0 ? `${item.option_count} opciones asociadas` : "";
+  const showPriceChip = !catalogItemShowsCurrentPriceRows(state, item, editMode);
+  const priceText = showPriceChip ? formatCatalogItemPrice(item) : "";
   const deleteHelp = canDelete
     ? "Se quitará del menú público después de publicar."
     : "No se puede eliminar porque debe quedar al menos un item en esta ubicación.";
@@ -169,10 +169,9 @@ function renderCatalogItemRow(
     <div class="admin-row admin-fixed-row">
       <div class="admin-row__main">
         <p class="admin-row__title">${escapeHtml(item.name)}</p>
-        <div class="admin-price-tags">
+        ${showPriceChip ? `<div class="admin-price-tags">
           <span class="admin-price-tag">${escapeHtml(priceText)}</span>
-          ${optionText ? `<span class="admin-price-tag">${escapeHtml(optionText)}</span>` : ""}
-        </div>
+        </div>` : ""}
         ${editMode === "items" ? `<form class="admin-fixed-edit-fields" data-admin-form="${adminForms.catalogItemEdit}">
           ${hiddenInput("section_id", item.section_id)}
           ${hiddenInput("item_id", item.item_id)}
@@ -206,6 +205,19 @@ function renderCatalogItemRow(
       </div>` : ""}
     </div>
   `;
+}
+
+function catalogItemShowsCurrentPriceRows(
+  state: AdminOperationalState,
+  item: CatalogItemState,
+  editMode: FixedMenuEditMode,
+): boolean {
+  if (editMode === "items" || isIncludedSideOptionItem(item) || !item.pricing_key) {
+    return false;
+  }
+
+  return state.prices.fixed.some((price) => price.pricing_key === item.pricing_key)
+    || state.prices.variants.some((variant) => variant.pricing_key === item.pricing_key);
 }
 
 function renderCatalogDescriptionField(input: {
@@ -322,8 +334,8 @@ function renderCatalogItemPriceEditor(
         <p class="admin-label">Precio</p>
         <span class="admin-row__state-note">Guardar requiere publicación.</span>
       </div>
-      ${fixedRows.map((row) => renderFixedPriceRow(row, isBusy)).join("")}
-      ${variantRows.map((row) => renderVariantPriceRow(row, isBusy)).join("")}
+      ${fixedRows.map((row) => renderFixedPriceRow(row, isBusy, { showTags: false })).join("")}
+      ${variantRows.map((row) => renderVariantPriceRow(row, isBusy, { showTags: false })).join("")}
     </section>
   `;
 }

@@ -315,6 +315,9 @@ test("fixed menu view exposes item, option, and price form contracts", () => {
   assert.ok(hasForm(optionHtml, adminForms.catalogOption));
   assert.ok(hasForm(optionHtml, adminForms.catalogOptionEdit));
   assert.ok(hasForm(optionHtml, adminForms.variantPrice));
+  assert.ok(itemHtml.includes("admin-price-tag"));
+  assert.equal(itemHtml.includes("opciones asociadas"), false);
+  assert.equal(optionHtml.includes("admin-price-tag"), false);
 });
 
 test("fixed menu view splits tartas, tortillas, and omelettes filters", () => {

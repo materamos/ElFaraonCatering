@@ -303,7 +303,7 @@ function renderServiceModeForms(state: AdminOperationalState, isBusy: boolean): 
               <div class="admin-row__main">
                 <p class="admin-row__title">${escapeHtml(profile.title)}</p>
                 <div class="admin-row__status">
-                  <span class="admin-pill" data-tone="${currentService === "daily-menu" ? "success" : "neutral"}">${escapeHtml(serviceLabel)}</span>
+                  <span class="admin-pill" data-tone="success">${escapeHtml(serviceLabel)}</span>
                   <span class="admin-row__state-note">Se verá después de publicar si cambia.</span>
                 </div>
               </div>

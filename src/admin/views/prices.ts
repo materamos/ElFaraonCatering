@@ -24,14 +24,23 @@ export function renderFixedPriceRows(
   `;
 }
 
-export function renderFixedPriceRow(price: FixedPriceState, isBusy: boolean): string {
+interface PriceRowRenderOptions {
+  showTags?: boolean;
+}
+
+export function renderFixedPriceRow(
+  price: FixedPriceState,
+  isBusy: boolean,
+  options: PriceRowRenderOptions = {},
+): string {
   const label = formatPricingLabel(price.pricing_key, "Precio fijo");
+  const showTags = options.showTags ?? true;
 
   return `
     <form class="admin-row admin-price-row" data-admin-form="${adminForms.fixedPrice}">
       <div class="admin-row__main">
         <p class="admin-row__title">${escapeHtml(label.title)}</p>
-        ${renderPriceTags(label)}
+        ${showTags ? renderPriceTags(label) : ""}
         <p class="admin-row__meta">Actual: ${escapeHtml(formatAmount(price.amount))}</p>
       </div>
       <div class="admin-row__actions">
@@ -46,14 +55,19 @@ export function renderFixedPriceRow(price: FixedPriceState, isBusy: boolean): st
   `;
 }
 
-export function renderVariantPriceRow(variant: VariantPriceState, isBusy: boolean): string {
+export function renderVariantPriceRow(
+  variant: VariantPriceState,
+  isBusy: boolean,
+  options: PriceRowRenderOptions = {},
+): string {
   const label = formatPricingLabel(variant.pricing_key, "Variantes");
+  const showTags = options.showTags ?? true;
 
   return `
     <form class="admin-row admin-price-row" data-admin-form="${adminForms.variantPrice}">
       <div class="admin-row__main">
         <p class="admin-row__title">${escapeHtml(label.title)}</p>
-        ${renderPriceTags(label)}
+        ${showTags ? renderPriceTags(label) : ""}
         <p class="admin-row__meta">Variante: ${escapeHtml(variant.name)}</p>
         <p class="admin-row__meta">Actual: ${escapeHtml(formatAmount(variant.amount))}</p>
       </div>
