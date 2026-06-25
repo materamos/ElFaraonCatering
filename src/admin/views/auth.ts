@@ -3,6 +3,7 @@ import { disabledAttr } from "./html";
 import type { StatusMessage } from "../core/types";
 import { escapeHtml } from "../core/format";
 import { renderStatusMessage } from "./html";
+import { renderPasswordToggle } from "./passwordToggle";
 
 interface AuthViewInput {
   isBusy: boolean;
@@ -37,7 +38,10 @@ export function renderLoginView(input: AuthViewInput): string {
         </label>
         <label class="admin-field">
           <span class="admin-label">Contraseña</span>
-          <input class="admin-input" type="password" name="password" autocomplete="current-password" required />
+          <span class="admin-password-field">
+            <input class="admin-input admin-password-field__input" type="password" name="password" autocomplete="current-password" required />
+            ${renderPasswordToggle(input.isBusy)}
+          </span>
         </label>
         <button class="admin-button" type="submit" ${disabledAttr(input.isBusy)}>Iniciar sesión</button>
         <button class="admin-link-button" type="button" data-admin-action="${adminActions.showResetRequest}" ${disabledAttr(input.isBusy)}>Olvidé mi contraseña</button>
