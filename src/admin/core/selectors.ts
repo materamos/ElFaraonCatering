@@ -5,7 +5,6 @@ import type {
   CatalogEditorState,
   CatalogItemOptionState,
   CatalogItemState,
-  CatalogSectionState,
   DailyMenuState,
   GrillFamilyState,
   GrillItemState,
@@ -13,7 +12,7 @@ import type {
   ServiceKind,
 } from "./types";
 import { getOverlayKey, getTargetKey } from "./adminState";
-import { getFixedOptionsOnlyRule } from "./rules";
+import { getFixedMenuLocations, type FixedMenuLocation } from "./rules";
 
 export interface AvailabilityGroupOption {
   key: string;
@@ -191,19 +190,19 @@ export function findGrillFamily(state: AdminOperationalState, familyId: string):
 export function getEffectiveFixedSection(
   editor: CatalogEditorState,
   fixedSectionFilter: string,
-): CatalogSectionState | undefined {
-  return editor.sections.find((section) => section.section_id === fixedSectionFilter)
-    ?? editor.sections[0];
+): FixedMenuLocation | undefined {
+  const locations = getFixedMenuLocations(editor.sections);
+
+  return locations.find((section) => section.filter_id === fixedSectionFilter)
+    ?? locations[0];
 }
 
 export function getFixedLocationItems(
   editor: CatalogEditorState,
-  section: CatalogSectionState,
+  section: FixedMenuLocation,
 ): CatalogItemState[] {
-  const optionsOnlyRule = getFixedOptionsOnlyRule(section.section_id);
-
   return editor.items.filter((item) =>
     item.section_id === section.section_id
-    && (!optionsOnlyRule || optionsOnlyRule.itemIds.includes(item.item_id))
+    && (!section.item_ids || section.item_ids.includes(item.item_id))
   );
 }

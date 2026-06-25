@@ -1,5 +1,13 @@
 import { adminActions, adminForms } from "../core/contracts";
-import { canDeleteFromList, catalogItemFormRequiresPrice, getFixedMenuEditMode, getFixedSectionAdminTitle, isIncludedSideOptionItem } from "../core/rules";
+import {
+  canDeleteFromList,
+  catalogItemFormRequiresPrice,
+  getFixedMenuEditMode,
+  getFixedMenuLocations,
+  getFixedSectionAdminTitle,
+  isIncludedSideOptionItem,
+  type FixedMenuLocation,
+} from "../core/rules";
 import { disabledAttr, hiddenInput, renderEmpty } from "./html";
 import {
   getEffectiveFixedSection,
@@ -9,7 +17,6 @@ import type {
   AdminOperationalState,
   CatalogItemOptionState,
   CatalogItemState,
-  CatalogSectionState,
   FixedMenuEditMode,
 } from "../core/types";
 import type { AdminViewState } from "../core/viewState";
@@ -49,6 +56,7 @@ export function renderFixedMenuTab(
 
   const items = getFixedLocationItems(editor, section);
   const editMode = getFixedMenuEditMode(section);
+  const fixedLocations = getFixedMenuLocations(editor.sections);
   const sectionCopy = editMode === "options-only"
     ? "Administrá solo sabores de esta subcategoría. No se pueden agregar, editar ni eliminar items desde esta pantalla."
     : "Agregá, editá nombre/descripción o eliminá items puntuales del catálogo estable. Los cambios quedan guardados, pero el menú público se actualiza después de publicar.";
@@ -69,8 +77,8 @@ export function renderFixedMenuTab(
         <label class="admin-field">
           <span class="admin-label">Sección</span>
           <select class="admin-select" data-admin-filter="fixed-section">
-            ${editor.sections
-              .map((entry) => `<option value="${escapeHtml(entry.section_id)}" ${entry.section_id === section.section_id ? "selected" : ""}>${escapeHtml(getFixedSectionAdminTitle(entry))}</option>`)
+            ${fixedLocations
+              .map((entry) => `<option value="${escapeHtml(entry.filter_id)}" ${entry.filter_id === section.filter_id ? "selected" : ""}>${escapeHtml(getFixedSectionAdminTitle(entry))}</option>`)
               .join("")}
           </select>
         </label>
@@ -81,7 +89,7 @@ export function renderFixedMenuTab(
   `;
 }
 
-function renderCatalogItemForm(section: CatalogSectionState, isBusy: boolean): string {
+function renderCatalogItemForm(section: FixedMenuLocation, isBusy: boolean): string {
   const requiresPrice = catalogItemFormRequiresPrice(section);
 
   return `

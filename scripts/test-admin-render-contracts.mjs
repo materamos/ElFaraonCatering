@@ -317,6 +317,34 @@ test("fixed menu view exposes item, option, and price form contracts", () => {
   assert.ok(hasForm(optionHtml, adminForms.variantPrice));
 });
 
+test("fixed menu view splits tartas, tortillas, and omelettes filters", () => {
+  const sectionId = "tartas-tortillas-omelettes";
+  const state = createState({
+    catalog_editor: {
+      sections: [{ section_id: sectionId, title: "Tartas, tortillas y omelettes", order_index: 0, item_count: 3 }],
+      items: [
+        createCatalogItem(sectionId, "tartas", "Alpha", ["a"]),
+        createCatalogItem(sectionId, "tortilla", "Beta", ["b"]),
+        createCatalogItem(sectionId, "omelette", "Gamma", ["c"]),
+      ],
+    },
+  });
+  const html = fixedMenuView.renderFixedMenuTab(
+    state,
+    createViewState({ activeTab: "fixed", fixedSectionFilter: "tortillas" }),
+    false,
+  );
+
+  assert.ok(html.includes('<option value="tartas"'));
+  assert.ok(html.includes('<option value="tortillas" selected>Tortillas</option>'));
+  assert.ok(html.includes('<option value="omelettes"'));
+  assert.ok(html.includes("Beta"));
+  assert.equal(html.includes("Alpha"), false);
+  assert.equal(html.includes("Gamma"), false);
+  assert.ok(html.includes(`name="section_id" value="${sectionId}"`));
+  assert.ok(html.includes('name="item_id" value="tortilla"'));
+});
+
 test("service view exposes daily menu and fixed price contracts", () => {
   const html = serviceView.renderServiceTab(
     createState(),

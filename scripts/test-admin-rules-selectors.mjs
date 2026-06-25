@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compileAdminModules, createState } from "./test-admin-helpers.mjs";
+import { compileAdminModules, createCatalogItem, createState } from "./test-admin-helpers.mjs";
 
 const { requireAdminModule } = await compileAdminModules("admin-rules-selectors-tests", [
   "src/admin/core/rules.ts",
@@ -99,6 +99,35 @@ test("fixed options-only sections expose only allowed items", () => {
 
   assert.equal(rules.getFixedMenuEditMode(section), "options-only");
   assert.deepEqual(items.map((item) => item.item_id), ["empanadas"]);
+});
+
+test("combined tartas section is split into fixed menu admin locations", () => {
+  const sectionId = "tartas-tortillas-omelettes";
+  const state = createState({
+    catalog_editor: {
+      sections: [{ section_id: sectionId, title: "Tartas, tortillas y omelettes", order_index: 0, item_count: 3 }],
+      items: [
+        createCatalogItem(sectionId, "tartas", "Tartas", ["jamon-queso"]),
+        createCatalogItem(sectionId, "tortilla", "Tortilla", []),
+        createCatalogItem(sectionId, "omelette", "Omelette", []),
+      ],
+    },
+  });
+
+  assert.deepEqual(rules.getFixedMenuLocations(state.catalog_editor.sections).map((section) => section.filter_id), [
+    "tartas",
+    "tortillas",
+    "omelettes",
+  ]);
+
+  const section = selectors.getEffectiveFixedSection(state.catalog_editor, "tortillas");
+  const items = selectors.getFixedLocationItems(state.catalog_editor, section);
+
+  assert.equal(section.section_id, sectionId);
+  assert.equal(section.filter_id, "tortillas");
+  assert.equal(section.title, "Tortillas");
+  assert.equal(rules.getFixedMenuEditMode(section), "options-only");
+  assert.deepEqual(items.map((item) => item.item_id), ["tortilla"]);
 });
 
 test("missing fixed section filter falls back to first section", () => {

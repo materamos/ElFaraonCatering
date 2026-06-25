@@ -12,6 +12,7 @@ export const regularDailyId = "menu-del-dia";
 export const vegetarianDailyId = "menu-vegetariano-del-dia";
 
 export interface FixedOptionsOnlySectionRule {
+  filterId: string;
   sectionId: string;
   title: string;
   itemIds: readonly string[];
@@ -19,27 +20,66 @@ export interface FixedOptionsOnlySectionRule {
 
 export const fixedOptionsOnlySectionRules: readonly FixedOptionsOnlySectionRule[] = [
   {
+    filterId: "tartas",
     sectionId: "tartas-tortillas-omelettes",
-    title: "Tartas, tortillas y omelettes",
-    itemIds: ["tartas", "tortilla", "omelette"],
+    title: "Tartas",
+    itemIds: ["tartas"],
   },
   {
+    filterId: "tortillas",
+    sectionId: "tartas-tortillas-omelettes",
+    title: "Tortillas",
+    itemIds: ["tortilla"],
+  },
+  {
+    filterId: "omelettes",
+    sectionId: "tartas-tortillas-omelettes",
+    title: "Omelettes",
+    itemIds: ["omelette"],
+  },
+  {
+    filterId: "empanadas",
     sectionId: "empanadas",
     title: "Empanadas",
     itemIds: ["empanadas"],
   },
 ];
 
-export function getFixedOptionsOnlyRule(sectionId: string): FixedOptionsOnlySectionRule | undefined {
-  return fixedOptionsOnlySectionRules.find((rule) => rule.sectionId === sectionId);
+export interface FixedMenuLocation extends CatalogSectionState {
+  filter_id: string;
+  item_ids: readonly string[] | null;
 }
 
-export function getFixedMenuEditMode(section: CatalogSectionState): FixedMenuEditMode {
-  return getFixedOptionsOnlyRule(section.section_id) ? "options-only" : "items";
+export function getFixedOptionsOnlyRule(filterId: string): FixedOptionsOnlySectionRule | undefined {
+  return fixedOptionsOnlySectionRules.find((rule) => rule.filterId === filterId);
 }
 
-export function getFixedSectionAdminTitle(section: CatalogSectionState): string {
-  return getFixedOptionsOnlyRule(section.section_id)?.title ?? section.title;
+export function getFixedMenuLocations(sections: readonly CatalogSectionState[]): FixedMenuLocation[] {
+  return sections.flatMap((section): FixedMenuLocation[] => {
+    const optionOnlyRules = fixedOptionsOnlySectionRules.filter((rule) =>
+      rule.sectionId === section.section_id
+    );
+
+    if (optionOnlyRules.length === 0) {
+      return [{ ...section, filter_id: section.section_id, item_ids: null }];
+    }
+
+    return optionOnlyRules.map((rule) => ({
+      ...section,
+      filter_id: rule.filterId,
+      title: rule.title,
+      item_count: rule.itemIds.length,
+      item_ids: rule.itemIds,
+    }));
+  });
+}
+
+export function getFixedMenuEditMode(section: FixedMenuLocation): FixedMenuEditMode {
+  return section.item_ids ? "options-only" : "items";
+}
+
+export function getFixedSectionAdminTitle(section: FixedMenuLocation): string {
+  return section.title;
 }
 
 export function catalogItemFormRequiresPrice(section: CatalogSectionState): boolean {

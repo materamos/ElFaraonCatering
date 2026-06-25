@@ -86,13 +86,14 @@ Fixed-menu admin item edits may add individual catalog items, update item name a
 description, delete individual catalog items only within existing sections, or
 add, update, and delete individual catalog item options for items
 that already use options. The fixed-menu admin treats `tartas-tortillas-omelettes`
-as `Tartas, tortillas y omelettes`, shows `tartas`, `tortilla`, and `omelette`
-there, and allows only option edits for items that already use options; it allows
-only `empanadas` option edits in `empanadas`. In those option-only locations, do
-not allow item add, update, or delete operations. Option edits from `/admin/`
-must not leave an item with zero options. Do not allow fixed-menu item edits to
-change prices, availability, technical IDs, order, to reorder options, or to
-create, delete, rename, or reorder catalog sections from `/admin/`.
+as three option-only admin locations: `Tartas` for `tartas`, `Tortillas` for
+`tortilla`, and `Omelettes` for `omelette`; those locations keep the same
+technical `section_id`. It allows only `empanadas` option edits in `empanadas`.
+In those option-only locations, do not allow item add, update, or delete
+operations. Option edits from `/admin/` must not leave an item with zero options.
+Do not allow fixed-menu item edits to change prices, availability, technical IDs,
+order, to reorder options, or to create, delete, rename, or reorder catalog
+sections from `/admin/`.
 For included side-option items in `guarniciones`, except `guarnicion-sola`,
 `/admin/` must not expose price editing. New included side items/options must be
 inserted before the current last option when that rule is available.
