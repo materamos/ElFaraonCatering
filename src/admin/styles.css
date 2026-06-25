@@ -734,6 +734,35 @@
     gap: 0.35rem 0.7rem;
   }
 
+  .admin-availability-summary__filters {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.6rem;
+    align-items: center;
+  }
+
+  .admin-availability-summary__filter {
+    min-height: 1.7rem;
+    padding: 0.05rem 0.2rem;
+    color: var(--admin-text-soft);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 750;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    background: transparent;
+    border: 0;
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }
+
+  .admin-availability-summary__filter[data-current="true"] {
+    color: var(--admin-accent);
+    font-weight: 850;
+    background: var(--admin-accent-tint);
+    box-shadow: 0 0 0 2px var(--admin-accent-tint);
+  }
+
   .admin-availability-chip-list {
     display: flex;
     flex-wrap: wrap;
@@ -741,9 +770,11 @@
   }
 
   .admin-availability-chip {
-    display: inline-flex;
+    display: flex;
+    width: 100%;
     max-width: 100%;
     align-items: center;
+    justify-content: space-between;
     gap: 0.35rem;
     padding: 0.28rem 0.32rem 0.28rem 0.5rem;
     background: var(--admin-surface);
@@ -754,14 +785,8 @@
     line-height: 1.2;
   }
 
-  .admin-availability-chip__profile {
-    flex: 0 0 auto;
-    color: var(--admin-text-soft);
-    font-size: 0.76rem;
-    font-weight: 750;
-  }
-
   .admin-availability-chip__name {
+    flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
     font-weight: 750;
@@ -1256,6 +1281,7 @@
   }
 
   .admin-availability-chip {
+    width: auto;
     max-width: min(100%, 24rem);
   }
 

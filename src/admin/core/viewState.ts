@@ -5,6 +5,7 @@ export interface AdminViewState {
   activeServiceSection: ServiceSectionId;
   availabilityProfileFilter: string;
   availabilityGroupFilter: string;
+  hiddenAvailabilityProfileFilter: string;
   fixedSectionFilter: string;
 }
 
@@ -12,6 +13,7 @@ let activeTab: AdminTabId = "availability";
 let activeServiceSection: ServiceSectionId = "active-service";
 let availabilityProfileFilter = "";
 let availabilityGroupFilter = "";
+let hiddenAvailabilityProfileFilter = "";
 let fixedSectionFilter = "";
 
 export function getAdminViewState(): AdminViewState {
@@ -20,6 +22,7 @@ export function getAdminViewState(): AdminViewState {
     activeServiceSection,
     availabilityProfileFilter,
     availabilityGroupFilter,
+    hiddenAvailabilityProfileFilter,
     fixedSectionFilter,
   };
 }
@@ -33,6 +36,11 @@ export function setAdminServiceSection(section: ServiceSectionId): void {
 }
 
 export function setAdminFilter(name: string, value: string): void {
+  if (name === "hidden-availability-profile") {
+    hiddenAvailabilityProfileFilter = value;
+    return;
+  }
+
   if (name === "availability-profile") {
     availabilityProfileFilter = value;
     availabilityGroupFilter = "";

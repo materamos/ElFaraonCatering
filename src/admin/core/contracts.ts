@@ -26,6 +26,7 @@ export const adminActions = {
   retryAdminState: "retry-admin-state",
   tab: "tab",
   serviceSection: "service-section",
+  hiddenAvailabilityProfile: "hidden-availability-profile",
   setOverlay: "set-overlay",
   clearOverlay: "clear-overlay",
   deleteCatalogItem: "delete-catalog-item",

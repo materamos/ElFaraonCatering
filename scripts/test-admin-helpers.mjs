@@ -220,6 +220,7 @@ export function createViewState(overrides = {}) {
     activeServiceSection: "active-service",
     availabilityProfileFilter: "",
     availabilityGroupFilter: "",
+    hiddenAvailabilityProfileFilter: "",
     fixedSectionFilter: "",
     ...overrides,
   };

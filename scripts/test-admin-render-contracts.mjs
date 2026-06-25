@@ -124,19 +124,40 @@ test("availability hidden summary shows both profiles and ignores active filters
   assert.equal(summaryHtml, getSummaryHtml(teleindeHtml));
   assert.ok(summaryHtml.includes("Items ocultos"));
   assert.ok(summaryHtml.includes("admin-availability-summary__header"));
+  assert.ok(summaryHtml.includes(`data-admin-action="${adminActions.hiddenAvailabilityProfile}"`));
+  assert.ok(summaryHtml.includes('data-current="true"'));
   assert.equal(summaryHtml.includes("Ver lista"), false);
   assert.ok(summaryHtml.includes("Corpo: 1"));
   assert.ok(summaryHtml.includes("Teleinde: 3"));
   assert.ok(summaryHtml.includes("admin-availability-chip-list"));
   assert.ok(summaryHtml.includes("admin-availability-chip"));
-  assert.ok(summaryHtml.includes("corpo"));
-  assert.ok(summaryHtml.includes("teleinde"));
   assert.equal(summaryHtml.includes("Servicio activo"), false);
   assert.equal(summaryHtml.includes("Menu fijo"), false);
   assert.ok(summaryHtml.includes("Mostrar"));
   assert.ok(summaryHtml.includes(`data-admin-action="${adminActions.setOverlay}"`));
   assert.ok(summaryHtml.includes('data-available="true"'));
+  assert.ok(summaryHtml.includes('data-target-key="corpo/guarniciones/papas"'));
+  assert.equal(summaryHtml.includes('data-family-key="family:teleinde:parrilla:Parrilla"'), false);
+  assert.equal(summaryHtml.includes("admin-availability-chip__profile"), false);
+});
+
+test("availability hidden summary profile filter selects one profile only", () => {
+  const html = availabilityView.renderAvailabilityTab(
+    createHiddenAvailabilityState(),
+    createViewState({
+      hiddenAvailabilityProfileFilter: "teleinde",
+      availabilityProfileFilter: "corpo",
+      availabilityGroupFilter: "section:guarniciones",
+    }),
+    false,
+  );
+  const summaryHtml = getSummaryHtml(html);
+
+  assert.ok(summaryHtml.includes("Corpo: 1"));
+  assert.ok(summaryHtml.includes("Teleinde: 3"));
   assert.ok(summaryHtml.includes('data-family-key="family:teleinde:parrilla:Parrilla"'));
+  assert.ok(summaryHtml.includes('data-target-key="teleinde/guarniciones/ensalada"'));
+  assert.equal(summaryHtml.includes('data-target-key="corpo/guarniciones/papas"'), false);
 });
 
 test("availability hidden summary restores grill as a family when partially hidden", () => {
@@ -152,7 +173,7 @@ test("availability hidden summary restores grill as a family when partially hidd
         },
       ],
     }),
-    createViewState(),
+    createViewState({ hiddenAvailabilityProfileFilter: "teleinde" }),
     false,
   );
   const summaryHtml = getSummaryHtml(html);

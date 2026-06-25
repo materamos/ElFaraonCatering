@@ -114,6 +114,25 @@ export function createAdminActionHandlers(context: AdminActionHandlerContext) {
       return;
     }
 
+    if (action === adminActions.hiddenAvailabilityProfile) {
+      const profileId = target.dataset.adminHiddenAvailabilityProfile;
+      const currentState = context.getCurrentState();
+
+      if (
+        profileId
+        && currentState?.profiles.some((profile) => profile.id === profileId && profile.can_edit_availability)
+      ) {
+        if (!context.formState.confirmUnsavedChanges()) {
+          return;
+        }
+
+        setAdminFilter("hidden-availability-profile", profileId);
+        context.renderCurrentView();
+      }
+
+      return;
+    }
+
     if (action === adminActions.setOverlay) {
       await handleSetOverlayAction(context, target);
       return;

@@ -31,14 +31,18 @@ export function renderAvailabilityTab(
         <h2 class="admin-section__title">Disponibilidad</h2>
         <p class="admin-section__copy">Ocultá o volvé a mostrar items visibles. El servicio muestra solo menú del día o parrilla según cada local; menú fijo queda separado.</p>
       </div>
-      ${renderHiddenAvailabilitySummary(state, isBusy)}
+      ${renderHiddenAvailabilitySummary(state, viewState, isBusy)}
       ${renderAvailabilityFilters(state, viewState)}
       ${renderAvailabilityRows(state, viewState, isBusy)}
     </section>
   `;
 }
 
-function renderHiddenAvailabilitySummary(state: AdminOperationalState, isBusy: boolean): string {
+function renderHiddenAvailabilitySummary(
+  state: AdminOperationalState,
+  viewState: AdminViewState,
+  isBusy: boolean,
+): string {
   const hiddenTargets = getHiddenAvailabilityTargets(state);
 
   if (hiddenTargets.length === 0) {
@@ -54,20 +58,46 @@ function renderHiddenAvailabilitySummary(state: AdminOperationalState, isBusy: b
   }
 
   const profileGroups = groupAvailabilityTargetsByProfile(state, hiddenTargets);
-  const summaryLabel = profileGroups
-    .map((group) => `${group.profileTitle}: ${group.targets.length}`)
-    .join(" | ");
+  const selectedProfileId = getEffectiveHiddenAvailabilityProfileFilter(state, viewState.hiddenAvailabilityProfileFilter);
+  const selectedGroup = profileGroups.find((group) => group.menuId === selectedProfileId) ?? profileGroups[0];
 
   return `
     <section class="admin-availability-group admin-availability-summary">
       <div class="admin-list-header admin-availability-summary__header">
         <span>Items ocultos</span>
-        <span>${escapeHtml(summaryLabel)}</span>
+        <span class="admin-availability-summary__filters">
+          ${profileGroups.map((group) => renderHiddenAvailabilityProfileFilter(group, selectedProfileId)).join("")}
+        </span>
       </div>
       <div class="admin-availability-chip-list">
-        ${profileGroups.map((group) => renderHiddenAvailabilityProfileChips(state, group, isBusy)).join("")}
+        ${selectedGroup && selectedGroup.targets.length > 0
+          ? renderHiddenAvailabilityProfileChips(state, selectedGroup, isBusy)
+          : renderEmpty("No hay items ocultos para este menu.")}
       </div>
     </section>
+  `;
+}
+
+function getEffectiveHiddenAvailabilityProfileFilter(state: AdminOperationalState, profileFilter: string): string {
+  const editableProfiles = getEditableAvailabilityProfiles(state);
+
+  if (editableProfiles.some((profile) => profile.id === profileFilter)) {
+    return profileFilter;
+  }
+
+  return editableProfiles[0]?.id ?? "";
+}
+
+function renderHiddenAvailabilityProfileFilter(
+  group: { menuId: string; profileTitle: string; targets: AvailabilityTargetState[] },
+  selectedProfileId: string,
+): string {
+  const isSelected = group.menuId === selectedProfileId;
+
+  return `
+    <button class="admin-availability-summary__filter" type="button" data-current="${isSelected ? "true" : "false"}" data-admin-action="${adminActions.hiddenAvailabilityProfile}" data-admin-hidden-availability-profile="${escapeHtml(group.menuId)}">
+      ${escapeHtml(group.profileTitle)}: ${group.targets.length}
+    </button>
   `;
 }
 
@@ -309,7 +339,6 @@ function renderAvailabilityChip(
 ): string {
   return `
     <span class="admin-availability-chip">
-      <span class="admin-availability-chip__profile">${escapeHtml(target.profile_title)}</span>
       <span class="admin-availability-chip__name">${escapeHtml(options.displayName ?? target.name)}</span>
       <button class="admin-availability-chip__action" type="button" data-admin-action="${adminActions.setOverlay}" data-target-key="${escapeHtml(getTargetKey(target))}" data-available="true" ${disabledAttr(isBusy)}>
         Mostrar
@@ -326,7 +355,6 @@ function renderAvailabilityFamilyChip(
 
   return `
     <span class="admin-availability-chip">
-      <span class="admin-availability-chip__profile">${escapeHtml(familyTarget.profile_title)}</span>
       <span class="admin-availability-chip__name">${escapeHtml(familyTarget.group_title ?? familyTarget.name)}</span>
       <button class="admin-availability-chip__action" type="button" data-admin-action="${adminActions.setOverlay}" data-family-key="${escapeHtml(getAvailabilityFamilyKey(familyTarget))}" data-available="true" ${disabledAttr(isBusy)}>
         Mostrar
