@@ -169,20 +169,21 @@ test("availability hidden summary chips show group labels", () => {
   );
   const summaryHtml = getSummaryHtml(html);
 
-  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Menu del dia</span>'));
-  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Guarniciones</span>'));
-  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Empanadas</span>'));
-  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Ensaladas</span>'));
-  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Cafeteria</span>'));
-  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Bebidas</span>'));
-  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Principales</span>'));
-  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Promos cafeteria</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">Menu del dia</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">Guarniciones</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">Empanadas</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">Ensaladas</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">Cafeteria</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">Bebidas</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">Principales</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">Promos cafeteria</span>'));
   assert.ok(summaryHtml.includes("Jamon y queso"));
-  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Tarta</span>'));
-  assert.equal(summaryHtml.includes('admin-availability-chip__meta">- Platos principales con guarnicion</span>'), false);
-  assert.equal(summaryHtml.includes('admin-availability-chip__meta">- Promociones cafeteria</span>'), false);
-  assert.equal(summaryHtml.includes('admin-availability-chip__meta">- Tortilla</span>'), false);
-  assert.equal(summaryHtml.includes('admin-availability-chip__meta">- Omelette</span>'), false);
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">Tarta</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">Tarta</span>\n      <span class="admin-availability-chip__separator">-</span>\n      <span class="admin-availability-chip__title">Jamon y queso</span>'));
+  assert.equal(summaryHtml.includes('admin-availability-chip__meta">Platos principales con guarnicion</span>'), false);
+  assert.equal(summaryHtml.includes('admin-availability-chip__meta">Promociones cafeteria</span>'), false);
+  assert.equal(summaryHtml.includes('admin-availability-chip__meta">Tortilla</span>'), false);
+  assert.equal(summaryHtml.includes('admin-availability-chip__meta">Omelette</span>'), false);
 });
 
 test("availability hidden summary restores grill as a family when partially hidden", () => {
@@ -204,7 +205,7 @@ test("availability hidden summary restores grill as a family when partially hidd
   const summaryHtml = getSummaryHtml(html);
 
   assert.ok(summaryHtml.includes('data-family-key="family:teleinde:parrilla:Parrilla"'));
-  assert.ok(summaryHtml.includes('admin-availability-chip__meta">- Parrilla</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">Parrilla</span>'));
   assert.equal(summaryHtml.includes('data-target-key="teleinde/parrilla/vacio"'), false);
 });
 

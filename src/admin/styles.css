@@ -795,6 +795,7 @@
   }
 
   .admin-availability-chip__title {
+    flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -807,6 +808,13 @@
     font-size: 0.76rem;
     font-weight: 700;
     white-space: nowrap;
+  }
+
+  .admin-availability-chip__separator {
+    flex: 0 0 auto;
+    color: var(--admin-text-soft);
+    font-size: 0.76rem;
+    font-weight: 700;
   }
 
   .admin-availability-chip__action {

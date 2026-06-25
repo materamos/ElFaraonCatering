@@ -386,14 +386,19 @@ function renderAvailabilityFamilyChip(
 }
 
 function renderAvailabilityChipName(name: string, metaLabel: string): string {
-  const meta = metaLabel
-    ? `<span class="admin-availability-chip__meta">- ${escapeHtml(metaLabel)}</span>`
-    : "";
+  if (!metaLabel) {
+    return `
+      <span class="admin-availability-chip__name">
+        <span class="admin-availability-chip__title">${escapeHtml(name)}</span>
+      </span>
+    `;
+  }
 
   return `
     <span class="admin-availability-chip__name">
+      <span class="admin-availability-chip__meta">${escapeHtml(metaLabel)}</span>
+      <span class="admin-availability-chip__separator">-</span>
       <span class="admin-availability-chip__title">${escapeHtml(name)}</span>
-      ${meta}
     </span>
   `;
 }
