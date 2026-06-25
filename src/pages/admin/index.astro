@@ -15,10 +15,16 @@ const deployedContentHash = await loadSupabaseMenuPublicationContentHash();
     data-admin-root
     data-deployed-content-hash={deployedContentHash}
   >
-    <section class="admin-loading" aria-live="polite">
-      <p class="admin-kicker">Panel operativo</p>
-      <h1>Cargando admin</h1>
-      <p>Verificando sesión y permisos.</p>
+    <section class="admin-loading" aria-live="polite" aria-busy="true">
+      <div class="admin-loading__panel">
+        <div class="admin-loading__indicator" aria-hidden="true"></div>
+        <div class="admin-loading__content">
+          <p class="admin-kicker">Panel operativo</p>
+          <h1 class="admin-title">Cargando panel operativo</h1>
+          <p class="admin-muted">Estamos verificando tu sesion y permisos.</p>
+          <p class="admin-loading__help">Si tarda mas de unos segundos, recarga la pagina o volve a iniciar sesion.</p>
+        </div>
+      </div>
     </section>
   </main>
 

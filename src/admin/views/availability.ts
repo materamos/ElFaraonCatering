@@ -58,7 +58,11 @@ function renderHiddenAvailabilitySummary(
   }
 
   const profileGroups = groupAvailabilityTargetsByProfile(state, hiddenTargets);
-  const selectedProfileId = getEffectiveHiddenAvailabilityProfileFilter(state, viewState.hiddenAvailabilityProfileFilter);
+  const selectedProfileId = getEffectiveHiddenAvailabilityProfileFilter(
+    state,
+    viewState.hiddenAvailabilityProfileFilter,
+    viewState.availabilityProfileFilter,
+  );
   const selectedGroup = profileGroups.find((group) => group.menuId === selectedProfileId) ?? profileGroups[0];
 
   return `
@@ -78,11 +82,19 @@ function renderHiddenAvailabilitySummary(
   `;
 }
 
-function getEffectiveHiddenAvailabilityProfileFilter(state: AdminOperationalState, profileFilter: string): string {
+function getEffectiveHiddenAvailabilityProfileFilter(
+  state: AdminOperationalState,
+  profileFilter: string,
+  fallbackProfileFilter: string,
+): string {
   const editableProfiles = getEditableAvailabilityProfiles(state);
 
   if (editableProfiles.some((profile) => profile.id === profileFilter)) {
     return profileFilter;
+  }
+
+  if (editableProfiles.some((profile) => profile.id === fallbackProfileFilter)) {
+    return fallbackProfileFilter;
   }
 
   return editableProfiles[0]?.id ?? "";

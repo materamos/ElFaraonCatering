@@ -107,6 +107,41 @@
     place-self: start center;
   }
 
+  .admin-loading__panel {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    width: 100%;
+    padding: 1rem;
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border-strong);
+    border-radius: 0.5rem;
+    box-shadow: 0 1rem 2rem rgb(var(--admin-shadow-rgb) / 0.06);
+  }
+
+  .admin-loading__indicator {
+    flex: 0 0 auto;
+    width: 2.15rem;
+    height: 2.15rem;
+    margin-top: 0.15rem;
+    border: 3px solid var(--admin-border);
+    border-top-color: var(--admin-accent);
+    border-radius: 999px;
+    animation: admin-loading-spin 900ms linear infinite;
+  }
+
+  .admin-loading__content {
+    display: grid;
+    gap: 0.45rem;
+    min-width: 0;
+  }
+
+  .admin-loading__help {
+    color: var(--admin-text-faint);
+    font-size: 0.84rem;
+    line-height: 1.45;
+  }
+
   .admin-login__form,
   .admin-denied__panel {
     display: grid;
@@ -1207,9 +1242,26 @@
     border-radius: 0.5rem;
   }
 
+@keyframes admin-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-loading__indicator {
+    animation: none;
+  }
+}
+
 @media (max-width: 520px) {
   .admin-root {
     place-items: start center;
+  }
+
+  .admin-loading {
+    align-content: start;
+    padding-top: max(1.25rem, env(safe-area-inset-top));
   }
 
   .admin-login,
@@ -1218,6 +1270,7 @@
     padding-top: max(1.25rem, env(safe-area-inset-top));
   }
 
+  .admin-loading__panel,
   .admin-login__form,
   .admin-denied__panel,
   .admin-header,

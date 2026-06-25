@@ -38,11 +38,14 @@ export function setAdminServiceSection(section: ServiceSectionId): void {
 export function setAdminFilter(name: string, value: string): void {
   if (name === "hidden-availability-profile") {
     hiddenAvailabilityProfileFilter = value;
+    availabilityProfileFilter = value;
+    availabilityGroupFilter = "";
     return;
   }
 
   if (name === "availability-profile") {
     availabilityProfileFilter = value;
+    hiddenAvailabilityProfileFilter = value;
     availabilityGroupFilter = "";
     return;
   }

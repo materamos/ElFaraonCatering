@@ -16,6 +16,7 @@ const { requireAdminModule } = await compileAdminModules("admin-render-contracts
   "src/admin/views/service.ts",
   "src/admin/core/contracts.ts",
   "src/admin/core/types.ts",
+  "src/admin/core/viewState.ts",
 ]);
 
 const authView = requireAdminModule("views/auth");
@@ -24,6 +25,7 @@ const availabilityView = requireAdminModule("views/availability");
 const fixedMenuView = requireAdminModule("views/fixedMenu");
 const serviceView = requireAdminModule("views/service");
 const { adminForms, adminActions } = requireAdminModule("core/contracts");
+const { getAdminViewState, setAdminFilter } = requireAdminModule("core/viewState");
 
 test("login view exposes the login form contract", () => {
   const html = authView.renderLoginView({
@@ -69,6 +71,24 @@ test("availability view exposes set and clear overlay actions", () => {
   assert.ok(hasAction(html, adminActions.clearOverlay));
 });
 
+test("availability profile filters stay linked in view state", () => {
+  setAdminFilter("availability-profile", "teleinde");
+  setAdminFilter("availability-group", "section:parrilla");
+
+  let viewState = getAdminViewState();
+
+  assert.equal(viewState.availabilityProfileFilter, "teleinde");
+  assert.equal(viewState.hiddenAvailabilityProfileFilter, "teleinde");
+  assert.equal(viewState.availabilityGroupFilter, "section:parrilla");
+
+  setAdminFilter("hidden-availability-profile", "corpo");
+  viewState = getAdminViewState();
+
+  assert.equal(viewState.availabilityProfileFilter, "corpo");
+  assert.equal(viewState.hiddenAvailabilityProfileFilter, "corpo");
+  assert.equal(viewState.availabilityGroupFilter, "");
+});
+
 test("availability rows show item name with profile only", () => {
   const html = availabilityView.renderAvailabilityTab(
     createState(),
@@ -101,17 +121,17 @@ test("availability view renders hidden summary before filters", () => {
   assert.ok(summaryIndex < filtersIndex);
 });
 
-test("availability hidden summary shows both profiles and ignores active filters", () => {
+test("availability hidden summary follows profile filter and ignores group filter", () => {
   const state = createHiddenAvailabilityState();
-  const corpoHtml = availabilityView.renderAvailabilityTab(
+  const guarnicionesHtml = availabilityView.renderAvailabilityTab(
     state,
     createViewState({
-      availabilityProfileFilter: "corpo",
+      availabilityProfileFilter: "teleinde",
       availabilityGroupFilter: "section:guarniciones",
     }),
     false,
   );
-  const teleindeHtml = availabilityView.renderAvailabilityTab(
+  const parrillaHtml = availabilityView.renderAvailabilityTab(
     state,
     createViewState({
       availabilityProfileFilter: "teleinde",
@@ -119,9 +139,9 @@ test("availability hidden summary shows both profiles and ignores active filters
     }),
     false,
   );
-  const summaryHtml = getSummaryHtml(corpoHtml);
+  const summaryHtml = getSummaryHtml(guarnicionesHtml);
 
-  assert.equal(summaryHtml, getSummaryHtml(teleindeHtml));
+  assert.equal(summaryHtml, getSummaryHtml(parrillaHtml));
   assert.ok(summaryHtml.includes("Items ocultos"));
   assert.ok(summaryHtml.includes("admin-availability-summary__header"));
   assert.ok(summaryHtml.includes(`data-admin-action="${adminActions.hiddenAvailabilityProfile}"`));
@@ -136,8 +156,9 @@ test("availability hidden summary shows both profiles and ignores active filters
   assert.ok(summaryHtml.includes("Mostrar"));
   assert.ok(summaryHtml.includes(`data-admin-action="${adminActions.setOverlay}"`));
   assert.ok(summaryHtml.includes('data-available="true"'));
-  assert.ok(summaryHtml.includes('data-target-key="corpo/guarniciones/papas"'));
-  assert.equal(summaryHtml.includes('data-family-key="family:teleinde:parrilla:Parrilla"'), false);
+  assert.ok(summaryHtml.includes('data-family-key="family:teleinde:parrilla:Parrilla"'));
+  assert.ok(summaryHtml.includes('data-target-key="teleinde/guarniciones/ensalada"'));
+  assert.equal(summaryHtml.includes('data-target-key="corpo/guarniciones/papas"'), false);
   assert.equal(summaryHtml.includes("admin-availability-chip__profile"), false);
 });
 
