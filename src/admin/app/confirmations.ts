@@ -1,6 +1,6 @@
 export function confirmPublishChanges(): boolean {
   return window.confirm(
-    "Vas a publicar los cambios guardados de platos, parrilla, menú fijo, servicio activo y precios. La disponibilidad ya se aplica al instante. ¿Continuar?",
+    "Vas a subir al menú todos los cambios guardados ¿Continuar?",
   );
 }
 

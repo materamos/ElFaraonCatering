@@ -7,9 +7,9 @@ import type {
 export function resultMessage(result: RpcResult): string {
   const messages: Record<string, string> = {
     permission_denied: "No tenés permisos para esta acción.",
-    publish_queued: "Publicación solicitada. El aviso se actualiza cuando termine el deploy y cargues la nueva versión del admin.",
+    publish_queued: "Publicación en curso. Los cambios se están subiendo al menú.",
     publish_recently_queued: "Ya se pidió una publicación hace poco.",
-    publish_failed: "No se pudo publicar.",
+    publish_failed: "No se pudo iniciar la publicación. Intentá de nuevo en unos minutos.",
     available_override_required: "La disponibilidad seleccionada no es válida.",
     availability_targets_required: "Seleccioná al menos un item.",
     invalid_availability_target: "Alguno de los items seleccionados ya no existe.",
@@ -75,7 +75,7 @@ export function formatCooldownSuffix(result: RpcResult): string {
     return "";
   }
 
-  return ` (${seconds} segundos restantes)`;
+  return ` ${seconds} segundos`;
 }
 
 export async function readJsonBody(response: Response): Promise<unknown> {

@@ -12,7 +12,7 @@ export function createPublishOperations(context: AdminOperationContext) {
           context.markCurrentPublicationRequested();
           context.rememberPublishCooldown(result);
           await context.loadAdminState(
-            "Publicación solicitada. El botón vuelve a aparecer si hacés cambios nuevos antes de que termine el deploy.",
+            "Publicación en curso. Si hacés nuevos cambios, vas a poder publicarlos después.",
             "success",
           );
           return;
@@ -21,7 +21,7 @@ export function createPublishOperations(context: AdminOperationContext) {
         if (result.message === "publish_recently_queued") {
           context.rememberPublishCooldown(result);
           await context.loadAdminState(
-            `Ya se pidió una publicación hace poco${formatCooldownSuffix(result)}. Los cambios quedan guardados; volvé a publicar cuando esté disponible.`,
+            `Ya hay una publicación reciente en curso. Los cambios quedan guardados. Esperá${formatCooldownSuffix(result)} para volver a publicar.`,
             "neutral",
           );
           return;
