@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compileAdminModules, createCatalogItem, createState } from "./test-admin-helpers.mjs";
+import { compileAdminModules, createCatalogItem, createState, createTarget } from "./test-admin-helpers.mjs";
 
 const { requireAdminModule } = await compileAdminModules("admin-rules-selectors-tests", [
   "src/admin/core/rules.ts",
@@ -219,4 +219,76 @@ test("selectors find catalog options and grill families", () => {
   assert.equal(selectors.findCatalogItemOption(state, "empanadas", "empanadas", "carne").name, "carne");
   assert.equal(selectors.findGrillFamily(state, "parrilla").title, "Parrilla");
   assert.equal(selectors.findGrillItem(state, "vacio").variant_name, "Vacio");
+});
+
+test("catalog availability cascade keeps parent and options synchronized", () => {
+  const sectionId = "tartas-tortillas-omelettes";
+  const parent = createTarget("corpo", "catalog", sectionId, "tartas", "Tartas");
+  const jamon = createTarget("corpo", "catalog", sectionId, "tartas-jamon-queso", "Tartas - Jamon y queso");
+  const verdeo = createTarget("corpo", "catalog", sectionId, "tartas-jamon-verdeo", "Tartas - Jamon y verdeo");
+  const state = createState({
+    availability_targets: [parent, jamon, verdeo],
+    catalog_editor: {
+      sections: [{ section_id: sectionId, title: "Tartas, tortillas y omelettes", order_index: 0, item_count: 1 }],
+      items: [
+        {
+          ...createCatalogItem(sectionId, "tartas", "Tartas", ["jamon-queso", "jamon-verdeo"]),
+          options: [
+            { section_id: sectionId, item_id: "tartas", option_id: "jamon-queso", name: "Jamon y queso", order_index: 0 },
+            { section_id: sectionId, item_id: "tartas", option_id: "jamon-verdeo", name: "Jamon y verdeo", order_index: 1 },
+          ],
+        },
+      ],
+    },
+  });
+
+  assert.deepEqual(
+    selectors.buildCatalogAvailabilityCascade(state, parent, false).map((target) => adminState.getTargetKey(target)),
+    [
+      "corpo/tartas-tortillas-omelettes/tartas",
+      "corpo/tartas-tortillas-omelettes/tartas-jamon-queso",
+      "corpo/tartas-tortillas-omelettes/tartas-jamon-verdeo",
+    ],
+  );
+
+  const oneHiddenState = createState({
+    availability_targets: [parent, jamon, verdeo],
+    availability_overlays: [
+      {
+        menu_id: "corpo",
+        section_id: sectionId,
+        item_id: "tartas-jamon-queso",
+        available_override: false,
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+    ],
+    catalog_editor: {
+      sections: [{ section_id: sectionId, title: "Tartas, tortillas y omelettes", order_index: 0, item_count: 1 }],
+      items: [
+        {
+          ...createCatalogItem(sectionId, "tartas", "Tartas", ["jamon-queso", "jamon-verdeo"]),
+          options: [
+            { section_id: sectionId, item_id: "tartas", option_id: "jamon-queso", name: "Jamon y queso", order_index: 0 },
+            { section_id: sectionId, item_id: "tartas", option_id: "jamon-verdeo", name: "Jamon y verdeo", order_index: 1 },
+          ],
+        },
+      ],
+    },
+  });
+
+  assert.deepEqual(
+    selectors.buildCatalogAvailabilityCascade(oneHiddenState, verdeo, false).map((target) => adminState.getTargetKey(target)),
+    [
+      "corpo/tartas-tortillas-omelettes/tartas-jamon-verdeo",
+      "corpo/tartas-tortillas-omelettes/tartas",
+    ],
+  );
+
+  assert.deepEqual(
+    selectors.buildCatalogAvailabilityCascade(oneHiddenState, jamon, true).map((target) => adminState.getTargetKey(target)),
+    [
+      "corpo/tartas-tortillas-omelettes/tartas-jamon-queso",
+      "corpo/tartas-tortillas-omelettes/tartas",
+    ],
+  );
 });

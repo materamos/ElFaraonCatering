@@ -1,5 +1,6 @@
 import type { AdminActionHandlerContext } from "./actionHandlers";
 import {
+  buildCatalogAvailabilityCascade,
   findAvailabilityFamilyTargets,
   findAvailabilityTarget,
 } from "../core/selectors";
@@ -43,8 +44,18 @@ export async function handleSetOverlayAction(
     return;
   }
 
+  const cascadeTargets = availabilityTarget.target_kind === "catalog" && currentState
+    ? buildCatalogAvailabilityCascade(currentState, availabilityTarget, available)
+    : [availabilityTarget];
+
   if (available) {
-    await context.adminOperations.clearAvailabilityOverlay(availabilityTarget);
+    if (cascadeTargets.length > 1) {
+      await context.adminOperations.clearAvailabilityOverlayBatch(cascadeTargets);
+    } else {
+      await context.adminOperations.clearAvailabilityOverlay(availabilityTarget);
+    }
+  } else if (cascadeTargets.length > 1) {
+    await context.adminOperations.saveAvailabilityOverlayBatch(cascadeTargets, false);
   } else {
     await context.adminOperations.saveAvailabilityOverlay(availabilityTarget, false);
   }

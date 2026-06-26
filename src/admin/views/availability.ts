@@ -8,14 +8,18 @@ import type {
 import type { AdminViewState } from "../core/viewState";
 import {
   findOverlay,
+  findCatalogParentAvailabilityTarget,
+  getCatalogOptionDisplay,
   getAvailabilityFamilyKey,
   getAvailabilityGroupKey,
   getAvailabilityGroupOptions,
+  getEffectiveAvailability,
   getEffectiveAvailabilityGroupFilter,
   getEffectiveAvailabilityProfileFilter,
   getEditableAvailabilityProfiles,
   getHiddenAvailabilityTargets,
   getVisibleAvailabilityTargets,
+  shouldCatalogParentAppearAvailable,
 } from "../core/selectors";
 import { getTargetKey } from "../core/adminState";
 import { escapeHtml } from "../core/format";
@@ -151,7 +155,9 @@ function renderHiddenAvailabilityProfileChips(
   isBusy: boolean,
 ): string {
   const serviceTargets = group.targets.filter((target) => target.target_kind !== "catalog");
-  const catalogTargets = group.targets.filter((target) => target.target_kind === "catalog");
+  const catalogTargets = group.targets
+    .filter((target) => target.target_kind === "catalog")
+    .filter((target) => !isHiddenCatalogOptionWithHiddenParent(state, target));
   const chips = [
     ...buildHiddenServiceChips(state, serviceTargets, isBusy),
     ...catalogTargets.map((target) => renderCatalogAvailabilityChip(state, target, isBusy)),
@@ -340,30 +346,13 @@ function renderCatalogAvailabilityChip(
   });
 }
 
-function getCatalogOptionDisplay(
+function isHiddenCatalogOptionWithHiddenParent(
   state: AdminOperationalState,
   target: AvailabilityTargetState,
-): { itemName: string; optionName: string } | undefined {
-  for (const item of state.catalog_editor.items) {
-    if (item.section_id !== target.section_id) {
-      continue;
-    }
+): boolean {
+  const parentTarget = findCatalogParentAvailabilityTarget(state, target);
 
-    const optionPrefix = `${item.item_id}-`;
-
-    if (!target.item_id.startsWith(optionPrefix)) {
-      continue;
-    }
-
-    const optionId = target.item_id.slice(optionPrefix.length);
-    const option = item.options.find((entry) => entry.option_id === optionId);
-
-    if (option) {
-      return { itemName: item.name, optionName: option.name };
-    }
-  }
-
-  return undefined;
+  return Boolean(parentTarget && !getEffectiveAvailability(state, parentTarget));
 }
 
 function renderAvailabilityChip(
@@ -439,7 +428,7 @@ function getHiddenAvailabilityGroupLabel(
     const itemName = optionDisplay?.itemName ?? target.name;
 
     if (itemName === "Tartas") {
-      return "Tarta";
+      return optionDisplay ? "Tarta" : "";
     }
 
     if (itemName === "Tortilla" || itemName === "Omelette") {
@@ -465,7 +454,9 @@ function renderAvailabilityRow(
   options: { displayName?: string; rowClass?: string } = {},
 ): string {
   const overlay = findOverlay(state, target);
-  const effectiveAvailable = overlay ? overlay.available_override : target.base_available;
+  const effectiveAvailable = target.target_kind === "catalog"
+    ? shouldCatalogParentAppearAvailable(state, target)
+    : overlay ? overlay.available_override : target.base_available;
   const key = getTargetKey(target);
 
   return `

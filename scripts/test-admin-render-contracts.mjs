@@ -207,6 +207,59 @@ test("availability hidden summary chips show group labels", () => {
   assert.equal(summaryHtml.includes('admin-availability-chip__meta">Omelette</span>'), false);
 });
 
+test("availability hidden summary does not repeat tartas parent label", () => {
+  const sectionId = "tartas-tortillas-omelettes";
+  const state = createState({
+    availability_targets: [
+      createTarget("corpo", "catalog", sectionId, "tartas", "Tartas"),
+      createTarget("corpo", "catalog", sectionId, "tartas-jamon-queso", "Tartas - Jamon y queso"),
+    ],
+    availability_overlays: [
+      {
+        menu_id: "corpo",
+        section_id: sectionId,
+        item_id: "tartas",
+        available_override: false,
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+      {
+        menu_id: "corpo",
+        section_id: sectionId,
+        item_id: "tartas-jamon-queso",
+        available_override: false,
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+    ],
+    catalog_editor: {
+      sections: [{ section_id: sectionId, title: "Tartas, tortillas y omelettes", order_index: 0, item_count: 1 }],
+      items: [
+        {
+          ...createCatalogItem(sectionId, "tartas", "Tartas", ["jamon-queso"]),
+          options: [
+            {
+              section_id: sectionId,
+              item_id: "tartas",
+              option_id: "jamon-queso",
+              name: "Jamon y queso",
+              order_index: 0,
+            },
+          ],
+        },
+      ],
+    },
+  });
+  const html = availabilityView.renderAvailabilityTab(
+    state,
+    createViewState({ hiddenAvailabilityProfileFilter: "corpo" }),
+    false,
+  );
+  const summaryHtml = getSummaryHtml(html);
+
+  assert.ok(summaryHtml.includes('admin-availability-chip__title">Tartas</span>'));
+  assert.equal(summaryHtml.includes('admin-availability-chip__meta">Tarta</span>\n      <span class="admin-availability-chip__separator">-</span>\n      <span class="admin-availability-chip__title">Tartas</span>'), false);
+  assert.equal(summaryHtml.includes('admin-availability-chip__title">Jamon y queso</span>'), false);
+});
+
 test("availability hidden summary restores grill as a family when partially hidden", () => {
   const html = availabilityView.renderAvailabilityTab(
     createState({

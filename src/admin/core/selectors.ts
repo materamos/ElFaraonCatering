@@ -150,6 +150,127 @@ export function findAvailabilityTarget(
   return getVisibleAvailabilityTargets(state).find((target) => getTargetKey(target) === key);
 }
 
+export function findCatalogParentAvailabilityTarget(
+  state: AdminOperationalState,
+  target: AvailabilityTargetState,
+): AvailabilityTargetState | undefined {
+  const optionDisplay = getCatalogOptionDisplay(state, target);
+
+  if (!optionDisplay) {
+    return undefined;
+  }
+
+  return getVisibleAvailabilityTargets(state).find((entry) =>
+    entry.menu_id === target.menu_id
+    && entry.target_kind === "catalog"
+    && entry.section_id === target.section_id
+    && entry.item_id === optionDisplay.itemId
+  );
+}
+
+export function findCatalogOptionAvailabilityTargets(
+  state: AdminOperationalState,
+  target: AvailabilityTargetState,
+): AvailabilityTargetState[] {
+  const item = state.catalog_editor.items.find((entry) =>
+    entry.section_id === target.section_id
+    && entry.item_id === target.item_id
+  );
+
+  if (!item || item.options.length === 0) {
+    return [];
+  }
+
+  const optionIds = new Set(
+    item.options.map((option) => `${item.item_id}-${option.option_id}`),
+  );
+
+  return getVisibleAvailabilityTargets(state).filter((entry) =>
+    entry.menu_id === target.menu_id
+    && entry.target_kind === "catalog"
+    && entry.section_id === target.section_id
+    && optionIds.has(entry.item_id)
+  );
+}
+
+export function getCatalogOptionDisplay(
+  state: AdminOperationalState,
+  target: AvailabilityTargetState,
+): { itemId: string; itemName: string; optionName: string } | undefined {
+  for (const item of state.catalog_editor.items) {
+    if (item.section_id !== target.section_id) {
+      continue;
+    }
+
+    const optionPrefix = `${item.item_id}-`;
+
+    if (!target.item_id.startsWith(optionPrefix)) {
+      continue;
+    }
+
+    const optionId = target.item_id.slice(optionPrefix.length);
+    const option = item.options.find((entry) => entry.option_id === optionId);
+
+    if (option) {
+      return { itemId: item.item_id, itemName: item.name, optionName: option.name };
+    }
+  }
+
+  return undefined;
+}
+
+export function getEffectiveAvailability(
+  state: AdminOperationalState,
+  target: AvailabilityTargetState,
+): boolean {
+  return findOverlay(state, target)?.available_override ?? target.base_available;
+}
+
+export function shouldCatalogParentAppearAvailable(
+  state: AdminOperationalState,
+  target: AvailabilityTargetState,
+): boolean {
+  const optionTargets = findCatalogOptionAvailabilityTargets(state, target);
+
+  if (optionTargets.length === 0) {
+    return getEffectiveAvailability(state, target);
+  }
+
+  return getEffectiveAvailability(state, target)
+    && optionTargets.some((optionTarget) => getEffectiveAvailability(state, optionTarget));
+}
+
+export function buildCatalogAvailabilityCascade(
+  state: AdminOperationalState,
+  target: AvailabilityTargetState,
+  available: boolean,
+): AvailabilityTargetState[] {
+  const parentTarget = findCatalogParentAvailabilityTarget(state, target);
+
+  if (parentTarget) {
+    if (available) {
+      return [target, parentTarget];
+    }
+
+    const siblingTargets = findCatalogOptionAvailabilityTargets(state, parentTarget);
+    const allOptionsWillBeUnavailable = siblingTargets.every((optionTarget) =>
+      getTargetKey(optionTarget) === getTargetKey(target)
+        ? true
+        : !getEffectiveAvailability(state, optionTarget)
+    );
+
+    return allOptionsWillBeUnavailable ? [target, parentTarget] : [target];
+  }
+
+  const optionTargets = findCatalogOptionAvailabilityTargets(state, target);
+
+  if (optionTargets.length > 0) {
+    return available ? [target, ...optionTargets] : [target, ...optionTargets];
+  }
+
+  return [target];
+}
+
 export function findAvailabilityFamilyTargets(
   state: AdminOperationalState,
   key: string,
