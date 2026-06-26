@@ -707,6 +707,12 @@
     display: none;
   }
 
+  .dish-row[data-available="false"] .dish-card__options,
+  .dish-row[data-available="false"] .dish-card__footer,
+  .compact-item[data-available="false"] .compact-item__variants {
+    display: none;
+  }
+
   .dish-card__option[data-available="false"],
   .dish-card__variant[data-available="false"],
   .compact-item__variant[data-available="false"] {

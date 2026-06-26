@@ -85,8 +85,18 @@ const createAvailabilityStatus = (item) => {
   return status;
 };
 
+const getAvailabilityStatus = (item) => {
+  if (item.classList.contains("dish-row")) {
+    return item.querySelector(".dish-card__header-meta > [data-availability-status]");
+  }
+
+  return Array.from(item.children).find((child) =>
+    child.matches("[data-availability-status]"),
+  );
+};
+
 const applyAvailability = (item, available) => {
-  const existingStatus = item.querySelector("[data-availability-status]");
+  const existingStatus = getAvailabilityStatus(item);
 
   if (available) {
     item.hidden = false;
@@ -115,6 +125,23 @@ const applyAvailability = (item, available) => {
   status.dataset.state = "unavailable";
   status.removeAttribute("aria-hidden");
   status.textContent = unavailableText;
+};
+
+const syncParentAvailabilityFromVariants = (parent) => {
+  const variants = Array.from(
+    parent.querySelectorAll(
+      ".dish-card__variant[data-available], .compact-item__variant[data-available]",
+    ),
+  );
+
+  if (variants.length === 0) {
+    return;
+  }
+
+  applyAvailability(
+    parent,
+    variants.some((variant) => variant.dataset.available === "true"),
+  );
 };
 
 const loadAvailabilityOverlays = async () => {
@@ -174,6 +201,8 @@ const loadAvailabilityOverlays = async () => {
     return;
   }
 
+  const variantParents = new Set();
+
   for (const row of rows) {
     if (!row || typeof row !== "object") {
       continue;
@@ -189,7 +218,22 @@ const loadAvailabilityOverlays = async () => {
 
     if (item) {
       applyAvailability(item, overlay.available);
+
+      const parent = item.closest(".dish-row, .compact-item");
+
+      if (
+        parent &&
+        parent !== item &&
+        (item.classList.contains("dish-card__variant") ||
+          item.classList.contains("compact-item__variant"))
+      ) {
+        variantParents.add(parent);
+      }
     }
+  }
+
+  for (const parent of variantParents) {
+    syncParentAvailabilityFromVariants(parent);
   }
 };
 
