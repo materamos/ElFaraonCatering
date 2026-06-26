@@ -14,6 +14,7 @@ const publicSupabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const publicSupabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 const scheduleFact = profile.facts.find((fact) => fact.id === "horario");
 const paymentFact = profile.facts.find((fact) => fact.id === "pagos");
+const contactFact = profile.facts.find((fact) => fact.id === "contacto" && fact.link);
 const getSectionNavLabel = (section: MenuSectionData) =>
   section.sectionId === "platos-principales"
     ? "Principales"
@@ -99,6 +100,19 @@ const getSectionNavLabel = (section: MenuSectionData) =>
         />
       ))}
     </div>
+
+    {contactFact?.link && (
+      <a
+        class="menu-whatsapp-button"
+        href={contactFact.link.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Contactar por ${contactFact.link.text}`}
+      >
+        <span class="menu-whatsapp-button__mark" aria-hidden="true">WA</span>
+        <span class="menu-whatsapp-button__text">{contactFact.link.text}</span>
+      </a>
+    )}
   </main>
 
   <dialog class="photo-sheet" data-photo-sheet aria-labelledby="photo-sheet-title">

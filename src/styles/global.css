@@ -128,6 +128,7 @@
   .text-link:focus-visible,
   .menu-index__link:focus-visible,
   .photo-button:focus-visible,
+  .menu-whatsapp-button:focus-visible,
   .photo-sheet__close:focus-visible,
   .photo-sheet__nav:focus-visible,
   .menu-page__fact-link:focus-visible,
@@ -191,7 +192,7 @@
   .page-shell.menu-page {
     box-sizing: border-box;
     width: 100%;
-    padding: 2rem 1rem 2.5rem;
+    padding: 2rem 1rem 7rem;
   }
 
   .menu-page__hero {
@@ -293,6 +294,44 @@
     display: grid;
     gap: 1.9rem;
     margin-top: 1.5rem;
+  }
+
+  .menu-whatsapp-button {
+    position: fixed;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 3rem;
+    padding: 0.5rem 0.95rem 0.5rem 0.55rem;
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1rem;
+    text-decoration: none;
+    background: #1f7a4d;
+    border: 1px solid color-mix(in srgb, #ffffff 20%, #1f7a4d);
+    border-radius: 999px;
+    box-shadow: 0 0.7rem 1.6rem rgba(0, 0, 0, 0.35);
+  }
+
+  .menu-whatsapp-button__mark {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    color: #1f7a4d;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    line-height: 1;
+    background: #ffffff;
+    border-radius: 999px;
+  }
+
+  .menu-whatsapp-button__text {
+    white-space: nowrap;
   }
 
   .menu-index-sentinel {
