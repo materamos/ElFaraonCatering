@@ -384,6 +384,12 @@
     scroll-snap-align: start;
   }
 
+  .menu-index__link--active {
+    color: var(--color-on-accent);
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
   .menu-info-panel {
     display: grid;
     gap: 1rem;
