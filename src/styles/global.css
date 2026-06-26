@@ -669,7 +669,7 @@
     font-weight: 600;
   }
 
-  .dish-card__option:not(:last-child)::after {
+  .dish-card__option:has(~ .dish-card__option:not([hidden]))::after {
     content: "-";
   }
 
@@ -694,23 +694,23 @@
 
   .dish-row[data-available="false"] .dish-card__title,
   .dish-row[data-available="false"] .dish-card__description,
-  .dish-row[data-available="false"] .dish-card__price,
   .dish-row[data-available="false"] .photo-button,
   .compact-item[data-available="false"] .compact-item__title,
-  .compact-item[data-available="false"] .compact-item__description,
-  .compact-item[data-available="false"] > .compact-item__price {
+  .compact-item[data-available="false"] .compact-item__description {
     opacity: 0.66;
+  }
+
+  .dish-row[data-available="false"] .dish-card__price,
+  .dish-card__variant[data-available="false"] .dish-card__variant-price,
+  .compact-item__variant[data-available="false"] .compact-item__variant-price,
+  .compact-item[data-available="false"] > .compact-item__price {
+    display: none;
   }
 
   .dish-card__option[data-available="false"],
   .dish-card__variant[data-available="false"],
   .compact-item__variant[data-available="false"] {
     color: color-mix(in srgb, var(--color-muted) 72%, var(--color-page));
-  }
-
-  .dish-card__variant[data-available="false"] .dish-card__variant-price,
-  .compact-item__variant[data-available="false"] .compact-item__variant-price {
-    color: color-mix(in srgb, var(--color-ink) 66%, var(--color-muted));
   }
 
   .photo-button {

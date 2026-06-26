@@ -14,6 +14,7 @@ const getDirectPricingText = (pricing?: MenuPricing) =>
 const directPricingText = getDirectPricingText(item.pricing);
 const variants = item.pricing?.kind === "variants" ? item.pricing.variants : [];
 const hasOperationalVariants = variants.some((variant) => variant.availabilityItemId);
+const shouldRenderAvailabilityStatus = !hasOperationalVariants;
 ---
 
 <li
@@ -28,16 +29,6 @@ const hasOperationalVariants = variants.some((variant) => variant.availabilityIt
       <h3 class="compact-item__title">
         {item.name}
       </h3>
-      {!hasOperationalVariants && (
-        <span
-          class="compact-availability-status"
-          data-availability-status
-          data-state={item.available ? "available" : "unavailable"}
-          aria-hidden={item.available ? "true" : undefined}
-        >
-          No disponible
-        </span>
-      )}
     </div>
 
     {item.description && (
@@ -56,30 +47,27 @@ const hasOperationalVariants = variants.some((variant) => variant.availabilityIt
             data-available={
               variant.availabilityItemId
                 ? variant.available ? "true" : "false"
-                : undefined
+                : variant.available === false ? "false" : undefined
             }
           >
-            <span>
-              {variant.name}
-              {variant.availabilityItemId ? (
-                !variant.available && (
-                  <span
-                    class="dish-card__variant-status"
-                    data-availability-status
-                    data-state="unavailable"
-                  >
-                    No disponible
-                  </span>
-                )
-              ) : variant.available === false && (
-                <span class="dish-card__variant-status">
-                  No disponible
-                </span>
-              )}
-            </span>
+            <span>{variant.name}</span>
             <strong class="compact-item__variant-price">
               {getVariantPricingText(variant)}
             </strong>
+            {variant.availabilityItemId ? (
+              <span
+                class="dish-card__variant-status"
+                data-availability-status
+                data-state={variant.available ? "available" : "unavailable"}
+                aria-hidden={variant.available ? "true" : undefined}
+              >
+                No disponible
+              </span>
+            ) : variant.available === false && (
+              <span class="dish-card__variant-status">
+                No disponible
+              </span>
+            )}
           </li>
         ))}
       </ul>
@@ -90,5 +78,15 @@ const hasOperationalVariants = variants.some((variant) => variant.availabilityIt
     <strong class="compact-item__price">
       {directPricingText}
     </strong>
+  )}
+  {shouldRenderAvailabilityStatus && (
+    <span
+      class="compact-availability-status"
+      data-availability-status
+      data-state={item.available ? "available" : "unavailable"}
+      aria-hidden={item.available ? "true" : undefined}
+    >
+      No disponible
+    </span>
   )}
 </li>

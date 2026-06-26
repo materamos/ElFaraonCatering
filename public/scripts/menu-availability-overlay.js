@@ -67,7 +67,7 @@ const createAvailabilityStatus = (item) => {
 
   if (item.classList.contains("compact-item")) {
     status.className = "compact-availability-status";
-    item.querySelector(".compact-item__header")?.append(status);
+    item.append(status);
 
     return status;
   }
@@ -80,7 +80,7 @@ const createAvailabilityStatus = (item) => {
   }
 
   status.className = "dish-card__variant-status";
-  item.querySelector("span")?.append(status);
+  item.append(status);
 
   return status;
 };
@@ -89,6 +89,8 @@ const applyAvailability = (item, available) => {
   const existingStatus = item.querySelector("[data-availability-status]");
 
   if (available) {
+    item.hidden = false;
+
     if (
       existingStatus &&
       (item.classList.contains("dish-row") ||
@@ -109,6 +111,7 @@ const applyAvailability = (item, available) => {
   const status = existingStatus ?? createAvailabilityStatus(item);
 
   item.dataset.available = "false";
+  item.hidden = item.dataset.hideWhenUnavailable === "true";
   status.dataset.state = "unavailable";
   status.removeAttribute("aria-hidden");
   status.textContent = unavailableText;
