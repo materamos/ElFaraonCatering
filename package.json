@@ -20,7 +20,8 @@
     "supabase": "supabase",
     "supabase:link": "supabase link",
     "supabase:migrations": "supabase migration list",
-    "supabase:functions:deploy": "supabase functions deploy publish-menu-changes --use-api --no-verify-jwt"
+    "supabase:functions:deploy": "supabase functions deploy publish-menu-changes --use-api --no-verify-jwt",
+    "vercel": "vercel"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",
@@ -32,6 +33,7 @@
     "postgres": "^3.4.9",
     "supabase": "^2.105.0",
     "typescript": "^6.0.3",
+    "vercel": "^54.18.0",
     "vite": "^7.3.5"
   },
   "volta": {

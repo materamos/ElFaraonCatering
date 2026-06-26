@@ -127,6 +127,7 @@ npm run preview
 | `npm run supabase:link` | Vincula el checkout local con un proyecto Supabase remoto. Requiere project ref y credenciales. |
 | `npm run supabase:migrations` | Lista migraciones locales/remotas con Supabase CLI. Requiere proyecto vinculado o `-- --db-url`. |
 | `npm run supabase:functions:deploy` | Despliega solo la Edge Function aprobada `publish-menu-changes` con `--no-verify-jwt`. |
+| `npm run vercel -- <args>` | Ejecuta Vercel CLI local del proyecto para inspeccion y administracion del deployment. |
 
 Validacion recomendada:
 

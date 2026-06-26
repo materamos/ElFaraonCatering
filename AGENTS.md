@@ -192,6 +192,7 @@ Build-time structural and operational content:
 - Never run the baseline against an existing database. Align an existing remote migration history only after proving schema, data, function, grant, policy, and fingerprint equivalence.
 - Add every future database change as a new incremental migration after the baseline.
 - Supabase CLI is installed as a dev dependency and should be run through npm scripts, for example `npm run supabase -- <args>`.
+- Vercel CLI is installed as a dev dependency and should be run through npm scripts, for example `npm run vercel -- <args>`.
 - `npm run supabase:audit` executes the read-only SQL audits in `docs/supabase/audits/` and must fail on risk rows, diagnostics, or unexpected structural statuses.
 - `npm run supabase:functions:deploy` may deploy only the approved `publish-menu-changes` Edge Function and must keep platform JWT verification disabled for that function.
 - `SUPABASE_DB_URL` is required for build-time structural reads and menu validation.
