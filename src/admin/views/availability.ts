@@ -436,9 +436,12 @@ function getHiddenAvailabilityGroupLabel(
     }
   }
 
+  if (target.section_id === "empanadas") {
+    return optionDisplay ? "Empanada" : "";
+  }
+
   const catalogLabels: Record<string, string> = {
     guarniciones: "Guarniciones",
-    empanadas: "Empanadas",
     ensaladas: "Ensaladas",
     cafeteria: "Cafeteria",
     bebidas: "Bebidas",

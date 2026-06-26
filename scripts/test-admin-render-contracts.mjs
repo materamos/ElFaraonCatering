@@ -192,7 +192,7 @@ test("availability hidden summary chips show group labels", () => {
 
   assert.ok(summaryHtml.includes('admin-availability-chip__meta">Menu del dia</span>'));
   assert.ok(summaryHtml.includes('admin-availability-chip__meta">Guarniciones</span>'));
-  assert.ok(summaryHtml.includes('admin-availability-chip__meta">Empanadas</span>'));
+  assert.ok(summaryHtml.includes('admin-availability-chip__meta">Empanada</span>'));
   assert.ok(summaryHtml.includes('admin-availability-chip__meta">Ensaladas</span>'));
   assert.ok(summaryHtml.includes('admin-availability-chip__meta">Cafeteria</span>'));
   assert.ok(summaryHtml.includes('admin-availability-chip__meta">Bebidas</span>'));
@@ -258,6 +258,58 @@ test("availability hidden summary does not repeat tartas parent label", () => {
   assert.ok(summaryHtml.includes('admin-availability-chip__title">Tartas</span>'));
   assert.equal(summaryHtml.includes('admin-availability-chip__meta">Tarta</span>\n      <span class="admin-availability-chip__separator">-</span>\n      <span class="admin-availability-chip__title">Tartas</span>'), false);
   assert.equal(summaryHtml.includes('admin-availability-chip__title">Jamon y queso</span>'), false);
+});
+
+test("availability hidden summary does not repeat empanadas parent label", () => {
+  const state = createState({
+    availability_targets: [
+      createTarget("corpo", "catalog", "empanadas", "empanadas", "Empanadas"),
+      createTarget("corpo", "catalog", "empanadas", "empanadas-carne", "Empanadas - Carne"),
+    ],
+    availability_overlays: [
+      {
+        menu_id: "corpo",
+        section_id: "empanadas",
+        item_id: "empanadas",
+        available_override: false,
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+      {
+        menu_id: "corpo",
+        section_id: "empanadas",
+        item_id: "empanadas-carne",
+        available_override: false,
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+    ],
+    catalog_editor: {
+      sections: [{ section_id: "empanadas", title: "Empanadas", order_index: 0, item_count: 1 }],
+      items: [
+        {
+          ...createCatalogItem("empanadas", "empanadas", "Empanadas", ["carne"]),
+          options: [
+            {
+              section_id: "empanadas",
+              item_id: "empanadas",
+              option_id: "carne",
+              name: "Carne",
+              order_index: 0,
+            },
+          ],
+        },
+      ],
+    },
+  });
+  const html = availabilityView.renderAvailabilityTab(
+    state,
+    createViewState({ hiddenAvailabilityProfileFilter: "corpo" }),
+    false,
+  );
+  const summaryHtml = getSummaryHtml(html);
+
+  assert.ok(summaryHtml.includes('admin-availability-chip__title">Empanadas</span>'));
+  assert.equal(summaryHtml.includes('admin-availability-chip__meta">Empanadas</span>\n      <span class="admin-availability-chip__separator">-</span>\n      <span class="admin-availability-chip__title">Empanadas</span>'), false);
+  assert.equal(summaryHtml.includes('admin-availability-chip__title">Carne</span>'), false);
 });
 
 test("availability hidden summary restores grill as a family when partially hidden", () => {
