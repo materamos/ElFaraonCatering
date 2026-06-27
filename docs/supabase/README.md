@@ -43,6 +43,10 @@ Editables build-time con rebuild requerido:
 al catalogo fijo. El orden cero identifica la imagen principal. Menu diario y
 parrilla no soportan imagenes.
 
+Los facts de perfil pueden incluir links de contacto, por ejemplo WhatsApp,
+solo para consultas informativas. Esos links no representan pedidos por
+WhatsApp ni habilitan flujos de compra, carrito, checkout o reservas.
+
 Editable runtime sin rebuild:
 
 - disponibilidad por local usando exclusivamente `public.menu_availability_overlays`
@@ -218,4 +222,5 @@ No aplicar SQL mutante en Supabase remoto si los audits muestran bloqueos conoci
 - Usar RPCs operativas para escrituras desde el browser; no otorgar grants directos sobre `menu_content`.
 - Usar `get_admin_operational_state()` para lectura del admin; no consultar `menu_content` ni `app_private` desde el browser.
 - Usar `publish-menu-changes` para publicacion; no exponer el Vercel Deploy Hook, no usar `pg_net`, no exponer `app_private` por PostgREST y no otorgar grants sobre sus tablas.
+- Ejecutar `npm run supabase:audit` antes de deploy o cambios de permisos; el audit falla si `app_private` o `menu_content` quedan expuestos por PostgREST/Data API.
 - No agregar SSR, Vercel Functions, CMS editorial amplio, auth editorial ni queries estructurales desde el navegador por cambios en esta carpeta. Las ampliaciones del CMS deben permanecer dentro del contenido operativo de menu y seguir pasando por RPCs.

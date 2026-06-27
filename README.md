@@ -4,7 +4,7 @@ Sistema de menu digital QR para los buffets operados por **El Faraon Catering** 
 
 El proyecto esta orientado al uso cotidiano en contexto laboral, con una experiencia rapida, clara y mobile-first para tecnicos, produccion, oficinas y personal que consulta el menu desde el telefono.
 
-La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuentas de usuario, carrito ni flujos de compra.
+La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuentas de usuario, carrito ni flujos de compra. Los accesos de WhatsApp, cuando existen, son solo vias de contacto para informacion; no son un flujo de pedidos.
 
 ## Estado actual
 
@@ -124,7 +124,7 @@ npm run preview
 | `npm run verify:dist-secrets` | Revisa `dist/` para detectar marcadores de secretos despues del build. |
 | `npm run supabase:audit` | Ejecuta los audits SQL read-only y falla ante risks, diagnostics o estados estructurales no esperados. Requiere `SUPABASE_DB_URL`. |
 | `npm run supabase -- <args>` | Ejecuta Supabase CLI local del proyecto. |
-| `npm run supabase:link` | Vincula el checkout local con un proyecto Supabase remoto. Requiere project ref y credenciales. |
+| `npm run supabase:link` | Vincula el entorno local con un proyecto Supabase remoto. Requiere project ref y credenciales. |
 | `npm run supabase:migrations` | Lista migraciones locales/remotas con Supabase CLI. Requiere proyecto vinculado o `-- --db-url`. |
 | `npm run supabase:functions:deploy` | Despliega solo la Edge Function aprobada `publish-menu-changes` con `--no-verify-jwt`. |
 
@@ -429,6 +429,8 @@ No agregar estas capacidades salvo pedido explicito:
 - Vercel serverless functions
 - nuevas Supabase Edge Functions fuera de `publish-menu-changes`
 - CMS editorial amplio, auth no operativa o flujos de escritura editorial fuera del contenido operativo de menu
+
+Los links `wa.me` del menu quedan permitidos solo como contacto informativo. No deben presentarse ni evolucionar como pedidos por WhatsApp, mensajes prearmados de compra, derivacion de carrito o reemplazo de checkout sin una decision explicita de alcance.
 
 ## Decisiones tecnicas actuales
 

@@ -58,6 +58,11 @@ Do not add these capabilities unless explicitly requested:
 - serverless functions, except the explicitly approved Supabase Edge Function `publish-menu-changes`
 - broad editorial CMS code, non-operational auth, or repo-writing admin flows outside operational menu content
 
+Profile contact links, including WhatsApp links, may exist as informational
+contact shortcuts only. Do not turn them into ordering CTAs, prefilled order
+flows, carts, checkout handoffs, or any other WhatsApp ordering behavior unless
+explicitly requested.
+
 Operational CMS work may cover menu del dia, active service, availability, grill
 mode, grill products and their options, fixed-menu content, existing catalog
 item options, global prices, and publication. This is an intermediate
