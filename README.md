@@ -22,7 +22,7 @@ La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuent
 
 ## Stack tecnico
 
-- Astro 6
+- Astro 7
 - TypeScript
 - Tailwind CSS 4
 - Node 22 LTS
@@ -127,7 +127,6 @@ npm run preview
 | `npm run supabase:link` | Vincula el checkout local con un proyecto Supabase remoto. Requiere project ref y credenciales. |
 | `npm run supabase:migrations` | Lista migraciones locales/remotas con Supabase CLI. Requiere proyecto vinculado o `-- --db-url`. |
 | `npm run supabase:functions:deploy` | Despliega solo la Edge Function aprobada `publish-menu-changes` con `--no-verify-jwt`. |
-| `npm run vercel -- <args>` | Ejecuta Vercel CLI local del proyecto para inspeccion y administracion del deployment. |
 
 Validacion recomendada:
 
@@ -171,11 +170,15 @@ src/
       publishActionHandlers.ts
       session.ts
     core/
+      adminState.ts
       contracts.ts
+      format.ts
+      forms.ts
+      responses.ts
       rules.ts
       selectors.ts
       types.ts
-      utils.ts
+      url.ts
       viewState.ts
     operations/
       availability.ts
@@ -193,6 +196,8 @@ src/
       availability.ts
       fixedMenu.ts
       html.ts
+      passwordToggle.ts
+      prices.ts
       renderer.ts
       service.ts
       shell.ts
@@ -217,19 +222,26 @@ src/
     menu.ts
   utils/
     menuContent.ts
-    menuImage.ts
+    menuImagePath.d.mts
+    menuImagePath.mjs
     menuPricing.ts
     menuSupabaseContent.ts
     menuSupabaseSnapshot.mjs
 public/
+  brand/
+  fonts/
   icons/
   scripts/
     menu-availability-overlay.js
+    menu-index-sticky.js
     menu-photo-sheet.js
   uploads/
 scripts/
+  audit-supabase-readonly.mjs
+  check-js-syntax.mjs
   load-local-env.mjs
   menu-content-supabase.mjs
+  optimize-menu-images.mjs
   test-admin-helpers.mjs
   test-admin-operations.mjs
   test-admin-render-contracts.mjs
@@ -239,6 +251,7 @@ scripts/
 supabase/
   config.toml
   functions/
+    _shared/
     publish-menu-changes/
   migrations/
 docs/
@@ -419,7 +432,7 @@ No agregar estas capacidades salvo pedido explicito:
 
 ## Decisiones tecnicas actuales
 
-- Se usa **Astro 6** con **Node 22 LTS**.
+- Se usa **Astro 7** con **Node 22 LTS**.
 - Se usa **Tailwind CSS 4** mediante el plugin de Vite.
 - El sitio sigue siendo **static-first** con extensiones cliente no bloqueantes.
 - Supabase `menu_content` es la fuente estructural build-time.

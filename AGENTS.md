@@ -24,7 +24,7 @@ Current routes:
 
 Current stack:
 
-- Astro 6
+- Astro 7
 - TypeScript
 - Tailwind CSS 4
 - Node 22 LTS
@@ -102,7 +102,7 @@ but must remain the explicit global price RPC workflow.
 
 Keep `/admin/` as a static Astro route. Do not add SSR, server output, API routes, Vercel Functions, service role usage in browser, or broad editorial CMS behavior outside the operational menu-content scope.
 
-Keep the project compatible with Node 22 and Astro 6 unless the runtime upgrade is explicitly requested.
+Keep the project compatible with Node 22 and Astro 7 unless the runtime upgrade is explicitly requested.
 
 Use npm only. Do not switch to pnpm, yarn, bun, or another runtime/package manager.
 
@@ -192,7 +192,6 @@ Build-time structural and operational content:
 - Never run the baseline against an existing database. Align an existing remote migration history only after proving schema, data, function, grant, policy, and fingerprint equivalence.
 - Add every future database change as a new incremental migration after the baseline.
 - Supabase CLI is installed as a dev dependency and should be run through npm scripts, for example `npm run supabase -- <args>`.
-- Vercel CLI is installed as a dev dependency and should be run through npm scripts, for example `npm run vercel -- <args>`.
 - `npm run supabase:audit` executes the read-only SQL audits in `docs/supabase/audits/` and must fail on risk rows, diagnostics, or unexpected structural statuses.
 - `npm run supabase:functions:deploy` may deploy only the approved `publish-menu-changes` Edge Function and must keep platform JWT verification disabled for that function.
 - `SUPABASE_DB_URL` is required for build-time structural reads and menu validation.

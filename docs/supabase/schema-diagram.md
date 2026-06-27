@@ -211,9 +211,9 @@ flowchart LR
 - `menu_daily_items` modela dos opciones planas: comun y vegetariano.
 - `menu_catalog_item_images` es la unica fuente de imagenes: el orden cero es la imagen principal de cada item del catalogo fijo.
 - Menu diario y parrilla no soportan imagenes.
-- `/admin/` funciona como CMS operativo de contenido de menu: cubre disponibilidad, servicio activo, menu del dia, parrilla, contenido de menu fijo, opciones existentes, precios y publicacion.
+- `/admin/` funciona como CMS operativo de contenido de menu: cubre disponibilidad, servicio activo, menu del dia, productos de parrilla y sus opciones, contenido de menu fijo, opciones de items que ya usan opciones, precios y publicacion.
 - `/admin/` puede editar datos operativos build-time, pero esos cambios requieren rebuild/deploy para impactar el menu publico.
-- La edicion de menu fijo desde `/admin/` cubre altas, bajas y cambios de nombre/descripcion de items puntuales dentro de secciones existentes, y cambios de opciones existentes; no abre CMS editorial general ni edicion libre de secciones, IDs u orden.
+- La edicion de menu fijo desde `/admin/` cubre altas, bajas y cambios de nombre/descripcion de items puntuales dentro de secciones existentes, y altas, bajas o cambios de opciones de items que ya usan opciones; no abre CMS editorial general ni edicion libre de secciones, IDs u orden.
 - `public.menu_availability_overlays` es el unico dato editable en runtime sin rebuild.
 - La ausencia de overlay equivale a disponible; marcar disponible en admin debe limpiar el overlay.
 - Los items con opciones exponen target padre y targets de opcion; las opciones usan IDs compuestos `item-id-option-id` como `item_id` del overlay.
