@@ -340,7 +340,7 @@
 
   .menu-index__brand {
     display: none;
-    width: 9rem;
+    width: 12rem;
     margin: 0 auto 0.45rem;
     border-radius: 0.25rem;
   }
@@ -454,7 +454,7 @@
   .menu-section {
     display: grid;
     gap: 0.75rem;
-    scroll-margin-top: 7.5rem;
+    scroll-margin-top: 8.5rem;
   }
 
   .menu-section__header {
@@ -898,7 +898,7 @@
     line-height: 1.25;
     cursor: pointer;
     background: transparent;
-    border: 1px solid var(--photo-card-line);
+    border: 1px solid var(--photo-card-control-line);
     border-radius: var(--radius-small);
   }
 
@@ -936,7 +936,7 @@
 
   .menu-index__brand {
     display: none;
-    width: 10rem;
+    width: 14rem;
   }
 
   .menu-index--stuck {
