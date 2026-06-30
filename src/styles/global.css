@@ -528,7 +528,7 @@
     color: var(--color-muted);
     font-size: 0.8125rem;
     line-height: 1.1875rem;
-    opacity: 0.5;
+    opacity: 0.75;
     white-space: pre-line;
   }
 
@@ -652,7 +652,7 @@
     color: var(--color-muted);
     font-size: 0.875rem;
     line-height: 1.3125rem;
-    opacity: 0.5;
+    opacity: 0.75;
     white-space: pre-line;
   }
 
@@ -704,7 +704,7 @@
 
   .dish-card__variant > span:first-child,
   .compact-item__variant > span:first-child {
-    opacity: 0.5;
+    opacity: 0.75;
   }
 
   .dish-card__option:has(~ .dish-card__option:not([hidden]))::after {
@@ -802,6 +802,7 @@
     --photo-card-ink: #0f0e0d;
     --photo-card-muted: #282828;
     --photo-card-line: #e8a374;
+    --photo-card-control-line: #282828;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
     gap: 1rem;
@@ -810,7 +811,7 @@
     overflow: hidden;
     padding: 1rem;
     background: var(--photo-card-bg);
-    border: 1px solid var(--photo-card-line);
+    border: 0;
     border-radius: var(--radius-panel);
   }
 
@@ -831,8 +832,13 @@
     line-height: 1.25;
     cursor: pointer;
     background: transparent;
-    border: 1px solid var(--photo-card-line);
+    border: 1px solid var(--photo-card-control-line);
     border-radius: var(--radius-small);
+  }
+
+  .photo-sheet__close:focus-visible {
+    outline: 2px solid var(--photo-card-control-line);
+    outline-offset: 2px;
   }
 
   .photo-sheet__title {
@@ -848,7 +854,7 @@
     min-height: 0;
     overflow: hidden;
     background: var(--photo-card-ink);
-    border: 1px solid var(--photo-card-line);
+    border: 0;
     border-radius: var(--radius-small);
   }
 
