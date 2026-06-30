@@ -178,8 +178,8 @@
   .menu-page {
     --color-page: var(--brand-black);
     --color-surface: var(--brand-charcoal);
-    --color-line: color-mix(in srgb, var(--brand-gray) 34%, var(--brand-black));
-    --color-line-soft: color-mix(in srgb, var(--brand-gray) 24%, var(--brand-black));
+    --color-line: color-mix(in srgb, var(--brand-orange) 70%, transparent);
+    --color-line-soft: color-mix(in srgb, var(--brand-orange) 70%, transparent);
     --color-ink: var(--brand-bone);
     --color-muted: var(--brand-orange-light);
     --color-accent: var(--brand-orange);
@@ -538,10 +538,9 @@
   }
 
   .compact-item__description {
-    color: var(--color-muted);
+    color: var(--brand-gray);
     font-size: 0.8125rem;
     line-height: 1.1875rem;
-    opacity: 0.75;
     white-space: pre-line;
   }
 
@@ -581,7 +580,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    color: var(--color-muted);
+    color: var(--brand-gray);
     font-size: 0.875rem;
     font-weight: 400;
     line-height: 1.25rem;
@@ -592,7 +591,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 0.75rem;
-    color: var(--color-muted);
+    color: var(--brand-gray);
     font-size: 0.8125rem;
     font-weight: 400;
     line-height: 1.125rem;
@@ -614,7 +613,7 @@
   }
 
   .menu-group__description {
-    color: var(--color-muted);
+    color: var(--brand-gray);
     font-size: 0.95rem;
     line-height: 1.6;
   }
@@ -662,10 +661,9 @@
   }
 
   .dish-card__description {
-    color: var(--color-muted);
+    color: var(--brand-gray);
     font-size: 0.875rem;
     line-height: 1.3125rem;
-    opacity: 0.75;
     white-space: pre-line;
   }
 
@@ -717,7 +715,7 @@
 
   .dish-card__variant > span:first-child,
   .compact-item__variant > span:first-child {
-    opacity: 0.75;
+    opacity: 1;
   }
 
   .dish-card__option:has(~ .dish-card__option:not([hidden]))::after {
