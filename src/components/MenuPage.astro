@@ -30,6 +30,8 @@ const sectionNavIcons: Record<string, string> = {
 const getSectionNavLabel = (section: MenuSectionData) =>
   section.sectionId === "platos-principales"
     ? "Principales"
+    : section.sectionId === "tartas-tortillas-omelettes"
+      ? "Tartas"
     : section.sectionId === "promociones"
       ? "Promos cafetería"
       : section.title;
