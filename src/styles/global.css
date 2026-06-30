@@ -228,8 +228,8 @@
     display: grid;
     justify-self: center;
     place-items: center;
-    width: min(100%, 7.75rem);
-    min-height: 7.75rem;
+    width: min(100%, 18.75rem);
+    min-height: 4.1875rem;
   }
 
   .menu-page__logo {
@@ -410,8 +410,8 @@
   }
 
   .menu-index__link--active {
-    color: var(--color-on-accent);
-    background: var(--color-accent);
+    color: var(--color-accent);
+    background: var(--color-page);
     border-color: var(--color-accent);
   }
 
