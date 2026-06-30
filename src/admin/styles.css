@@ -1,71 +1,69 @@
 :root {
-  /* === Admin operativo — tema de interfaz (interno) ===
-     Tema propio del panel, gestionado por desarrollo. NO es parte del diseño
-     de marca: es autónomo, para que un rebranding de la web no lo afecte. */
+  /* Admin light theme derived from the public menu brand palette. */
 
-  /* Superficies (de oscura a clara) */
-  --admin-surface: #ffffff;        /* inputs y tarjetas sobre fondo */
-  --admin-bg: #f7f5f1;             /* fondo de la app, callout, vacío */
-  --admin-surface-card: #fffefa;   /* filas y tarjetas (off-white cálido) */
-  --admin-surface-muted: #fbfaf7;  /* paneles sutiles (toolbar, familia, inline) */
-  --admin-surface-inset: #f6f4ef;  /* contenedores embebidos (tabs, selector) */
-  --admin-surface-sunken: #f4f2ed; /* chips neutros y hover secundario */
+  /* Surfaces */
+  --admin-surface: #ffffff;
+  --admin-bg: #fffbf7;
+  --admin-surface-card: #ffffff;
+  --admin-surface-muted: #fff7f2;
+  --admin-surface-inset: #fff1e8;
+  --admin-surface-sunken: #f4ebe4;
 
-  /* Texto (de fuerte a tenue) */
-  --admin-text-strong: #1c211d;    /* títulos y valores fuertes */
-  --admin-text: #4e4a42;           /* etiquetas y texto de controles */
-  --admin-text-muted: #5f5a50;     /* texto secundario */
-  --admin-text-soft: #676257;      /* copys, descripciones, meta */
-  --admin-text-faint: #777166;     /* ayudas, contadores, notas */
+  /* Text */
+  --admin-text-strong: #0f0e0d;
+  --admin-text: #2a2622;
+  --admin-text-muted: #5a524d;
+  --admin-text-soft: #6d6763;
+  --admin-text-faint: #8a8480;
 
-  /* Bordes neutros */
-  --admin-border: #e4ded4;         /* borde general de paneles y filas */
-  --admin-border-strong: #ded8cd;  /* tarjetas elevadas (header, secciones) */
-  --admin-border-soft: #e3ded4;    /* contenedores embebidos */
-  --admin-border-divider: #ded6c9; /* separadores (border-top) */
-  --admin-border-faint: #e7e0d6;   /* filas anidadas */
-  --admin-border-input: #bdb6aa;   /* inputs */
-  --admin-border-dashed: #d7d0c4;  /* borde discontinuo (vacío) */
-  --admin-border-hover: #d5cfc5;   /* hover de tab / selector */
-  --admin-tag-border: #e2dbd0;     /* etiqueta de precio */
+  /* Neutral and brand-tinted borders */
+  --admin-border: #eadfd7;
+  --admin-border-strong: #ddc9bd;
+  --admin-border-soft: #efe1d8;
+  --admin-border-divider: #e3d2c8;
+  --admin-border-faint: #f0e5dd;
+  --admin-border-input: #b9aaa1;
+  --admin-border-dashed: #d9c7bc;
+  --admin-border-hover: #e8cdbc;
+  --admin-tag-border: #ead6c8;
 
-  /* Acento (verde) y acciones */
-  --admin-accent: #26392e;         /* botón primario, selección, foco, títulos */
-  --admin-accent-rgb: 38 57 46;    /* mismo verde, para anillos y sombras con alfa */
-  --admin-accent-strong: #1f3027;  /* hover / pressed del acento */
-  --admin-accent-tint: #edf4ef;    /* verde claro de fondo y texto sobre acento */
-  --admin-link: #31543f;           /* botón-enlace */
-  --admin-role-text: #2f513e;      /* pill de rol */
-  --admin-role-border: #d3e5d8;    /* borde pill de rol */
-  --admin-button-secondary-border: #c9c2b7;
-  --admin-button-secondary-border-hover: #9f968a;
+  /* Brand accent and actions */
+  --admin-accent: #2a2622;
+  --admin-accent-rgb: 42 38 34;
+  --admin-accent-strong: #0f0e0d;
+  --admin-accent-tint: #fff1e8;
+  --admin-link: #a8440f;
+  --admin-role-text: #8a3b10;
+  --admin-role-border: #e8a374;
+  --admin-button-secondary-border: #e8a374;
+  --admin-button-secondary-border-hover: #fa6f20;
 
-  /* Estado: éxito */
-  --admin-success: #2f6b4f;        /* texto de éxito */
-  --admin-success-tint: #e9f2ed;   /* fondo pill éxito */
-  --admin-success-border: #cddfcf; /* borde estado éxito */
+  /* Status: success */
+  --admin-success: #5a351d;
+  --admin-success-tint: #fff4ed;
+  --admin-success-border: #e8a374;
 
-  /* Estado: peligro */
-  --admin-danger: #9a3f3b;         /* texto de peligro */
-  --admin-danger-strong: #842f2c;  /* hover de botón peligro */
-  --admin-danger-surface: #f9eeee; /* fondo estado / botón peligro */
-  --admin-danger-pill-bg: #f5e9e8; /* fondo pill peligro */
-  --admin-danger-soft: #ead5d2;    /* borde sutil para acciones pequeñas */
-  --admin-danger-border: #e2c2be;  /* borde estado peligro */
+  /* Status: danger */
+  --admin-danger: #9a3f3b;
+  --admin-danger-strong: #842f2c;
+  --admin-danger-surface: #f9eeee;
+  --admin-danger-pill-bg: #f5e9e8;
+  --admin-danger-soft: #ead5d2;
+  --admin-danger-border: #e2c2be;
   --admin-danger-button-border: #d8b8b5;
   --admin-danger-button-border-hover: #c99490;
 
-  /* Estado: aviso / ocupado */
-  --admin-warning-text: #6a3f0f;        /* banner */
-  --admin-warning-text-strong: #6a521c; /* estado ocupado */
-  --admin-warning-rgb: 106 63 15;       /* sombra del banner */
-  --admin-warning-surface: #fff4d6;     /* fondo banner */
-  --admin-warning-surface-soft: #fff8e6;/* fondo estado ocupado */
-  --admin-warning-border: #e2bf6f;      /* borde banner */
-  --admin-warning-border-soft: #e2d2a4; /* borde estado ocupado */
+  /* Status: warning / busy */
+  --admin-warning-text: #8a3b10;
+  --admin-warning-text-strong: #5a351d;
+  --admin-warning-rgb: 138 59 16;
+  --admin-warning-surface: #fff1e8;
+  --admin-warning-surface-soft: #fff7f2;
+  --admin-warning-border: #e8a374;
+  --admin-warning-border-soft: #ead6c8;
 
-  /* Sombra base (cálida) */
-  --admin-shadow-rgb: 41 34 26;
+  /* Base shadow */
+  --admin-shadow-rgb: 42 38 34;
 }
 
   .admin-root {
