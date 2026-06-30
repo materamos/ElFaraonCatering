@@ -12,6 +12,8 @@ const menuSectionTargets = menuIndexLinks
   .filter(Boolean);
 let updateScheduled = false;
 let activeSectionId;
+const activeSectionOffset = 24;
+const activeSectionEpsilon = 2;
 
 const getScrollY = () => {
   const scrollingElement = document.scrollingElement || document.documentElement;
@@ -80,7 +82,12 @@ const scrollToSection = (section, hash) => {
 
   window.requestAnimationFrame(() => {
     const stickyBottom = menuIndex.getBoundingClientRect().bottom;
-    const targetTop = section.getBoundingClientRect().top + getScrollY() - stickyBottom - 24;
+    const targetTop =
+      section.getBoundingClientRect().top +
+      getScrollY() -
+      stickyBottom -
+      activeSectionOffset -
+      activeSectionEpsilon;
 
     window.scrollTo({
       top: Math.max(0, targetTop),
@@ -100,7 +107,7 @@ const getActiveSectionId = () => {
 
   const activationLine = Math.min(
     window.innerHeight - 1,
-    menuIndex.getBoundingClientRect().bottom + 24,
+    menuIndex.getBoundingClientRect().bottom + activeSectionOffset + activeSectionEpsilon,
   );
   let activeTarget = menuSectionTargets[0];
 
