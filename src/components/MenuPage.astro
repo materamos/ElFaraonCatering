@@ -15,18 +15,6 @@ const publicSupabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 const scheduleFact = profile.facts.find((fact) => fact.id === "horario");
 const paymentFact = profile.facts.find((fact) => fact.id === "pagos");
 const contactFact = profile.facts.find((fact) => fact.id === "contacto" && fact.link);
-const sectionNavIcons: Record<string, string> = {
-  "menu-del-dia": "/icons/menu-sections/plate.svg",
-  parrilla: "/icons/menu-sections/plate.svg",
-  "platos-principales": "/icons/menu-sections/plate.svg",
-  "tartas-tortillas-omelettes": "/icons/menu-sections/tarta.svg",
-  guarniciones: "/icons/menu-sections/guarnicion.svg",
-  empanadas: "/icons/menu-sections/empanada.svg",
-  ensaladas: "/icons/menu-sections/ensalada.svg",
-  promociones: "/icons/menu-sections/promocion.svg",
-  cafeteria: "/icons/menu-sections/cafeteria.svg",
-  bebidas: "/icons/menu-sections/bebidas.svg",
-};
 const getSectionNavLabel = (section: MenuSectionData) =>
   section.sectionId === "platos-principales"
     ? "Principales"
@@ -35,7 +23,6 @@ const getSectionNavLabel = (section: MenuSectionData) =>
     : section.sectionId === "promociones"
       ? "Promos cafetería"
       : section.title;
-const getSectionNavIcon = (section: MenuSectionData) => sectionNavIcons[section.sectionId];
 ---
 
 <BaseLayout
@@ -97,17 +84,7 @@ const getSectionNavIcon = (section: MenuSectionData) => sectionNavIcons[section.
         {sections.map((section) => (
           <li class="menu-index__item">
             <a class="menu-index__link" href={`#${section.sectionId}`}>
-              {getSectionNavIcon(section) && (
-                <img
-                  class="menu-index__icon"
-                  src={getSectionNavIcon(section)}
-                  alt=""
-                  aria-hidden="true"
-                  loading="lazy"
-                  decoding="async"
-                />
-              )}
-              <span>{getSectionNavLabel(section)}</span>
+              {getSectionNavLabel(section)}
             </a>
           </li>
         ))}
