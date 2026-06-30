@@ -15,12 +15,25 @@ const publicSupabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 const scheduleFact = profile.facts.find((fact) => fact.id === "horario");
 const paymentFact = profile.facts.find((fact) => fact.id === "pagos");
 const contactFact = profile.facts.find((fact) => fact.id === "contacto" && fact.link);
+const sectionNavIcons: Record<string, string> = {
+  "menu-del-dia": "/uploads/menu-placeholders/plato-principal.svg",
+  parrilla: "/uploads/menu-placeholders/plato-principal.svg",
+  "platos-principales": "/uploads/menu-placeholders/plato-principal.svg",
+  "tartas-tortillas-omelettes": "/uploads/menu-placeholders/tarta.svg",
+  guarniciones: "/uploads/menu-placeholders/guarnicion.svg",
+  empanadas: "/uploads/menu-placeholders/empanada.svg",
+  ensaladas: "/uploads/menu-placeholders/ensalada.svg",
+  promociones: "/uploads/menu-placeholders/promocion.svg",
+  cafeteria: "/uploads/menu-placeholders/cafeteria.svg",
+  bebidas: "/uploads/menu-placeholders/cafeteria.svg",
+};
 const getSectionNavLabel = (section: MenuSectionData) =>
   section.sectionId === "platos-principales"
     ? "Principales"
     : section.sectionId === "promociones"
       ? "Promos cafetería"
       : section.title;
+const getSectionNavIcon = (section: MenuSectionData) => sectionNavIcons[section.sectionId];
 ---
 
 <BaseLayout
@@ -82,7 +95,17 @@ const getSectionNavLabel = (section: MenuSectionData) =>
         {sections.map((section) => (
           <li class="menu-index__item">
             <a class="menu-index__link" href={`#${section.sectionId}`}>
-              {getSectionNavLabel(section)}
+              {getSectionNavIcon(section) && (
+                <img
+                  class="menu-index__icon"
+                  src={getSectionNavIcon(section)}
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
+              <span>{getSectionNavLabel(section)}</span>
             </a>
           </li>
         ))}

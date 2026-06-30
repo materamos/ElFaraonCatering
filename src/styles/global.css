@@ -401,6 +401,7 @@
     display: inline-flex;
     min-height: 2.5rem;
     align-items: center;
+    gap: 0.4rem;
     padding-inline: 0.9rem;
     color: var(--color-ink);
     font-size: 0.75rem;
@@ -413,6 +414,12 @@
     border: 1px solid var(--color-line);
     border-radius: 999px;
     scroll-snap-align: start;
+  }
+
+  .menu-index__icon {
+    width: 1.15rem;
+    height: 1.15rem;
+    flex: 0 0 auto;
   }
 
   .menu-index__link--active {
@@ -969,6 +976,10 @@
     padding-inline: 0.7rem;
     background: var(--color-surface);
     scroll-snap-align: none;
+  }
+
+  .menu-index__icon {
+    display: none;
   }
 
   .menu-whatsapp-button {
