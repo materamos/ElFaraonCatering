@@ -303,21 +303,21 @@
     bottom: max(1rem, env(safe-area-inset-bottom));
     z-index: 20;
     display: grid;
-    width: 3rem;
-    height: 3rem;
+    width: 3.25rem;
+    height: 3.25rem;
     place-items: center;
-    color: #0f0e0d;
+    color: #ffffff;
     text-decoration: none;
-    background: #fa6f20;
-    border: 1px solid color-mix(in srgb, #fffbf7 22%, #fa6f20);
+    background: #25d366;
+    border: 1px solid color-mix(in srgb, #ffffff 22%, #25d366);
     border-radius: 50%;
     box-shadow: 0 0.7rem 1.6rem rgba(0, 0, 0, 0.35);
   }
 
   .menu-whatsapp-button__icon {
     display: block;
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 1.9rem;
+    height: 1.9rem;
   }
 
   .menu-index-sentinel {
@@ -340,8 +340,8 @@
 
   .menu-index__brand {
     display: none;
-    width: 2.75rem;
-    margin: 0 auto 0.5rem;
+    width: 7.5rem;
+    margin: 0 auto 0.45rem;
     border-radius: 0.25rem;
   }
 
@@ -528,6 +528,7 @@
     color: var(--color-muted);
     font-size: 0.8125rem;
     line-height: 1.1875rem;
+    opacity: 0.5;
     white-space: pre-line;
   }
 
@@ -651,6 +652,7 @@
     color: var(--color-muted);
     font-size: 0.875rem;
     line-height: 1.3125rem;
+    opacity: 0.5;
     white-space: pre-line;
   }
 
@@ -700,6 +702,11 @@
     font-weight: 600;
   }
 
+  .dish-card__variant > span:first-child,
+  .compact-item__variant > span:first-child {
+    opacity: 0.5;
+  }
+
   .dish-card__option:has(~ .dish-card__option:not([hidden]))::after {
     content: "-";
   }
@@ -724,10 +731,8 @@
   }
 
   .dish-row[data-available="false"] .dish-card__title,
-  .dish-row[data-available="false"] .dish-card__description,
   .dish-row[data-available="false"] .photo-button,
-  .compact-item[data-available="false"] .compact-item__title,
-  .compact-item[data-available="false"] .compact-item__description {
+  .compact-item[data-available="false"] .compact-item__title {
     opacity: 0.66;
   }
 
@@ -951,6 +956,16 @@
     padding-inline: 0.7rem;
     background: var(--color-surface);
     scroll-snap-align: none;
+  }
+
+  .menu-whatsapp-button {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .menu-whatsapp-button__icon {
+    width: 1.75rem;
+    height: 1.75rem;
   }
 
   .photo-sheet {
