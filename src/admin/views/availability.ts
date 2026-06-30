@@ -502,7 +502,7 @@ function renderAvailabilityFamilyRow(
 
 function renderAvailabilityStatus(effectiveAvailable: boolean): string {
   return `
-    <span class="admin-pill" data-tone="${effectiveAvailable ? "success" : "danger"}">
+    <span class="admin-pill admin-pill--availability" data-tone="${effectiveAvailable ? "success" : "danger"}">
       ${effectiveAvailable ? "Se muestra en el menú" : "Oculto en el menú"}
     </span>
   `;

@@ -899,6 +899,32 @@
     background: var(--admin-danger-pill-bg);
   }
 
+  .admin-pill--availability {
+    gap: 0.35rem;
+    color: var(--admin-text);
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border-strong);
+  }
+
+  .admin-pill--availability::before {
+    display: block;
+    width: 0.45rem;
+    height: 0.45rem;
+    content: "";
+    background: var(--admin-button-secondary-border-hover);
+    border-radius: 999px;
+  }
+
+  .admin-pill--availability[data-tone="danger"] {
+    color: var(--admin-surface);
+    background: var(--admin-danger);
+    border-color: var(--admin-danger);
+  }
+
+  .admin-pill--availability[data-tone="danger"]::before {
+    background: var(--admin-surface);
+  }
+
   .admin-pill[data-tone="neutral"] {
     color: var(--admin-text-muted);
     background: var(--admin-surface-sunken);
