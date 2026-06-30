@@ -33,15 +33,21 @@
 }
 
 :root {
-  --color-page: #f8f8f6;
+  --brand-black: #0f0e0d;
+  --brand-orange: #fa6f20;
+  --brand-charcoal: #2a2622;
+  --brand-bone: #fffbf7;
+  --brand-orange-light: #e8a374;
+  --brand-gray: #8a8480;
+  --color-page: var(--brand-bone);
   --color-surface: #ffffff;
-  --color-line: #d9d9d2;
-  --color-line-soft: #e8e8e2;
-  --color-ink: #20201d;
-  --color-muted: #66665f;
-  --color-accent: #333333;
-  --color-success: #2f6b4f;
-  --color-danger: #9a3f3b;
+  --color-line: color-mix(in srgb, var(--brand-gray) 36%, var(--brand-bone));
+  --color-line-soft: color-mix(in srgb, var(--brand-gray) 22%, var(--brand-bone));
+  --color-ink: var(--brand-charcoal);
+  --color-muted: #6d6763;
+  --color-accent: var(--brand-orange);
+  --color-success: var(--brand-charcoal);
+  --color-danger: var(--brand-orange);
   --color-backdrop: rgba(0, 0, 0, 0.46);
   --radius-panel: 0.75rem;
   --radius-small: 0.45rem;
@@ -62,7 +68,7 @@
   }
 
   body.menu-body {
-    background: #0f0e0d;
+    background: var(--brand-black);
     color-scheme: dark;
   }
 
@@ -170,17 +176,17 @@
   }
 
   .menu-page {
-    --color-page: #0f0e0d;
-    --color-surface: #282828;
-    --color-line: #282828;
-    --color-line-soft: #282828;
-    --color-ink: #fffbf7;
-    --color-muted: #e8a374;
-    --color-accent: #fa6f20;
-    --color-on-accent: #0f0e0d;
-    --color-success: #e8a374;
-    --color-danger: #fa6f20;
-    --color-brand: #fa6f20;
+    --color-page: var(--brand-black);
+    --color-surface: var(--brand-charcoal);
+    --color-line: color-mix(in srgb, var(--brand-gray) 34%, var(--brand-black));
+    --color-line-soft: color-mix(in srgb, var(--brand-gray) 24%, var(--brand-black));
+    --color-ink: var(--brand-bone);
+    --color-muted: var(--brand-orange-light);
+    --color-accent: var(--brand-orange);
+    --color-on-accent: var(--brand-black);
+    --color-success: var(--brand-orange-light);
+    --color-danger: var(--brand-orange);
+    --color-brand: var(--brand-orange);
     --color-backdrop: rgba(15, 14, 13, 0.74);
     display: grid;
     gap: 0;
@@ -798,11 +804,11 @@
   }
 
   .photo-sheet__panel {
-    --photo-card-bg: #fffbf7;
-    --photo-card-ink: #0f0e0d;
-    --photo-card-muted: #282828;
-    --photo-card-line: #e8a374;
-    --photo-card-control-line: #282828;
+    --photo-card-bg: var(--brand-bone);
+    --photo-card-ink: var(--brand-black);
+    --photo-card-muted: var(--brand-charcoal);
+    --photo-card-line: var(--brand-orange-light);
+    --photo-card-control-line: var(--brand-charcoal);
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
     gap: 1rem;

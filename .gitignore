@@ -63,6 +63,7 @@ desktop.ini
 # Testing
 coverage/
 .nyc_output/
+admin-auth-state.json
 
 # Misc
 *.local

@@ -75,6 +75,24 @@ const setActiveSection = (sectionId) => {
   }
 };
 
+const scrollToSection = (section, hash) => {
+  setMenuIndexStuck(true);
+
+  window.requestAnimationFrame(() => {
+    const stickyBottom = menuIndex.getBoundingClientRect().bottom;
+    const targetTop = section.getBoundingClientRect().top + getScrollY() - stickyBottom - 24;
+
+    window.scrollTo({
+      top: Math.max(0, targetTop),
+      behavior: getScrollBehavior(),
+    });
+
+    if (hash && window.location.hash !== hash) {
+      window.history.pushState(null, "", hash);
+    }
+  });
+};
+
 const getActiveSectionId = () => {
   if (menuSectionTargets.length === 0) {
     return undefined;
@@ -127,8 +145,12 @@ const scheduleMenuIndexUpdate = () => {
 };
 
 if (menuIndex) {
-  for (const { link, sectionId } of menuSectionTargets) {
-    link.addEventListener("click", () => setActiveSection(sectionId));
+  for (const { link, section, sectionId } of menuSectionTargets) {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      setActiveSection(sectionId);
+      scrollToSection(section, link.hash);
+    });
   }
 
   updateMenuIndexState();
