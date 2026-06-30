@@ -62,7 +62,7 @@
   }
 
   body.menu-body {
-    background: #1b0e09;
+    background: #0f0e0d;
     color-scheme: dark;
   }
 
@@ -170,17 +170,18 @@
   }
 
   .menu-page {
-    --color-page: #1b0e09;
-    --color-surface: #1b0e09;
-    --color-line: #4a382a;
-    --color-line-soft: #3a2a1e;
-    --color-ink: #f6ecdd;
-    --color-muted: #b49a82;
-    --color-accent: #e8814e;
-    --color-on-accent: #ffffff;
-    --color-success: #7fa06a;
-    --color-danger: #d4736a;
-    --color-brand: #da6031;
+    --color-page: #0f0e0d;
+    --color-surface: #282828;
+    --color-line: #282828;
+    --color-line-soft: #282828;
+    --color-ink: #fffbf7;
+    --color-muted: #e8a374;
+    --color-accent: #fa6f20;
+    --color-on-accent: #0f0e0d;
+    --color-success: #e8a374;
+    --color-danger: #fa6f20;
+    --color-brand: #fa6f20;
+    --color-backdrop: rgba(15, 14, 13, 0.74);
     display: grid;
     gap: 0;
     min-height: 100vh;
@@ -227,8 +228,8 @@
     display: grid;
     justify-self: center;
     place-items: center;
-    width: min(100%, 18.75rem);
-    min-height: 4.1875rem;
+    width: min(100%, 7.75rem);
+    min-height: 7.75rem;
   }
 
   .menu-page__logo {
@@ -305,10 +306,10 @@
     width: 3rem;
     height: 3rem;
     place-items: center;
-    color: #ffffff;
+    color: #0f0e0d;
     text-decoration: none;
-    background: #1f7a4d;
-    border: 1px solid color-mix(in srgb, #ffffff 20%, #1f7a4d);
+    background: #fa6f20;
+    border: 1px solid color-mix(in srgb, #fffbf7 22%, #fa6f20);
     border-radius: 50%;
     box-shadow: 0 0.7rem 1.6rem rgba(0, 0, 0, 0.35);
   }
@@ -339,8 +340,8 @@
 
   .menu-index__brand {
     display: none;
-    width: 7.5rem;
-    margin: 0 auto 0.45rem;
+    width: 2.75rem;
+    margin: 0 auto 0.5rem;
     border-radius: 0.25rem;
   }
 
@@ -402,7 +403,7 @@
     letter-spacing: 0.025rem;
     text-decoration: none;
     white-space: nowrap;
-    background: #26160f;
+    background: var(--color-surface);
     border: 1px solid var(--color-line);
     border-radius: 999px;
     scroll-snap-align: start;
@@ -792,10 +793,10 @@
   }
 
   .photo-sheet__panel {
-    --photo-card-bg: #f6ecdd;
-    --photo-card-ink: #1b0e09;
-    --photo-card-muted: #4a382a;
-    --photo-card-line: #b49a82;
+    --photo-card-bg: #fffbf7;
+    --photo-card-ink: #0f0e0d;
+    --photo-card-muted: #282828;
+    --photo-card-line: #e8a374;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
     gap: 1rem;

@@ -50,6 +50,7 @@
   --admin-danger-strong: #842f2c;  /* hover de botón peligro */
   --admin-danger-surface: #f9eeee; /* fondo estado / botón peligro */
   --admin-danger-pill-bg: #f5e9e8; /* fondo pill peligro */
+  --admin-danger-soft: #ead5d2;    /* borde sutil para acciones pequeñas */
   --admin-danger-border: #e2c2be;  /* borde estado peligro */
   --admin-danger-button-border: #d8b8b5;
   --admin-danger-button-border-hover: #c99490;
