@@ -244,57 +244,83 @@
     height: auto;
   }
 
-  .menu-page__schedule {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1.125rem;
-    min-height: 0.9375rem;
-    margin-top: 0.625rem;
-    padding-block: 0.25rem;
-    border-bottom: 1px solid var(--color-line);
-    border-top: 1px solid var(--color-line);
+  .menu-page__service-card {
+    display: grid;
+    gap: 0;
+    margin-top: 0.875rem;
+    overflow: hidden;
+    background: var(--color-surface);
+    border: 1px solid color-mix(in srgb, var(--brand-bone) 78%, transparent);
+    border-radius: 0.875rem;
   }
 
-  .menu-page__fact-label {
-    color: var(--color-ink);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 0.9375rem;
-    letter-spacing: 0.075rem;
-    text-transform: uppercase;
-  }
-
-  .menu-page__fact-value {
-    color: var(--color-ink);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 0.9375rem;
-    letter-spacing: 0.075rem;
-    text-transform: uppercase;
-  }
-
-  .menu-page__fact-link {
-    text-decoration: underline;
-    text-underline-offset: 0.18em;
-  }
-
-  .menu-page__payment-card {
+  .menu-page__service-panel {
     display: grid;
     justify-items: center;
-    gap: 0.625rem;
-    padding-block: 0.625rem;
-    border-bottom: 1px solid var(--color-line);
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
     text-align: center;
   }
 
-  .menu-page__payment-value {
-    color: var(--color-ink);
-    font-size: 0.625rem;
+  .menu-page__service-panel + .menu-page__service-panel {
+    border-top: 1px solid color-mix(in srgb, var(--brand-bone) 22%, transparent);
+  }
+
+  .menu-page__service-icon {
+    display: block;
+    color: var(--brand-bone);
+  }
+
+  .menu-page__service-icon--time {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .menu-page__service-icon--payment {
+    width: 1.5rem;
+    height: 1.0625rem;
+  }
+
+  .menu-page__service-label {
+    color: var(--brand-bone);
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.11rem;
+    text-transform: uppercase;
+  }
+
+  .menu-page__service-value {
+    color: var(--brand-bone);
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.04rem;
+  }
+
+  .menu-page__payment-methods {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem 0.5rem;
+    max-width: 28rem;
+    color: var(--brand-bone);
+    font-size: 0.72rem;
     font-weight: 400;
-    line-height: 0.875rem;
-    letter-spacing: 0.01875rem;
-    text-align: center;
+    line-height: 1.35;
+  }
+
+  .menu-page__payment-method {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  .menu-page__payment-method:not(:first-child)::before {
+    content: "•";
+    margin-right: 0.5rem;
+    color: color-mix(in srgb, var(--brand-bone) 72%, transparent);
   }
 
   .menu-page__sections {
@@ -970,6 +996,25 @@
     padding-inline: 0.7rem;
     background: var(--color-surface);
     scroll-snap-align: none;
+  }
+
+  .menu-page__service-card {
+    grid-template-columns: minmax(10rem, 0.9fr) minmax(0, 1.1fr);
+    align-items: stretch;
+  }
+
+  .menu-page__service-panel {
+    min-height: 5.25rem;
+    align-content: center;
+  }
+
+  .menu-page__service-panel + .menu-page__service-panel {
+    border-top: 0;
+    border-left: 1px solid color-mix(in srgb, var(--brand-bone) 22%, transparent);
+  }
+
+  .menu-page__service-value {
+    font-size: 1.3rem;
   }
 
   .menu-whatsapp-button {

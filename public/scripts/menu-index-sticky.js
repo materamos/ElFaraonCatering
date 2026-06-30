@@ -14,11 +14,21 @@ let updateScheduled = false;
 let activeSectionId;
 const activeSectionOffset = 24;
 const activeSectionEpsilon = 2;
+const scrollTargetTolerance = 4;
+let pendingScrollSectionId;
+let pendingScrollTargetY = 0;
+let pendingScrollUntil = 0;
 
 const getScrollY = () => {
   const scrollingElement = document.scrollingElement || document.documentElement;
 
   return window.scrollY || window.pageYOffset || scrollingElement.scrollTop || 0;
+};
+
+const getMaxScrollY = () => {
+  const scrollingElement = document.scrollingElement || document.documentElement;
+
+  return Math.max(0, scrollingElement.scrollHeight - window.innerHeight);
 };
 
 const setMenuIndexStuck = (isStuck) => {
@@ -77,7 +87,7 @@ const setActiveSection = (sectionId) => {
   }
 };
 
-const scrollToSection = (section, hash) => {
+const scrollToSection = (section, hash, sectionId) => {
   setMenuIndexStuck(true);
 
   window.requestAnimationFrame(() => {
@@ -88,9 +98,14 @@ const scrollToSection = (section, hash) => {
       stickyBottom -
       activeSectionOffset -
       activeSectionEpsilon;
+    const targetY = Math.min(getMaxScrollY(), Math.max(0, targetTop));
+
+    pendingScrollSectionId = sectionId;
+    pendingScrollTargetY = targetY;
+    pendingScrollUntil = window.performance.now() + 1200;
 
     window.scrollTo({
-      top: Math.max(0, targetTop),
+      top: targetY,
       behavior: getScrollBehavior(),
     });
 
@@ -103,6 +118,12 @@ const scrollToSection = (section, hash) => {
 const getActiveSectionId = () => {
   if (menuSectionTargets.length === 0) {
     return undefined;
+  }
+
+  const maxScrollY = getMaxScrollY();
+
+  if (maxScrollY > 0 && getScrollY() >= maxScrollY - scrollTargetTolerance) {
+    return menuSectionTargets[menuSectionTargets.length - 1].sectionId;
   }
 
   const activationLine = Math.min(
@@ -136,6 +157,21 @@ const updateMenuIndexState = () => {
     sentinelTop <= activationOffset || (menuIndexTop <= 0 && getScrollY() > 0);
 
   setMenuIndexStuck(isPastIndexStart);
+
+  if (pendingScrollSectionId) {
+    const currentScrollY = getScrollY();
+    const reachedTarget =
+      Math.abs(currentScrollY - pendingScrollTargetY) <= scrollTargetTolerance ||
+      currentScrollY >= getMaxScrollY() - scrollTargetTolerance;
+    const isExpired = window.performance.now() > pendingScrollUntil;
+
+    if (!reachedTarget && !isExpired) {
+      return;
+    }
+
+    pendingScrollSectionId = undefined;
+  }
+
   setActiveSection(getActiveSectionId());
 };
 
@@ -156,7 +192,7 @@ if (menuIndex) {
     link.addEventListener("click", (event) => {
       event.preventDefault();
       setActiveSection(sectionId);
-      scrollToSection(section, link.hash);
+      scrollToSection(section, link.hash, sectionId);
     });
   }
 
