@@ -340,7 +340,7 @@
 
   .menu-index__brand {
     display: none;
-    width: 8rem;
+    width: 9rem;
     margin: 0 auto 0.45rem;
     border-radius: 0.25rem;
   }
@@ -454,7 +454,7 @@
   .menu-section {
     display: grid;
     gap: 0.75rem;
-    scroll-margin-top: 5.75rem;
+    scroll-margin-top: 7.5rem;
   }
 
   .menu-section__header {
@@ -936,6 +936,7 @@
 
   .menu-index__brand {
     display: none;
+    width: 10rem;
   }
 
   .menu-index--stuck {
