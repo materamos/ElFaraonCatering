@@ -18,6 +18,7 @@ export interface StaffState {
   display_name: string;
   role: StaffRole;
   profile_id: string | null;
+  default_availability_profile_id: string | null;
   active: boolean;
 }
 

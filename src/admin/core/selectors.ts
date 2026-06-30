@@ -53,9 +53,14 @@ export function getEffectiveAvailabilityProfileFilter(
   profileFilter: string,
 ): string {
   const editableProfiles = getEditableAvailabilityProfiles(state);
+  const defaultProfileId = state.staff?.default_availability_profile_id ?? "";
 
   if (editableProfiles.some((profile) => profile.id === profileFilter)) {
     return profileFilter;
+  }
+
+  if (editableProfiles.some((profile) => profile.id === defaultProfileId)) {
+    return defaultProfileId;
   }
 
   return editableProfiles[0]?.id ?? "";

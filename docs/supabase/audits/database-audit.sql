@@ -769,26 +769,40 @@ where not (
 )
 order by trigger_schema, event_object_table, trigger_name;
 
--- 16. Canonical Supabase migration history must include only the prelaunch baseline.
+-- 16. Canonical Supabase migration history must include known active migrations.
+with expected_migrations(version) as (
+  values
+    ('20260606235844'),
+    ('20260630203051'),
+    ('20260630204047')
+)
 select
-  version,
-  name,
+  migration.version,
+  migration.name,
   'review' as suggested_status,
-  'Unexpected migration history row for the current prelaunch baseline model.' as reason
-from supabase_migrations.schema_migrations
-where version <> '20260606235844'
-order by version;
+  'Unexpected migration history row for the current active model.' as reason
+from supabase_migrations.schema_migrations migration
+left join expected_migrations expected
+  on expected.version = migration.version
+where expected.version is null
+order by migration.version;
 
+with expected_migrations(version) as (
+  values
+    ('20260606235844'),
+    ('20260630203051'),
+    ('20260630204047')
+)
 select
-  '20260606235844' as expected_version,
+  expected.version as expected_version,
   case
-    when exists (
-      select 1
-      from supabase_migrations.schema_migrations
-      where version = '20260606235844'
-    ) then 'present'
+    when migration.version is not null then 'present'
     else 'missing'
-  end as status;
+  end as status
+from expected_migrations expected
+left join supabase_migrations.schema_migrations migration
+  on migration.version = expected.version
+order by expected.version;
 
 -- 17. Basic schema usage grants for protected schemas.
 select

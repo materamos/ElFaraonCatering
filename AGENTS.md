@@ -216,6 +216,7 @@ Runtime overlay:
 - `public.staff_users` defines operational staff roles: `operator` and `admin`.
 - `operator` can edit everything currently exposed by `/admin/` for every profile, including publishing changes.
 - `admin` has operator permissions and may manage staff through privileged SQL/RPC surfaces.
+- `staff_users.default_availability_profile_id` is only the default `/admin/` availability filter profile; it must not be treated as a per-profile permission boundary.
 - The baseline must create `public.staff_users` and its permission helpers before operational edit RPCs that depend on them.
 - Keep `can_edit_menu_content()` with the operational edit RPC surface and preserve its current wrapper and privilege contract.
 - `publish-menu-changes` is the only approved Supabase Edge Function. It may publish build-time operational changes by validating Supabase Auth, checking `can_publish_menu()`, reserving/completing publish requests through service-role-only helpers, logging privately in `app_private`, recording a private build-time content fingerprint, and calling the Vercel Deploy Hook from Supabase Function secrets.

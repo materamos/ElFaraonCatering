@@ -56,6 +56,7 @@ export function createState(overrides = {}) {
       display_name: "Operador",
       role: "operator",
       profile_id: null,
+      default_availability_profile_id: null,
       active: true,
     },
     permissions: {

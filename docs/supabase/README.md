@@ -61,6 +61,7 @@ No implementar consultas runtime para menu del dia, precios, servicio activo, ca
 
 - `staff_users.role = 'operator'`: puede editar todo lo que permite `/admin/`, para todos los perfiles, incluyendo publicar cambios.
 - `staff_users.role = 'admin'`: hereda permisos operativos y puede gestionar staff a nivel de base/RPC.
+- `staff_users.default_availability_profile_id`: preferencia opcional para el local seleccionado por defecto en el filtro de disponibilidad de `/admin/`; no restringe permisos.
 - El sitio actual no tiene pantalla de gestion de empleados.
 - `editor_profiles` fue eliminada luego del backfill inicial; no debe recrearse ni usarse para permisos.
 - El primer `admin` debe crearse exclusivamente por SQL privilegiado; `service_role` no tiene acceso directo a `public.staff_users` y el bootstrap no se realiza desde browser RLS.

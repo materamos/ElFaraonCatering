@@ -218,6 +218,7 @@ flowchart LR
 - La ausencia de overlay equivale a disponible; marcar disponible en admin debe limpiar el overlay.
 - Los items con opciones exponen target padre y targets de opcion; las opciones usan IDs compuestos `item-id-option-id` como `item_id` del overlay.
 - `public.staff_users` define roles operativos (`operator`, `admin`); `operator` puede editar todos los perfiles y publicar.
+- `staff_users.default_availability_profile_id` solo preselecciona el filtro de disponibilidad de `/admin/`; no restringe permisos por local.
 - Las escrituras del admin deben pasar por RPCs operativas con respuesta `ok`, `changed`, `requires_redeploy`, `operation` y `message`.
 - Las RPCs publicas del admin son wrappers `security invoker`; las implementaciones privilegiadas viven en `app_private`, que no debe exponerse por PostgREST.
 - `publish-menu-changes` es la frontera server-side para publicar cambios build-time: valida Auth, usa `can_publish_menu()`, registra auditoria privada con fingerprint del contenido y llama el Deploy Hook desde secretos.

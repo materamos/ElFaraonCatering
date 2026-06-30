@@ -71,6 +71,23 @@ test("availability view exposes set and clear overlay actions", () => {
   assert.ok(hasAction(html, adminActions.clearOverlay));
 });
 
+test("availability view selects staff default profile when no filter is set", () => {
+  const html = availabilityView.renderAvailabilityTab(
+    createState({
+      staff: {
+        ...createState().staff,
+        default_availability_profile_id: "teleinde",
+      },
+    }),
+    createViewState(),
+    false,
+  );
+
+  assert.ok(html.includes('<option value="teleinde" selected>Teleinde</option>'));
+  assert.ok(html.includes('data-family-key="family:teleinde:parrilla:Parrilla"'));
+  assert.equal(html.includes('Menu <span class="admin-row__title-meta">- corpo</span>'), false);
+});
+
 test("availability profile filters stay linked in view state", () => {
   setAdminFilter("availability-profile", "teleinde");
   setAdminFilter("availability-group", "section:parrilla");

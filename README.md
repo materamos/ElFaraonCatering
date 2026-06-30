@@ -326,6 +326,8 @@ Roles operativos:
 - `operator`: edita todo lo que permite `/admin/`, para todos los locales, y puede publicar cambios.
 - `admin`: hereda permisos operativos y puede gestionar empleados a nivel de base/RPC. El sitio no tiene una pantalla de gestion de empleados.
 
+`staff_users.default_availability_profile_id` puede definir el local que aparece seleccionado por defecto en el filtro de disponibilidad de `/admin/`. Es solo una preferencia de UI: no limita permisos ni cambia que `operator` pueda editar todos los locales.
+
 El primer `admin` se crea exclusivamente mediante SQL privilegiado; `service_role` no tiene acceso directo a `public.staff_users` y el bootstrap no se realiza desde browser RLS.
 
 RPCs y funciones relevantes:

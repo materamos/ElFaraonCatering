@@ -92,6 +92,24 @@ test("invalid availability filters fall back to first editable profile and group
   ]);
 });
 
+test("availability profile filter falls back to staff default profile", () => {
+  const state = createState({
+    staff: {
+      ...createState().staff,
+      default_availability_profile_id: "teleinde",
+    },
+  });
+  const targets = selectors.getFilteredAvailabilityTargets(state, {
+    profileFilter: "",
+    groupFilter: "",
+  });
+
+  assert.deepEqual(targets.map((target) => adminState.getTargetKey(target)), [
+    "teleinde/parrilla/vacio",
+    "teleinde/parrilla/entrana",
+  ]);
+});
+
 test("fixed options-only sections expose only allowed items", () => {
   const state = createState();
   const section = selectors.getEffectiveFixedSection(state.catalog_editor, "empanadas");
