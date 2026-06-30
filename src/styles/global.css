@@ -178,8 +178,8 @@
   .menu-page {
     --color-page: var(--brand-black);
     --color-surface: var(--brand-charcoal);
-    --color-line: color-mix(in srgb, var(--brand-orange) 70%, transparent);
-    --color-line-soft: color-mix(in srgb, var(--brand-orange) 70%, transparent);
+    --color-line: color-mix(in srgb, var(--brand-orange-light) 70%, transparent);
+    --color-line-soft: color-mix(in srgb, var(--brand-orange-light) 70%, transparent);
     --color-ink: var(--brand-bone);
     --color-muted: var(--brand-orange-light);
     --color-accent: var(--brand-orange);
