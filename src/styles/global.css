@@ -246,24 +246,27 @@
 
   .menu-page__service-card {
     display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
     gap: 0;
     margin-top: 0.875rem;
     overflow: hidden;
     background: var(--color-surface);
-    border: 1px solid color-mix(in srgb, var(--brand-bone) 78%, transparent);
+    border: 1px solid var(--color-line-soft);
     border-radius: 0.875rem;
   }
 
   .menu-page__service-panel {
     display: grid;
     justify-items: center;
-    gap: 0.5rem;
-    padding: 1rem 1.25rem;
+    align-content: center;
+    gap: 0.35rem;
+    padding: 0.6rem 0.9rem;
     text-align: center;
   }
 
   .menu-page__service-panel + .menu-page__service-panel {
-    border-top: 1px solid color-mix(in srgb, var(--brand-bone) 22%, transparent);
+    border-left: 1px solid color-mix(in srgb, var(--brand-bone) 22%, transparent);
   }
 
   .menu-page__service-icon {
@@ -321,6 +324,29 @@
     content: "•";
     margin-right: 0.5rem;
     color: color-mix(in srgb, var(--brand-bone) 72%, transparent);
+  }
+
+  @media (max-width: 639px) {
+    .menu-page__service-panel {
+      padding: 0.75rem 0.65rem;
+    }
+
+    .menu-page__service-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.06rem;
+    }
+
+    .menu-page__service-value {
+      font-size: 0.95rem;
+    }
+
+    .menu-page__payment-methods {
+      font-size: 0.68rem;
+    }
+
+    .menu-page__payment-method {
+      white-space: normal;
+    }
   }
 
   .menu-page__sections {
@@ -998,19 +1024,9 @@
     scroll-snap-align: none;
   }
 
-  .menu-page__service-card {
-    grid-template-columns: minmax(10rem, 0.9fr) minmax(0, 1.1fr);
-    align-items: stretch;
-  }
-
   .menu-page__service-panel {
-    min-height: 5.25rem;
-    align-content: center;
-  }
-
-  .menu-page__service-panel + .menu-page__service-panel {
-    border-top: 0;
-    border-left: 1px solid color-mix(in srgb, var(--brand-bone) 22%, transparent);
+    min-height: 3rem;
+    padding: 0.55rem 1rem;
   }
 
   .menu-page__service-value {
