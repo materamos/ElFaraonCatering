@@ -14,6 +14,7 @@ let updateScheduled = false;
 let activeSectionId;
 const activeSectionOffset = 24;
 const activeSectionEpsilon = 2;
+const activeSectionTolerance = 4;
 const scrollTargetTolerance = 4;
 let pendingScrollSectionId;
 let pendingScrollTargetY = 0;
@@ -43,6 +44,8 @@ const getStickyActivationOffset = () => {
 
   return Number.parseFloat(value) || 0;
 };
+
+const getStickyMenuIndexBottom = () => menuIndex.getBoundingClientRect().height;
 
 const getScrollBehavior = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
@@ -91,7 +94,7 @@ const scrollToSection = (section, hash, sectionId) => {
   setMenuIndexStuck(true);
 
   window.requestAnimationFrame(() => {
-    const stickyBottom = menuIndex.getBoundingClientRect().bottom;
+    const stickyBottom = getStickyMenuIndexBottom();
     const targetTop =
       section.getBoundingClientRect().top +
       getScrollY() -
@@ -133,7 +136,7 @@ const getActiveSectionId = () => {
   let activeTarget = menuSectionTargets[0];
 
   for (const target of menuSectionTargets) {
-    if (target.section.getBoundingClientRect().top <= activationLine) {
+    if (target.section.getBoundingClientRect().top <= activationLine + activeSectionTolerance) {
       activeTarget = target;
     } else {
       break;
