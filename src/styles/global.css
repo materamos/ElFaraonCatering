@@ -539,7 +539,7 @@
 
   .compact-item__description {
     color: var(--brand-orange-light);
-    opacity: 0.5;
+    opacity: 0.75;
     font-size: 0.8125rem;
     line-height: 1.1875rem;
     white-space: pre-line;
@@ -615,7 +615,7 @@
 
   .menu-group__description {
     color: var(--brand-orange-light);
-    opacity: 0.5;
+    opacity: 0.75;
     font-size: 0.95rem;
     line-height: 1.6;
   }
@@ -664,7 +664,7 @@
 
   .dish-card__description {
     color: var(--brand-orange-light);
-    opacity: 0.5;
+    opacity: 0.75;
     font-size: 0.875rem;
     line-height: 1.3125rem;
     white-space: pre-line;
@@ -718,7 +718,7 @@
 
   .dish-card__variant > span:first-child,
   .compact-item__variant > span:first-child {
-    opacity: 0.5;
+    opacity: 0.75;
   }
 
   .dish-card__option:has(~ .dish-card__option:not([hidden]))::after {
