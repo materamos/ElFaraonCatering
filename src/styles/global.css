@@ -942,24 +942,6 @@
     justify-content: center;
   }
 
-  .menu-page__info-col:first-child .menu-page__info-text {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-  }
-
-  .menu-page__payment-methods {
-    display: block;
-  }
-
-  .menu-page__payment-method-row {
-    display: inline;
-  }
-
-  .menu-page__payment-method-row + .menu-page__payment-method-row::before {
-    content: " · ";
-  }
-
   .menu-index {
     --menu-index-sticky-offset: 0px;
     position: sticky;
@@ -1021,6 +1003,26 @@
 
   .photo-sheet__panel {
     max-height: calc(100dvh - 3rem);
+  }
+}
+
+@media (min-width: 860px) {
+  .menu-page__info-col:first-child .menu-page__info-text {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .menu-page__payment-methods {
+    display: block;
+  }
+
+  .menu-page__payment-method-row {
+    display: inline;
+  }
+
+  .menu-page__payment-method-row + .menu-page__payment-method-row::before {
+    content: " · ";
   }
 }
 
