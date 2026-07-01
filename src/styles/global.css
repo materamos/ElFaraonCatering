@@ -853,9 +853,18 @@
     border-radius: var(--radius-small);
   }
 
-  .photo-sheet__close:focus-visible {
-    outline: 2px solid var(--photo-card-control-line);
-    outline-offset: 2px;
+  .photo-sheet__close:focus-visible,
+  .photo-sheet__nav:focus-visible {
+    outline: none;
+    border-color: var(--photo-card-control-line);
+    box-shadow: 0 0 0 3px rgb(42 38 34 / 24%);
+  }
+
+  @supports (color: color-mix(in srgb, black 50%, transparent)) {
+    .photo-sheet__close:focus-visible,
+    .photo-sheet__nav:focus-visible {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--photo-card-control-line) 24%, transparent);
+    }
   }
 
   .photo-sheet__title {
