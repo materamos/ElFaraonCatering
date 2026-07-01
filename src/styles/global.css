@@ -542,8 +542,7 @@
   }
 
   .compact-item__description {
-    color: var(--brand-orange-light);
-    opacity: 0.75;
+    color: var(--brand-gray);
     font-size: 0.8125rem;
     line-height: 1.1875rem;
     white-space: pre-line;
@@ -596,7 +595,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 0.75rem;
-    color: var(--brand-orange-light);
+    color: var(--brand-gray);
     font-size: 0.8125rem;
     font-weight: 400;
     line-height: 1.125rem;
@@ -618,8 +617,7 @@
   }
 
   .menu-group__description {
-    color: var(--brand-orange-light);
-    opacity: 0.75;
+    color: var(--brand-gray);
     font-size: 0.95rem;
     line-height: 1.6;
   }
@@ -667,11 +665,14 @@
   }
 
   .dish-card__description {
-    color: var(--brand-orange-light);
-    opacity: 0.75;
+    color: var(--brand-gray);
     font-size: 0.875rem;
     line-height: 1.3125rem;
     white-space: pre-line;
+  }
+
+  .dish-card__variant {
+    color: var(--brand-gray);
   }
 
   .dish-card__footer {
@@ -720,11 +721,6 @@
     font-weight: 600;
   }
 
-  .dish-card__variant > span:first-child,
-  .compact-item__variant > span:first-child {
-    opacity: 0.75;
-  }
-
   .dish-card__option:has(~ .dish-card__option:not([hidden]))::after {
     content: "-";
   }
@@ -767,10 +763,13 @@
     display: none;
   }
 
-  .dish-card__option[data-available="false"],
+  .dish-card__option[data-available="false"] {
+    color: color-mix(in srgb, var(--color-muted) 72%, var(--color-page));
+  }
+
   .dish-card__variant[data-available="false"],
   .compact-item__variant[data-available="false"] {
-    color: color-mix(in srgb, var(--color-muted) 72%, var(--color-page));
+    color: color-mix(in srgb, var(--brand-gray) 72%, var(--color-page));
   }
 
   .photo-button {

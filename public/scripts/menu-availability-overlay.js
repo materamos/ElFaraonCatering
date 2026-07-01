@@ -140,7 +140,7 @@ const syncParentAvailabilityFromVariants = (parent) => {
 
   applyAvailability(
     parent,
-    variants.some((variant) => variant.dataset.available === "true"),
+    variants.every((variant) => variant.dataset.available === "true"),
   );
 };
 

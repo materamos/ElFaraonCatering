@@ -3,6 +3,7 @@ import {
   buildCatalogAvailabilityCascade,
   findAvailabilityFamilyTargets,
   findAvailabilityTarget,
+  getAvailabilityFamilyKey,
 } from "../core/selectors";
 
 export async function handleSetOverlayAction(
@@ -39,8 +40,28 @@ export async function handleSetOverlayAction(
     ? findAvailabilityTarget(currentState, targetKey)
     : undefined;
 
-  if (!availabilityTarget) {
+  if (!availabilityTarget || !currentState) {
     context.setStatus("No se encontró el item seleccionado.", "danger");
+    return;
+  }
+
+  if (availabilityTarget.target_kind === "grill") {
+    const familyTargets = findAvailabilityFamilyTargets(
+      currentState,
+      getAvailabilityFamilyKey(availabilityTarget),
+    );
+
+    if (familyTargets.length === 0) {
+      context.setStatus("No se encontró la familia seleccionada.", "danger");
+      return;
+    }
+
+    if (available) {
+      await context.adminOperations.clearAvailabilityOverlayBatch(familyTargets);
+    } else {
+      await context.adminOperations.saveAvailabilityOverlayBatch(familyTargets, false);
+    }
+
     return;
   }
 
@@ -89,8 +110,23 @@ export async function handleClearOverlayAction(
     ? findAvailabilityTarget(currentState, targetKey)
     : undefined;
 
-  if (!availabilityTarget) {
+  if (!availabilityTarget || !currentState) {
     context.setStatus("No se encontró el item seleccionado.", "danger");
+    return;
+  }
+
+  if (availabilityTarget.target_kind === "grill") {
+    const familyTargets = findAvailabilityFamilyTargets(
+      currentState,
+      getAvailabilityFamilyKey(availabilityTarget),
+    );
+
+    if (familyTargets.length === 0) {
+      context.setStatus("No se encontró la familia seleccionada.", "danger");
+      return;
+    }
+
+    await context.adminOperations.clearAvailabilityOverlayBatch(familyTargets);
     return;
   }
 

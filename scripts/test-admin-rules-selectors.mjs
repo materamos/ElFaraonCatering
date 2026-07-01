@@ -3,12 +3,14 @@ import test from "node:test";
 import { compileAdminModules, createCatalogItem, createState, createTarget } from "./test-admin-helpers.mjs";
 
 const { requireAdminModule } = await compileAdminModules("admin-rules-selectors-tests", [
+  "src/admin/app/availabilityActionHandlers.ts",
   "src/admin/core/rules.ts",
   "src/admin/core/selectors.ts",
   "src/admin/core/types.ts",
   "src/admin/core/adminState.ts",
 ]);
 
+const availabilityActionHandlers = requireAdminModule("app/availabilityActionHandlers");
 const rules = requireAdminModule("core/rules");
 const selectors = requireAdminModule("core/selectors");
 const adminState = requireAdminModule("core/adminState");
@@ -224,6 +226,25 @@ test("selectors find availability targets and grill family targets", () => {
   assert.deepEqual(familyTargets.map((entry) => entry.item_id), ["vacio", "entrana"]);
 });
 
+test("grill availability target actions apply to the whole family", async () => {
+  const calls = [];
+  const context = createAvailabilityActionContext(calls);
+
+  await availabilityActionHandlers.handleSetOverlayAction(
+    context,
+    { dataset: { targetKey: "teleinde/parrilla/vacio", available: "false" } },
+  );
+  await availabilityActionHandlers.handleClearOverlayAction(
+    context,
+    { dataset: { targetKey: "teleinde/parrilla/vacio" } },
+  );
+
+  assert.deepEqual(calls, [
+    ["saveBatch", ["vacio", "entrana"], false],
+    ["clearBatch", ["vacio", "entrana"]],
+  ]);
+});
+
 test("selectors do not resolve inactive service availability targets", () => {
   const state = createState();
 
@@ -310,3 +331,33 @@ test("catalog availability cascade keeps parent and options synchronized", () =>
     ],
   );
 });
+
+function createAvailabilityActionContext(calls) {
+  return {
+    formState: {
+      confirmUnsavedChanges() {
+        return true;
+      },
+    },
+    getCurrentState() {
+      return createState();
+    },
+    setStatus(message, tone) {
+      calls.push(["status", message, tone]);
+    },
+    adminOperations: {
+      saveAvailabilityOverlay(target, available) {
+        calls.push(["saveSingle", target.item_id, available]);
+      },
+      clearAvailabilityOverlay(target) {
+        calls.push(["clearSingle", target.item_id]);
+      },
+      saveAvailabilityOverlayBatch(targets, available) {
+        calls.push(["saveBatch", targets.map((target) => target.item_id), available]);
+      },
+      clearAvailabilityOverlayBatch(targets) {
+        calls.push(["clearBatch", targets.map((target) => target.item_id)]);
+      },
+    },
+  };
+}
