@@ -930,6 +930,18 @@
     width: min(100% - 2rem, 68rem);
   }
 
+  .menu-page__info-bar {
+    padding-inline: 0;
+  }
+
+  .menu-page__info-bar > .menu-page__info-col + .menu-page__info-col {
+    padding-left: 0;
+  }
+
+  .menu-page__info-col {
+    justify-content: center;
+  }
+
   .menu-index {
     --menu-index-sticky-offset: 0px;
     position: sticky;
