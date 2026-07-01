@@ -15,6 +15,12 @@ const publicSupabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 const scheduleFact = profile.facts.find((fact) => fact.id === "horario");
 const paymentFact = profile.facts.find((fact) => fact.id === "pagos");
 const contactFact = profile.facts.find((fact) => fact.id === "contacto" && fact.link);
+const paymentMethods = paymentFact?.value
+  .split(",")
+  .map((method) => method.trim().replace(/^Tarjeta\s+/i, ""))
+  .filter(Boolean)
+  .map((method) => method.charAt(0).toUpperCase() + method.slice(1))
+  .join(" · ");
 const getSectionNavLabel = (section: MenuSectionData) =>
   section.sectionId === "platos-principales"
     ? "Principales"
@@ -51,17 +57,61 @@ const getSectionNavLabel = (section: MenuSectionData) =>
 
     </header>
 
-    {scheduleFact && (
-      <p class="menu-page__schedule">
-        <span class="menu-page__fact-label">LUN A VIE</span>
-        <span class="menu-page__fact-value">{scheduleFact.value}</span>
-      </p>
-    )}
+    {(scheduleFact || paymentFact) && (
+      <section class="menu-page__info-bar" aria-label="Horario y medios de pago">
+        {scheduleFact && (
+          <div class="menu-page__info-col">
+            <svg
+              class="menu-page__info-icon"
+              viewBox="0 0 22 22"
+              fill="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M11 19.25C15.5563 19.25 19.25 15.5563 19.25 11C19.25 6.44365 15.5563 2.75 11 2.75C6.44365 2.75 2.75 6.44365 2.75 11C2.75 15.5563 6.44365 19.25 11 19.25Z"
+                stroke="currentColor"
+                stroke-width="1.375"
+              />
+              <path
+                d="M11 6.875V11L13.75 12.65"
+                stroke="currentColor"
+                stroke-width="1.375"
+                stroke-linecap="round"
+              />
+            </svg>
+            <div class="menu-page__info-text">
+              <p class="menu-page__info-title">Lunes a Viernes</p>
+              <p class="menu-page__info-detail">{scheduleFact.value}</p>
+            </div>
+          </div>
+        )}
 
-    {paymentFact && (
-      <section class="menu-page__payment-card" aria-label="Medios de pago">
-        <p class="menu-page__fact-label">MEDIOS DE PAGO</p>
-        <p class="menu-page__payment-value">{paymentFact.value}</p>
+        {paymentFact && (
+          <div class="menu-page__info-col">
+            <svg
+              class="menu-page__info-icon"
+              viewBox="0 0 22 22"
+              fill="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M17.4167 5.5H4.58333C3.57081 5.5 2.75 6.32081 2.75 7.33333V14.6667C2.75 15.6792 3.57081 16.5 4.58333 16.5H17.4167C18.4292 16.5 19.25 15.6792 19.25 14.6667V7.33333C19.25 6.32081 18.4292 5.5 17.4167 5.5Z"
+                stroke="currentColor"
+                stroke-width="1.375"
+              />
+              <path
+                d="M2.75 9.16663H19.25"
+                stroke="currentColor"
+                stroke-width="1.375"
+              />
+            </svg>
+            <div class="menu-page__info-text">
+              <p class="menu-page__info-detail">{paymentMethods}</p>
+            </div>
+          </div>
+        )}
       </section>
     )}
 

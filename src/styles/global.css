@@ -244,57 +244,55 @@
     height: auto;
   }
 
-  .menu-page__schedule {
+  .menu-page__info-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+    padding-block: 1rem;
+    border-top: 1px solid var(--color-line);
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .menu-page__info-bar > .menu-page__info-col + .menu-page__info-col {
+    padding-left: 1.25rem;
+    border-left: 1px solid var(--color-line);
+  }
+
+  .menu-page__info-col {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 1.125rem;
-    min-height: 0.9375rem;
-    margin-top: 0.625rem;
-    padding-block: 0.25rem;
-    border-bottom: 1px solid var(--color-line);
-    border-top: 1px solid var(--color-line);
+    gap: 0.75rem;
   }
 
-  .menu-page__fact-label {
-    color: var(--color-ink);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 0.9375rem;
-    letter-spacing: 0.075rem;
-    text-transform: uppercase;
+  .menu-page__info-icon {
+    flex-shrink: 0;
+    width: 1.375rem;
+    height: 1.375rem;
+    color: var(--brand-gray);
   }
 
-  .menu-page__fact-value {
-    color: var(--color-ink);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 0.9375rem;
-    letter-spacing: 0.075rem;
-    text-transform: uppercase;
-  }
-
-  .menu-page__fact-link {
-    text-decoration: underline;
-    text-underline-offset: 0.18em;
-  }
-
-  .menu-page__payment-card {
+  .menu-page__info-text {
     display: grid;
-    justify-items: center;
-    gap: 0.625rem;
-    padding-block: 0.625rem;
-    border-bottom: 1px solid var(--color-line);
-    text-align: center;
+    gap: 0.1875rem;
+    min-width: 0;
   }
 
-  .menu-page__payment-value {
+  .menu-page__info-title {
+    color: var(--color-accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+  }
+
+  .menu-page__info-detail {
     color: var(--color-ink);
-    font-size: 0.625rem;
+    font-size: 0.75rem;
     font-weight: 400;
-    line-height: 0.875rem;
-    letter-spacing: 0.01875rem;
-    text-align: center;
+    line-height: 1.25;
+    letter-spacing: 0.01em;
   }
 
   .menu-page__sections {
