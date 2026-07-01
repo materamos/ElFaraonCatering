@@ -7,7 +7,7 @@ import type {
 export function resultMessage(result: RpcResult): string {
   const messages: Record<string, string> = {
     permission_denied: "No tenés permisos para esta acción.",
-    publish_queued: "Publicación en curso. Los cambios se están subiendo al menú.",
+    publish_queued: "Publicación en curso. Los cambios se están subiendo al menú. (Recargá esta página 'admin' en 30 segundos para actualizar el estado.)",
     publish_recently_queued: "Ya se pidió una publicación hace poco.",
     publish_failed: "No se pudo iniciar la publicación. Intentá de nuevo en unos minutos.",
     available_override_required: "La disponibilidad seleccionada no es válida.",
