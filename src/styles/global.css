@@ -185,7 +185,7 @@
     --color-success: var(--brand-orange-light);
     --color-danger: var(--brand-orange);
     --color-brand: var(--brand-orange);
-    --color-backdrop: rgba(15, 14, 13, 0.74);
+    --color-backdrop: color-mix(in srgb, var(--brand-black) 74%, transparent);
     display: grid;
     gap: 0;
     min-height: 100vh;
