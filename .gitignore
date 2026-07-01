@@ -70,3 +70,4 @@ admin-auth-state.json
 .cache/
 .codex/
 .codex-doc-review/
+.claude/
