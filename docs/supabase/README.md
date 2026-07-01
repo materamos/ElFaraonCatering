@@ -83,7 +83,7 @@ Las auditorias SQL read-only, como `npm run supabase:audit`, usan `SUPABASE_DB_U
 
 Para auditorias con Codex, agent-browser u otra automatizacion, usar primero un usuario staff real existente cuando solo se necesite iniciar sesion y recorrer `/admin/`. No crear usuarios Auth temporales en remoto con emails ficticios, no controlados o adivinados. Evitar `signup`, invitaciones, recovery, magic links y OTP contra remoto si la direccion puede rebotar.
 
-Si es indispensable probar un flujo remoto que envia email, usar una casilla real controlada con plus addressing, por ejemplo `cuenta-real+elfaraon-testing@gmail.com`, sin versionar direcciones personales. Al finalizar, eliminar o revocar cualquier usuario temporal creado; esto limpia el acceso, pero no anula emails ya enviados ni previene rebotes previos.
+Si es indispensable probar un flujo remoto que envia email, usar una casilla real controlada con plus addressing, sin versionar la direccion ni direcciones personales. Al finalizar, eliminar o revocar cualquier usuario temporal creado; esto limpia el acceso, pero no anula emails ya enviados ni previene rebotes previos.
 
 Las RPCs operativas devuelven `ok`, `changed`, `requires_redeploy`, `operation` y `message`. La publicacion puede devolver `cooldown_seconds_remaining`.
 

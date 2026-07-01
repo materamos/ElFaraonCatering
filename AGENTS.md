@@ -230,7 +230,7 @@ Runtime overlay:
 - `/admin/` may use Supabase Auth password recovery and password updates for staff users; recovery redirects must return to `/admin/`.
 - For Codex, agent-browser, or other automated audits against the remote Supabase project, prefer an existing real staff user for Auth login tests.
 - Do not create temporary remote Supabase Auth users with fake, unowned, or guessed email addresses. Avoid remote `signup`, invite, recovery, magic link, or OTP flows when the target address may bounce.
-- If a remote Auth flow that sends email must be tested, use a real controlled mailbox with plus addressing, for example `controlled-mailbox+elfaraon-testing@gmail.com`; do not commit personal addresses.
+- If a remote Auth flow that sends email must be tested, use a real controlled mailbox with plus addressing; do not commit the address or any personal addresses.
 - Delete or revoke temporary Auth users after testing, but remember that cleanup does not prevent bounces from emails already sent.
 - The overlay may only change visual availability through availability data.
 - A missing overlay means available; marking an item available in admin should clear the overlay, not write an explicit `true` override.
