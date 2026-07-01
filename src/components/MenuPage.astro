@@ -17,10 +17,12 @@ const paymentFact = profile.facts.find((fact) => fact.id === "pagos");
 const contactFact = profile.facts.find((fact) => fact.id === "contacto" && fact.link);
 const paymentMethods = paymentFact?.value
   .split(",")
-  .map((method) => method.trim().replace(/^Tarjeta\s+/i, ""))
-  .filter(Boolean)
-  .map((method) => method.charAt(0).toUpperCase() + method.slice(1))
-  .join(" · ");
+  .map((method) => method.trim())
+  .filter(Boolean);
+const paymentMethodRows =
+  paymentMethods && paymentMethods.length > 3
+    ? [paymentMethods.slice(0, 2), paymentMethods.slice(2)]
+    : [paymentMethods ?? []];
 const getSectionNavLabel = (section: MenuSectionData) =>
   section.sectionId === "platos-principales"
     ? "Principales"
@@ -108,7 +110,11 @@ const getSectionNavLabel = (section: MenuSectionData) =>
               />
             </svg>
             <div class="menu-page__info-text">
-              <p class="menu-page__info-detail">{paymentMethods}</p>
+              <div class="menu-page__info-detail menu-page__payment-methods">
+                {paymentMethodRows.map((row) => (
+                  <span class="menu-page__payment-method-row">{row.join(" · ")}</span>
+                ))}
+              </div>
             </div>
           </div>
         )}

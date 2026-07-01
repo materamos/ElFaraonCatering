@@ -42,7 +42,6 @@
   --color-page: var(--brand-bone);
   --color-surface: #ffffff;
   --color-line: color-mix(in srgb, var(--brand-gray) 36%, var(--brand-bone));
-  --color-line-soft: color-mix(in srgb, var(--brand-gray) 22%, var(--brand-bone));
   --color-ink: var(--brand-charcoal);
   --color-muted: #6d6763;
   --color-accent: var(--brand-orange);
@@ -178,8 +177,7 @@
   .menu-page {
     --color-page: var(--brand-black);
     --color-surface: var(--brand-charcoal);
-    --color-line: var(--brand-gray);
-    --color-line-soft: var(--brand-gray);
+    --color-line: color-mix(in srgb, var(--brand-gray) 60%, transparent);
     --color-ink: var(--brand-bone);
     --color-muted: var(--brand-orange-light);
     --color-accent: var(--brand-orange);
@@ -250,6 +248,7 @@
     align-items: center;
     gap: 1.25rem;
     margin-top: 1.25rem;
+    margin-inline: 0.75rem;
     padding-block: 1rem;
     border-top: 1px solid var(--color-line);
     border-bottom: 1px solid var(--color-line);
@@ -257,7 +256,6 @@
 
   .menu-page__info-bar > .menu-page__info-col + .menu-page__info-col {
     padding-left: 1.25rem;
-    border-left: 1px solid var(--color-line);
   }
 
   .menu-page__info-col {
@@ -280,7 +278,7 @@
   }
 
   .menu-page__info-title {
-    color: var(--color-accent);
+    color: var(--brand-orange-light);
     font-size: 0.75rem;
     font-weight: 700;
     line-height: 1.1;
@@ -293,6 +291,14 @@
     font-weight: 400;
     line-height: 1.25;
     letter-spacing: 0.01em;
+  }
+
+  .menu-page__payment-methods {
+    display: grid;
+  }
+
+  .menu-page__payment-method-row {
+    display: block;
   }
 
   .menu-page__sections {
@@ -500,7 +506,7 @@
     align-items: baseline;
     gap: 0.75rem;
     padding-block: 0.55rem;
-    border-bottom: 1px solid var(--color-line-soft);
+    border-bottom: 1px solid var(--color-line);
   }
 
   .compact-item__content,
@@ -615,7 +621,7 @@
     display: grid;
     gap: 0.7rem;
     padding-block: 0.95rem;
-    border-bottom: 1px solid var(--color-line-soft);
+    border-bottom: 1px solid var(--color-line);
   }
 
   .dish-card__header {
