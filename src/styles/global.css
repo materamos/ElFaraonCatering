@@ -243,10 +243,10 @@
   }
 
   .menu-page__info-bar {
-    display: grid;
-    grid-template-columns: max-content minmax(0, 1fr);
+    display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: space-around;
+    gap: 0.75rem;
     margin-top: 1.25rem;
     padding: 1rem 0.75rem;
     border-top: 1px solid var(--color-line);
@@ -261,6 +261,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: 0 1 auto;
     gap: 0.5rem;
   }
 
@@ -938,6 +939,7 @@
   }
 
   .menu-page__info-bar {
+    display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 1.25rem;
     padding-inline: 0;
