@@ -148,6 +148,12 @@ npm run verify:dist-secrets
 npm run check
 ```
 
+En CI, los PRs de Dependabot ejecutan solo las gates que no requieren secrets:
+`check`, `check:js` y `test:admin`. Las gates que dependen de Supabase remoto
+(`menu:validate`, `supabase:audit`, `build` y `verify:dist-secrets`) se omiten
+para Dependabot porque `build` necesita `SUPABASE_DB_URL` para prerenderizar el
+hash de publicacion de `/admin/`.
+
 ## Estructura del proyecto
 
 ```text

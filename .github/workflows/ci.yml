@@ -14,10 +14,6 @@ jobs:
     name: Build and checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    env:
-      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-      PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
-      PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
 
     steps:
       - name: Checkout
@@ -42,13 +38,27 @@ jobs:
         run: npm run test:admin
 
       - name: Validate menu content
+        if: github.actor != 'dependabot[bot]'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: npm run menu:validate
 
       - name: Audit Supabase schema
+        if: github.actor != 'dependabot[bot]'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: npm run supabase:audit
 
       - name: Build
+        if: github.actor != 'dependabot[bot]'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
         run: npm run build
 
       - name: Verify dist secrets
+        if: github.actor != 'dependabot[bot]'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: npm run verify:dist-secrets
