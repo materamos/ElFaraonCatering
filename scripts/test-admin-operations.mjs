@@ -186,6 +186,60 @@ test("publish queued marks current publication and remembers cooldown", async ()
   assert.equal(harness.loads[0].tone, "success");
 });
 
+test("recent publish marks current hash requested when it was already accepted", async () => {
+  const hash = "11111111111111111111111111111111";
+  const harness = createHarness({
+    loadState: createState({
+      publication: {
+        current_content_hash: hash,
+        published_content_hash: hash,
+        deployed_content_hash: "22222222222222222222222222222222",
+        has_unpublished_changes: true,
+      },
+    }),
+    publishResult: okResult({
+      operation: "publish-menu-changes",
+      message: "publish_recently_queued",
+      cooldown_seconds_remaining: 25,
+    }),
+  });
+  const operations = createAdminOperations(harness.context);
+
+  await operations.publishChanges();
+
+  assert.equal(harness.markedPublicationRequested, 1);
+  assert.deepEqual(harness.rememberedCooldowns, [25]);
+  assert.equal(harness.loads.length, 2);
+  assert.equal(harness.loads[0].tone, "neutral");
+  assert.equal(harness.loads[1].tone, undefined);
+});
+
+test("recent publish keeps pending banner actionable when current hash was not accepted", async () => {
+  const harness = createHarness({
+    loadState: createState({
+      publication: {
+        current_content_hash: "11111111111111111111111111111111",
+        published_content_hash: "33333333333333333333333333333333",
+        deployed_content_hash: "22222222222222222222222222222222",
+        has_unpublished_changes: true,
+      },
+    }),
+    publishResult: okResult({
+      operation: "publish-menu-changes",
+      message: "publish_recently_queued",
+      cooldown_seconds_remaining: 25,
+    }),
+  });
+  const operations = createAdminOperations(harness.context);
+
+  await operations.publishChanges();
+
+  assert.equal(harness.markedPublicationRequested, 0);
+  assert.deepEqual(harness.rememberedCooldowns, [25]);
+  assert.equal(harness.loads.length, 1);
+  assert.equal(harness.loads[0].tone, "neutral");
+});
+
 test("partial mutation failure reports incomplete operation", async () => {
   const harness = createHarness({
     mutationResults: [
@@ -224,7 +278,7 @@ function createHarness(options = {}) {
   const loads = [];
   const busyTexts = [];
   const mutationResults = [...(options.mutationResults ?? [])];
-  const loadState = createState({
+  const loadState = options.loadState ?? createState({
     publication: {
       has_unpublished_changes: true,
     },

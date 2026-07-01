@@ -20,10 +20,20 @@ export function createPublishOperations(context: AdminOperationContext) {
 
         if (result.message === "publish_recently_queued") {
           context.rememberPublishCooldown(result);
-          await context.loadAdminState(
+          const state = await context.loadAdminState(
             `Ya hay una publicación reciente en curso. Los cambios quedan guardados. Esperá${formatCooldownSuffix(result)} para volver a publicar.`,
             "neutral",
           );
+
+          if (
+            state.publication.current_content_hash
+            && state.publication.current_content_hash === state.publication.published_content_hash
+            && state.publication.current_content_hash !== state.publication.deployed_content_hash
+          ) {
+            context.markCurrentPublicationRequested();
+            await context.loadAdminState();
+          }
+
           return;
         }
 
