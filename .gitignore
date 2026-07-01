@@ -68,4 +68,5 @@ admin-auth-state.json
 # Misc
 *.local
 .cache/
+.codex/
 .codex-doc-review/
