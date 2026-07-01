@@ -13,6 +13,7 @@ Los snapshots y SQL mutantes de referencia fueron retirados para evitar duplicar
 - `public.get_admin_operational_state()`: RPC de lectura controlada para `/admin/`.
 - RPCs operativas: unica superficie de escritura browser para disponibilidad, servicio activo, menu del dia, parrilla, contenido de menu fijo, opciones de subcategorias, precios y publicacion.
 - `app_private.menu_publish_requests`: log privado, reserva de publicaciones y fingerprint del contenido solicitado desde `/admin/`.
+- `app_private.menu_change_events`: log privado de cambios build-time hechos por RPCs del admin, con usuario, operacion, parametros y asociacion a la publicacion exitosa que los incluye.
 - `publish-menu-changes`: Supabase Edge Function server-side para publicar cambios build-time sin exponer el Deploy Hook.
 
 Supabase respalda un CMS operativo de contenido de menu, pero "editable" no significa "runtime editable". Salvo disponibilidad, todo cambio operativo en Supabase requiere rebuild/deploy para impactar `/menu/corpo/` y `/menu/teleinde/`. El alcance es intermedio: administra contenido del menu QR, no paginas institucionales ni CMS editorial amplio.
@@ -92,7 +93,7 @@ Excepcion actual: `public.reserve_menu_publish_request(...)` y `public.complete_
 
 La baseline crea `staff_users` y sus helpers de permisos antes de las RPCs operativas que dependen de ellos. `can_edit_menu_content()` forma parte de la superficie RPC operativa y debe conservar su wrapper y contrato de privilegios actuales.
 
-`publish-menu-changes` usa `can_publish_menu()` para autorizar publicacion, reserva/completa solicitudes mediante helpers service-role-only, registra auditoria y fingerprint de contenido en `app_private`, y llama el Vercel Deploy Hook desde secretos de Supabase Functions. No usa `pg_net`.
+`publish-menu-changes` usa `can_publish_menu()` para autorizar publicacion, reserva/completa solicitudes mediante helpers service-role-only, registra auditoria y fingerprint de contenido en `app_private`, y llama el Vercel Deploy Hook desde secretos de Supabase Functions. Las RPCs build-time del admin registran eventos privados de cambio; al completarse una publicacion exitosa, esos eventos quedan asociados al request de publicacion. La disponibilidad runtime no participa de ese log de deploy. No usa `pg_net`.
 
 `get_admin_operational_state()` expone el fingerprint actual del contenido build-time. Durante el build, `/admin/` embebe el fingerprint del contenido desplegado y el cliente compara ambos para decidir si hay publicacion pendiente. El banner no debe depender de un flag local de edicion en la sesion ni del ultimo publish registrado desde admin.
 
@@ -118,6 +119,9 @@ La migracion activa para bases nuevas es:
 | Migracion | Proposito |
 | --- | --- |
 | `20260606235844_prelaunch_baseline.sql` | Crea schemas, tablas, contenido build-time, funciones, RPCs, fingerprint, RLS, policies, grants, hardening y assertions del estado prelanzamiento. |
+| `20260630203051_staff_default_availability_profile.sql` | Agrega el perfil predeterminado de disponibilidad para staff. |
+| `20260630204047_fix_staff_default_availability_null.sql` | Ajusta la nulabilidad del perfil predeterminado de disponibilidad. |
+| `20260701001506_publish_change_events.sql` | Registra eventos privados de cambios build-time del admin y los asocia a publicaciones exitosas. |
 
 La historia incremental anterior fue retirada del directorio activo y esta
 preservada por el tag anotado `supabase-prelaunch-history-2026-06-06`. No
@@ -129,6 +133,7 @@ sincronizando las secuencias identity. Crea vacias estas superficies operativas:
 - `public.staff_users`
 - `public.menu_availability_overlays`
 - `app_private.menu_publish_requests`
+- `app_private.menu_change_events`
 
 No incluye `auth.users`, secretos de Functions ni configuracion remota de Auth.
 El primer admin debe crearse primero en Supabase Auth y luego insertarse en

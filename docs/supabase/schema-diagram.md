@@ -188,7 +188,8 @@ flowchart LR
   READ_RPC -->|"estado operativo filtrado"| ADMIN_UI
   WRITE_RPCS -->|"writes controlados"| OVERLAYS
   WRITE_RPCS -->|"writes build-time"| MENU_CONTENT["menu_content"]
-  EDGE -->|"reserve/complete"| PRIVATE
+  WRITE_RPCS -->|"change events build-time"| PRIVATE
+  EDGE -->|"reserve/complete publish requests"| PRIVATE
   EDGE -->|"POST server-side"| VERCEL
   OVERLAYS -. "IDs logicos" .-> STATIC
 
@@ -222,6 +223,7 @@ flowchart LR
 - Las escrituras del admin deben pasar por RPCs operativas con respuesta `ok`, `changed`, `requires_redeploy`, `operation` y `message`.
 - Las RPCs publicas del admin son wrappers `security invoker`; las implementaciones privilegiadas viven en `app_private`, que no debe exponerse por PostgREST.
 - `publish-menu-changes` es la frontera server-side para publicar cambios build-time: valida Auth, usa `can_publish_menu()`, registra auditoria privada con fingerprint del contenido y llama el Deploy Hook desde secretos.
+- Las RPCs build-time registran eventos privados en `app_private.menu_change_events`; al completarse una publicacion exitosa, esos eventos quedan enlazados a `app_private.menu_publish_requests`. La disponibilidad runtime no participa de ese log de deploy.
 - El estado `publication` expone el fingerprint build-time actual; `/admin/` lo compara contra el fingerprint embebido en el deploy estatico actual para decidir si falta publicar.
 - `public.editor_profiles` fue eliminada luego del backfill inicial; `staff_users` es la unica fuente de permisos operativos.
 - El cliente no debe consultar estructura, precios, menu del dia, servicio activo, catalogo, secciones, imagenes ni textos estructurales.

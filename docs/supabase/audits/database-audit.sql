@@ -35,7 +35,7 @@ select
     else c.relkind::text
   end as object_type,
   case
-    when n.nspname = 'app_private' and c.relname in ('menu_publish_requests') then 'keep'
+    when n.nspname = 'app_private' and c.relname in ('menu_publish_requests', 'menu_change_events') then 'keep'
     when n.nspname = 'menu_content' then 'keep'
     when n.nspname = 'public' and c.relname in ('staff_users', 'menu_availability_overlays') then 'keep'
     else 'review'
@@ -51,6 +51,7 @@ order by n.nspname, c.relname;
 with documented_relations(schema_name, object_name, object_type, status) as (
   values
     ('app_private', 'menu_publish_requests', 'table', 'active'),
+    ('app_private', 'menu_change_events', 'table', 'active'),
     ('menu_content', 'menu_profiles', 'table', 'active'),
     ('menu_content', 'menu_profile_facts', 'table', 'active'),
     ('menu_content', 'menu_prices', 'table', 'active'),
@@ -188,7 +189,7 @@ select
   c.relrowsecurity as rls_enabled,
   c.relforcerowsecurity as rls_forced,
   case
-    when n.nspname = 'app_private' and c.relname = 'menu_publish_requests' and c.relrowsecurity then 'keep'
+    when n.nspname = 'app_private' and c.relname in ('menu_publish_requests', 'menu_change_events') and c.relrowsecurity then 'keep'
     when n.nspname = 'public' and c.relname in ('staff_users', 'menu_availability_overlays') and c.relrowsecurity then 'keep'
     when n.nspname = 'public' then 'review'
     else 'keep'
@@ -548,6 +549,7 @@ with expected_functions (schema_name, function_name, identity_arguments, securit
     ('app_private', 'is_active_staff', '', true, 's', 'privileged active staff check'),
     ('app_private', 'menu_availability_target_exists', 'target_menu_id text, target_section_id text, target_item_id text', true, 's', 'privileged overlay target validator'),
     ('app_private', 'normalize_visible_name', 'value text', false, 'i', 'immutable visible-name normalizer'),
+    ('app_private', 'record_menu_change_event', 'change_operation text, operation_input jsonb, result_message text', true, 'v', 'privileged menu change audit writer'),
     ('app_private', 'set_daily_menu', 'regular_name text, regular_description text, vegetarian_name text, vegetarian_description text', true, 'v', 'privileged daily menu edit implementation'),
     ('app_private', 'set_global_fixed_price', 'pricing_key text, amount integer', true, 'v', 'privileged fixed price edit implementation'),
     ('app_private', 'set_global_price_variant', 'pricing_key text, variant_id text, amount integer', true, 'v', 'privileged variant price edit implementation'),
@@ -651,6 +653,7 @@ with expected_functions (schema_name, function_name, identity_arguments) as (
     ('app_private', 'is_active_staff', ''),
     ('app_private', 'menu_availability_target_exists', 'target_menu_id text, target_section_id text, target_item_id text'),
     ('app_private', 'normalize_visible_name', 'value text'),
+    ('app_private', 'record_menu_change_event', 'change_operation text, operation_input jsonb, result_message text'),
     ('app_private', 'set_daily_menu', 'regular_name text, regular_description text, vegetarian_name text, vegetarian_description text'),
     ('app_private', 'set_global_fixed_price', 'pricing_key text, amount integer'),
     ('app_private', 'set_global_price_variant', 'pricing_key text, variant_id text, amount integer'),
@@ -774,7 +777,8 @@ with expected_migrations(version) as (
   values
     ('20260606235844'),
     ('20260630203051'),
-    ('20260630204047')
+    ('20260630204047'),
+    ('20260701001506')
 )
 select
   migration.version,
@@ -791,7 +795,8 @@ with expected_migrations(version) as (
   values
     ('20260606235844'),
     ('20260630203051'),
-    ('20260630204047')
+    ('20260630204047'),
+    ('20260701001506')
 )
 select
   expected.version as expected_version,
@@ -836,6 +841,6 @@ select
   'Unexpected client-facing sequence privilege.' as reason
 from information_schema.usage_privileges
 where object_schema = 'app_private'
-  and object_name = 'menu_publish_requests_id_seq'
+  and object_name in ('menu_publish_requests_id_seq', 'menu_change_events_id_seq')
   and lower(grantee) in ('anon', 'authenticated', 'public')
 order by grantee, privilege_type;

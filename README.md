@@ -317,6 +317,7 @@ Superficies Supabase del proyecto:
 - `public.staff_users`: empleados y roles para el admin operativo.
 - RPCs publicas controladas: lectura del admin y escrituras operativas.
 - `app_private.menu_publish_requests`: auditoria privada de publicaciones y fingerprint del contenido solicitado desde `/admin/`.
+- `app_private.menu_change_events`: auditoria privada de cambios build-time aplicados por RPCs del admin, enlazados a la publicacion exitosa que los incluye.
 - `publish-menu-changes`: Supabase Edge Function server-side que dispara el Vercel Deploy Hook.
 
 El overlay runtime no administra estructura, textos, precios, imagenes ni menu diario. Si no existe overlay para un item, el menu estatico generado en build-time lo trata como disponible.
@@ -342,7 +343,7 @@ Las RPCs operativas devuelven `ok`, `changed`, `requires_redeploy`, `operation` 
 
 Las funciones publicas del admin son wrappers `security invoker`; los cuerpos `security definer` viven en `app_private`, fuera de los schemas expuestos por PostgREST. La excepcion actual son los helpers publicos de publicacion `reserve_menu_publish_request(...)` y `complete_menu_publish_request(...)`, revocados para `anon` y `authenticated` y ejecutables solo por `service_role`; no son RPCs del browser ni del admin.
 
-`publish-menu-changes` valida la sesion Supabase Auth del empleado, verifica `can_publish_menu()`, aplica cooldown global, registra auditoria privada y llama el Vercel Deploy Hook desde secretos de Supabase Functions. Cada publicacion aceptada registra un fingerprint del contenido build-time para auditoria. Durante el build, `/admin/` embebe el fingerprint del contenido desplegado y lo compara contra el estado actual de Supabase para mostrar pendientes; por eso un deploy remoto tambien deja el estado limpio si se construyo con la BBDD actualizada. La URL del hook es credencial y nunca debe llegar al browser ni versionarse. No se usa `pg_net` para publicar.
+`publish-menu-changes` valida la sesion Supabase Auth del empleado, verifica `can_publish_menu()`, aplica cooldown global, registra auditoria privada y llama el Vercel Deploy Hook desde secretos de Supabase Functions. Cada publicacion aceptada registra un fingerprint del contenido build-time para auditoria. Las RPCs build-time del admin registran eventos privados con usuario, operacion, parametros y hash resultante; al completarse una publicacion exitosa, esos eventos quedan asociados al request de publicacion. La disponibilidad runtime queda fuera de ese log de deploy. Durante el build, `/admin/` embebe el fingerprint del contenido desplegado y lo compara contra el estado actual de Supabase para mostrar pendientes; por eso un deploy remoto tambien deja el estado limpio si se construyo con la BBDD actualizada. La URL del hook es credencial y nunca debe llegar al browser ni versionarse. No se usa `pg_net` para publicar.
 
 La proteccion contra passwords filtradas se habilita en Supabase Auth settings del proyecto, no por migracion SQL.
 
@@ -365,7 +366,7 @@ Baseline prelanzamiento:
 
 - `20260606235844_prelaunch_baseline.sql` crea una base nueva con el modelo, contenido build-time, RPCs, permisos y hardening vigentes.
 - El tag `supabase-prelaunch-history-2026-06-06` preserva la historia incremental anterior.
-- El baseline no incluye usuarios Auth, filas de `staff_users`, overlays de disponibilidad ni logs de publicacion.
+- El baseline no incluye usuarios Auth, filas de `staff_users`, overlays de disponibilidad ni logs de publicacion o cambios.
 - No ejecutar el baseline sobre una base existente. Las bases ya desplegadas deben alinear solo su historial despues de verificar equivalencia.
 - Todo cambio posterior debe agregarse como una nueva migracion incremental.
 
