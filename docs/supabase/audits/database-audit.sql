@@ -778,12 +778,15 @@ with expected_migrations(version) as (
     ('20260606235844'),
     ('20260630203051'),
     ('20260630204047'),
-    ('20260701001506')
+    ('20260701001506'),
+    ('20260701062401'),
+    ('20260701145810'),
+    ('20260701151758')
 )
 select
   migration.version,
   migration.name,
-  'review' as suggested_status,
+  'risk' as suggested_status,
   'Unexpected migration history row for the current active model.' as reason
 from supabase_migrations.schema_migrations migration
 left join expected_migrations expected
@@ -796,7 +799,10 @@ with expected_migrations(version) as (
     ('20260606235844'),
     ('20260630203051'),
     ('20260630204047'),
-    ('20260701001506')
+    ('20260701001506'),
+    ('20260701062401'),
+    ('20260701145810'),
+    ('20260701151758')
 )
 select
   expected.version as expected_version,
