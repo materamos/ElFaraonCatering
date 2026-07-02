@@ -131,6 +131,7 @@
   }
 
   .text-link:focus-visible,
+  .not-found-page__link:focus-visible,
   .menu-index__link:focus-visible,
   .photo-button:focus-visible,
   .menu-whatsapp-button:focus-visible,
@@ -620,6 +621,75 @@
     color: var(--brand-gray);
     font-size: 0.95rem;
     line-height: 1.6;
+  }
+
+  .not-found-body {
+    background: var(--brand-black);
+    color: var(--brand-bone);
+    color-scheme: dark;
+    font-family: "Inter", var(--font-body);
+  }
+
+  .not-found-page {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 1.5rem;
+    background: var(--brand-black);
+  }
+
+  .not-found-page__content {
+    display: grid;
+    width: min(100%, 34rem);
+    justify-items: start;
+    gap: 1.5rem;
+  }
+
+  .not-found-page__logo {
+    display: block;
+    width: 4.5rem;
+    height: auto;
+  }
+
+  .not-found-page__copy {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .not-found-page__eyebrow {
+    color: var(--brand-orange-light);
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+
+  .not-found-page__title {
+    max-width: 30rem;
+    color: var(--brand-bone);
+    font-size: clamp(2.25rem, 12vw, 4.25rem);
+  }
+
+  .not-found-page__text {
+    max-width: 30rem;
+    color: var(--brand-orange-light);
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .not-found-page__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: 1rem;
+    color: var(--brand-black);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    background: var(--brand-orange);
+    border: 1px solid var(--brand-orange);
+    border-radius: var(--radius-small);
   }
 
   .dish-row {
