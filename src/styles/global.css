@@ -633,21 +633,22 @@
   .not-found-page {
     display: grid;
     min-height: 100vh;
-    place-items: center;
-    padding: 1.5rem;
+    align-items: center;
+    padding: clamp(1.25rem, 5vw, 4rem);
     background: var(--brand-black);
   }
 
   .not-found-page__content {
     display: grid;
-    width: min(100%, 34rem);
+    width: min(100%, 46rem);
     justify-items: start;
-    gap: 1.5rem;
+    gap: 1.35rem;
+    margin-inline: auto;
   }
 
   .not-found-page__logo {
     display: block;
-    width: 4.5rem;
+    width: 5.25rem;
     height: auto;
   }
 
@@ -665,13 +666,14 @@
   }
 
   .not-found-page__title {
-    max-width: 30rem;
+    max-width: 42rem;
     color: var(--brand-bone);
-    font-size: clamp(2.25rem, 12vw, 4.25rem);
+    font-size: clamp(2.35rem, 7vw, 4rem);
+    text-wrap: balance;
   }
 
   .not-found-page__text {
-    max-width: 30rem;
+    max-width: 38rem;
     color: var(--brand-orange-light);
     font-size: 1rem;
     line-height: 1.65;
