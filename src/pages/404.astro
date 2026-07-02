@@ -1,0 +1,32 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Pagina no encontrada | El Faraon Catering"
+  description="La pagina solicitada no existe en El Faraon Catering."
+>
+  <main class="page-shell">
+    <section class="placeholder">
+      <div class="placeholder__intro">
+        <p class="eyebrow">Error 404</p>
+        <h1 class="placeholder__title">No encontramos esta pagina</h1>
+        <p class="body-copy">
+          Puede que el enlace haya cambiado o que la direccion este incompleta.
+          Volve a la pagina principal de El Faraon Catering para continuar.
+        </p>
+      </div>
+
+      <aside class="placeholder__panel">
+        <p class="eyebrow">Acceso disponible</p>
+        <div class="placeholder__content">
+          <p>
+            <a href="https://elfaraoncatering.vercel.app/" class="text-link">
+              Ir a El Faraon Catering
+            </a>
+          </p>
+        </div>
+      </aside>
+    </section>
+  </main>
+</BaseLayout>
