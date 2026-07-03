@@ -11,7 +11,7 @@ La fase actual es informativa. No incluye pedidos, pagos online, reservas, cuent
 - `/menu/corpo/` es el menu operativo principal.
 - `/menu/teleinde/` esta activo como parte del modelo multi-locacion.
 - `/menu/` redirige temporalmente a `/` y no lista accesos publicos a menus por ubicacion.
-- `/` es un placeholder institucional.
+- `/` es la landing institucional publica.
 - `/admin/` es el CMS operativo estatico de contenido de menu para empleados.
 - Supabase `menu_content` es la fuente estructural y operativa build-time del menu.
 - Astro usa output estatico por default y no hay adapter de servidor.
@@ -421,7 +421,7 @@ Restricciones de esta etapa:
 - no hay escritura editorial amplia desde `/admin/` ni desde el sitio publico; `/admin/` se limita al CMS operativo de contenido de menu
 - no hay consultas directas desde el navegador a `menu_content` o `app_private`
 
-`vercel.json` define headers de seguridad, redirige temporalmente `/menu` y `/menu/` hacia `/`, y canonicaliza `/menu/corpo`, `/menu/teleinde` y `/admin` hacia sus rutas con slash final.
+`vercel.json` define headers de seguridad, marca `/menu/corpo/`, `/menu/teleinde/` y `/admin/` como no indexables, redirige temporalmente `/menu` y `/menu/` hacia `/`, y canonicaliza `/menu/corpo`, `/menu/teleinde` y `/admin` hacia sus rutas con slash final.
 
 ## Fuera de alcance
 

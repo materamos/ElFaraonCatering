@@ -4,29 +4,488 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 <BaseLayout
   title="El Faraón Catering"
-  description="Base institucional futura de El Faraón Catering."
+  description="Catering y buffet diario con cocina casera para oficinas y estudios."
+  bodyClass="landing-body"
 >
-  <main class="page-shell">
-    <section class="placeholder">
-      <div class="placeholder__intro">
-        <p class="eyebrow">Superficie institucional futura</p>
-        <h1 class="placeholder__title">El Faraón Catering</h1>
-        <p class="body-copy">
-          Esta ruta queda reservada para la futura presencia institucional del servicio de catering.
-          En esta primera etapa mantenemos una base técnica mínima para no mezclarla con la experiencia
-          operativa del menú QR.
-        </p>
-      </div>
+  <main class="landing-page">
+    <header class="landing-header" aria-label="Navegación principal">
+      <a class="landing-header__brand" href="/" aria-label="El Faraón Catering">
+        <img
+          src="/brand/el-faraon-logo-icon-orange-transparent.png"
+          alt=""
+          width="1800"
+          height="1800"
+        />
+      </a>
 
-      <aside class="placeholder__panel">
-        <p class="eyebrow">Estado actual</p>
-        <div class="placeholder__content">
-          <p>
-            La prioridad del proyecto hoy es la experiencia movil de los menus QR operativos.
-          </p>
-          <p>Mas adelante esta portada podra crecer con informacion institucional, locaciones y contacto.</p>
-        </div>
-      </aside>
+      <nav class="landing-nav" aria-label="Secciones de la landing">
+        <a href="#nosotros">Nosotros</a>
+        <a href="#servicio">Servicio</a>
+        <a class="landing-nav__button" href="#contacto">Contacto</a>
+      </nav>
+    </header>
+
+    <section class="landing-hero" aria-labelledby="landing-title">
+      <div class="landing-hero__overlay"></div>
+      <div class="landing-hero__content">
+        <img
+          class="landing-hero__logo"
+          src="/brand/el-faraon-logo.png"
+          alt="El Faraón Catering"
+          width="6170"
+          height="1954"
+          decoding="async"
+        />
+        <h1 id="landing-title">El Faraón Catering</h1>
+      </div>
     </section>
+
+    <section id="nosotros" class="landing-section landing-section--texture">
+      <div class="landing-section__inner landing-about">
+        <div class="landing-copy">
+          <p class="landing-eyebrow">Sobre nosotros</p>
+          <h2>Cocina casera, todos los días</h2>
+          <p>
+            Con años de trabajo, El Faraón construyó su reputación sobre la cercanía
+            y la atención personalizada. Hoy, ese servicio de buffet funciona dentro
+            de las oficinas y estudios de Telefe.
+          </p>
+        </div>
+
+        <img
+          class="landing-about__image"
+          src="/uploads/menu/milanesa-peceto.webp"
+          alt="Plato casero servido por El Faraón Catering"
+          width="1200"
+          height="800"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    </section>
+
+    <section id="servicio" class="landing-section landing-section--service">
+      <div class="landing-section__inner">
+        <div class="landing-copy landing-copy--compact">
+          <p class="landing-eyebrow">Nuestro servicio</p>
+          <h2>Lo que servimos</h2>
+        </div>
+
+        <div class="landing-services" aria-label="Servicios de catering">
+          <article class="landing-card">
+            <img
+              src="/uploads/menu/empanadas.webp"
+              alt="Empanadas caseras"
+              width="1200"
+              height="800"
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="landing-card__body">
+              <h3>Buffet diario</h3>
+              <p>
+                Propuestas simples y prácticas para acompañarte todos los días dentro
+                del espacio de trabajo.
+              </p>
+            </div>
+          </article>
+
+          <article class="landing-card">
+            <img
+              src="/uploads/menu/suprema-pollo.webp"
+              alt="Plato principal casero"
+              width="1200"
+              height="800"
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="landing-card__body">
+              <h3>Platos</h3>
+              <p>
+                Menú casero, opciones calientes, ensaladas, tartas y preparaciones
+                pensadas para una pausa ágil.
+              </p>
+            </div>
+          </article>
+
+          <article class="landing-card">
+            <img
+              src="/uploads/menu/ensalada-caesar.webp"
+              alt="Ensalada preparada"
+              width="1200"
+              height="800"
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="landing-card__body">
+              <h3>Bebidas</h3>
+              <p>
+                Complementos para el almuerzo diario, con una atención cercana y
+                ordenada para cada ubicación.
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="contacto" class="landing-section landing-section--texture landing-contact">
+      <div class="landing-section__inner">
+        <div class="landing-copy">
+          <p class="landing-eyebrow">Contacto</p>
+          <h2>Contactate con nosotros</h2>
+          <address class="landing-contact__list">
+            <a href="tel:+541122334455">11 2233 4455</a>
+            <a href="mailto:elfaraoncatering@gmail.com">elfaraoncatering@gmail.com</a>
+            <span>@elfaraoncatering</span>
+          </address>
+        </div>
+      </div>
+    </section>
+
+    <footer class="landing-footer">
+      <img
+        src="/brand/el-faraon-logo.png"
+        alt="El Faraón Catering"
+        width="6170"
+        height="1954"
+        loading="lazy"
+        decoding="async"
+      />
+    </footer>
   </main>
 </BaseLayout>
+
+<style>
+  :global(body.landing-body) {
+    background: #080706;
+    color: #fff8ef;
+    color-scheme: dark;
+    font-family: "Inter", var(--font-body);
+  }
+
+  :global(body.landing-body) h1,
+  :global(body.landing-body) h2,
+  :global(body.landing-body) h3,
+  :global(body.landing-body) p {
+    margin: 0;
+  }
+
+  .landing-page {
+    --landing-black: #080706;
+    --landing-ink: #fff8ef;
+    --landing-muted: #b9aea7;
+    --landing-soft: #857a74;
+    --landing-orange: #ff7219;
+    --landing-brown: #221813;
+    --landing-line: rgb(255 248 239 / 14%);
+    min-height: 100vh;
+    overflow: hidden;
+    background: var(--landing-black);
+    color: var(--landing-ink);
+  }
+
+  .landing-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    min-height: 4.875rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding: 0.875rem clamp(1rem, 6vw, 5.5rem);
+    background: var(--landing-black);
+    border-bottom: 1px solid rgb(255 255 255 / 4%);
+  }
+
+  .landing-header__brand {
+    display: inline-grid;
+    flex: 0 0 auto;
+    width: clamp(2.35rem, 4vw, 3rem);
+    place-items: center;
+  }
+
+  .landing-header__brand:focus-visible,
+  .landing-nav a:focus-visible,
+  .landing-contact__list a:focus-visible {
+    outline: 2px solid var(--landing-orange);
+    outline-offset: 4px;
+  }
+
+  .landing-header__brand img,
+  .landing-hero__logo,
+  .landing-footer img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .landing-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: clamp(0.75rem, 4vw, 3.75rem);
+  }
+
+  .landing-nav a {
+    display: inline-flex;
+    align-items: center;
+    color: var(--landing-muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .landing-nav .landing-nav__button {
+    min-height: 2.5rem;
+    padding: 0.75rem 1.1rem;
+    color: #130d09;
+    background: var(--landing-orange);
+    border-radius: 0.45rem;
+  }
+
+  .landing-hero {
+    position: relative;
+    display: grid;
+    min-height: clamp(22rem, 46svh, 34rem);
+    place-items: center;
+    overflow: hidden;
+    background-image: url("/landing/hero-salon.webp");
+    background-position: center;
+    background-size: cover;
+  }
+
+  .landing-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgb(0 0 0 / 62%);
+  }
+
+  .landing-hero__content {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: min(82vw, 40rem);
+    justify-items: center;
+  }
+
+  .landing-hero h1 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    clip-path: inset(50%);
+  }
+
+  .landing-section {
+    padding: clamp(4.25rem, 8vw, 6.75rem) clamp(1rem, 6vw, 5.5rem);
+  }
+
+  .landing-section--texture {
+    background-color: #0b0b0a;
+    background-image:
+      linear-gradient(rgb(0 0 0 / 68%), rgb(0 0 0 / 68%)),
+      url("/landing/brand-texture.webp");
+    background-position: center;
+    background-size: cover;
+  }
+
+  .landing-section--service {
+    background: var(--landing-brown);
+  }
+
+  .landing-section__inner {
+    width: min(100%, 75rem);
+    margin-inline: auto;
+  }
+
+  .landing-about {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 28rem);
+    align-items: center;
+    gap: clamp(2rem, 9vw, 8.25rem);
+  }
+
+  .landing-copy {
+    display: grid;
+    max-width: 39rem;
+    gap: 1.35rem;
+  }
+
+  .landing-copy--compact {
+    gap: 1.1rem;
+    margin-bottom: 2rem;
+  }
+
+  .landing-eyebrow {
+    color: var(--landing-soft);
+    font-size: 0.75rem;
+    font-weight: 800;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+
+  .landing-copy h2 {
+    color: var(--landing-ink);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 700;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  .landing-copy p:not(.landing-eyebrow) {
+    color: var(--landing-muted);
+    font-size: clamp(1rem, 1.4vw, 1.125rem);
+    font-weight: 600;
+    line-height: 1.65;
+  }
+
+  .landing-about__image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border: 1px solid var(--landing-line);
+  }
+
+  .landing-services {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .landing-card {
+    display: grid;
+    min-width: 0;
+    overflow: hidden;
+    background: rgb(255 255 255 / 1%);
+    border: 1px solid var(--landing-line);
+  }
+
+  .landing-card img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+  }
+
+  .landing-card__body {
+    display: grid;
+    gap: 0.8rem;
+    padding: 1rem 1rem 1.1rem;
+  }
+
+  .landing-card h3 {
+    color: var(--landing-ink);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.2rem;
+    line-height: 1.2;
+  }
+
+  .landing-card p {
+    color: var(--landing-muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.55;
+  }
+
+  .landing-contact {
+    min-height: 24rem;
+    display: grid;
+    align-items: center;
+  }
+
+  .landing-contact__list {
+    display: grid;
+    gap: 1rem;
+    color: var(--landing-muted);
+    font-style: normal;
+    font-size: 1.08rem;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+
+  .landing-contact__list a {
+    width: fit-content;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .landing-footer {
+    display: grid;
+    min-height: 7.25rem;
+    place-items: center;
+    padding: 1.75rem;
+    background: var(--landing-black);
+  }
+
+  .landing-footer img {
+    width: min(58vw, 11rem);
+  }
+
+  @media (max-width: 820px) {
+    .landing-header {
+      align-items: flex-start;
+    }
+
+    .landing-nav {
+      gap: 0.65rem 1rem;
+    }
+
+    .landing-about,
+    .landing-services {
+      grid-template-columns: 1fr;
+    }
+
+    .landing-about__image {
+      max-width: 34rem;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .landing-header {
+      min-height: auto;
+      align-items: center;
+      gap: 0.65rem;
+      padding-inline: 0.75rem;
+      padding-block: 0.75rem;
+    }
+
+    .landing-header__brand {
+      width: 2.15rem;
+    }
+
+    .landing-nav {
+      gap: 0.45rem;
+    }
+
+    .landing-nav a {
+      font-size: 0.63rem;
+    }
+
+    .landing-nav .landing-nav__button {
+      min-height: 2.15rem;
+      padding: 0.55rem 0.65rem;
+    }
+
+    .landing-hero {
+      min-height: 19rem;
+      background-position: center top;
+    }
+
+    .landing-hero__content {
+      width: min(82vw, 24rem);
+    }
+
+    .landing-section {
+      padding-block: 3.5rem;
+    }
+  }
+</style>
