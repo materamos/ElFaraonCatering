@@ -32,6 +32,14 @@
   src: url("/fonts/inter/inter-latin-700-normal.woff2") format("woff2");
 }
 
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/fraunces/fraunces-latin-600-normal.ttf") format("truetype");
+}
+
 :root {
   --brand-black: #0f0e0d;
   --brand-orange: #fa6f20;
