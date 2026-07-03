@@ -8,7 +8,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   bodyClass="landing-body"
 >
   <main class="landing-page">
-    <header class="landing-header" aria-label="Navegación principal">
+    <header class="landing-header" aria-label="Navegación principal" data-landing-header>
       <a class="landing-header__brand" href="/" aria-label="El Faraón Catering">
         <img
           src="/brand/el-faraon-logo-icon-orange-transparent.png"
@@ -23,7 +23,27 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <a href="#servicio">Servicio</a>
         <a class="landing-nav__button" href="#contacto">Contacto</a>
       </nav>
-      <span class="landing-menu-icon" aria-hidden="true"></span>
+      <button
+        class="landing-menu-toggle"
+        type="button"
+        aria-controls="landing-mobile-nav"
+        aria-expanded="false"
+        data-landing-menu-toggle
+      >
+        <span class="landing-menu-icon" aria-hidden="true"></span>
+        <span class="landing-sr-only" data-landing-menu-label>Abrir menu</span>
+      </button>
+      <nav
+        id="landing-mobile-nav"
+        class="landing-mobile-nav"
+        aria-label="Secciones de la landing"
+        data-landing-mobile-nav
+        hidden
+      >
+        <a href="#nosotros">Nosotros</a>
+        <a href="#servicio">Servicio</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
     </header>
 
     <section class="landing-hero" aria-labelledby="landing-title">
@@ -145,6 +165,61 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   </main>
 </BaseLayout>
 
+<script>
+  const landingHeader = document.querySelector("[data-landing-header]");
+  const landingMenuToggle = document.querySelector("[data-landing-menu-toggle]");
+  const landingMobileNav = document.querySelector("[data-landing-mobile-nav]");
+  const landingMenuLabel = document.querySelector("[data-landing-menu-label]");
+
+  if (
+    landingHeader instanceof HTMLElement &&
+    landingMenuToggle instanceof HTMLButtonElement &&
+    landingMobileNav instanceof HTMLElement
+  ) {
+    const setLandingMenuOpen = (open = false) => {
+      landingMenuToggle.setAttribute("aria-expanded", String(open));
+      landingMobileNav.hidden = !open;
+
+      if (landingMenuLabel) {
+        landingMenuLabel.textContent = open ? "Cerrar menu" : "Abrir menu";
+      }
+    };
+
+    landingMenuToggle.addEventListener("click", () => {
+      const isOpen = landingMenuToggle.getAttribute("aria-expanded") === "true";
+      setLandingMenuOpen(!isOpen);
+    });
+
+    landingMobileNav.addEventListener("click", (event) => {
+      if (event.target instanceof HTMLAnchorElement) {
+        setLandingMenuOpen(false);
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        setLandingMenuOpen(false);
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      const isOpen = landingMenuToggle.getAttribute("aria-expanded") === "true";
+      const target = event.target;
+
+      if (isOpen && target instanceof Node && !landingHeader.contains(target)) {
+        setLandingMenuOpen(false);
+      }
+    });
+
+    const desktopQuery = window.matchMedia("(min-width: 521px)");
+    desktopQuery.addEventListener("change", (event) => {
+      if (event.matches) {
+        setLandingMenuOpen(false);
+      }
+    });
+  }
+</script>
+
 <style>
   :global(body.landing-body) {
     background: #0f0e0d;
@@ -169,12 +244,15 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     --landing-checker-a: #f8f8f8;
     --landing-checker-b: #e9e9e9;
     min-height: 100vh;
-    overflow: hidden;
+    overflow-x: clip;
     background: var(--landing-black);
     color: var(--landing-bone);
   }
 
   .landing-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
     display: flex;
     min-height: 4.9375rem;
     align-items: center;
@@ -193,7 +271,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   }
 
   .landing-header__brand:focus-visible,
+  .landing-menu-toggle:focus-visible,
   .landing-nav a:focus-visible,
+  .landing-mobile-nav a:focus-visible,
   .landing-contact__list a:focus-visible {
     outline: 2px solid var(--landing-orange);
     outline-offset: 4px;
@@ -216,8 +296,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     margin-left: auto;
   }
 
-  .landing-menu-icon {
+  .landing-menu-toggle,
+  .landing-mobile-nav {
     display: none;
+  }
+
+  .landing-menu-icon {
+    display: block;
   }
 
   .landing-nav a {
@@ -242,6 +327,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     font-weight: 600;
     background: var(--landing-orange);
     border-radius: 0.5rem;
+  }
+
+  .landing-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    clip-path: inset(50%);
   }
 
   .landing-hero {
@@ -280,6 +375,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   }
 
   .landing-section {
+    scroll-margin-top: 5.5rem;
     box-sizing: border-box;
     padding: clamp(3.5rem, 5.556vw, 5rem) clamp(1.25rem, 8.333vw, 7.5rem);
   }
@@ -496,7 +592,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   @media (max-width: 520px) {
     .landing-header {
-      position: relative;
       height: 4.8125rem;
       min-height: 4.8125rem;
       justify-content: center;
@@ -516,10 +611,22 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       display: none;
     }
 
-    .landing-menu-icon {
+    .landing-menu-toggle {
       position: absolute;
       top: 1.65625rem;
       right: 2.21875rem;
+      display: grid;
+      width: 1.5rem;
+      height: 1.5rem;
+      place-items: center;
+      padding: 0;
+      color: var(--landing-bone);
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+    }
+
+    .landing-menu-icon {
       display: block;
       width: 1.5rem;
       height: 1.5rem;
@@ -537,6 +644,35 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       border-radius: 999px;
       color: var(--landing-bone);
       content: "";
+    }
+
+    .landing-mobile-nav {
+      position: absolute;
+      top: calc(100% + 0.25rem);
+      right: 2.21875rem;
+      z-index: 1;
+      width: 6.625rem;
+      height: 8.3125rem;
+      align-items: stretch;
+      box-sizing: border-box;
+      background: var(--landing-black);
+    }
+
+    .landing-mobile-nav:not([hidden]) {
+      display: grid;
+      grid-template-rows: repeat(3, 1fr);
+    }
+
+    .landing-mobile-nav a {
+      display: grid;
+      place-items: center;
+      color: var(--landing-bone);
+      font-size: 0.875rem;
+      font-weight: 500;
+      line-height: 1.0625rem;
+      text-align: center;
+      text-decoration: none;
+      text-transform: uppercase;
     }
 
     .landing-hero {
