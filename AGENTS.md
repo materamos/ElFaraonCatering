@@ -17,7 +17,7 @@ The active product surface is the operational QR menu, not the future institutio
 Current routes:
 
 - `/` -> future institutional placeholder
-- `/menu/` -> future operational menu index placeholder
+- `/menu/` -> temporary redirect to `/`; do not list public links to location menus there
 - `/menu/corpo/` -> primary operational QR menu
 - `/menu/teleinde/` -> active operational QR menu in the multi-location model
 - `/admin/` -> static Astro operational menu-content CMS for employees

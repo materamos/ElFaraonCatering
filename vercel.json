@@ -34,8 +34,13 @@
   "redirects": [
     {
       "source": "/menu",
-      "destination": "/menu/",
-      "permanent": true
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/menu/",
+      "destination": "/",
+      "permanent": false
     },
     {
       "source": "/menu/corpo",
