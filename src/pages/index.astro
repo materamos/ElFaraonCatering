@@ -164,59 +164,72 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     </footer>
   </main>
 
-  <script>
-    const landingHeader = document.querySelector("[data-landing-header]");
-    const landingMenuToggle = document.querySelector("[data-landing-menu-toggle]");
-    const landingMobileNav = document.querySelector("[data-landing-mobile-nav]");
-    const landingMenuLabel = document.querySelector("[data-landing-menu-label]");
+  <script is:inline>
+    (function () {
+      var landingHeader = document.querySelector("[data-landing-header]");
+      var landingMenuToggle = document.querySelector("[data-landing-menu-toggle]");
+      var landingMobileNav = document.querySelector("[data-landing-mobile-nav]");
+      var landingMenuLabel = document.querySelector("[data-landing-menu-label]");
 
-    if (
-      landingHeader instanceof HTMLElement &&
-      landingMenuToggle instanceof HTMLButtonElement &&
-      landingMobileNav instanceof HTMLElement
-    ) {
-      const setLandingMenuOpen = (open = false) => {
-        landingMenuToggle.setAttribute("aria-expanded", String(open));
-        landingMobileNav.hidden = !open;
+      if (!landingHeader || !landingMenuToggle || !landingMobileNav) {
+        return;
+      }
+
+      var setLandingMenuOpen = function (open) {
+        var isOpen = Boolean(open);
+        landingMenuToggle.setAttribute("aria-expanded", String(isOpen));
+        landingMobileNav.hidden = !isOpen;
 
         if (landingMenuLabel) {
-          landingMenuLabel.textContent = open ? "Cerrar menu" : "Abrir menu";
+          landingMenuLabel.textContent = isOpen ? "Cerrar menu" : "Abrir menu";
         }
       };
 
-      landingMenuToggle.addEventListener("click", () => {
-        const isOpen = landingMenuToggle.getAttribute("aria-expanded") === "true";
+      landingMenuToggle.addEventListener("click", function () {
+        var isOpen = landingMenuToggle.getAttribute("aria-expanded") === "true";
         setLandingMenuOpen(!isOpen);
       });
 
-      landingMobileNav.addEventListener("click", (event) => {
-        if (event.target instanceof HTMLAnchorElement) {
+      landingMobileNav.addEventListener("click", function (event) {
+        if (event.target && event.target.tagName === "A") {
           setLandingMenuOpen(false);
         }
       });
 
-      document.addEventListener("keydown", (event) => {
+      document.addEventListener("keydown", function (event) {
         if (event.key === "Escape") {
           setLandingMenuOpen(false);
         }
       });
 
-      document.addEventListener("click", (event) => {
-        const isOpen = landingMenuToggle.getAttribute("aria-expanded") === "true";
-        const target = event.target;
+      document.addEventListener("click", function (event) {
+        var isOpen = landingMenuToggle.getAttribute("aria-expanded") === "true";
+        var target = event.target;
 
-        if (isOpen && target instanceof Node && !landingHeader.contains(target)) {
+        if (isOpen && target && !landingHeader.contains(target)) {
           setLandingMenuOpen(false);
         }
       });
 
-      const desktopQuery = window.matchMedia("(min-width: 521px)");
-      desktopQuery.addEventListener("change", (event) => {
-        if (event.matches) {
-          setLandingMenuOpen(false);
+      if (window.matchMedia) {
+        var desktopQuery = window.matchMedia("(min-width: 521px)");
+        var closeOnDesktop = function (event) {
+          if (event.matches) {
+            setLandingMenuOpen(false);
+          }
+        };
+
+        if (desktopQuery.addEventListener) {
+          desktopQuery.addEventListener("change", closeOnDesktop);
+        } else {
+          var legacyAddListener = desktopQuery["add" + "Listener"];
+
+          if (typeof legacyAddListener === "function") {
+            legacyAddListener.call(desktopQuery, closeOnDesktop);
+          }
         }
-      });
-    }
+      }
+    })();
   </script>
 </BaseLayout>
 
