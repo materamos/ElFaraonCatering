@@ -163,62 +163,62 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       />
     </footer>
   </main>
+
+  <script>
+    const landingHeader = document.querySelector("[data-landing-header]");
+    const landingMenuToggle = document.querySelector("[data-landing-menu-toggle]");
+    const landingMobileNav = document.querySelector("[data-landing-mobile-nav]");
+    const landingMenuLabel = document.querySelector("[data-landing-menu-label]");
+
+    if (
+      landingHeader instanceof HTMLElement &&
+      landingMenuToggle instanceof HTMLButtonElement &&
+      landingMobileNav instanceof HTMLElement
+    ) {
+      const setLandingMenuOpen = (open = false) => {
+        landingMenuToggle.setAttribute("aria-expanded", String(open));
+        landingMobileNav.hidden = !open;
+
+        if (landingMenuLabel) {
+          landingMenuLabel.textContent = open ? "Cerrar menu" : "Abrir menu";
+        }
+      };
+
+      landingMenuToggle.addEventListener("click", () => {
+        const isOpen = landingMenuToggle.getAttribute("aria-expanded") === "true";
+        setLandingMenuOpen(!isOpen);
+      });
+
+      landingMobileNav.addEventListener("click", (event) => {
+        if (event.target instanceof HTMLAnchorElement) {
+          setLandingMenuOpen(false);
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          setLandingMenuOpen(false);
+        }
+      });
+
+      document.addEventListener("click", (event) => {
+        const isOpen = landingMenuToggle.getAttribute("aria-expanded") === "true";
+        const target = event.target;
+
+        if (isOpen && target instanceof Node && !landingHeader.contains(target)) {
+          setLandingMenuOpen(false);
+        }
+      });
+
+      const desktopQuery = window.matchMedia("(min-width: 521px)");
+      desktopQuery.addEventListener("change", (event) => {
+        if (event.matches) {
+          setLandingMenuOpen(false);
+        }
+      });
+    }
+  </script>
 </BaseLayout>
-
-<script>
-  const landingHeader = document.querySelector("[data-landing-header]");
-  const landingMenuToggle = document.querySelector("[data-landing-menu-toggle]");
-  const landingMobileNav = document.querySelector("[data-landing-mobile-nav]");
-  const landingMenuLabel = document.querySelector("[data-landing-menu-label]");
-
-  if (
-    landingHeader instanceof HTMLElement &&
-    landingMenuToggle instanceof HTMLButtonElement &&
-    landingMobileNav instanceof HTMLElement
-  ) {
-    const setLandingMenuOpen = (open = false) => {
-      landingMenuToggle.setAttribute("aria-expanded", String(open));
-      landingMobileNav.hidden = !open;
-
-      if (landingMenuLabel) {
-        landingMenuLabel.textContent = open ? "Cerrar menu" : "Abrir menu";
-      }
-    };
-
-    landingMenuToggle.addEventListener("click", () => {
-      const isOpen = landingMenuToggle.getAttribute("aria-expanded") === "true";
-      setLandingMenuOpen(!isOpen);
-    });
-
-    landingMobileNav.addEventListener("click", (event) => {
-      if (event.target instanceof HTMLAnchorElement) {
-        setLandingMenuOpen(false);
-      }
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        setLandingMenuOpen(false);
-      }
-    });
-
-    document.addEventListener("click", (event) => {
-      const isOpen = landingMenuToggle.getAttribute("aria-expanded") === "true";
-      const target = event.target;
-
-      if (isOpen && target instanceof Node && !landingHeader.contains(target)) {
-        setLandingMenuOpen(false);
-      }
-    });
-
-    const desktopQuery = window.matchMedia("(min-width: 521px)");
-    desktopQuery.addEventListener("change", (event) => {
-      if (event.matches) {
-        setLandingMenuOpen(false);
-      }
-    });
-  }
-</script>
 
 <style>
   :global(body.landing-body) {
