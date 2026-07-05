@@ -518,22 +518,58 @@
 
     .landing-menu-icon {
       display: block;
-      width: 1.5rem;
-      height: 1.5rem;
+      width: 1.25rem;
+      height: 0.125rem;
+      position: relative;
+      color: var(--color-ink);
+      background: var(--color-ink);
+      border-radius: 999px;
+      transition: background-color 120ms ease;
     }
 
-    .landing-menu-icon::before {
+    .landing-menu-icon::before,
+    .landing-menu-icon::after {
+      border-radius: 999px;
+    }
+
+    .landing-menu-icon::before,
+    .landing-menu-icon::after {
+      position: absolute;
+      left: 0;
       display: block;
       width: 1.25rem;
       height: 0.125rem;
-      margin: 0.3125rem auto 0;
       background: var(--color-ink);
-      box-shadow:
-        0 0.375rem 0 var(--color-ink),
-        0 0.75rem 0 var(--color-ink);
-      border-radius: 999px;
-      color: var(--color-ink);
       content: "";
+      transition: transform 160ms ease;
+    }
+
+    .landing-menu-icon::before {
+      transform: translateY(-0.375rem);
+    }
+
+    .landing-menu-icon::after {
+      transform: translateY(0.375rem);
+    }
+
+    .landing-menu-toggle[aria-expanded="true"] .landing-menu-icon {
+      background: transparent;
+    }
+
+    .landing-menu-toggle[aria-expanded="true"] .landing-menu-icon::before {
+      transform: rotate(45deg);
+    }
+
+    .landing-menu-toggle[aria-expanded="true"] .landing-menu-icon::after {
+      transform: rotate(-45deg);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .landing-menu-icon,
+      .landing-menu-icon::before,
+      .landing-menu-icon::after {
+        transition: none;
+      }
     }
 
     .landing-mobile-nav {
