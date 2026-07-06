@@ -271,7 +271,7 @@
     background-color: #0b0b0a;
     background-image:
       linear-gradient(rgb(0 0 0 / 46%), rgb(0 0 0 / 46%)),
-      url("/landing/brand-texture.webp");
+      url("/landing/fondo-landing-desktop.webp");
     background-position: center;
     background-size: cover;
   }
@@ -513,6 +513,12 @@
 
     .landing-about__image {
       max-width: 34rem;
+    }
+
+    .landing-section--texture {
+      background-image:
+        linear-gradient(rgb(0 0 0 / 46%), rgb(0 0 0 / 46%)),
+        url("/landing/fondo-landing-mobile.webp");
     }
   }
 
