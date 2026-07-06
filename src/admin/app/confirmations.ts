@@ -10,9 +10,11 @@ export function confirmDeleteGrillProduct(title: string): boolean {
   );
 }
 
-export function confirmDeleteCatalogItem(name: string): boolean {
+export function confirmDeleteCatalogItem(name: string, hasImage: boolean): boolean {
+  const imageWarning = hasImage ? " Este item tiene una foto asociada." : "";
+
   return window.confirm(
-    `Vas a eliminar ${name} del menú fijo. El cambio se verá después de publicar. ¿Continuar?`,
+    `Vas a eliminar ${name} del menú fijo.${imageWarning} El cambio se verá después de publicar. ¿Continuar?`,
   );
 }
 

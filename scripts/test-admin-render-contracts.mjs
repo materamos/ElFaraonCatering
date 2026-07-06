@@ -445,6 +445,30 @@ test("fixed menu view exposes item, option, and price form contracts", () => {
   assert.equal(optionHtml.includes("admin-price-tag"), false);
 });
 
+test("fixed menu view marks catalog items with photos", () => {
+  const state = createState({
+    catalog_editor: {
+      items: [
+        createCatalogItem("guarniciones", "papas", "Papas", [], {
+          pricing_key: "catalog:guarniciones:item:papas",
+          price_amount: 20,
+          has_image: true,
+        }),
+        createCatalogItem("guarniciones", "ensalada", "Ensalada", []),
+      ],
+    },
+  });
+  const html = fixedMenuView.renderFixedMenuTab(
+    state,
+    createViewState({ activeTab: "fixed", fixedSectionFilter: "guarniciones" }),
+    false,
+  );
+
+  assert.ok(html.includes('<span class="admin-price-tag">Con foto</span>'));
+  assert.ok(html.includes("tiene una foto asociada"));
+  assert.equal(html.includes("2 fotos"), false);
+});
+
 test("fixed menu view splits tartas, tortillas, and omelettes filters", () => {
   const sectionId = "tartas-tortillas-omelettes";
   const state = createState({

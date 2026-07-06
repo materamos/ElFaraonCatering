@@ -28,7 +28,7 @@ export async function handleDeleteCatalogItemAction(
     return;
   }
 
-  if (!context.formState.confirmUnsavedChanges() || !confirmDeleteCatalogItem(item.name)) {
+  if (!context.formState.confirmUnsavedChanges() || !confirmDeleteCatalogItem(item.name, item.has_image)) {
     return;
   }
 

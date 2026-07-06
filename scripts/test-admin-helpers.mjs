@@ -203,6 +203,7 @@ export function createCatalogItem(sectionId, itemId, name, optionIds, overrides 
     pricing_key: `${sectionId}-${itemId}`,
     price_amount: null,
     order_index: 0,
+    has_image: false,
     option_count: optionIds.length,
     options: optionIds.map((optionId, index) => ({
       section_id: sectionId,

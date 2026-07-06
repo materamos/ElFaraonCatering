@@ -133,6 +133,7 @@ function normalizeCatalogItem(item: CatalogItemState): CatalogItemState {
       typeof priceAmount === "number" && Number.isSafeInteger(priceAmount) && priceAmount >= 0
         ? priceAmount
         : null,
+    has_image: item.has_image === true,
     option_count: normalizeNonnegativeInteger(item.option_count),
     options: Array.isArray(item.options) ? item.options.map(normalizeCatalogItemOption) : [],
   };

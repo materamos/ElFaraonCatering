@@ -156,8 +156,14 @@ function renderCatalogItemRow(
 ): string {
   const showPriceChip = !catalogItemShowsCurrentPriceRows(state, item, editMode);
   const priceText = showPriceChip ? formatCatalogItemPrice(item) : "";
+  const tags = [
+    ...(showPriceChip ? [priceText] : []),
+    ...(item.has_image ? ["Con foto"] : []),
+  ];
   const deleteHelp = canDelete
-    ? "Se quitará del menú público después de publicar."
+    ? item.has_image
+      ? "Se quitará del menú público y tiene una foto asociada."
+      : "Se quitará del menú público después de publicar."
     : "No se puede eliminar porque debe quedar al menos un item en esta ubicación.";
   const editDescriptionField = renderCatalogDescriptionField({
     fieldName: "description",
@@ -169,8 +175,8 @@ function renderCatalogItemRow(
     <div class="admin-row admin-fixed-row">
       <div class="admin-row__main">
         <p class="admin-row__title">${escapeHtml(item.name)}</p>
-        ${showPriceChip ? `<div class="admin-price-tags">
-          <span class="admin-price-tag">${escapeHtml(priceText)}</span>
+        ${tags.length > 0 ? `<div class="admin-price-tags">
+          ${tags.map((tag) => `<span class="admin-price-tag">${escapeHtml(tag)}</span>`).join("")}
         </div>` : ""}
         ${editMode === "items" ? `<form class="admin-fixed-edit-fields" data-admin-form="${adminForms.catalogItemEdit}">
           ${hiddenInput("section_id", item.section_id)}

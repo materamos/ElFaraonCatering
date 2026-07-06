@@ -124,6 +124,7 @@ export interface CatalogItemState {
   pricing_key: string | null;
   price_amount: number | null;
   order_index: number;
+  has_image: boolean;
   option_count: number;
   options: CatalogItemOptionState[];
 }
