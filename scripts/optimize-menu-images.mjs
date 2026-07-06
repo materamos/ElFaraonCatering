@@ -74,7 +74,7 @@ const NAME_MAP = {
     role: "primary",
   },
   "omelette": {
-    itemId: "omelette-espinaca-muzzarella",
+    itemId: "omelette-jamon-queso",
     outputSlug: "omelette",
     role: "primary",
   },
