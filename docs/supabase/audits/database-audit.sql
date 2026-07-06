@@ -783,7 +783,8 @@ with expected_migrations(version) as (
     ('20260701145810'),
     ('20260701151758'),
     ('20260706113430'),
-    ('20260706114205')
+    ('20260706114205'),
+    ('20260706162000')
 )
 select
   migration.version,
@@ -806,7 +807,8 @@ with expected_migrations(version) as (
     ('20260701145810'),
     ('20260701151758'),
     ('20260706113430'),
-    ('20260706114205')
+    ('20260706114205'),
+    ('20260706162000')
 )
 select
   expected.version as expected_version,
