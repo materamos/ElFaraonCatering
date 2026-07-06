@@ -35,7 +35,7 @@ export const fixedOptionsOnlySectionRules: readonly FixedOptionsOnlySectionRule[
     filterId: "omelettes",
     sectionId: "tartas-tortillas-omelettes",
     title: "Omelettes",
-    itemIds: ["omelette"],
+    itemIds: ["omelette-espinaca-muzzarella", "omelette-jamon-queso"],
   },
   {
     filterId: "empanadas",

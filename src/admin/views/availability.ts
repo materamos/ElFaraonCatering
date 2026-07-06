@@ -431,7 +431,11 @@ function getHiddenAvailabilityGroupLabel(
       return optionDisplay ? "Tarta" : "";
     }
 
-    if (itemName === "Tortilla" || itemName === "Omelette") {
+    if (
+      itemName === "Tortilla"
+      || target.item_id === "omelette-espinaca-muzzarella"
+      || target.item_id === "omelette-jamon-queso"
+    ) {
       return "";
     }
   }

@@ -125,11 +125,12 @@ test("combined tartas section is split into fixed menu admin locations", () => {
   const sectionId = "tartas-tortillas-omelettes";
   const state = createState({
     catalog_editor: {
-      sections: [{ section_id: sectionId, title: "Tartas, tortillas y omelettes", order_index: 0, item_count: 3 }],
+      sections: [{ section_id: sectionId, title: "Tartas, tortillas y omelettes", order_index: 0, item_count: 4 }],
       items: [
         createCatalogItem(sectionId, "tartas", "Tartas", ["jamon-queso"]),
         createCatalogItem(sectionId, "tortilla", "Tortilla", []),
-        createCatalogItem(sectionId, "omelette", "Omelette", []),
+        createCatalogItem(sectionId, "omelette-espinaca-muzzarella", "Omelette de espinaca y muzzarella", []),
+        createCatalogItem(sectionId, "omelette-jamon-queso", "Omelette de jamon y queso", []),
       ],
     },
   });
@@ -148,6 +149,18 @@ test("combined tartas section is split into fixed menu admin locations", () => {
   assert.equal(section.title, "Tortillas");
   assert.equal(rules.getFixedMenuEditMode(section), "options-only");
   assert.deepEqual(items.map((item) => item.item_id), ["tortilla"]);
+
+  const omelettesSection = selectors.getEffectiveFixedSection(state.catalog_editor, "omelettes");
+  const omeletteItems = selectors.getFixedLocationItems(state.catalog_editor, omelettesSection);
+
+  assert.equal(omelettesSection.section_id, sectionId);
+  assert.equal(omelettesSection.filter_id, "omelettes");
+  assert.equal(omelettesSection.title, "Omelettes");
+  assert.equal(rules.getFixedMenuEditMode(omelettesSection), "options-only");
+  assert.deepEqual(omeletteItems.map((item) => item.item_id), [
+    "omelette-espinaca-muzzarella",
+    "omelette-jamon-queso",
+  ]);
 });
 
 test("missing fixed section filter falls back to first section", () => {

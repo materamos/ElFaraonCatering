@@ -370,10 +370,11 @@ test("availability view renders catalog options as nested rows", () => {
       createTarget("corpo", "catalog", sectionId, "tartas-jamon-queso", "Tartas - Jamon y queso"),
       createTarget("corpo", "catalog", sectionId, "tartas-jamon-verdeo", "Tartas - Jamon y verdeo"),
       createTarget("corpo", "catalog", sectionId, "tortilla", "Tortilla"),
-      createTarget("corpo", "catalog", sectionId, "omelette", "Omelette"),
+      createTarget("corpo", "catalog", sectionId, "omelette-espinaca-muzzarella", "Omelette de espinaca y muzzarella"),
+      createTarget("corpo", "catalog", sectionId, "omelette-jamon-queso", "Omelette de jamon y queso"),
     ],
     catalog_editor: {
-      sections: [{ section_id: sectionId, title: "Tartas, tortillas y omelettes", order_index: 0, item_count: 3 }],
+      sections: [{ section_id: sectionId, title: "Tartas, tortillas y omelettes", order_index: 0, item_count: 4 }],
       items: [
         {
           ...createCatalogItem(sectionId, "tartas", "Tartas", ["jamon-queso", "jamon-verdeo"]),
@@ -395,7 +396,8 @@ test("availability view renders catalog options as nested rows", () => {
           ],
         },
         createCatalogItem(sectionId, "tortilla", "Tortilla", []),
-        createCatalogItem(sectionId, "omelette", "Omelette", []),
+        createCatalogItem(sectionId, "omelette-espinaca-muzzarella", "Omelette de espinaca y muzzarella", []),
+        createCatalogItem(sectionId, "omelette-jamon-queso", "Omelette de jamon y queso", []),
       ],
     },
   });
@@ -415,7 +417,8 @@ test("availability view renders catalog options as nested rows", () => {
     "Jamon y queso",
     "Jamon y verdeo",
     "Tortilla",
-    "Omelette",
+    "Omelette de espinaca y muzzarella",
+    "Omelette de jamon y queso",
   ]);
 });
 
@@ -446,11 +449,12 @@ test("fixed menu view splits tartas, tortillas, and omelettes filters", () => {
   const sectionId = "tartas-tortillas-omelettes";
   const state = createState({
     catalog_editor: {
-      sections: [{ section_id: sectionId, title: "Tartas, tortillas y omelettes", order_index: 0, item_count: 3 }],
+      sections: [{ section_id: sectionId, title: "Tartas, tortillas y omelettes", order_index: 0, item_count: 4 }],
       items: [
         createCatalogItem(sectionId, "tartas", "Alpha", ["a"]),
         createCatalogItem(sectionId, "tortilla", "Beta", ["b"]),
-        createCatalogItem(sectionId, "omelette", "Gamma", ["c"]),
+        createCatalogItem(sectionId, "omelette-espinaca-muzzarella", "Gamma", ["c"]),
+        createCatalogItem(sectionId, "omelette-jamon-queso", "Delta", ["d"]),
       ],
     },
   });
@@ -466,6 +470,7 @@ test("fixed menu view splits tartas, tortillas, and omelettes filters", () => {
   assert.ok(html.includes("Beta"));
   assert.equal(html.includes("Alpha"), false);
   assert.equal(html.includes("Gamma"), false);
+  assert.equal(html.includes("Delta"), false);
   assert.ok(html.includes(`name="section_id" value="${sectionId}"`));
   assert.ok(html.includes('name="item_id" value="tortilla"'));
 });
@@ -568,7 +573,7 @@ function createHiddenAvailabilityLabelsState() {
     createTarget("corpo", "catalog", "promociones", "combo-cafe", "Combo cafe"),
     createTarget("corpo", "catalog", "tartas-tortillas-omelettes", "tartas-jamon-queso", "Tartas - Jamon y queso"),
     createTarget("corpo", "catalog", "tartas-tortillas-omelettes", "tortilla", "Tortilla"),
-    createTarget("corpo", "catalog", "tartas-tortillas-omelettes", "omelette", "Omelette"),
+    createTarget("corpo", "catalog", "tartas-tortillas-omelettes", "omelette-espinaca-muzzarella", "Omelette de espinaca y muzzarella"),
   ];
 
   return createState({
@@ -605,7 +610,7 @@ function createHiddenAvailabilityLabelsState() {
           ],
         }),
         createCatalogItem("tartas-tortillas-omelettes", "tortilla", "Tortilla", []),
-        createCatalogItem("tartas-tortillas-omelettes", "omelette", "Omelette", []),
+        createCatalogItem("tartas-tortillas-omelettes", "omelette-espinaca-muzzarella", "Omelette de espinaca y muzzarella", []),
       ],
     },
   });

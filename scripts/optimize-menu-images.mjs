@@ -74,12 +74,12 @@ const NAME_MAP = {
     role: "primary",
   },
   "omelette": {
-    itemId: "omelette",
+    itemId: "omelette-espinaca-muzzarella",
     outputSlug: "omelette",
     role: "primary",
   },
   "omelette-2": {
-    itemId: "omelette",
+    itemId: "omelette-espinaca-muzzarella",
     outputSlug: "omelette-2",
     role: "primary",
   },
