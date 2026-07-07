@@ -666,7 +666,7 @@ CREATE OR REPLACE FUNCTION app_private.is_active_staff()
  RETURNS boolean
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
   select exists (
     select 1
@@ -680,7 +680,7 @@ CREATE OR REPLACE FUNCTION app_private.can_edit_availability(target_profile_id t
  RETURNS boolean
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
   select $1 is not null
     and exists (
@@ -696,7 +696,7 @@ CREATE OR REPLACE FUNCTION app_private.can_manage_staff()
  RETURNS boolean
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
   select exists (
     select 1
@@ -711,7 +711,7 @@ CREATE OR REPLACE FUNCTION app_private.can_publish_menu()
  RETURNS boolean
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
   select exists (
     select 1
@@ -726,7 +726,7 @@ CREATE OR REPLACE FUNCTION app_private.can_edit_menu_content()
  RETURNS boolean
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
   select exists (
     select 1
@@ -786,7 +786,7 @@ CREATE OR REPLACE FUNCTION app_private.generate_admin_id(prefix text)
  RETURNS text
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'extensions', 'pg_temp'
+ SET search_path TO 'extensions', 'pg_temp'
 AS $function$
 declare
   clean_prefix text := nullif(btrim(generate_admin_id.prefix), '');
@@ -803,7 +803,7 @@ CREATE OR REPLACE FUNCTION app_private.menu_availability_target_exists(target_me
  RETURNS boolean
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
   select exists (
     select 1
@@ -860,7 +860,7 @@ CREATE OR REPLACE FUNCTION app_private.set_menu_availability_overlay(menu_id tex
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_menu_id text := set_menu_availability_overlay.menu_id;
@@ -980,7 +980,7 @@ CREATE OR REPLACE FUNCTION app_private.clear_menu_availability_overlay(menu_id t
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_menu_id text := clear_menu_availability_overlay.menu_id;
@@ -1022,7 +1022,7 @@ CREATE OR REPLACE FUNCTION app_private.set_menu_availability_overlays(targets js
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_entries jsonb := set_menu_availability_overlays.targets;
@@ -1157,7 +1157,7 @@ CREATE OR REPLACE FUNCTION app_private.clear_menu_availability_overlays(targets 
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_entries jsonb := clear_menu_availability_overlays.targets;
@@ -1244,7 +1244,7 @@ CREATE OR REPLACE FUNCTION app_private.set_profile_service_kind(profile_id text,
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_profile_id text := set_profile_service_kind.profile_id;
@@ -1313,7 +1313,7 @@ CREATE OR REPLACE FUNCTION app_private.set_daily_menu(regular_name text, regular
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   regular_name_value text := nullif(btrim(set_daily_menu.regular_name), '');
@@ -1393,7 +1393,7 @@ CREATE OR REPLACE FUNCTION app_private.set_global_fixed_price(pricing_key text, 
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   pricing_key_value text := nullif(btrim(set_global_fixed_price.pricing_key), '');
@@ -1448,7 +1448,7 @@ CREATE OR REPLACE FUNCTION app_private.set_global_price_variant(pricing_key text
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   pricing_key_value text := nullif(btrim(set_global_price_variant.pricing_key), '');
@@ -1502,7 +1502,7 @@ CREATE OR REPLACE FUNCTION app_private.add_catalog_item(section_id text, item_id
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_section_id text := nullif(btrim(add_catalog_item.section_id), '');
@@ -1626,7 +1626,7 @@ CREATE OR REPLACE FUNCTION app_private.delete_catalog_item(section_id text, item
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_section_id text := nullif(btrim(delete_catalog_item.section_id), '');
@@ -1689,7 +1689,7 @@ CREATE OR REPLACE FUNCTION app_private.update_catalog_item(section_id text, item
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_section_id text := nullif(btrim(update_catalog_item.section_id), '');
@@ -1763,7 +1763,7 @@ CREATE OR REPLACE FUNCTION app_private.add_catalog_item_option(section_id text, 
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_section_id text := nullif(btrim(add_catalog_item_option.section_id), '');
@@ -1877,7 +1877,7 @@ CREATE OR REPLACE FUNCTION app_private.delete_catalog_item_option(section_id tex
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_section_id text := nullif(btrim(delete_catalog_item_option.section_id), '');
@@ -1938,7 +1938,7 @@ CREATE OR REPLACE FUNCTION app_private.update_catalog_item_option(section_id tex
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_section_id text := nullif(btrim(update_catalog_item_option.section_id), '');
@@ -2015,7 +2015,7 @@ CREATE OR REPLACE FUNCTION app_private.add_grill_item(family_id text, item_id te
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_family_id text := nullif(btrim(add_grill_item.family_id), '');
@@ -2130,7 +2130,7 @@ CREATE OR REPLACE FUNCTION app_private.delete_grill_item(item_id text)
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_item_id text := nullif(btrim(delete_grill_item.item_id), '');
@@ -2186,7 +2186,7 @@ CREATE OR REPLACE FUNCTION app_private.update_grill_item(item_id text, name text
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_item_id text := nullif(btrim(update_grill_item.item_id), '');
@@ -2259,7 +2259,7 @@ CREATE OR REPLACE FUNCTION app_private.add_grill_product(family_id text, title t
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_family_id text := nullif(btrim(add_grill_product.family_id), '');
@@ -2403,7 +2403,7 @@ CREATE OR REPLACE FUNCTION app_private.delete_grill_product(family_id text)
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_family_id text := nullif(btrim(delete_grill_product.family_id), '');
@@ -2460,7 +2460,7 @@ CREATE OR REPLACE FUNCTION app_private.update_grill_product(family_id text, titl
  RETURNS TABLE(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   target_family_id text := nullif(btrim(update_grill_product.family_id), '');
@@ -2525,7 +2525,7 @@ CREATE OR REPLACE FUNCTION app_private.get_admin_catalog_editor_state()
  RETURNS jsonb
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
   select case
     when not public.can_edit_menu_content() then
@@ -2599,7 +2599,7 @@ CREATE OR REPLACE FUNCTION app_private.get_admin_grill_editor_state()
  RETURNS jsonb
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
   select jsonb_build_object(
     'families', coalesce((
@@ -2648,7 +2648,7 @@ CREATE OR REPLACE FUNCTION app_private.get_menu_publication_content_hash()
  RETURNS text
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
   with content as (
     select jsonb_build_object(
@@ -2710,7 +2710,7 @@ CREATE OR REPLACE FUNCTION app_private.get_menu_publication_state()
  RETURNS jsonb
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'app_private', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
   with current_state as (
     select app_private.get_menu_publication_content_hash() as current_content_hash
@@ -2975,7 +2975,7 @@ CREATE OR REPLACE FUNCTION app_private.get_admin_operational_state()
  RETURNS jsonb
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   staff_row public.staff_users%rowtype;
@@ -3289,7 +3289,7 @@ CREATE OR REPLACE FUNCTION public.reserve_menu_publish_request(user_id uuid, coo
  RETURNS TABLE(request_id bigint, reserved boolean, message text, cooldown_remaining_seconds integer)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'app_private', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   effective_cooldown_seconds integer := least(greatest(coalesce(cooldown_seconds, 60), 0), 3600);
@@ -3361,7 +3361,7 @@ CREATE OR REPLACE FUNCTION public.complete_menu_publish_request(request_id bigin
  RETURNS TABLE(completed boolean, message text)
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'app_private', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
 declare
   updated_count integer := 0;
@@ -3883,7 +3883,7 @@ create or replace function app_private.record_menu_change_event(
 returns void
 language plpgsql
 security definer
-set search_path to 'public', 'app_private', 'pg_temp'
+SET search_path TO 'pg_temp'
 as $function$
 declare
   current_user_id uuid := (select auth.uid());
@@ -4413,7 +4413,7 @@ create or replace function public.complete_menu_publish_request(
 returns table(completed boolean, message text)
 language plpgsql
 security definer
-set search_path to 'public', 'app_private', 'pg_temp'
+SET search_path TO 'pg_temp'
 as $function$
 declare
   updated_count integer := 0;
@@ -4922,7 +4922,7 @@ CREATE OR REPLACE FUNCTION app_private.get_admin_catalog_editor_state()
  RETURNS jsonb
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'menu_content', 'pg_temp'
+ SET search_path TO 'pg_temp'
 AS $function$
   select case
     when not public.can_edit_menu_content() then
@@ -5411,6 +5411,351 @@ select setval(
 commit;
 
 -- -----------------------------------------------------------------------------
+-- Final canonical menu_content alignment
+-- -----------------------------------------------------------------------------
+
+begin;
+
+truncate table
+  menu_content.menu_catalog_item_images,
+  menu_content.menu_catalog_item_options,
+  menu_content.menu_catalog_items,
+  menu_content.menu_catalog_sections,
+  menu_content.menu_daily_items,
+  menu_content.menu_grill_catalog_items,
+  menu_content.menu_grill_families,
+  menu_content.menu_price_variants,
+  menu_content.menu_profile_facts,
+  menu_content.menu_profile_service_settings,
+  menu_content.menu_prices,
+  menu_content.menu_profiles
+restart identity cascade;
+
+insert into menu_content.menu_profiles (
+  id, eyebrow, title, description, info_title
+) values
+  ('corpo', 'El Faraón Catering', 'Menú Corpo', 'Opciones del día, platos, minutas, promociones y bebidas para la operación del buffet de El Faraón Catering dentro del edificio corporativo de Teleinde.', 'Información útil'),
+  ('teleinde', 'El Faraón Catering', 'Menú Teleinde', 'Opciones del día, platos, minutas, promociones y bebidas para la operación del buffet de El Faraón Catering en los estudios de Teleinde.', 'Información útil');
+
+insert into menu_content.menu_profile_facts (
+  profile_id, fact_id, label, value, link_text, link_href, order_index
+) values
+  ('corpo', 'horario', 'Horario', '08:30 a 18:00 hs', null, null, 0),
+  ('corpo', 'contacto', 'Contacto', 'Contactanos por', 'WhatsApp', 'https://wa.me/541133454545?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%3A%20', 1),
+  ('corpo', 'disponibilidad', 'Disponibilidad', 'Puede variar durante el día.', null, null, 2),
+  ('corpo', 'pagos', 'Pagos', 'Efectivo, Mercado Pago, Modo, Crédito, Débito', null, null, 3),
+  ('teleinde', 'horario', 'Horario', '08:30 a 18:00 hs', null, null, 0),
+  ('teleinde', 'contacto', 'Contacto', 'Contactanos por ', 'WhatsApp', 'https://wa.me/1154003333?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%3A%20', 1),
+  ('teleinde', 'disponibilidad', 'Disponibilidad', 'Puede variar durante el día.', null, null, 2),
+  ('teleinde', 'pagos', 'Pagos', 'Efectivo, Mercado Pago, Modo, Crédito, Débito', null, null, 3);
+
+insert into menu_content.menu_prices (
+  pricing_key, kind, amount
+) values
+  ('catalog:bebidas:item:coca-cola-zero:price', 'fixed', 2800),
+  ('catalog:bebidas:item:coca-cola:price', 'fixed', 2800),
+  ('catalog:bebidas:item:cunnington-pomelo:price', 'fixed', 2500),
+  ('catalog:bebidas:item:cunnington-tonica-zero:price', 'fixed', 2500),
+  ('catalog:bebidas:item:cunnington-tonica:price', 'fixed', 2500),
+  ('catalog:bebidas:item:fanta:price', 'fixed', 2800),
+  ('catalog:bebidas:item:gatorade:price', 'fixed', 3300),
+  ('catalog:bebidas:item:levite-manzana:price', 'fixed', 2500),
+  ('catalog:bebidas:item:levite-naranja:price', 'fixed', 2500),
+  ('catalog:bebidas:item:levite-pera:price', 'fixed', 2500),
+  ('catalog:bebidas:item:levite-pomelo:price', 'fixed', 2500),
+  ('catalog:bebidas:item:paso-toros-pomelo:price', 'fixed', 2500),
+  ('catalog:bebidas:item:pepsi-black:price', 'fixed', 2500),
+  ('catalog:bebidas:item:pepsi:price', 'fixed', 2500),
+  ('catalog:bebidas:item:seven-up-free:price', 'fixed', 2500),
+  ('catalog:bebidas:item:seven-up:price', 'fixed', 2500),
+  ('catalog:bebidas:item:sprite-zero:price', 'fixed', 2800),
+  ('catalog:bebidas:item:sprite:price', 'fixed', 2800),
+  ('catalog:bebidas:item:villavicencio-con-gas:price', 'fixed', 2500),
+  ('catalog:bebidas:item:villavicencio-sin-gas:price', 'fixed', 2500),
+  ('catalog:cafeteria:item:arabe-jamon-queso-tomate-huevo:price', 'fixed', 8500),
+  ('catalog:cafeteria:item:arabe-jamon-queso-tomate:price', 'fixed', 7500),
+  ('catalog:cafeteria:item:arabe-miga-jamon-queso:price', 'fixed', 6500),
+  ('catalog:cafeteria:item:baguetin-jamon-queso:price', 'fixed', 7500),
+  ('catalog:cafeteria:item:baguetin-salame:price', 'fixed', 7500),
+  ('catalog:cafeteria:item:cafe-chico:price', 'fixed', 5000),
+  ('catalog:cafeteria:item:cafe-frio:price', 'fixed', 6000),
+  ('catalog:cafeteria:item:cafe-grande:price', 'fixed', 6000),
+  ('catalog:cafeteria:item:cafe-mediano:price', 'fixed', 5500),
+  ('catalog:cafeteria:item:exprimido-naranja:price', 'fixed', 6000),
+  ('catalog:cafeteria:item:huevos-revueltos-tostadas:price', 'fixed', 8000),
+  ('catalog:cafeteria:item:licuado-frutas:price', 'fixed', 7500),
+  ('catalog:cafeteria:item:mate-cocido:price', 'fixed', 4000),
+  ('catalog:cafeteria:item:medialuna-jamon-queso:price', 'fixed', 3500),
+  ('catalog:cafeteria:item:medialunas-manteca:price', 'fixed', 1800),
+  ('catalog:cafeteria:item:te:price', 'fixed', 4000),
+  ('catalog:cafeteria:item:tostadas-queso-crema-mermelada:price', 'fixed', 6000),
+  ('catalog:cafeteria:item:yogur-cereal:price', 'fixed', 3500),
+  ('catalog:cafeteria:item:yogur-sin-cereales-o-con-colchon:price', 'fixed', 2800),
+  ('catalog:empanadas:item:empanadas:price', 'fixed', 3000),
+  ('catalog:ensaladas:item:ensalada-caesar:price', 'fixed', 10000),
+  ('catalog:ensaladas:item:ensalada-completa-pollo:price', 'fixed', 12000),
+  ('catalog:ensaladas:item:ensalada-completa:price', 'fixed', 10000),
+  ('catalog:ensaladas:item:ensalada-el-faraon:price', 'fixed', 10000),
+  ('catalog:guarniciones:item:chips:price', 'included', null),
+  ('catalog:guarniciones:item:ensalada-tres-sabores:price', 'included', null),
+  ('catalog:guarniciones:item:guarnicion-sola:price', 'fixed', 5000),
+  ('catalog:guarniciones:item:papas-fritas:price', 'included', null),
+  ('catalog:guarniciones:item:pure:price', 'included', null),
+  ('catalog:platos-principales:item:cuarto-pollo:price', 'fixed', 11000),
+  ('catalog:platos-principales:item:item-565d609676a0:price', 'fixed', 16000),
+  ('catalog:platos-principales:item:milanesa-napolitana:price', 'fixed', 13500),
+  ('catalog:platos-principales:item:milanesa-peceto:price', 'fixed', 12000),
+  ('catalog:platos-principales:item:pechuga-grill:price', 'fixed', 12000),
+  ('catalog:platos-principales:item:suprema-de-pollo-napolitana:price', 'fixed', 12500),
+  ('catalog:platos-principales:item:suprema-pollo:price', 'fixed', 11500),
+  ('catalog:promociones:item:cafe-con-leche-mediano-huevos-revueltos:price', 'fixed', 15400),
+  ('catalog:promociones:item:cafe-leche-mediano-dos-medialunas:price', 'fixed', 8200),
+  ('catalog:promociones:item:cafe-leche-tostadas:price', 'fixed', 10800),
+  ('catalog:promociones:item:cafe-leche-tostado-clasico:price', 'fixed', 10800),
+  ('catalog:promociones:item:jarrito-exprimido-dos-medialunas:price', 'fixed', 14800),
+  ('catalog:promociones:item:licuado-tostado-clasico:price', 'fixed', 14500),
+  ('catalog:promociones:item:yogur-cereales-barrita:price', 'fixed', 5500),
+  ('catalog:tartas-tortillas-omelettes:item:omelette-espinaca-muzzarella:price', 'variants', null),
+  ('catalog:tartas-tortillas-omelettes:item:omelette-jamon-queso:price', 'variants', null),
+  ('catalog:tartas-tortillas-omelettes:item:tartas:price', 'variants', null),
+  ('catalog:tartas-tortillas-omelettes:item:tortilla:price', 'variants', null),
+  ('menu-del-dia', 'fixed', 8500),
+  ('menu-vegetariano-del-dia', 'fixed', 8500),
+  ('parrilla-bife-chorizo-plato-guarnicion', 'fixed', 24000),
+  ('parrilla-bondiola-plato-guarnicion', 'fixed', 16000),
+  ('parrilla-choripan', 'fixed', 7000),
+  ('parrilla-choripan-guarnicion', 'fixed', 9500),
+  ('parrilla-entrana-plato-guarnicion', 'fixed', 23000),
+  ('parrilla-hamburguesa-completa', 'fixed', 10000),
+  ('parrilla-hamburguesa-completa-guarnicion', 'fixed', 13000),
+  ('parrilla-lomo-plato-guarnicion', 'fixed', 24000),
+  ('parrilla-matambre-fugazzeta-guarnicion', 'fixed', 17000),
+  ('parrilla-matambre-pizza-guarnicion', 'fixed', 17000),
+  ('parrilla-sandwich-bife-chorizo-completo', 'fixed', 19000),
+  ('parrilla-sandwich-bife-chorizo-guarnicion', 'fixed', 23000),
+  ('parrilla-sandwich-bondiola-completo', 'fixed', 13000),
+  ('parrilla-sandwich-bondiola-guarnicion', 'fixed', 15000),
+  ('parrilla-sandwich-entrana-completo', 'fixed', 19000),
+  ('parrilla-sandwich-entrana-guarnicion', 'fixed', 22000),
+  ('parrilla-sandwich-lomo-completo', 'fixed', 20000),
+  ('parrilla-sandwich-lomo-guarnicion', 'fixed', 23000);
+
+insert into menu_content.menu_price_variants (
+  pricing_key, price_kind, variant_id, name, amount, available, order_index
+) values
+  ('catalog:tartas-tortillas-omelettes:item:omelette-espinaca-muzzarella:price', 'variants', 'con-guarnicion', 'Con guarnición', 10000, true, 0),
+  ('catalog:tartas-tortillas-omelettes:item:omelette-espinaca-muzzarella:price', 'variants', 'sin-guarnicion', 'Sin guarnición', 8000, true, 1),
+  ('catalog:tartas-tortillas-omelettes:item:omelette-jamon-queso:price', 'variants', 'con-guarnicion', 'Con guarnición', 10000, true, 0),
+  ('catalog:tartas-tortillas-omelettes:item:omelette-jamon-queso:price', 'variants', 'sin-guarnicion', 'Sin guarnición', 8000, true, 1),
+  ('catalog:tartas-tortillas-omelettes:item:tartas:price', 'variants', 'con-guarnicion', 'Con guarnición', 10000, true, 0),
+  ('catalog:tartas-tortillas-omelettes:item:tartas:price', 'variants', 'sin-guarnicion', 'Sin guarnición', 8000, true, 1),
+  ('catalog:tartas-tortillas-omelettes:item:tortilla:price', 'variants', 'con-cebolla-con-guarnicion', 'Con cebolla con guarnición', 10000, true, 0),
+  ('catalog:tartas-tortillas-omelettes:item:tortilla:price', 'variants', 'sin-cebolla-con-guarnicion', 'Sin cebolla con guarnición', 10000, true, 1),
+  ('catalog:tartas-tortillas-omelettes:item:tortilla:price', 'variants', 'sin-guarnicion', 'Sin guarnición', 8000, true, 2);
+
+insert into menu_content.menu_daily_items (
+  id, item_id, name, description, available, pricing_key, order_index
+) values
+  ('1', 'menu-del-dia', 'PROMOS MUNDIAL.', 'Choripan con chips y vaso de gaseosa a elección.
+Hamburguesa con lechuga, tomate, jamón y queso y vaso de gaseosa a elección.
+Sandwich de bondiola con lechuga, tomate, jamón y queso y vaso de gaseosa a elección.', true, 'menu-del-dia', 0),
+  ('3', 'menu-vegetariano-del-dia', 'Medallones de quinoa a la napolitana con guarnición.', null, true, 'menu-vegetariano-del-dia', 1);
+
+insert into menu_content.menu_profile_service_settings (
+  profile_id, service_kind
+) values
+  ('corpo', 'daily-menu'),
+  ('teleinde', 'daily-menu');
+
+insert into menu_content.menu_catalog_sections (
+  id, section_id, title, description, order_index, presentation
+) values
+  ('1', 'platos-principales', 'Platos principales con guarnición', null, 0, 'cards'),
+  ('3', 'guarniciones', 'Guarniciones', 'Opciones de guarnición para platos y minutas.', 2, 'cards'),
+  ('4', 'empanadas', 'Empanadas', null, 3, 'cards'),
+  ('5', 'ensaladas', 'Ensaladas', null, 4, 'cards'),
+  ('7', 'promociones', 'Promociones cafetería', 'Combos vigentes del buffet.', 5, 'cards'),
+  ('8', 'bebidas', 'Bebidas', null, 7, 'compact-list'),
+  ('13', 'cafeteria', 'Cafetería', null, 6, 'compact-list'),
+  ('14', 'tartas-tortillas-omelettes', 'Tartas, tortillas y omelettes', 'Opciones rápidas con modalidades de guarnición cuando aplica.', 1, 'cards');
+
+insert into menu_content.menu_catalog_items (
+  id, section_id, item_id, name, description, available, pricing_key, order_index
+) values
+  ('1', 'platos-principales', 'milanesa-peceto', 'Milanesa de peceto con guarnicion a eleccion', null, true, 'catalog:platos-principales:item:milanesa-peceto:price', 0),
+  ('2', 'platos-principales', 'suprema-pollo', 'Suprema de pollo con guarnición a eleccion', null, true, 'catalog:platos-principales:item:suprema-pollo:price', 2),
+  ('3', 'platos-principales', 'cuarto-pollo', '1/4 pollo con guarnición a eleccion', null, true, 'catalog:platos-principales:item:cuarto-pollo:price', 4),
+  ('4', 'platos-principales', 'pechuga-grill', 'Pechuga al grill con guarnición a eleccion', null, true, 'catalog:platos-principales:item:pechuga-grill:price', 5),
+  ('5', 'platos-principales', 'milanesa-napolitana', 'Milanesa de peceto napolitana  con guarnición a eleccion', null, true, 'catalog:platos-principales:item:milanesa-napolitana:price', 1),
+  ('6', 'tartas-tortillas-omelettes', 'tartas', 'Tartas', null, true, 'catalog:tartas-tortillas-omelettes:item:tartas:price', 0),
+  ('7', 'tartas-tortillas-omelettes', 'tortilla', 'Tortilla', null, true, 'catalog:tartas-tortillas-omelettes:item:tortilla:price', 1),
+  ('8', 'tartas-tortillas-omelettes', 'omelette-espinaca-muzzarella', 'Omelette de espinaca y muzzarella', null, true, 'catalog:tartas-tortillas-omelettes:item:omelette-espinaca-muzzarella:price', 2),
+  ('9', 'guarniciones', 'pure', 'Puré', 'Puede ser mixto o simple. Sujeto a disponibilidad
+Papa - batata - calabaza', true, 'catalog:guarniciones:item:pure:price', 0),
+  ('11', 'guarniciones', 'papas-fritas', 'Papas fritas', null, true, 'catalog:guarniciones:item:papas-fritas:price', 1),
+  ('13', 'guarniciones', 'ensalada-tres-sabores', 'Ensalada tres sabores', 'Elegí hasta 3 opciones. Sujeto a disponibilidad.
+Lechuga - rúcula - repollo - tomate - pepino - zanahoria - remolacha - cebolla morada - rabanitos - hinojo - porotos negros - huevo - arroz blanco - fideos tirabuzón.', true, 'catalog:guarniciones:item:ensalada-tres-sabores:price', 3),
+  ('14', 'guarniciones', 'guarnicion-sola', 'Guarnición sola', null, true, 'catalog:guarniciones:item:guarnicion-sola:price', 4),
+  ('15', 'empanadas', 'empanadas', 'Empanadas', null, true, 'catalog:empanadas:item:empanadas:price', 0),
+  ('16', 'ensaladas', 'ensalada-caesar', 'Caesar', 'Lechuga, croutones, queso parmesano, pollo en láminas y aderezo Caesar.', true, 'catalog:ensaladas:item:ensalada-caesar:price', 0),
+  ('17', 'ensaladas', 'ensalada-completa', 'Completa', 'Un colchon de arroz yamani, lechuga, tomate, zanahoria, repollo, remolacha, huevo y queso.', true, 'catalog:ensaladas:item:ensalada-completa:price', 1),
+  ('18', 'ensaladas', 'ensalada-completa-pollo', 'Completa con pollo', 'Un colchon de arroz yamani, lechuga, tomate, zanahoria, repollo, remolacha, huevo, queso y pollo.', true, 'catalog:ensaladas:item:ensalada-completa-pollo:price', 2),
+  ('19', 'ensaladas', 'ensalada-el-faraon', 'El Faraón', 'Un colchon de fideos tirabuzon, aceitunas, tomate, huevo y pollo.', true, 'catalog:ensaladas:item:ensalada-el-faraon:price', 3),
+  ('20', 'cafeteria', 'yogur-cereal', 'Yogurt con cereales', null, true, 'catalog:cafeteria:item:yogur-cereal:price', 8),
+  ('21', 'cafeteria', 'yogur-sin-cereales-o-con-colchon', 'Yogurt sin cereales o con colchón', null, true, 'catalog:cafeteria:item:yogur-sin-cereales-o-con-colchon:price', 9),
+  ('24', 'cafeteria', 'exprimido-naranja', 'Exprimido de naranja', null, true, 'catalog:cafeteria:item:exprimido-naranja:price', 7),
+  ('25', 'cafeteria', 'licuado-frutas', 'Licuado de frutas o banana', null, true, 'catalog:cafeteria:item:licuado-frutas:price', 4),
+  ('27', 'cafeteria', 'medialunas-manteca', 'Medialuna', null, true, 'catalog:cafeteria:item:medialunas-manteca:price', 10),
+  ('28', 'cafeteria', 'medialuna-jamon-queso', 'Medialuna con jamón y queso', null, true, 'catalog:cafeteria:item:medialuna-jamon-queso:price', 12),
+  ('29', 'promociones', 'cafe-leche-mediano-dos-medialunas', 'Café con leche mediano + 2 medialunas', 'Infusión a elección mediana + dos medialunas de manteca.', true, 'catalog:promociones:item:cafe-leche-mediano-dos-medialunas:price', 0),
+  ('30', 'promociones', 'cafe-leche-tostado-clasico', 'Café con leche + tostado clásico', 'Infusion a elección mediana + tostado de miga de jamon y queso.', true, 'catalog:promociones:item:cafe-leche-tostado-clasico:price', 1),
+  ('31', 'promociones', 'cafe-leche-tostadas', 'Café con leche + tostadas con queso crema y mermelada', 'Infusión a elección mediana + dos tostadas de pan blanco o negro con queso crema + queso crema y mermelada.', true, 'catalog:promociones:item:cafe-leche-tostadas:price', 2),
+  ('32', 'promociones', 'yogur-cereales-barrita', 'Yogur con cereales + barrita de cereal', null, true, 'catalog:promociones:item:yogur-cereales-barrita:price', 4),
+  ('33', 'promociones', 'jarrito-exprimido-dos-medialunas', 'Jarrito + exprimido de naranja + dos medialunas', null, true, 'catalog:promociones:item:jarrito-exprimido-dos-medialunas:price', 5),
+  ('34', 'promociones', 'licuado-tostado-clasico', 'Licuado + tostado clásico', null, true, 'catalog:promociones:item:licuado-tostado-clasico:price', 6),
+  ('35', 'bebidas', 'coca-cola', 'Coca-Cola', null, true, 'catalog:bebidas:item:coca-cola:price', 2),
+  ('36', 'bebidas', 'coca-cola-zero', 'Coca-Cola Zero', null, true, 'catalog:bebidas:item:coca-cola-zero:price', 3),
+  ('37', 'bebidas', 'fanta', 'Fanta', null, true, 'catalog:bebidas:item:fanta:price', 4),
+  ('38', 'bebidas', 'sprite', 'Sprite', null, true, 'catalog:bebidas:item:sprite:price', 5),
+  ('39', 'bebidas', 'sprite-zero', 'Sprite Zero', null, true, 'catalog:bebidas:item:sprite-zero:price', 6),
+  ('40', 'bebidas', 'pepsi', 'Pepsi', null, true, 'catalog:bebidas:item:pepsi:price', 7),
+  ('41', 'bebidas', 'pepsi-black', 'Pepsi Black', null, true, 'catalog:bebidas:item:pepsi-black:price', 8),
+  ('42', 'bebidas', 'seven-up', '7Up', null, true, 'catalog:bebidas:item:seven-up:price', 9),
+  ('43', 'bebidas', 'seven-up-free', '7Up Free', null, true, 'catalog:bebidas:item:seven-up-free:price', 10),
+  ('44', 'bebidas', 'paso-toros-pomelo', 'Paso de los Toros Pomelo', null, true, 'catalog:bebidas:item:paso-toros-pomelo:price', 11),
+  ('45', 'bebidas', 'cunnington-pomelo', 'Cunnington Pomelo', null, true, 'catalog:bebidas:item:cunnington-pomelo:price', 12),
+  ('46', 'bebidas', 'cunnington-tonica', 'Cunnington Tónica', null, true, 'catalog:bebidas:item:cunnington-tonica:price', 13),
+  ('47', 'bebidas', 'cunnington-tonica-zero', 'Cunnington Tónica Zero', null, true, 'catalog:bebidas:item:cunnington-tonica-zero:price', 14),
+  ('48', 'bebidas', 'levite-pomelo', 'Levite Pomelo', null, true, 'catalog:bebidas:item:levite-pomelo:price', 15),
+  ('49', 'bebidas', 'levite-manzana', 'Levite Manzana', null, true, 'catalog:bebidas:item:levite-manzana:price', 16),
+  ('50', 'bebidas', 'levite-naranja', 'Levite Naranja', null, true, 'catalog:bebidas:item:levite-naranja:price', 17),
+  ('51', 'bebidas', 'levite-pera', 'Levite Pera', null, true, 'catalog:bebidas:item:levite-pera:price', 18),
+  ('52', 'bebidas', 'villavicencio-sin-gas', 'Villavicencio sin gas', null, true, 'catalog:bebidas:item:villavicencio-sin-gas:price', 0),
+  ('53', 'bebidas', 'villavicencio-con-gas', 'Villavicencio con gas', null, true, 'catalog:bebidas:item:villavicencio-con-gas:price', 1),
+  ('54', 'bebidas', 'gatorade', 'Gatorade', null, true, 'catalog:bebidas:item:gatorade:price', 19),
+  ('56', 'promociones', 'cafe-con-leche-mediano-huevos-revueltos', 'Café con leche + huevos revueltos', 'Infusión a elección mediana + dos tostadas de pan blanco o negro + queso crema + dos huevos revueltos.', true, 'catalog:promociones:item:cafe-con-leche-mediano-huevos-revueltos:price', 3),
+  ('57', 'platos-principales', 'suprema-de-pollo-napolitana', 'Suprema de pollo napolitana con guarnición a eleccion', null, true, 'catalog:platos-principales:item:suprema-de-pollo-napolitana:price', 3),
+  ('58', 'guarniciones', 'chips', 'Chips', 'Sujeto a disponibilidad.
+Papa - batata - mixtos', true, 'catalog:guarniciones:item:chips:price', 2),
+  ('59', 'cafeteria', 'cafe-chico', 'Café chico', null, true, 'catalog:cafeteria:item:cafe-chico:price', 0),
+  ('60', 'cafeteria', 'cafe-mediano', 'Café mediano', null, true, 'catalog:cafeteria:item:cafe-mediano:price', 1),
+  ('61', 'cafeteria', 'cafe-grande', 'Café grande', null, true, 'catalog:cafeteria:item:cafe-grande:price', 2),
+  ('62', 'cafeteria', 'cafe-frio', 'Café frio', null, true, 'catalog:cafeteria:item:cafe-frio:price', 3),
+  ('63', 'cafeteria', 'te', 'Té clásico', null, true, 'catalog:cafeteria:item:te:price', 5),
+  ('64', 'cafeteria', 'mate-cocido', 'Mate cocido', null, true, 'catalog:cafeteria:item:mate-cocido:price', 6),
+  ('65', 'cafeteria', 'tostadas-queso-crema-mermelada', 'Tostadas con queso crema y mermelada', null, true, 'catalog:cafeteria:item:tostadas-queso-crema-mermelada:price', 11),
+  ('66', 'cafeteria', 'arabe-miga-jamon-queso', 'Árabe/miga jamón y queso', null, true, 'catalog:cafeteria:item:arabe-miga-jamon-queso:price', 13),
+  ('67', 'cafeteria', 'arabe-jamon-queso-tomate', 'Árabe jamón, queso y tomate', null, true, 'catalog:cafeteria:item:arabe-jamon-queso-tomate:price', 14),
+  ('68', 'cafeteria', 'arabe-jamon-queso-tomate-huevo', 'Árabe jamón, queso, tomate y huevo', null, true, 'catalog:cafeteria:item:arabe-jamon-queso-tomate-huevo:price', 15),
+  ('69', 'cafeteria', 'baguetin-jamon-queso', 'Baguetin de jamón y queso', null, true, 'catalog:cafeteria:item:baguetin-jamon-queso:price', 16),
+  ('70', 'cafeteria', 'baguetin-salame', 'Baguetin salame', null, true, 'catalog:cafeteria:item:baguetin-salame:price', 17),
+  ('71', 'cafeteria', 'huevos-revueltos-tostadas', 'Huevos revueltos con tostadas', null, true, 'catalog:cafeteria:item:huevos-revueltos-tostadas:price', 18),
+  ('74', 'platos-principales', 'item-565d609676a0', 'Baguetin de crudo', 'Baguetin de jamón crudo, rúcula, queso brie y tomates disecados; con guarnición de chips de papa o batata.', true, 'catalog:platos-principales:item:item-565d609676a0:price', 6),
+  ('75', 'tartas-tortillas-omelettes', 'omelette-jamon-queso', 'Omelette de jamon y queso', null, true, 'catalog:tartas-tortillas-omelettes:item:omelette-jamon-queso:price', 3);
+
+insert into menu_content.menu_catalog_item_images (
+  id, catalog_item_id, image_path, order_index
+) values
+  ('1', '9', '/uploads/menu/pure-batata.webp', 1),
+  ('4', '15', '/uploads/menu/empanadas-3.webp', 1),
+  ('5', '6', '/uploads/menu/tartas-3.webp', 2),
+  ('6', '6', '/uploads/menu/tartas.webp', 1),
+  ('7', '75', '/uploads/menu/omelette.webp', 0),
+  ('20', '8', '/uploads/menu/omelette-2.webp', 0),
+  ('21', '9', '/uploads/menu/pure-papa.webp', 0),
+  ('22', '16', '/uploads/menu/ensalada-caesar.webp', 0),
+  ('23', '17', '/uploads/menu/ensalada-completa.webp', 0),
+  ('24', '15', '/uploads/menu/empanadas.webp', 0),
+  ('25', '6', '/uploads/menu/tartas-2.webp', 0),
+  ('26', '19', '/uploads/menu/ensalada-el-faraon.webp', 0),
+  ('27', '7', '/uploads/menu/tortilla.webp', 0),
+  ('28', '3', '/uploads/menu/cuarto-pollo.webp', 0),
+  ('29', '4', '/uploads/menu/pechuga-grill.webp', 0),
+  ('30', '2', '/uploads/menu/suprema-pollo.webp', 0),
+  ('31', '1', '/uploads/menu/milanesa-peceto.webp', 0),
+  ('32', '58', '/uploads/menu/chips-papa.webp', 0),
+  ('33', '58', '/uploads/menu/chips-batata.webp', 1);
+
+insert into menu_content.menu_catalog_item_options (
+  catalog_item_id, option_id, name, available, order_index
+) values
+  ('6', 'jamon-queso', 'Calabaza y muzzarella', true, 0),
+  ('6', 'pollo-puerro', 'Pollo y puerro', true, 2),
+  ('6', 'brocoli', 'Cebolla y queso', true, 5),
+  ('6', 'option-cc5b115287d2', 'Zuchinni', true, 6),
+  ('15', 'carne', 'Carne', true, 0),
+  ('15', 'jamon-queso', 'Jamón y queso', true, 1),
+  ('15', 'pollo-barbacoa', 'Pollo a la barbacoa', true, 2),
+  ('15', 'bondiola-mostaza', 'Bondiola a la mostaza', true, 3),
+  ('15', 'verdura', 'Verdura', true, 4),
+  ('15', 'caprese', 'Caprese', true, 5);
+
+insert into menu_content.menu_grill_families (
+  family_id, title, order_index
+) values
+  ('choripan', 'Choripán', 0),
+  ('hamburguesa', 'Hamburguesa', 1),
+  ('bondiola', 'Bondiola', 2),
+  ('matambre', 'Matambre', 3),
+  ('entrana', 'Entraña', 4),
+  ('lomo', 'Lomo', 5),
+  ('bife-chorizo', 'Bife de chorizo', 6);
+
+insert into menu_content.menu_grill_catalog_items (
+  id, family_id, item_id, name, variant_name, available, pricing_key, order_index
+) values
+  ('1', 'choripan', 'parrilla-choripan', 'Simple', 'Simple', true, 'parrilla-choripan', 0),
+  ('2', 'choripan', 'parrilla-choripan-guarnicion', 'Choripán con guarnición', 'Con guarnición', true, 'parrilla-choripan-guarnicion', 1),
+  ('3', 'hamburguesa', 'parrilla-hamburguesa-completa', 'Hamburguesa completa', 'Completa', true, 'parrilla-hamburguesa-completa', 2),
+  ('4', 'hamburguesa', 'parrilla-hamburguesa-completa-guarnicion', 'Hamburguesa completa con guarnición', 'Completa con guarnición', true, 'parrilla-hamburguesa-completa-guarnicion', 3),
+  ('5', 'bondiola', 'parrilla-sandwich-bondiola-completo', 'Sándwich de bondiola completo', 'Sándwich completo', true, 'parrilla-sandwich-bondiola-completo', 4),
+  ('6', 'bondiola', 'parrilla-sandwich-bondiola-guarnicion', 'Sándwich de bondiola con guarnición', 'Sándwich con guarnición', true, 'parrilla-sandwich-bondiola-guarnicion', 5),
+  ('7', 'bondiola', 'parrilla-bondiola-plato-guarnicion', 'Bondiola al plato con guarnición', 'Al plato con guarnición', true, 'parrilla-bondiola-plato-guarnicion', 6),
+  ('8', 'matambre', 'parrilla-matambre-pizza-guarnicion', 'Matambre a la pizza con guarnición', 'A la pizza con guarnición', true, 'parrilla-matambre-pizza-guarnicion', 7),
+  ('9', 'matambre', 'parrilla-matambre-fugazzeta-guarnicion', 'Matambre a la fugazzeta con guarnición', 'A la fugazzeta con guarnición', true, 'parrilla-matambre-fugazzeta-guarnicion', 8),
+  ('10', 'entrana', 'parrilla-sandwich-entrana-completo', 'Sándwich de entraña completo', 'Sándwich completo', true, 'parrilla-sandwich-entrana-completo', 9),
+  ('11', 'entrana', 'parrilla-sandwich-entrana-guarnicion', 'Sándwich de entraña completo con guarnición', 'Sándwich completo con guarnición', true, 'parrilla-sandwich-entrana-guarnicion', 10),
+  ('12', 'entrana', 'parrilla-entrana-plato-guarnicion', 'Entraña al plato con guarnición', 'Al plato con guarnición', true, 'parrilla-entrana-plato-guarnicion', 11),
+  ('13', 'lomo', 'parrilla-sandwich-lomo-completo', 'Sándwich de lomo completo', 'Sándwich completo', true, 'parrilla-sandwich-lomo-completo', 12),
+  ('14', 'lomo', 'parrilla-sandwich-lomo-guarnicion', 'Sándwich de lomo completo con guarnición', 'Sándwich completo con guarnición', true, 'parrilla-sandwich-lomo-guarnicion', 13),
+  ('15', 'lomo', 'parrilla-lomo-plato-guarnicion', 'Lomo al plato con guarnición', 'Al plato con guarnición', true, 'parrilla-lomo-plato-guarnicion', 14),
+  ('16', 'bife-chorizo', 'parrilla-sandwich-bife-chorizo-completo', 'Sándwich de bife de chorizo completo', 'Sándwich completo', true, 'parrilla-sandwich-bife-chorizo-completo', 15),
+  ('17', 'bife-chorizo', 'parrilla-sandwich-bife-chorizo-guarnicion', 'Sándwich de bife de chorizo completo con guarnición', 'Sándwich completo con guarnición', true, 'parrilla-sandwich-bife-chorizo-guarnicion', 16),
+  ('18', 'bife-chorizo', 'parrilla-bife-chorizo-plato-guarnicion', 'Bife de chorizo al plato con guarnición', 'Al plato con guarnición', true, 'parrilla-bife-chorizo-plato-guarnicion', 17);
+
+select setval(
+  pg_get_serial_sequence('menu_content.menu_daily_items', 'id'),
+  coalesce((select max(id) from menu_content.menu_daily_items), 0) + 1,
+  false
+);
+
+select setval(
+  pg_get_serial_sequence('menu_content.menu_catalog_sections', 'id'),
+  coalesce((select max(id) from menu_content.menu_catalog_sections), 0) + 1,
+  false
+);
+
+select setval(
+  pg_get_serial_sequence('menu_content.menu_catalog_items', 'id'),
+  coalesce((select max(id) from menu_content.menu_catalog_items), 0) + 1,
+  false
+);
+
+select setval(
+  pg_get_serial_sequence('menu_content.menu_catalog_item_images', 'id'),
+  coalesce((select max(id) from menu_content.menu_catalog_item_images), 0) + 1,
+  false
+);
+
+select setval(
+  pg_get_serial_sequence('menu_content.menu_grill_catalog_items', 'id'),
+  coalesce((select max(id) from menu_content.menu_grill_catalog_items), 0) + 1,
+  false
+);
+
+commit;
+
+-- -----------------------------------------------------------------------------
 -- Consolidated baseline assertions
 -- -----------------------------------------------------------------------------
 
@@ -5428,7 +5773,7 @@ begin
   select app_private.get_menu_publication_content_hash()
   into actual_hash;
 
-  if actual_hash <> '32a45e8278adad23587f8d7c19c1c486' then
+  if actual_hash <> 'a486141eb873e22b53941ac6f3c9735e' then
     raise exception 'Unexpected consolidated baseline content hash: %', actual_hash;
   end if;
 end
