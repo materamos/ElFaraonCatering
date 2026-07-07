@@ -653,7 +653,7 @@ select setval(
 CREATE OR REPLACE FUNCTION public.set_staff_users_updated_at()
  RETURNS trigger
  LANGUAGE plpgsql
- SECURITY DEFINER
+ SECURITY INVOKER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
 begin

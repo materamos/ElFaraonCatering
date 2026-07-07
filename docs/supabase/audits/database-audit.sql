@@ -585,7 +585,7 @@ with expected_functions (schema_name, function_name, identity_arguments, securit
     ('public', 'set_menu_availability_overlay', 'menu_id text, section_id text, item_id text, available_override boolean', false, 'v', 'public overlay set wrapper'),
     ('public', 'set_menu_availability_overlays', 'targets jsonb, available_override boolean', false, 'v', 'public overlay batch set wrapper'),
     ('public', 'set_profile_service_kind', 'profile_id text, service_kind text', false, 'v', 'public active service edit wrapper'),
-    ('public', 'set_staff_users_updated_at', '', true, 'v', 'staff updated_at trigger function'),
+    ('public', 'set_staff_users_updated_at', '', false, 'v', 'staff updated_at trigger function'),
     ('public', 'update_catalog_item', 'section_id text, item_id text, name text, description text', false, 'v', 'public catalog item update wrapper'),
     ('public', 'update_catalog_item_option', 'section_id text, item_id text, option_id text, name text', false, 'v', 'public catalog option update wrapper'),
     ('public', 'update_grill_item', 'item_id text, name text, variant_name text', false, 'v', 'public grill option update wrapper'),
