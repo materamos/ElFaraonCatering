@@ -48,14 +48,14 @@ const NAME_MAP = {
     outputSlug: "empanadas",
     role: "primary",
   },
+  "ensalada-completa": {
+    itemId: "ensalada-completa",
+    outputSlug: "ensalada-completa",
+    role: "primary",
+  },
   "ensalada-el-faraon": {
     itemId: "ensalada-el-faraon",
     outputSlug: "ensalada-el-faraon",
-    role: "primary",
-  },
-  "ensalada-completa-pollo": {
-    itemId: "ensalada-completa-pollo",
-    outputSlug: "ensalada-completa-pollo",
     role: "primary",
   },
   "ensalada-caesar": {

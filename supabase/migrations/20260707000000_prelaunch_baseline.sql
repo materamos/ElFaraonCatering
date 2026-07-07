@@ -552,7 +552,7 @@ values
   ('24', '15', '/uploads/menu/empanadas.webp', 0),
   ('4', '15', '/uploads/menu/empanadas-3.webp', 1),
   ('22', '16', '/uploads/menu/ensalada-caesar.webp', 0),
-  ('23', '18', '/uploads/menu/ensalada-completa-pollo.webp', 0),
+  ('23', '17', '/uploads/menu/ensalada-completa.webp', 0),
   ('26', '19', '/uploads/menu/ensalada-el-faraon.webp', 0);
 
 insert into menu_content."menu_catalog_item_options" (
@@ -5309,8 +5309,8 @@ values
   ('24', '15', '/uploads/menu/empanadas.webp', 0),
   ('4', '15', '/uploads/menu/empanadas-3.webp', 1),
   ('22', '16', '/uploads/menu/ensalada-caesar.webp', 0),
-  ('23', '17', '/uploads/menu/ensalada-el-faraon.webp', 0),
-  ('26', '19', '/uploads/menu/ensalada-completa-pollo.webp', 0),
+  ('23', '17', '/uploads/menu/ensalada-completa.webp', 0),
+  ('26', '19', '/uploads/menu/ensalada-el-faraon.webp', 0),
   ('7', '75', '/uploads/menu/omelette.webp', 0);
 
 insert into menu_content."menu_catalog_item_options" (
