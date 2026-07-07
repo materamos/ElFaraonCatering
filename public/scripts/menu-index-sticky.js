@@ -50,6 +50,10 @@ const getStickyMenuIndexBottom = () => menuIndex.getBoundingClientRect().height;
 const getScrollBehavior = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
 
+const isPhotoSheetScrollLocked = () =>
+  document.documentElement.classList.contains("photo-sheet-lock") ||
+  document.body.classList.contains("photo-sheet-lock");
+
 const centerMenuIndexLink = (link) => {
   if (!menuIndexList || menuIndexList.scrollWidth <= menuIndexList.clientWidth) {
     return;
@@ -148,6 +152,10 @@ const getActiveSectionId = () => {
 
 const updateMenuIndexState = () => {
   if (!menuIndex) {
+    return;
+  }
+
+  if (isPhotoSheetScrollLocked()) {
     return;
   }
 

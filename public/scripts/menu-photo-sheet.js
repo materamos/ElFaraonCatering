@@ -33,10 +33,14 @@ if (
   };
 
   const unlockPageScroll = () => {
+    const previousScrollBehavior = document.documentElement.style.scrollBehavior;
+
+    document.documentElement.style.scrollBehavior = "auto";
     document.documentElement.classList.remove("photo-sheet-lock");
     document.body.classList.remove("photo-sheet-lock");
     document.body.style.top = "";
-    window.scrollTo(0, lockedScrollY);
+    window.scrollTo({ top: lockedScrollY, left: 0, behavior: "auto" });
+    document.documentElement.style.scrollBehavior = previousScrollBehavior;
     lockedScrollY = 0;
   };
 
@@ -188,7 +192,7 @@ if (
     resetPhotoState();
 
     if (lastTrigger instanceof HTMLElement) {
-      lastTrigger.focus();
+      lastTrigger.focus({ preventScroll: true });
     }
   });
 }
