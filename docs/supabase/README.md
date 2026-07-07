@@ -118,14 +118,13 @@ La migracion activa para bases nuevas es:
 
 | Migracion | Proposito |
 | --- | --- |
-| `20260606235844_prelaunch_baseline.sql` | Crea schemas, tablas, contenido build-time, funciones, RPCs, fingerprint, RLS, policies, grants, hardening y assertions del estado prelanzamiento. |
-| `20260630203051_staff_default_availability_profile.sql` | Agrega el perfil predeterminado de disponibilidad para staff. |
-| `20260630204047_fix_staff_default_availability_null.sql` | Ajusta la nulabilidad del perfil predeterminado de disponibilidad. |
-| `20260701001506_publish_change_events.sql` | Registra eventos privados de cambios build-time del admin y los asocia a publicaciones exitosas. |
+| `20260707000000_prelaunch_baseline.sql` | Crea schemas, tablas, contenido build-time, funciones, RPCs, fingerprint, auditoria privada, publicacion, RLS, policies, grants, hardening y assertions del estado prelanzamiento. |
 
 La historia incremental anterior fue retirada del directorio activo y esta
-preservada por el tag anotado `supabase-prelaunch-history-2026-06-06`. No
-mantener una copia legacy dentro del arbol de trabajo.
+preservada por el tag anotado `supabase-prelaunch-history-2026-07-07`. No
+mantener una copia legacy dentro del arbol de trabajo. El tag anterior
+`supabase-prelaunch-history-2026-06-06` sigue preservando el corte previo al
+baseline original.
 
 El baseline incluye el contenido actual de `menu_content` preservando IDs y
 sincronizando las secuencias identity. Crea vacias estas superficies operativas:
@@ -142,9 +141,43 @@ no tiene acceso directo a esa tabla.
 
 No ejecutar el baseline sobre una base existente. Para un remoto que ya tiene
 el estado equivalente, primero validar esquema, contenido, funciones, permisos,
-policies y fingerprint; despues reparar solo la tabla de historial de
-migraciones. Toda modificacion futura debe ser una migracion incremental nueva
-posterior al baseline.
+policies y fingerprint. Si se decide alinear el historial remoto al repo
+post-squash, reparar solo `supabase_migrations.schema_migrations` despues de
+esa prueba de equivalencia; no aplicar de nuevo el SQL de baseline. Toda
+modificacion futura debe ser una migracion incremental nueva posterior al
+baseline.
+
+## Audit de entrega
+
+El audit de entrega debe ser read-only salvo decision explicita de aplicar una
+migracion posterior al handoff. Para auditar el remoto, usar primero:
+
+```bash
+npm run supabase:audit
+npm run menu:validate
+npm run check:js
+npm run verify:dist-secrets
+npm run supabase -- db advisors --db-url "$SUPABASE_DB_URL"
+npm run supabase -- db lint --db-url "$SUPABASE_DB_URL" --schema public,menu_content,app_private --fail-on none
+```
+
+Estado esperado del remoto de entrega:
+
+- Puede conservar el historial pre-squash completo en `supabase_migrations.schema_migrations`; eso no implica drift si audits, contenido, funciones, permisos, policies y fingerprint pasan.
+- La baseline unica `20260707000000_prelaunch_baseline.sql` es solo para bases nuevas. No aplicarla sobre el remoto existente.
+- `menu_content` y `app_private` no deben tener grants client-facing para `anon` o `authenticated`.
+- `public.menu_availability_overlays` debe exponer por Data API solo `menu_id`, `section_id`, `item_id` y `available_override` a `anon`/`authenticated`; las escrituras deben pasar por RPCs.
+- `public.staff_users` debe tener RLS activo y solo ser legible/editable mediante las policies y helpers de staff.
+- Los helpers `public.reserve_menu_publish_request(...)` y `public.complete_menu_publish_request(...)` deben seguir ejecutables solo por `service_role`.
+- Las tablas vivas `public.staff_users`, `public.menu_availability_overlays`, `app_private.menu_publish_requests` y `app_private.menu_change_events` no se copian al baseline ni a seeds de repo.
+- El hash actual de `app_private.get_menu_publication_content_hash()` debe compararse contra el hash embebido en el `/admin/` desplegado. El ultimo `menu_publish_requests` exitoso es evidencia de auditoria, no fuente de verdad para pending publication.
+
+Checks manuales de Dashboard antes de transferir:
+
+- Auth redirect allowlist: `https://elfaraoncatering.vercel.app/admin/` y `http://localhost:4321/admin/`.
+- Leaked password protection si el plan lo soporta.
+- Secretos de `publish-menu-changes`: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VERCEL_DEPLOY_HOOK_URL`, `PUBLISH_ALLOWED_ORIGINS` y `PUBLISH_COOLDOWN_SECONDS`.
+- Usuarios Auth/staff reales: no dejar usuarios temporales de auditoria ni casillas inventadas.
 
 ## Orden recomendado
 
@@ -152,11 +185,12 @@ Para una base existente:
 
 1. Ejecutar primero los SQL de `audits/` contra la base apuntada por `SUPABASE_DB_URL`.
 2. Resolver cualquier fila que bloquee constraints, indices o permisos esperados.
-3. Crear una migracion incremental posterior al baseline.
-4. Aplicar solo migraciones posteriores pendientes; nunca ejecutar el baseline sobre esa base.
-5. Volver a ejecutar audits.
-6. Ejecutar validaciones del repo.
-7. Aplicar cambios remotos solo si audits y validaciones pasan.
+3. Si el remoto ya trae el historial pre-squash, no ejecutar el baseline nuevo sobre esa base.
+4. Crear una migracion incremental posterior al baseline solo para cambios reales posteriores al handoff.
+5. Aplicar solo migraciones posteriores pendientes; nunca ejecutar el baseline sobre esa base.
+6. Volver a ejecutar audits.
+7. Ejecutar validaciones del repo.
+8. Aplicar cambios remotos solo si audits y validaciones pasan.
 
 Para una base nueva:
 

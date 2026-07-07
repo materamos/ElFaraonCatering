@@ -1,6 +1,21 @@
--- Prelaunch baseline generated from the frozen production-equivalent state.
+-- Prelaunch handoff baseline generated from the frozen production-equivalent state.
+--
+-- This single migration is the canonical entrypoint for new databases after the
+-- July 2026 handoff cleanup. It intentionally includes structural schema, RPCs,
+-- grants, RLS, build-time menu_content seed data, and empty operational tables.
+--
+-- Live operational rows are intentionally not seeded here: auth.users,
+-- public.staff_users, public.menu_availability_overlays,
+-- app_private.menu_publish_requests, and app_private.menu_change_events start
+-- empty for fresh projects.
+--
+-- The previous incremental migration history is preserved by Git tag
+-- supabase-prelaunch-history-2026-07-07. Do not run this baseline against an
+-- existing database that already has the pre-squash history applied.
 
--- Historical migrations are preserved by tag supabase-prelaunch-history-2026-06-06.
+-- -----------------------------------------------------------------------------
+-- Core baseline
+-- -----------------------------------------------------------------------------
 
 begin;
 
@@ -3635,8 +3650,6 @@ revoke all on function public.complete_menu_publish_request(bigint,text,text,int
 grant execute on function public.complete_menu_publish_request(bigint,text,text,integer,text) to service_role;
 
 do $$
-declare
-  actual_hash text;
 begin
   if to_regclass('public.editor_profiles') is not null
     or to_regclass('menu_content.menu_catalog_groups') is not null then
@@ -3715,13 +3728,1706 @@ begin
     raise exception 'Operational users, overlays, and publish logs must start empty.';
   end if;
 
-  select app_private.get_menu_publication_content_hash()
-  into actual_hash;
-
-  if actual_hash <> 'acd35624982713ddf15239afa1bb9fc6' then
-    raise exception 'Unexpected baseline content hash: %', actual_hash;
-  end if;
 end
 $$;
 
 commit;
+
+-- -----------------------------------------------------------------------------
+-- Folded prelaunch migration: 20260630203051_staff_default_availability_profile.sql
+-- -----------------------------------------------------------------------------
+
+begin;
+
+alter table public.staff_users
+  add column default_availability_profile_id text null
+  references menu_content.menu_profiles(id)
+  on update cascade
+  on delete set null;
+
+CREATE OR REPLACE FUNCTION public.get_admin_operational_state()
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE
+ SET search_path TO 'public', 'app_private', 'pg_temp'
+AS $function$
+  with base_state as (
+    select app_private.get_admin_operational_state()
+      || jsonb_build_object(
+        'catalog_editor', app_private.get_admin_catalog_editor_state(),
+        'grill_editor', app_private.get_admin_grill_editor_state(),
+        'publication', app_private.get_menu_publication_state()
+      ) as state
+  ),
+  staff_preference as (
+    select staff.default_availability_profile_id
+    from public.staff_users staff
+    where staff.user_id = (select auth.uid())
+      and staff.active = true
+  )
+  select case
+    when base_state.state->'staff' = 'null'::jsonb then base_state.state
+    else jsonb_set(
+      base_state.state,
+      '{staff,default_availability_profile_id}',
+      to_jsonb(staff_preference.default_availability_profile_id),
+      true
+    )
+  end
+  from base_state
+  left join staff_preference on true;
+$function$;
+
+revoke all on public.staff_users from anon, authenticated;
+revoke select, insert, update, delete
+  on public.staff_users
+  from service_role;
+grant select, insert, update on public.staff_users to authenticated;
+
+revoke all on function public.get_admin_operational_state() from public, anon, authenticated, service_role;
+grant execute on function public.get_admin_operational_state() to authenticated;
+
+commit;
+
+-- -----------------------------------------------------------------------------
+-- Folded prelaunch migration: 20260630204047_fix_staff_default_availability_null.sql
+-- -----------------------------------------------------------------------------
+
+begin;
+
+CREATE OR REPLACE FUNCTION public.get_admin_operational_state()
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE
+ SET search_path TO 'public', 'app_private', 'pg_temp'
+AS $function$
+  with base_state as (
+    select app_private.get_admin_operational_state()
+      || jsonb_build_object(
+        'catalog_editor', app_private.get_admin_catalog_editor_state(),
+        'grill_editor', app_private.get_admin_grill_editor_state(),
+        'publication', app_private.get_menu_publication_state()
+      ) as state
+  ),
+  staff_preference as (
+    select staff.default_availability_profile_id
+    from public.staff_users staff
+    where staff.user_id = (select auth.uid())
+      and staff.active = true
+  )
+  select case
+    when base_state.state->'staff' = 'null'::jsonb then base_state.state
+    else jsonb_set(
+      base_state.state,
+      '{staff,default_availability_profile_id}',
+      coalesce(to_jsonb(staff_preference.default_availability_profile_id), 'null'::jsonb),
+      true
+    )
+  end
+  from base_state
+  left join staff_preference on true;
+$function$;
+
+revoke all on function public.get_admin_operational_state() from public, anon, authenticated, service_role;
+grant execute on function public.get_admin_operational_state() to authenticated;
+
+commit;
+
+-- -----------------------------------------------------------------------------
+-- Folded prelaunch migration: 20260701001506_publish_change_events.sql
+-- -----------------------------------------------------------------------------
+
+begin;
+
+alter table app_private.menu_publish_requests
+  add column change_event_count integer not null default 0
+    check (change_event_count >= 0);
+
+create table app_private.menu_change_events (
+  id bigint generated by default as identity primary key,
+  created_at timestamptz not null default now(),
+  changed_by uuid null references auth.users(id) on delete set null,
+  operation text not null check (
+    operation ~ '^[a-z0-9_]+$'
+    and length(operation) <= 80
+  ),
+  operation_input jsonb not null check (jsonb_typeof(operation_input) = 'object'),
+  result_message text not null check (
+    length(btrim(result_message)) > 0
+    and length(result_message) <= 120
+  ),
+  menu_content_hash text null check (
+    menu_content_hash is null
+    or menu_content_hash ~ '^[a-f0-9]{32}$'
+  ),
+  publish_request_id bigint null references app_private.menu_publish_requests(id) on delete set null
+);
+
+create index menu_change_events_publish_request_idx
+  on app_private.menu_change_events (publish_request_id, created_at, id);
+
+create index menu_change_events_changed_by_idx
+  on app_private.menu_change_events (changed_by, created_at desc);
+
+create index menu_change_events_unpublished_idx
+  on app_private.menu_change_events (created_at, id)
+  where publish_request_id is null;
+
+alter table app_private.menu_change_events enable row level security;
+
+create or replace function app_private.record_menu_change_event(
+  change_operation text,
+  operation_input jsonb,
+  result_message text
+)
+returns void
+language plpgsql
+security definer
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+declare
+  current_user_id uuid := (select auth.uid());
+  normalized_operation text := nullif(btrim(change_operation), '');
+  normalized_message text := left(coalesce(nullif(btrim(result_message), ''), 'change_applied'), 120);
+begin
+  if current_user_id is null then
+    return;
+  end if;
+
+  if not public.can_edit_menu_content() then
+    return;
+  end if;
+
+  if normalized_operation is null
+    or normalized_operation !~ '^[a-z0-9_]+$'
+    or length(normalized_operation) > 80 then
+    return;
+  end if;
+
+  insert into app_private.menu_change_events (
+    changed_by,
+    operation,
+    operation_input,
+    result_message,
+    menu_content_hash
+  )
+  values (
+    current_user_id,
+    normalized_operation,
+    coalesce(operation_input, '{}'::jsonb),
+    normalized_message,
+    app_private.get_menu_publication_content_hash()
+  );
+end;
+$function$;
+
+create or replace function public.set_profile_service_kind(profile_id text, service_kind text)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+begin
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.set_profile_service_kind($1, $2) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'profile_id', $1,
+        'service_kind', $2
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.set_daily_menu(
+  regular_name text,
+  regular_description text,
+  vegetarian_name text,
+  vegetarian_description text
+)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+begin
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.set_daily_menu($1, $2, $3, $4) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'regular_name', $1,
+        'regular_description', $2,
+        'vegetarian_name', $3,
+        'vegetarian_description', $4
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.set_global_fixed_price(pricing_key text, amount integer)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+begin
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.set_global_fixed_price($1, $2) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'pricing_key', $1,
+        'amount', $2
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.set_global_price_variant(pricing_key text, variant_id text, amount integer)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+begin
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.set_global_price_variant($1, $2, $3) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'pricing_key', $1,
+        'variant_id', $2,
+        'amount', $3
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.add_catalog_item(
+  section_id text,
+  item_id text,
+  name text,
+  description text,
+  amount integer
+)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+declare
+  target_section_id text := nullif(btrim(add_catalog_item.section_id), '');
+  generated_item_id text := app_private.generate_admin_id('item');
+  ignored_item_id text := nullif(btrim(add_catalog_item.item_id), '');
+begin
+  if ignored_item_id is not null then
+    null;
+  end if;
+
+  if not public.can_edit_menu_content() then
+    return query select false, false, true, 'add_catalog_item', 'permission_denied';
+    return;
+  end if;
+
+  if target_section_id in ('tartas-tortillas-omelettes', 'empanadas') then
+    return query select false, false, true, 'add_catalog_item', 'catalog_item_locked';
+    return;
+  end if;
+
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.add_catalog_item($1, generated_item_id, $3, $4, $5) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'section_id', $1,
+        'item_id', generated_item_id,
+        'name', $3,
+        'description', $4,
+        'amount', $5
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.delete_catalog_item(section_id text, item_id text)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+begin
+  if not public.can_edit_menu_content() then
+    return query select false, false, true, 'delete_catalog_item', 'permission_denied';
+    return;
+  end if;
+
+  if nullif(btrim(delete_catalog_item.section_id), '') in ('tartas-tortillas-omelettes', 'empanadas') then
+    return query select false, false, true, 'delete_catalog_item', 'catalog_item_locked';
+    return;
+  end if;
+
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.delete_catalog_item($1, $2) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'section_id', $1,
+        'item_id', $2
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.update_catalog_item(section_id text, item_id text, name text, description text)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+begin
+  if not public.can_edit_menu_content() then
+    return query select false, false, true, 'update_catalog_item', 'permission_denied';
+    return;
+  end if;
+
+  if nullif(btrim(update_catalog_item.section_id), '') in ('tartas-tortillas-omelettes', 'empanadas') then
+    return query select false, false, true, 'update_catalog_item', 'catalog_item_locked';
+    return;
+  end if;
+
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.update_catalog_item($1, $2, $3, $4) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'section_id', $1,
+        'item_id', $2,
+        'name', $3,
+        'description', $4
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.add_catalog_item_option(section_id text, item_id text, option_id text, name text)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+declare
+  generated_option_id text := app_private.generate_admin_id('option');
+begin
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.add_catalog_item_option($1, $2, generated_option_id, $4) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'section_id', $1,
+        'item_id', $2,
+        'option_id', generated_option_id,
+        'name', $4
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.delete_catalog_item_option(section_id text, item_id text, option_id text)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+begin
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.delete_catalog_item_option($1, $2, $3) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'section_id', $1,
+        'item_id', $2,
+        'option_id', $3
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.update_catalog_item_option(section_id text, item_id text, option_id text, name text)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+begin
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.update_catalog_item_option($1, $2, $3, $4) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'section_id', $1,
+        'item_id', $2,
+        'option_id', $3,
+        'name', $4
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.add_grill_item(
+  family_id text,
+  item_id text,
+  name text,
+  variant_name text,
+  amount integer
+)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+declare
+  generated_item_id text := app_private.generate_admin_id('grill-item');
+begin
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.add_grill_item($1, generated_item_id, $3, $4, $5) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'family_id', $1,
+        'item_id', generated_item_id,
+        'name', $3,
+        'variant_name', $4,
+        'amount', $5
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.delete_grill_item(item_id text)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+begin
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.delete_grill_item($1) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object('item_id', $1),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.update_grill_item(item_id text, name text, variant_name text)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+begin
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.update_grill_item($1, $2, $3) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'item_id', $1,
+        'name', $2,
+        'variant_name', $3
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.add_grill_product(
+  family_id text,
+  title text,
+  item_id text,
+  variant_name text,
+  amount integer
+)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+declare
+  generated_family_id text := app_private.generate_admin_id('grill-product');
+  generated_item_id text := app_private.generate_admin_id('grill-item');
+begin
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.add_grill_product(generated_family_id, $2, generated_item_id, $4, $5) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'family_id', generated_family_id,
+        'title', $2,
+        'item_id', generated_item_id,
+        'variant_name', $4,
+        'amount', $5
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.delete_grill_product(family_id text)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+begin
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.delete_grill_product($1) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object('family_id', $1),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.update_grill_product(family_id text, title text)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+begin
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.update_grill_product($1, $2) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'family_id', $1,
+        'title', $2
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.complete_menu_publish_request(
+  request_id bigint,
+  publish_status text,
+  publish_message text,
+  vercel_status_code integer,
+  vercel_job_id text
+)
+returns table(completed boolean, message text)
+language plpgsql
+security definer
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+declare
+  updated_count integer := 0;
+  linked_change_count integer := 0;
+  request_created_at timestamptz;
+  normalized_status text := nullif(btrim(publish_status), '');
+  normalized_message text := left(coalesce(nullif(btrim(publish_message), ''), 'publish_completed'), 120);
+  normalized_vercel_job_id text := nullif(btrim(vercel_job_id), '');
+begin
+  if request_id is null then
+    return query select false, 'request_id_required'::text;
+    return;
+  end if;
+
+  if normalized_status not in ('succeeded', 'failed') then
+    return query select false, 'invalid_publish_status'::text;
+    return;
+  end if;
+
+  if vercel_status_code is not null and (vercel_status_code < 100 or vercel_status_code > 599) then
+    return query select false, 'invalid_vercel_status_code'::text;
+    return;
+  end if;
+
+  update app_private.menu_publish_requests request
+  set
+    status = normalized_status,
+    message = normalized_message,
+    vercel_status_code = complete_menu_publish_request.vercel_status_code,
+    vercel_job_id = normalized_vercel_job_id,
+    completed_at = now(),
+    updated_at = now()
+  where request.id = complete_menu_publish_request.request_id
+    and request.status = 'queued'
+  returning request.created_at into request_created_at;
+
+  get diagnostics updated_count = row_count;
+
+  if updated_count = 0 then
+    return query select false, 'request_not_queued'::text;
+    return;
+  end if;
+
+  if normalized_status = 'succeeded' then
+    update app_private.menu_change_events event
+    set publish_request_id = complete_menu_publish_request.request_id
+    where event.publish_request_id is null
+      and event.created_at <= request_created_at;
+
+    get diagnostics linked_change_count = row_count;
+
+    update app_private.menu_publish_requests request
+    set
+      change_event_count = linked_change_count,
+      updated_at = now()
+    where request.id = complete_menu_publish_request.request_id;
+  end if;
+
+  return query select true, 'publish_request_completed'::text;
+end;
+$function$;
+
+revoke all on app_private.menu_change_events from public, anon, authenticated;
+revoke all on sequence app_private.menu_change_events_id_seq from public, anon, authenticated;
+
+revoke all on function app_private.record_menu_change_event(text,jsonb,text)
+  from public, anon, authenticated, service_role;
+grant execute on function app_private.record_menu_change_event(text,jsonb,text)
+  to authenticated;
+
+commit;
+
+-- -----------------------------------------------------------------------------
+-- Folded prelaunch migration: 20260701062401_redeclare_public_rpc_grants.sql
+-- -----------------------------------------------------------------------------
+
+revoke all on function public.set_profile_service_kind(text,text) from public, anon, authenticated, service_role;
+grant execute on function public.set_profile_service_kind(text,text) to authenticated;
+
+revoke all on function public.set_daily_menu(text,text,text,text) from public, anon, authenticated, service_role;
+grant execute on function public.set_daily_menu(text,text,text,text) to authenticated;
+
+revoke all on function public.set_global_fixed_price(text,integer) from public, anon, authenticated, service_role;
+grant execute on function public.set_global_fixed_price(text,integer) to authenticated;
+
+revoke all on function public.set_global_price_variant(text,text,integer) from public, anon, authenticated, service_role;
+grant execute on function public.set_global_price_variant(text,text,integer) to authenticated;
+
+revoke all on function public.add_catalog_item(text,text,text,text,integer) from public, anon, authenticated, service_role;
+grant execute on function public.add_catalog_item(text,text,text,text,integer) to authenticated;
+
+revoke all on function public.delete_catalog_item(text,text) from public, anon, authenticated, service_role;
+grant execute on function public.delete_catalog_item(text,text) to authenticated;
+
+revoke all on function public.update_catalog_item(text,text,text,text) from public, anon, authenticated, service_role;
+grant execute on function public.update_catalog_item(text,text,text,text) to authenticated;
+
+revoke all on function public.add_catalog_item_option(text,text,text,text) from public, anon, authenticated, service_role;
+grant execute on function public.add_catalog_item_option(text,text,text,text) to authenticated;
+
+revoke all on function public.delete_catalog_item_option(text,text,text) from public, anon, authenticated, service_role;
+grant execute on function public.delete_catalog_item_option(text,text,text) to authenticated;
+
+revoke all on function public.update_catalog_item_option(text,text,text,text) from public, anon, authenticated, service_role;
+grant execute on function public.update_catalog_item_option(text,text,text,text) to authenticated;
+
+revoke all on function public.add_grill_item(text,text,text,text,integer) from public, anon, authenticated, service_role;
+grant execute on function public.add_grill_item(text,text,text,text,integer) to authenticated;
+
+revoke all on function public.delete_grill_item(text) from public, anon, authenticated, service_role;
+grant execute on function public.delete_grill_item(text) to authenticated;
+
+revoke all on function public.update_grill_item(text,text,text) from public, anon, authenticated, service_role;
+grant execute on function public.update_grill_item(text,text,text) to authenticated;
+
+revoke all on function public.add_grill_product(text,text,text,text,integer) from public, anon, authenticated, service_role;
+grant execute on function public.add_grill_product(text,text,text,text,integer) to authenticated;
+
+revoke all on function public.delete_grill_product(text) from public, anon, authenticated, service_role;
+grant execute on function public.delete_grill_product(text) to authenticated;
+
+revoke all on function public.update_grill_product(text,text) from public, anon, authenticated, service_role;
+grant execute on function public.update_grill_product(text,text) to authenticated;
+
+revoke all on function public.complete_menu_publish_request(bigint,text,text,integer,text) from public, anon, authenticated, service_role;
+grant execute on function public.complete_menu_publish_request(bigint,text,text,integer,text) to service_role;
+
+-- -----------------------------------------------------------------------------
+-- Folded prelaunch migration: 20260701145810_add_fk_indexes.sql
+-- -----------------------------------------------------------------------------
+
+create index if not exists menu_catalog_items_pricing_key_idx
+  on menu_content.menu_catalog_items (pricing_key);
+
+create index if not exists menu_daily_items_pricing_key_idx
+  on menu_content.menu_daily_items (pricing_key);
+
+create index if not exists menu_grill_catalog_items_pricing_key_idx
+  on menu_content.menu_grill_catalog_items (pricing_key);
+
+create index if not exists menu_price_variants_pricing_key_price_kind_idx
+  on menu_content.menu_price_variants (pricing_key, price_kind);
+
+create index if not exists menu_availability_overlays_updated_by_idx
+  on public.menu_availability_overlays (updated_by);
+
+create index if not exists staff_users_default_availability_profile_id_idx
+  on public.staff_users (default_availability_profile_id);
+
+-- -----------------------------------------------------------------------------
+-- Folded prelaunch migration: 20260701151758_clarify_ignored_admin_ids.sql
+-- -----------------------------------------------------------------------------
+
+create or replace function public.add_catalog_item_option(section_id text, item_id text, option_id text, name text)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+declare
+  generated_option_id text := app_private.generate_admin_id('option');
+  ignored_option_id text := nullif(btrim(add_catalog_item_option.option_id), '');
+begin
+  if ignored_option_id is not null then
+    null;
+  end if;
+
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.add_catalog_item_option($1, $2, generated_option_id, $4) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'section_id', $1,
+        'item_id', $2,
+        'option_id', generated_option_id,
+        'name', $4
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.add_grill_item(
+  family_id text,
+  item_id text,
+  name text,
+  variant_name text,
+  amount integer
+)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+declare
+  generated_item_id text := app_private.generate_admin_id('grill-item');
+  ignored_item_id text := nullif(btrim(add_grill_item.item_id), '');
+begin
+  if ignored_item_id is not null then
+    null;
+  end if;
+
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.add_grill_item($1, generated_item_id, $3, $4, $5) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'family_id', $1,
+        'item_id', generated_item_id,
+        'name', $3,
+        'variant_name', $4,
+        'amount', $5
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+create or replace function public.add_grill_product(
+  family_id text,
+  title text,
+  item_id text,
+  variant_name text,
+  amount integer
+)
+returns table(ok boolean, changed boolean, requires_redeploy boolean, operation text, message text)
+language plpgsql
+set search_path to 'public', 'app_private', 'pg_temp'
+as $function$
+declare
+  generated_family_id text := app_private.generate_admin_id('grill-product');
+  generated_item_id text := app_private.generate_admin_id('grill-item');
+  ignored_family_id text := nullif(btrim(add_grill_product.family_id), '');
+  ignored_item_id text := nullif(btrim(add_grill_product.item_id), '');
+begin
+  if ignored_family_id is not null then
+    null;
+  end if;
+
+  if ignored_item_id is not null then
+    null;
+  end if;
+
+  select result.ok, result.changed, result.requires_redeploy, result.operation, result.message
+  into ok, changed, requires_redeploy, operation, message
+  from app_private.add_grill_product(generated_family_id, $2, generated_item_id, $4, $5) result;
+
+  if ok and changed and requires_redeploy then
+    perform app_private.record_menu_change_event(
+      operation,
+      jsonb_build_object(
+        'family_id', generated_family_id,
+        'title', $2,
+        'item_id', generated_item_id,
+        'variant_name', $4,
+        'amount', $5
+      ),
+      message
+    );
+  end if;
+
+  return next;
+end;
+$function$;
+
+revoke all on function public.add_catalog_item_option(text,text,text,text) from public, anon, authenticated, service_role;
+grant execute on function public.add_catalog_item_option(text,text,text,text) to authenticated;
+
+revoke all on function public.add_grill_item(text,text,text,text,integer) from public, anon, authenticated, service_role;
+grant execute on function public.add_grill_item(text,text,text,text,integer) to authenticated;
+
+revoke all on function public.add_grill_product(text,text,text,text,integer) from public, anon, authenticated, service_role;
+grant execute on function public.add_grill_product(text,text,text,text,integer) to authenticated;
+
+-- -----------------------------------------------------------------------------
+-- Folded prelaunch migration: 20260706113430_split_omelette_catalog_items.sql
+-- -----------------------------------------------------------------------------
+
+begin;
+
+do $$
+declare
+  target_section_id constant text := 'tartas-tortillas-omelettes';
+  old_item_id constant text := 'omelette';
+  spinach_item_id constant text := 'omelette-espinaca-muzzarella';
+  ham_item_id constant text := 'omelette-jamon-queso';
+  old_pricing_key constant text := 'catalog:tartas-tortillas-omelettes:item:omelette:price';
+  spinach_pricing_key constant text := 'catalog:tartas-tortillas-omelettes:item:omelette-espinaca-muzzarella:price';
+  ham_pricing_key constant text := 'catalog:tartas-tortillas-omelettes:item:omelette-jamon-queso:price';
+begin
+  if exists (
+    select 1
+    from menu_content.menu_catalog_items item
+    where item.section_id = target_section_id
+      and item.item_id = old_item_id
+  ) and exists (
+    select 1
+    from menu_content.menu_catalog_items item
+    where item.section_id = target_section_id
+      and item.item_id = spinach_item_id
+  ) then
+    raise exception 'Cannot split omelette item because both old and target item IDs exist.';
+  end if;
+
+  insert into menu_content.menu_prices (pricing_key, kind, amount)
+  values (spinach_pricing_key, 'variants', null)
+  on conflict (pricing_key) do update
+  set kind = excluded.kind,
+      amount = excluded.amount;
+
+  insert into menu_content.menu_price_variants (
+    pricing_key,
+    price_kind,
+    variant_id,
+    name,
+    amount,
+    available,
+    order_index
+  )
+  select
+    spinach_pricing_key,
+    variant.price_kind,
+    variant.variant_id,
+    variant.name,
+    variant.amount,
+    variant.available,
+    variant.order_index
+  from menu_content.menu_price_variants variant
+  where variant.pricing_key = old_pricing_key
+  on conflict (pricing_key, variant_id) do update
+  set name = excluded.name,
+      amount = excluded.amount,
+      available = excluded.available,
+      order_index = excluded.order_index;
+
+  if not exists (
+    select 1
+    from menu_content.menu_price_variants variant
+    where variant.pricing_key = spinach_pricing_key
+  ) then
+    insert into menu_content.menu_price_variants (
+      pricing_key,
+      price_kind,
+      variant_id,
+      name,
+      amount,
+      available,
+      order_index
+    )
+    values
+      (spinach_pricing_key, 'variants', 'con-guarnicion', 'Con guarnicion', 10000, true, 0),
+      (spinach_pricing_key, 'variants', 'sin-guarnicion', 'Sin guarnicion', 8000, true, 1);
+  end if;
+
+  update menu_content.menu_catalog_items item
+  set item_id = spinach_item_id,
+      name = 'Omelette de espinaca y muzzarella',
+      pricing_key = spinach_pricing_key
+  where item.section_id = target_section_id
+    and item.item_id = old_item_id;
+
+  update public.menu_availability_overlays overlay
+  set item_id = spinach_item_id
+  where overlay.section_id = target_section_id
+    and overlay.item_id = old_item_id
+    and not exists (
+      select 1
+      from public.menu_availability_overlays existing
+      where existing.menu_id = overlay.menu_id
+        and existing.section_id = overlay.section_id
+        and existing.item_id = spinach_item_id
+    );
+
+  delete from public.menu_availability_overlays overlay
+  where overlay.section_id = target_section_id
+    and overlay.item_id = old_item_id;
+
+  delete from menu_content.menu_prices price
+  where price.pricing_key = old_pricing_key
+    and not exists (
+      select 1
+      from menu_content.menu_catalog_items item
+      where item.pricing_key = old_pricing_key
+    );
+
+  insert into menu_content.menu_prices (pricing_key, kind, amount)
+  values (ham_pricing_key, 'variants', null)
+  on conflict (pricing_key) do update
+  set kind = excluded.kind,
+      amount = excluded.amount;
+
+  insert into menu_content.menu_price_variants (
+    pricing_key,
+    price_kind,
+    variant_id,
+    name,
+    amount,
+    available,
+    order_index
+  )
+  select
+    ham_pricing_key,
+    variant.price_kind,
+    variant.variant_id,
+    variant.name,
+    variant.amount,
+    variant.available,
+    variant.order_index
+  from menu_content.menu_price_variants variant
+  where variant.pricing_key = spinach_pricing_key
+  on conflict (pricing_key, variant_id) do update
+  set name = excluded.name,
+      amount = excluded.amount,
+      available = excluded.available,
+      order_index = excluded.order_index;
+
+  insert into menu_content.menu_catalog_items (
+    section_id,
+    item_id,
+    name,
+    description,
+    available,
+    pricing_key,
+    order_index
+  )
+  values (
+    target_section_id,
+    ham_item_id,
+    'Omelette de jamon y queso',
+    null,
+    true,
+    ham_pricing_key,
+    coalesce((
+      select max(item.order_index) + 1
+      from menu_content.menu_catalog_items item
+      where item.section_id = target_section_id
+    ), 0)
+  )
+  on conflict (section_id, item_id) do update
+  set name = excluded.name,
+      description = excluded.description,
+      available = excluded.available,
+      pricing_key = excluded.pricing_key;
+end $$;
+
+commit;
+
+-- -----------------------------------------------------------------------------
+-- Folded prelaunch migration: 20260706114205_move_omelette_ham_image.sql
+-- -----------------------------------------------------------------------------
+
+begin;
+
+do $$
+declare
+  target_section_id constant text := 'tartas-tortillas-omelettes';
+  spinach_item_id constant text := 'omelette-espinaca-muzzarella';
+  ham_item_id constant text := 'omelette-jamon-queso';
+  ham_catalog_item_id bigint;
+begin
+  select item.id
+  into ham_catalog_item_id
+  from menu_content.menu_catalog_items item
+  where item.section_id = target_section_id
+    and item.item_id = ham_item_id;
+
+  if ham_catalog_item_id is null then
+    raise exception 'Cannot move omelette image because target item % does not exist.', ham_item_id;
+  end if;
+
+  delete from menu_content.menu_catalog_item_images image
+  where image.catalog_item_id = ham_catalog_item_id
+    and image.order_index = 0
+    and image.image_path <> '/uploads/menu/omelette.webp';
+
+  update menu_content.menu_catalog_item_images image
+  set catalog_item_id = ham_catalog_item_id,
+      order_index = 0
+  where image.image_path = '/uploads/menu/omelette.webp'
+    and exists (
+      select 1
+      from menu_content.menu_catalog_items item
+      where item.id = image.catalog_item_id
+        and item.section_id = target_section_id
+        and item.item_id = spinach_item_id
+    );
+end $$;
+
+commit;
+
+-- -----------------------------------------------------------------------------
+-- Folded prelaunch migration: 20260706162000_add_admin_catalog_item_has_image.sql
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION app_private.get_admin_catalog_editor_state()
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'menu_content', 'pg_temp'
+AS $function$
+  select case
+    when not public.can_edit_menu_content() then
+      jsonb_build_object(
+        'sections', '[]'::jsonb,
+        'items', '[]'::jsonb
+      )
+    else
+      jsonb_build_object(
+        'sections', coalesce((
+          select jsonb_agg(
+            jsonb_build_object(
+              'section_id', section.section_id,
+              'title', section.title,
+              'order_index', section.order_index,
+              'item_count', (
+                select count(*)
+                from menu_content.menu_catalog_items item
+                where item.section_id = section.section_id
+              )
+            )
+            order by section.order_index, section.section_id
+          )
+          from menu_content.menu_catalog_sections section
+        ), '[]'::jsonb),
+        'items', coalesce((
+          select jsonb_agg(
+            jsonb_build_object(
+              'section_id', item.section_id,
+              'section_title', section.title,
+              'item_id', item.item_id,
+              'name', item.name,
+              'description', item.description,
+              'pricing_key', item.pricing_key,
+              'price_amount', price.amount,
+              'order_index', item.order_index,
+              'has_image', exists (
+                select 1
+                from menu_content.menu_catalog_item_images image
+                where image.catalog_item_id = item.id
+              ),
+              'option_count', (
+                select count(*)
+                from menu_content.menu_catalog_item_options option
+                where option.catalog_item_id = item.id
+              ),
+              'options', coalesce((
+                select jsonb_agg(
+                  jsonb_build_object(
+                    'section_id', item.section_id,
+                    'item_id', item.item_id,
+                    'option_id', option.option_id,
+                    'name', option.name,
+                    'order_index', option.order_index
+                  )
+                  order by option.order_index, option.option_id
+                )
+                from menu_content.menu_catalog_item_options option
+                where option.catalog_item_id = item.id
+              ), '[]'::jsonb)
+            )
+            order by section.order_index, item.order_index, item.item_id
+          )
+          from menu_content.menu_catalog_items item
+          join menu_content.menu_catalog_sections section
+            on section.section_id = item.section_id
+          left join menu_content.menu_prices price
+            on price.pricing_key = item.pricing_key
+           and price.kind = 'fixed'
+        ), '[]'::jsonb)
+      )
+  end;
+$function$;
+
+revoke all on function app_private.get_admin_catalog_editor_state() from public, anon, authenticated, service_role;
+grant execute on function app_private.get_admin_catalog_editor_state() to authenticated;
+
+-- -----------------------------------------------------------------------------
+-- Current build-time menu_content seed
+-- -----------------------------------------------------------------------------
+
+-- Generated from the remote menu_content state during the July 2026 handoff.
+-- This refresh intentionally excludes runtime overlays, staff, publish logs,
+-- change events, Auth users, and Function secrets.
+
+begin;
+
+delete from menu_content."menu_catalog_item_images";
+delete from menu_content."menu_catalog_item_options";
+delete from menu_content."menu_grill_catalog_items";
+delete from menu_content."menu_daily_items";
+delete from menu_content."menu_catalog_items";
+delete from menu_content."menu_profile_facts";
+delete from menu_content."menu_profile_service_settings";
+delete from menu_content."menu_price_variants";
+delete from menu_content."menu_grill_families";
+delete from menu_content."menu_catalog_sections";
+delete from menu_content."menu_prices";
+delete from menu_content."menu_profiles";
+
+insert into menu_content."menu_profiles" (
+  "id",
+  "eyebrow",
+  "title",
+  "description",
+  "info_title"
+)
+values
+  ('corpo', 'El Faraón Catering', 'Menú Corpo', 'Opciones del día, platos, minutas, promociones y bebidas para la operación del buffet de El Faraón Catering dentro del edificio corporativo de Teleinde.', 'Información útil'),
+  ('teleinde', 'El Faraón Catering', 'Menú Teleinde', 'Opciones del día, platos, minutas, promociones y bebidas para la operación del buffet de El Faraón Catering en los estudios de Teleinde.', 'Información útil');
+
+insert into menu_content."menu_profile_facts" (
+  "profile_id",
+  "fact_id",
+  "label",
+  "value",
+  "link_text",
+  "link_href",
+  "order_index"
+)
+values
+  ('corpo', 'horario', 'Horario', '08:30 a 18:00 hs', null, null, 0),
+  ('corpo', 'contacto', 'Contacto', 'Contactanos por', 'WhatsApp', 'https://wa.me/541133454545?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%3A%20', 1),
+  ('corpo', 'disponibilidad', 'Disponibilidad', 'Puede variar durante el día.', null, null, 2),
+  ('corpo', 'pagos', 'Pagos', 'Efectivo, Mercado Pago, Modo, Crédito, Débito', null, null, 3),
+  ('teleinde', 'horario', 'Horario', '08:30 a 18:00 hs', null, null, 0),
+  ('teleinde', 'contacto', 'Contacto', 'Contactanos por ', 'WhatsApp', 'https://wa.me/1154003333?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%3A%20', 1),
+  ('teleinde', 'disponibilidad', 'Disponibilidad', 'Puede variar durante el día.', null, null, 2),
+  ('teleinde', 'pagos', 'Pagos', 'Efectivo, Mercado Pago, Modo, Crédito, Débito', null, null, 3);
+
+insert into menu_content."menu_prices" (
+  "pricing_key",
+  "kind",
+  "amount"
+)
+values
+  ('catalog:bebidas:item:coca-cola-zero:price', 'fixed', 2800),
+  ('catalog:bebidas:item:coca-cola:price', 'fixed', 2800),
+  ('catalog:bebidas:item:cunnington-pomelo:price', 'fixed', 2500),
+  ('catalog:bebidas:item:cunnington-tonica-zero:price', 'fixed', 2500),
+  ('catalog:bebidas:item:cunnington-tonica:price', 'fixed', 2500),
+  ('catalog:bebidas:item:fanta:price', 'fixed', 2800),
+  ('catalog:bebidas:item:gatorade:price', 'fixed', 3300),
+  ('catalog:bebidas:item:levite-manzana:price', 'fixed', 2500),
+  ('catalog:bebidas:item:levite-naranja:price', 'fixed', 2500),
+  ('catalog:bebidas:item:levite-pera:price', 'fixed', 2500),
+  ('catalog:bebidas:item:levite-pomelo:price', 'fixed', 2500),
+  ('catalog:bebidas:item:paso-toros-pomelo:price', 'fixed', 2500),
+  ('catalog:bebidas:item:pepsi-black:price', 'fixed', 2500),
+  ('catalog:bebidas:item:pepsi:price', 'fixed', 2500),
+  ('catalog:bebidas:item:seven-up-free:price', 'fixed', 2500),
+  ('catalog:bebidas:item:seven-up:price', 'fixed', 2500),
+  ('catalog:bebidas:item:sprite-zero:price', 'fixed', 2800),
+  ('catalog:bebidas:item:sprite:price', 'fixed', 2800),
+  ('catalog:bebidas:item:villavicencio-con-gas:price', 'fixed', 2500),
+  ('catalog:bebidas:item:villavicencio-sin-gas:price', 'fixed', 2500),
+  ('catalog:cafeteria:item:arabe-jamon-queso-tomate-huevo:price', 'fixed', 8500),
+  ('catalog:cafeteria:item:arabe-jamon-queso-tomate:price', 'fixed', 7500),
+  ('catalog:cafeteria:item:arabe-miga-jamon-queso:price', 'fixed', 6500),
+  ('catalog:cafeteria:item:baguetin-jamon-queso:price', 'fixed', 7500),
+  ('catalog:cafeteria:item:baguetin-salame:price', 'fixed', 7500),
+  ('catalog:cafeteria:item:cafe-chico:price', 'fixed', 5000),
+  ('catalog:cafeteria:item:cafe-frio:price', 'fixed', 6000),
+  ('catalog:cafeteria:item:cafe-grande:price', 'fixed', 6000),
+  ('catalog:cafeteria:item:cafe-mediano:price', 'fixed', 5500),
+  ('catalog:cafeteria:item:exprimido-naranja:price', 'fixed', 6000),
+  ('catalog:cafeteria:item:huevos-revueltos-tostadas:price', 'fixed', 8000),
+  ('catalog:cafeteria:item:licuado-frutas:price', 'fixed', 7500),
+  ('catalog:cafeteria:item:mate-cocido:price', 'fixed', 4000),
+  ('catalog:cafeteria:item:medialuna-jamon-queso:price', 'fixed', 3500),
+  ('catalog:cafeteria:item:medialunas-manteca:price', 'fixed', 1800),
+  ('catalog:cafeteria:item:te:price', 'fixed', 4000),
+  ('catalog:cafeteria:item:tostadas-queso-crema-mermelada:price', 'fixed', 6000),
+  ('catalog:cafeteria:item:yogur-cereal:price', 'fixed', 3500),
+  ('catalog:cafeteria:item:yogur-sin-cereales-o-con-colchon:price', 'fixed', 2800),
+  ('catalog:empanadas:item:empanadas:price', 'fixed', 3000),
+  ('catalog:ensaladas:item:ensalada-caesar:price', 'fixed', 10000),
+  ('catalog:ensaladas:item:ensalada-completa-pollo:price', 'fixed', 12000),
+  ('catalog:ensaladas:item:ensalada-completa:price', 'fixed', 10000),
+  ('catalog:ensaladas:item:ensalada-el-faraon:price', 'fixed', 10000),
+  ('catalog:guarniciones:item:chips:price', 'included', null),
+  ('catalog:guarniciones:item:ensalada-tres-sabores:price', 'included', null),
+  ('catalog:guarniciones:item:guarnicion-sola:price', 'fixed', 5000),
+  ('catalog:guarniciones:item:papas-fritas:price', 'included', null),
+  ('catalog:guarniciones:item:pure:price', 'included', null),
+  ('catalog:platos-principales:item:cuarto-pollo:price', 'fixed', 11000),
+  ('catalog:platos-principales:item:item-565d609676a0:price', 'fixed', 16000),
+  ('catalog:platos-principales:item:milanesa-napolitana:price', 'fixed', 13500),
+  ('catalog:platos-principales:item:milanesa-peceto:price', 'fixed', 12000),
+  ('catalog:platos-principales:item:pechuga-grill:price', 'fixed', 12000),
+  ('catalog:platos-principales:item:suprema-de-pollo-napolitana:price', 'fixed', 12500),
+  ('catalog:platos-principales:item:suprema-pollo:price', 'fixed', 11500),
+  ('catalog:promociones:item:cafe-con-leche-mediano-huevos-revueltos:price', 'fixed', 15400),
+  ('catalog:promociones:item:cafe-leche-mediano-dos-medialunas:price', 'fixed', 8200),
+  ('catalog:promociones:item:cafe-leche-tostadas:price', 'fixed', 10800),
+  ('catalog:promociones:item:cafe-leche-tostado-clasico:price', 'fixed', 10800),
+  ('catalog:promociones:item:jarrito-exprimido-dos-medialunas:price', 'fixed', 14800),
+  ('catalog:promociones:item:licuado-tostado-clasico:price', 'fixed', 14500),
+  ('catalog:promociones:item:yogur-cereales-barrita:price', 'fixed', 5500),
+  ('catalog:tartas-tortillas-omelettes:item:omelette-espinaca-muzzarella:price', 'variants', null),
+  ('catalog:tartas-tortillas-omelettes:item:omelette-jamon-queso:price', 'variants', null),
+  ('catalog:tartas-tortillas-omelettes:item:tartas:price', 'variants', null),
+  ('catalog:tartas-tortillas-omelettes:item:tortilla:price', 'variants', null),
+  ('menu-del-dia', 'fixed', 8500),
+  ('menu-vegetariano-del-dia', 'fixed', 8500),
+  ('parrilla-bife-chorizo-plato-guarnicion', 'fixed', 24000),
+  ('parrilla-bondiola-plato-guarnicion', 'fixed', 16000),
+  ('parrilla-choripan', 'fixed', 7000),
+  ('parrilla-choripan-guarnicion', 'fixed', 9500),
+  ('parrilla-entrana-plato-guarnicion', 'fixed', 23000),
+  ('parrilla-hamburguesa-completa', 'fixed', 10000),
+  ('parrilla-hamburguesa-completa-guarnicion', 'fixed', 13000),
+  ('parrilla-lomo-plato-guarnicion', 'fixed', 24000),
+  ('parrilla-matambre-fugazzeta-guarnicion', 'fixed', 17000),
+  ('parrilla-matambre-pizza-guarnicion', 'fixed', 17000),
+  ('parrilla-sandwich-bife-chorizo-completo', 'fixed', 19000),
+  ('parrilla-sandwich-bife-chorizo-guarnicion', 'fixed', 23000),
+  ('parrilla-sandwich-bondiola-completo', 'fixed', 13000),
+  ('parrilla-sandwich-bondiola-guarnicion', 'fixed', 15000),
+  ('parrilla-sandwich-entrana-completo', 'fixed', 19000),
+  ('parrilla-sandwich-entrana-guarnicion', 'fixed', 22000),
+  ('parrilla-sandwich-lomo-completo', 'fixed', 20000),
+  ('parrilla-sandwich-lomo-guarnicion', 'fixed', 23000);
+
+insert into menu_content."menu_price_variants" (
+  "pricing_key",
+  "price_kind",
+  "variant_id",
+  "name",
+  "amount",
+  "available",
+  "order_index"
+)
+values
+  ('catalog:tartas-tortillas-omelettes:item:omelette-espinaca-muzzarella:price', 'variants', 'con-guarnicion', 'Con guarnición', 10000, true, 0),
+  ('catalog:tartas-tortillas-omelettes:item:omelette-espinaca-muzzarella:price', 'variants', 'sin-guarnicion', 'Sin guarnición', 8000, true, 1),
+  ('catalog:tartas-tortillas-omelettes:item:omelette-jamon-queso:price', 'variants', 'con-guarnicion', 'Con guarnición', 10000, true, 0),
+  ('catalog:tartas-tortillas-omelettes:item:omelette-jamon-queso:price', 'variants', 'sin-guarnicion', 'Sin guarnición', 8000, true, 1),
+  ('catalog:tartas-tortillas-omelettes:item:tartas:price', 'variants', 'con-guarnicion', 'Con guarnición', 10000, true, 0),
+  ('catalog:tartas-tortillas-omelettes:item:tartas:price', 'variants', 'sin-guarnicion', 'Sin guarnición', 8000, true, 1),
+  ('catalog:tartas-tortillas-omelettes:item:tortilla:price', 'variants', 'con-cebolla-con-guarnicion', 'Con cebolla con guarnición', 10000, true, 0),
+  ('catalog:tartas-tortillas-omelettes:item:tortilla:price', 'variants', 'sin-cebolla-con-guarnicion', 'Sin cebolla con guarnición', 10000, true, 1),
+  ('catalog:tartas-tortillas-omelettes:item:tortilla:price', 'variants', 'sin-guarnicion', 'Sin guarnición', 8000, true, 2);
+
+insert into menu_content."menu_daily_items" (
+  "id",
+  "item_id",
+  "name",
+  "description",
+  "available",
+  "pricing_key",
+  "order_index"
+)
+values
+  ('1', 'menu-del-dia', 'Arrollado de carne con guarnición', 'Pan de carne relleno de jamón, queso, morron, tomate y huevo con guarnición a elección.', true, 'menu-del-dia', 0),
+  ('3', 'menu-vegetariano-del-dia', 'Risotto de choclo y espinaca.', null, true, 'menu-vegetariano-del-dia', 1);
+
+insert into menu_content."menu_profile_service_settings" (
+  "profile_id",
+  "service_kind"
+)
+values
+  ('corpo', 'daily-menu'),
+  ('teleinde', 'daily-menu');
+
+insert into menu_content."menu_catalog_sections" (
+  "id",
+  "section_id",
+  "title",
+  "description",
+  "order_index",
+  "presentation"
+)
+values
+  ('1', 'platos-principales', 'Platos principales con guarnición', null, 0, 'cards'),
+  ('14', 'tartas-tortillas-omelettes', 'Tartas, tortillas y omelettes', 'Opciones rápidas con modalidades de guarnición cuando aplica.', 1, 'cards'),
+  ('3', 'guarniciones', 'Guarniciones', 'Opciones de guarnición para platos y minutas.', 2, 'cards'),
+  ('4', 'empanadas', 'Empanadas', null, 3, 'cards'),
+  ('5', 'ensaladas', 'Ensaladas', null, 4, 'cards'),
+  ('7', 'promociones', 'Promociones cafetería', 'Combos vigentes del buffet.', 5, 'cards'),
+  ('13', 'cafeteria', 'Cafetería', null, 6, 'compact-list'),
+  ('8', 'bebidas', 'Bebidas', null, 7, 'compact-list');
+
+insert into menu_content."menu_catalog_items" (
+  "id",
+  "section_id",
+  "item_id",
+  "name",
+  "description",
+  "available",
+  "pricing_key",
+  "order_index"
+)
+values
+  ('52', 'bebidas', 'villavicencio-sin-gas', 'Villavicencio sin gas', null, true, 'catalog:bebidas:item:villavicencio-sin-gas:price', 0),
+  ('53', 'bebidas', 'villavicencio-con-gas', 'Villavicencio con gas', null, true, 'catalog:bebidas:item:villavicencio-con-gas:price', 1),
+  ('35', 'bebidas', 'coca-cola', 'Coca-Cola', null, true, 'catalog:bebidas:item:coca-cola:price', 2),
+  ('36', 'bebidas', 'coca-cola-zero', 'Coca-Cola Zero', null, true, 'catalog:bebidas:item:coca-cola-zero:price', 3),
+  ('37', 'bebidas', 'fanta', 'Fanta', null, true, 'catalog:bebidas:item:fanta:price', 4),
+  ('38', 'bebidas', 'sprite', 'Sprite', null, true, 'catalog:bebidas:item:sprite:price', 5),
+  ('39', 'bebidas', 'sprite-zero', 'Sprite Zero', null, true, 'catalog:bebidas:item:sprite-zero:price', 6),
+  ('40', 'bebidas', 'pepsi', 'Pepsi', null, true, 'catalog:bebidas:item:pepsi:price', 7),
+  ('41', 'bebidas', 'pepsi-black', 'Pepsi Black', null, true, 'catalog:bebidas:item:pepsi-black:price', 8),
+  ('42', 'bebidas', 'seven-up', '7Up', null, true, 'catalog:bebidas:item:seven-up:price', 9),
+  ('43', 'bebidas', 'seven-up-free', '7Up Free', null, true, 'catalog:bebidas:item:seven-up-free:price', 10),
+  ('44', 'bebidas', 'paso-toros-pomelo', 'Paso de los Toros Pomelo', null, true, 'catalog:bebidas:item:paso-toros-pomelo:price', 11),
+  ('45', 'bebidas', 'cunnington-pomelo', 'Cunnington Pomelo', null, true, 'catalog:bebidas:item:cunnington-pomelo:price', 12),
+  ('46', 'bebidas', 'cunnington-tonica', 'Cunnington Tónica', null, true, 'catalog:bebidas:item:cunnington-tonica:price', 13),
+  ('47', 'bebidas', 'cunnington-tonica-zero', 'Cunnington Tónica Zero', null, true, 'catalog:bebidas:item:cunnington-tonica-zero:price', 14),
+  ('48', 'bebidas', 'levite-pomelo', 'Levite Pomelo', null, true, 'catalog:bebidas:item:levite-pomelo:price', 15),
+  ('49', 'bebidas', 'levite-manzana', 'Levite Manzana', null, true, 'catalog:bebidas:item:levite-manzana:price', 16),
+  ('50', 'bebidas', 'levite-naranja', 'Levite Naranja', null, true, 'catalog:bebidas:item:levite-naranja:price', 17),
+  ('51', 'bebidas', 'levite-pera', 'Levite Pera', null, true, 'catalog:bebidas:item:levite-pera:price', 18),
+  ('54', 'bebidas', 'gatorade', 'Gatorade', null, true, 'catalog:bebidas:item:gatorade:price', 19),
+  ('59', 'cafeteria', 'cafe-chico', 'Café chico', null, true, 'catalog:cafeteria:item:cafe-chico:price', 0),
+  ('60', 'cafeteria', 'cafe-mediano', 'Café mediano', null, true, 'catalog:cafeteria:item:cafe-mediano:price', 1),
+  ('61', 'cafeteria', 'cafe-grande', 'Café grande', null, true, 'catalog:cafeteria:item:cafe-grande:price', 2),
+  ('62', 'cafeteria', 'cafe-frio', 'Café frio', null, true, 'catalog:cafeteria:item:cafe-frio:price', 3),
+  ('25', 'cafeteria', 'licuado-frutas', 'Licuado de frutas o banana', null, true, 'catalog:cafeteria:item:licuado-frutas:price', 4),
+  ('63', 'cafeteria', 'te', 'Té clásico', null, true, 'catalog:cafeteria:item:te:price', 5),
+  ('64', 'cafeteria', 'mate-cocido', 'Mate cocido', null, true, 'catalog:cafeteria:item:mate-cocido:price', 6),
+  ('24', 'cafeteria', 'exprimido-naranja', 'Exprimido de naranja', null, true, 'catalog:cafeteria:item:exprimido-naranja:price', 7),
+  ('20', 'cafeteria', 'yogur-cereal', 'Yogurt con cereales', null, true, 'catalog:cafeteria:item:yogur-cereal:price', 8),
+  ('21', 'cafeteria', 'yogur-sin-cereales-o-con-colchon', 'Yogurt sin cereales o con colchón', null, true, 'catalog:cafeteria:item:yogur-sin-cereales-o-con-colchon:price', 9),
+  ('27', 'cafeteria', 'medialunas-manteca', 'Medialuna', null, true, 'catalog:cafeteria:item:medialunas-manteca:price', 10),
+  ('65', 'cafeteria', 'tostadas-queso-crema-mermelada', 'Tostadas con queso crema y mermelada', null, true, 'catalog:cafeteria:item:tostadas-queso-crema-mermelada:price', 11),
+  ('28', 'cafeteria', 'medialuna-jamon-queso', 'Medialuna con jamón y queso', null, true, 'catalog:cafeteria:item:medialuna-jamon-queso:price', 12),
+  ('66', 'cafeteria', 'arabe-miga-jamon-queso', 'Árabe/miga jamón y queso', null, true, 'catalog:cafeteria:item:arabe-miga-jamon-queso:price', 13),
+  ('67', 'cafeteria', 'arabe-jamon-queso-tomate', 'Árabe jamón, queso y tomate', null, true, 'catalog:cafeteria:item:arabe-jamon-queso-tomate:price', 14),
+  ('68', 'cafeteria', 'arabe-jamon-queso-tomate-huevo', 'Árabe jamón, queso, tomate y huevo', null, true, 'catalog:cafeteria:item:arabe-jamon-queso-tomate-huevo:price', 15),
+  ('69', 'cafeteria', 'baguetin-jamon-queso', 'Baguetin de jamón y queso', null, true, 'catalog:cafeteria:item:baguetin-jamon-queso:price', 16),
+  ('70', 'cafeteria', 'baguetin-salame', 'Baguetin salame', null, true, 'catalog:cafeteria:item:baguetin-salame:price', 17),
+  ('71', 'cafeteria', 'huevos-revueltos-tostadas', 'Huevos revueltos con tostadas', null, true, 'catalog:cafeteria:item:huevos-revueltos-tostadas:price', 18),
+  ('15', 'empanadas', 'empanadas', 'Empanadas', null, true, 'catalog:empanadas:item:empanadas:price', 0),
+  ('16', 'ensaladas', 'ensalada-caesar', 'Caesar', 'Lechuga, croutones, queso parmesano, pollo en láminas y aderezo Caesar.', true, 'catalog:ensaladas:item:ensalada-caesar:price', 0),
+  ('17', 'ensaladas', 'ensalada-completa', 'Completa', 'Un colchon de arroz yamani, lechuga, tomate, zanahoria, repollo, remolacha, huevo y queso.', true, 'catalog:ensaladas:item:ensalada-completa:price', 1),
+  ('18', 'ensaladas', 'ensalada-completa-pollo', 'Completa con pollo', 'Un colchon de arroz yamani, lechuga, tomate, zanahoria, repollo, remolacha, huevo, queso y pollo.', true, 'catalog:ensaladas:item:ensalada-completa-pollo:price', 2),
+  ('19', 'ensaladas', 'ensalada-el-faraon', 'El Faraón', 'Un colchon de fideos tirabuzon, aceitunas, tomate, huevo y pollo.', true, 'catalog:ensaladas:item:ensalada-el-faraon:price', 3),
+  ('9', 'guarniciones', 'pure', 'Puré', 'Puede ser mixto o simple. Sujeto a disponibilidad
+Papa - batata - calabaza', true, 'catalog:guarniciones:item:pure:price', 0),
+  ('11', 'guarniciones', 'papas-fritas', 'Papas fritas', null, true, 'catalog:guarniciones:item:papas-fritas:price', 1),
+  ('58', 'guarniciones', 'chips', 'Chips', 'Sujeto a disponibilidad.
+Papa - batata - mixtos', true, 'catalog:guarniciones:item:chips:price', 2),
+  ('13', 'guarniciones', 'ensalada-tres-sabores', 'Ensalada tres sabores', 'Elegí hasta 3 opciones. Sujeto a disponibilidad.
+Lechuga - rúcula - repollo - tomate - pepino - zanahoria - remolacha - cebolla morada - rabanitos - hinojo - porotos negros - huevo - arroz blanco - fideos tirabuzón.', true, 'catalog:guarniciones:item:ensalada-tres-sabores:price', 3),
+  ('14', 'guarniciones', 'guarnicion-sola', 'Guarnición sola', null, true, 'catalog:guarniciones:item:guarnicion-sola:price', 4),
+  ('1', 'platos-principales', 'milanesa-peceto', 'Milanesa de peceto con guarnicion a eleccion', null, true, 'catalog:platos-principales:item:milanesa-peceto:price', 0),
+  ('5', 'platos-principales', 'milanesa-napolitana', 'Milanesa de peceto napolitana  con guarnición a eleccion', null, true, 'catalog:platos-principales:item:milanesa-napolitana:price', 1),
+  ('2', 'platos-principales', 'suprema-pollo', 'Suprema de pollo con guarnición a eleccion', null, true, 'catalog:platos-principales:item:suprema-pollo:price', 2),
+  ('57', 'platos-principales', 'suprema-de-pollo-napolitana', 'Suprema de pollo napolitana con guarnición a eleccion', null, true, 'catalog:platos-principales:item:suprema-de-pollo-napolitana:price', 3),
+  ('3', 'platos-principales', 'cuarto-pollo', '1/4 pollo con guarnición a eleccion', null, true, 'catalog:platos-principales:item:cuarto-pollo:price', 4),
+  ('4', 'platos-principales', 'pechuga-grill', 'Pechuga al grill con guarnición a eleccion', null, true, 'catalog:platos-principales:item:pechuga-grill:price', 5),
+  ('74', 'platos-principales', 'item-565d609676a0', 'Baguetin de crudo', 'Baguetin de jamón crudo, rúcula, queso brie y tomates disecados; con guarnición de chips de papa o batata.', true, 'catalog:platos-principales:item:item-565d609676a0:price', 6),
+  ('29', 'promociones', 'cafe-leche-mediano-dos-medialunas', 'Café con leche mediano + 2 medialunas', 'Infusión a elección mediana + dos medialunas de manteca.', true, 'catalog:promociones:item:cafe-leche-mediano-dos-medialunas:price', 0),
+  ('30', 'promociones', 'cafe-leche-tostado-clasico', 'Café con leche + tostado clásico', 'Infusion a elección mediana + tostado de miga de jamon y queso.', true, 'catalog:promociones:item:cafe-leche-tostado-clasico:price', 1),
+  ('31', 'promociones', 'cafe-leche-tostadas', 'Café con leche + tostadas con queso crema y mermelada', 'Infusión a elección mediana + dos tostadas de pan blanco o negro con queso crema + queso crema y mermelada.', true, 'catalog:promociones:item:cafe-leche-tostadas:price', 2),
+  ('56', 'promociones', 'cafe-con-leche-mediano-huevos-revueltos', 'Café con leche + huevos revueltos', 'Infusión a elección mediana + dos tostadas de pan blanco o negro + queso crema + dos huevos revueltos.', true, 'catalog:promociones:item:cafe-con-leche-mediano-huevos-revueltos:price', 3),
+  ('32', 'promociones', 'yogur-cereales-barrita', 'Yogur con cereales + barrita de cereal', null, true, 'catalog:promociones:item:yogur-cereales-barrita:price', 4),
+  ('33', 'promociones', 'jarrito-exprimido-dos-medialunas', 'Jarrito + exprimido de naranja + dos medialunas', null, true, 'catalog:promociones:item:jarrito-exprimido-dos-medialunas:price', 5),
+  ('34', 'promociones', 'licuado-tostado-clasico', 'Licuado + tostado clásico', null, true, 'catalog:promociones:item:licuado-tostado-clasico:price', 6),
+  ('6', 'tartas-tortillas-omelettes', 'tartas', 'Tartas', null, true, 'catalog:tartas-tortillas-omelettes:item:tartas:price', 0),
+  ('7', 'tartas-tortillas-omelettes', 'tortilla', 'Tortilla', null, true, 'catalog:tartas-tortillas-omelettes:item:tortilla:price', 1),
+  ('8', 'tartas-tortillas-omelettes', 'omelette-espinaca-muzzarella', 'Omelette de espinaca y muzzarella', null, true, 'catalog:tartas-tortillas-omelettes:item:omelette-espinaca-muzzarella:price', 2),
+  ('75', 'tartas-tortillas-omelettes', 'omelette-jamon-queso', 'Omelette de jamon y queso', null, true, 'catalog:tartas-tortillas-omelettes:item:omelette-jamon-queso:price', 3);
+
+insert into menu_content."menu_catalog_item_images" (
+  "id",
+  "catalog_item_id",
+  "image_path",
+  "order_index"
+)
+values
+  ('31', '1', '/uploads/menu/milanesa-peceto.webp', 0),
+  ('30', '2', '/uploads/menu/suprema-pollo.webp', 0),
+  ('28', '3', '/uploads/menu/cuarto-pollo.webp', 0),
+  ('29', '4', '/uploads/menu/pechuga-grill.webp', 0),
+  ('25', '6', '/uploads/menu/tartas-2.webp', 0),
+  ('6', '6', '/uploads/menu/tartas.webp', 1),
+  ('5', '6', '/uploads/menu/tartas-3.webp', 2),
+  ('27', '7', '/uploads/menu/tortilla.webp', 0),
+  ('20', '8', '/uploads/menu/omelette-2.webp', 0),
+  ('21', '9', '/uploads/menu/pure-papa.webp', 0),
+  ('1', '9', '/uploads/menu/pure-batata.webp', 1),
+  ('24', '15', '/uploads/menu/empanadas.webp', 0),
+  ('4', '15', '/uploads/menu/empanadas-3.webp', 1),
+  ('22', '16', '/uploads/menu/ensalada-caesar.webp', 0),
+  ('23', '17', '/uploads/menu/ensalada-el-faraon.webp', 0),
+  ('26', '19', '/uploads/menu/ensalada-completa-pollo.webp', 0),
+  ('7', '75', '/uploads/menu/omelette.webp', 0);
+
+insert into menu_content."menu_catalog_item_options" (
+  "catalog_item_id",
+  "option_id",
+  "name",
+  "available",
+  "order_index"
+)
+values
+  ('6', 'jamon-queso', 'Calabaza y muzzarella', true, 0),
+  ('6', 'pollo-puerro', 'Pollo y puerro', true, 2),
+  ('6', 'brocoli', 'Cebolla y queso', true, 5),
+  ('6', 'option-cc5b115287d2', 'Zuchinni', true, 6),
+  ('15', 'carne', 'Carne', true, 0),
+  ('15', 'jamon-queso', 'Jamón y queso', true, 1),
+  ('15', 'pollo-barbacoa', 'Pollo a la barbacoa', true, 2),
+  ('15', 'bondiola-mostaza', 'Bondiola a la mostaza', true, 3),
+  ('15', 'verdura', 'Verdura', true, 4),
+  ('15', 'caprese', 'Caprese', true, 5);
+
+insert into menu_content."menu_grill_families" (
+  "family_id",
+  "title",
+  "order_index"
+)
+values
+  ('choripan', 'Choripán', 0),
+  ('hamburguesa', 'Hamburguesa', 1),
+  ('bondiola', 'Bondiola', 2),
+  ('matambre', 'Matambre', 3),
+  ('entrana', 'Entraña', 4),
+  ('lomo', 'Lomo', 5),
+  ('bife-chorizo', 'Bife de chorizo', 6);
+
+insert into menu_content."menu_grill_catalog_items" (
+  "id",
+  "family_id",
+  "item_id",
+  "name",
+  "variant_name",
+  "available",
+  "pricing_key",
+  "order_index"
+)
+values
+  ('1', 'choripan', 'parrilla-choripan', 'Simple', 'Simple', true, 'parrilla-choripan', 0),
+  ('2', 'choripan', 'parrilla-choripan-guarnicion', 'Choripán con guarnición', 'Con guarnición', true, 'parrilla-choripan-guarnicion', 1),
+  ('3', 'hamburguesa', 'parrilla-hamburguesa-completa', 'Hamburguesa completa', 'Completa', true, 'parrilla-hamburguesa-completa', 2),
+  ('4', 'hamburguesa', 'parrilla-hamburguesa-completa-guarnicion', 'Hamburguesa completa con guarnición', 'Completa con guarnición', true, 'parrilla-hamburguesa-completa-guarnicion', 3),
+  ('5', 'bondiola', 'parrilla-sandwich-bondiola-completo', 'Sándwich de bondiola completo', 'Sándwich completo', true, 'parrilla-sandwich-bondiola-completo', 4),
+  ('6', 'bondiola', 'parrilla-sandwich-bondiola-guarnicion', 'Sándwich de bondiola con guarnición', 'Sándwich con guarnición', true, 'parrilla-sandwich-bondiola-guarnicion', 5),
+  ('7', 'bondiola', 'parrilla-bondiola-plato-guarnicion', 'Bondiola al plato con guarnición', 'Al plato con guarnición', true, 'parrilla-bondiola-plato-guarnicion', 6),
+  ('8', 'matambre', 'parrilla-matambre-pizza-guarnicion', 'Matambre a la pizza con guarnición', 'A la pizza con guarnición', true, 'parrilla-matambre-pizza-guarnicion', 7),
+  ('9', 'matambre', 'parrilla-matambre-fugazzeta-guarnicion', 'Matambre a la fugazzeta con guarnición', 'A la fugazzeta con guarnición', true, 'parrilla-matambre-fugazzeta-guarnicion', 8),
+  ('10', 'entrana', 'parrilla-sandwich-entrana-completo', 'Sándwich de entraña completo', 'Sándwich completo', true, 'parrilla-sandwich-entrana-completo', 9),
+  ('11', 'entrana', 'parrilla-sandwich-entrana-guarnicion', 'Sándwich de entraña completo con guarnición', 'Sándwich completo con guarnición', true, 'parrilla-sandwich-entrana-guarnicion', 10),
+  ('12', 'entrana', 'parrilla-entrana-plato-guarnicion', 'Entraña al plato con guarnición', 'Al plato con guarnición', true, 'parrilla-entrana-plato-guarnicion', 11),
+  ('13', 'lomo', 'parrilla-sandwich-lomo-completo', 'Sándwich de lomo completo', 'Sándwich completo', true, 'parrilla-sandwich-lomo-completo', 12),
+  ('14', 'lomo', 'parrilla-sandwich-lomo-guarnicion', 'Sándwich de lomo completo con guarnición', 'Sándwich completo con guarnición', true, 'parrilla-sandwich-lomo-guarnicion', 13),
+  ('15', 'lomo', 'parrilla-lomo-plato-guarnicion', 'Lomo al plato con guarnición', 'Al plato con guarnición', true, 'parrilla-lomo-plato-guarnicion', 14),
+  ('16', 'bife-chorizo', 'parrilla-sandwich-bife-chorizo-completo', 'Sándwich de bife de chorizo completo', 'Sándwich completo', true, 'parrilla-sandwich-bife-chorizo-completo', 15),
+  ('17', 'bife-chorizo', 'parrilla-sandwich-bife-chorizo-guarnicion', 'Sándwich de bife de chorizo completo con guarnición', 'Sándwich completo con guarnición', true, 'parrilla-sandwich-bife-chorizo-guarnicion', 16),
+  ('18', 'bife-chorizo', 'parrilla-bife-chorizo-plato-guarnicion', 'Bife de chorizo al plato con guarnición', 'Al plato con guarnición', true, 'parrilla-bife-chorizo-plato-guarnicion', 17);
+
+select setval(
+  pg_get_serial_sequence('menu_content.menu_daily_items', 'id'),
+  coalesce((select max(id) from menu_content.menu_daily_items), 0) + 1,
+  false
+);
+
+select setval(
+  pg_get_serial_sequence('menu_content.menu_catalog_sections', 'id'),
+  coalesce((select max(id) from menu_content.menu_catalog_sections), 0) + 1,
+  false
+);
+
+select setval(
+  pg_get_serial_sequence('menu_content.menu_catalog_items', 'id'),
+  coalesce((select max(id) from menu_content.menu_catalog_items), 0) + 1,
+  false
+);
+
+select setval(
+  pg_get_serial_sequence('menu_content.menu_catalog_item_images', 'id'),
+  coalesce((select max(id) from menu_content.menu_catalog_item_images), 0) + 1,
+  false
+);
+
+select setval(
+  pg_get_serial_sequence('menu_content.menu_grill_catalog_items', 'id'),
+  coalesce((select max(id) from menu_content.menu_grill_catalog_items), 0) + 1,
+  false
+);
+
+commit;
+
+-- -----------------------------------------------------------------------------
+-- Consolidated baseline assertions
+-- -----------------------------------------------------------------------------
+
+do $$
+declare
+  actual_hash text;
+begin
+  if exists (select 1 from public.staff_users)
+    or exists (select 1 from public.menu_availability_overlays)
+    or exists (select 1 from app_private.menu_publish_requests)
+    or exists (select 1 from app_private.menu_change_events) then
+    raise exception 'Operational users, overlays, publish logs, and change events must start empty.';
+  end if;
+
+  select app_private.get_menu_publication_content_hash()
+  into actual_hash;
+
+  if actual_hash <> '32a45e8278adad23587f8d7c19c1c486' then
+    raise exception 'Unexpected consolidated baseline content hash: %', actual_hash;
+  end if;
+end
+$$;

@@ -190,13 +190,13 @@ editorial CMS without an explicit architecture decision.
 
 Build-time structural and operational content:
 
-- `supabase/migrations/` contains the pre-launch baseline and later operational migrations. It is the canonical migration location for Supabase CLI.
+- `supabase/migrations/` contains the single pre-launch handoff baseline for new databases and any future operational migrations. It is the canonical migration location for Supabase CLI.
 - `docs/supabase/audits/menu-schema-audit.sql` audits expected constraints and indexes.
 - `docs/supabase/audits/database-audit.sql` is a read-only inventory, exposure, unexpected-object, and data-finding audit.
 - `docs/supabase/README.md` documents the local-first Supabase workflow, real migration order, and remote-application rules.
 - `docs/supabase/schema-diagram.md` documents the Mermaid ERD for `menu_content` and the runtime overlay.
 - `docs/supabase/` keeps documentation and read-only audits; do not place real migrations or mutating reference SQL there.
-- `20260606235844_prelaunch_baseline.sql` is the clean starting point for new databases. The prior incremental history is preserved by Git tag `supabase-prelaunch-history-2026-06-06`.
+- `20260707000000_prelaunch_baseline.sql` is the clean starting point for new databases. The prior incremental history is preserved by Git tag `supabase-prelaunch-history-2026-07-07`.
 - Never run the baseline against an existing database. Align an existing remote migration history only after proving schema, data, function, grant, policy, and fingerprint equivalence.
 - Add every future database change as a new incremental migration after the baseline.
 - Supabase CLI is installed as a dev dependency and should be run through npm scripts, for example `npm run supabase -- <args>`.
@@ -225,6 +225,7 @@ Runtime overlay:
 - `publish-menu-changes` is the only approved Supabase Edge Function. It may publish build-time operational changes by validating Supabase Auth, checking `can_publish_menu()`, reserving/completing publish requests through service-role-only helpers, logging privately in `app_private`, recording a private build-time content fingerprint, associating private build-time change events with successful publish requests, and calling the Vercel Deploy Hook from Supabase Function secrets.
 - Build-time admin edit RPCs may record private `app_private.menu_change_events` with the authenticated user, operation, parameters, resulting content hash, and publish request link. Runtime availability overlay changes are intentionally outside that deploy audit log unless explicitly expanded later.
 - `/admin/` publication-pending UI must compare the current build-time content fingerprint with the static content fingerprint embedded in the currently deployed `/admin/` build. Do not use a session-only "edited" flag or the latest admin-triggered publish request as the source of truth for pending publication.
+- Handoff audits must treat `app_private.menu_publish_requests` as audit history only. To determine whether production is current, compare `app_private.get_menu_publication_content_hash()` with the content hash embedded in the deployed `/admin/` HTML.
 - Publish cooldown responses may include `cooldown_seconds_remaining`; keep that contract synchronized across the Edge Function, SQL helpers, and admin UI.
 - The Edge Function runtime uses `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VERCEL_DEPLOY_HOOK_URL`, `PUBLISH_ALLOWED_ORIGINS`, and `PUBLISH_COOLDOWN_SECONDS`. Never expose the service role key or deploy hook to browser code or `PUBLIC_*` variables.
 - `public.editor_profiles` was removed after the `staff_users` backfill; do not recreate or reference it.

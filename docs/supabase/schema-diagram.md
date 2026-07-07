@@ -6,7 +6,7 @@ Las columnas `available` dentro de `menu_content` son compatibilidad interna y d
 
 Fuentes versionadas:
 
-- `../../supabase/migrations/`: baseline prelanzamiento canonico y migraciones posteriores.
+- `../../supabase/migrations/`: baseline prelanzamiento canonico de handoff y migraciones posteriores.
 - `audits/menu-schema-audit.sql`: auditoria read-only del modelo activo.
 - `audits/database-audit.sql`: inventario amplio de objetos, exposicion y hallazgos.
 

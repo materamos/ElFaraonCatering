@@ -354,7 +354,7 @@ La proteccion contra passwords filtradas se habilita en Supabase Auth settings d
 
 SQL disponible:
 
-- `supabase/migrations/`: baseline prelanzamiento y migraciones posteriores; es la ubicacion canonica para Supabase CLI.
+- `supabase/migrations/`: baseline unica de prelanzamiento para bases nuevas; es la ubicacion canonica para Supabase CLI.
 - `docs/supabase/README.md`: flujo local-first, orden de ejecucion y reglas de aplicacion remota.
 - `docs/supabase/schema-diagram.md`: diagrama Mermaid del schema estructural y runtime operativo.
 - `docs/supabase/audits/`: auditorias read-only.
@@ -369,11 +369,19 @@ Flujo local-first para cambios de base:
 
 Baseline prelanzamiento:
 
-- `20260606235844_prelaunch_baseline.sql` crea una base nueva con el modelo, contenido build-time, RPCs, permisos y hardening vigentes.
-- El tag `supabase-prelaunch-history-2026-06-06` preserva la historia incremental anterior.
+- `20260707000000_prelaunch_baseline.sql` crea una base nueva con el modelo, contenido build-time, RPCs, permisos, auditoria privada, publicacion y hardening vigentes.
+- El tag `supabase-prelaunch-history-2026-07-07` preserva la historia incremental anterior al squash de handoff.
 - El baseline no incluye usuarios Auth, filas de `staff_users`, overlays de disponibilidad ni logs de publicacion o cambios.
 - No ejecutar el baseline sobre una base existente. Las bases ya desplegadas deben alinear solo su historial despues de verificar equivalencia.
 - Todo cambio posterior debe agregarse como una nueva migracion incremental.
+
+Audit de entrega Supabase:
+
+- Ultimo audit remoto read-only ejecutado para el handoff: `npm run supabase:audit`, `npm run menu:validate`, `npm run check:js`, `npm run verify:dist-secrets`, `npm run supabase -- db advisors --db-url <SUPABASE_DB_URL>` y `npm run supabase -- db lint --db-url <SUPABASE_DB_URL> --schema public,menu_content,app_private --fail-on none`.
+- El remoto actual usa PostgreSQL 17.6 y conserva el historial pre-squash completo. Eso es esperado para la base existente; no aplicar la baseline unica sobre ese remoto.
+- La superficie publica anon queda limitada a las columnas publicas de `public.menu_availability_overlays`. `menu_content`, `app_private`, `staff_users`, RPCs admin y la Edge Function de publicacion quedan bloqueados sin sesion/rol adecuado.
+- El hash build-time actual de Supabase y el hash embebido en `/admin/` desplegado deben coincidir. No usar el ultimo `app_private.menu_publish_requests` como fuente unica para decidir si hay publicacion pendiente, porque puede existir un deploy externo que ya haya dejado el sitio alineado.
+- En el handoff, revisar manualmente en Supabase Dashboard la configuracion que no vive en SQL: redirects de Auth, leaked password protection si el plan lo soporta, estado de usuarios staff, y secretos de `publish-menu-changes`.
 
 ## CMS operativo de menu
 

@@ -772,54 +772,45 @@ where not (
 )
 order by trigger_schema, event_object_table, trigger_name;
 
--- 16. Canonical Supabase migration history must include known active migrations.
-with expected_migrations(version) as (
+-- 16. Canonical Supabase migration history must be a known complete handoff state.
+with actual_history as (
+  select coalesce(array_agg(version order by version), array[]::text[]) as versions
+  from supabase_migrations.schema_migrations
+),
+allowed_history(label, versions) as (
   values
-    ('20260606235844'),
-    ('20260630203051'),
-    ('20260630204047'),
-    ('20260701001506'),
-    ('20260701062401'),
-    ('20260701145810'),
-    ('20260701151758'),
-    ('20260706113430'),
-    ('20260706114205'),
-    ('20260706162000')
+    (
+      'pre_squash_remote',
+      array[
+        '20260606235844',
+        '20260630203051',
+        '20260630204047',
+        '20260701001506',
+        '20260701062401',
+        '20260701145810',
+        '20260701151758',
+        '20260706113430',
+        '20260706114205',
+        '20260706162000'
+      ]::text[]
+    ),
+    (
+      'handoff_baseline',
+      array[
+        '20260707000000'
+      ]::text[]
+    )
 )
 select
-  migration.version,
-  migration.name,
+  array_to_string(actual_history.versions, ',') as migration_versions,
   'risk' as suggested_status,
-  'Unexpected migration history row for the current active model.' as reason
-from supabase_migrations.schema_migrations migration
-left join expected_migrations expected
-  on expected.version = migration.version
-where expected.version is null
-order by migration.version;
-
-with expected_migrations(version) as (
-  values
-    ('20260606235844'),
-    ('20260630203051'),
-    ('20260630204047'),
-    ('20260701001506'),
-    ('20260701062401'),
-    ('20260701145810'),
-    ('20260701151758'),
-    ('20260706113430'),
-    ('20260706114205'),
-    ('20260706162000')
-)
-select
-  expected.version as expected_version,
-  case
-    when migration.version is not null then 'present'
-    else 'missing'
-  end as status
-from expected_migrations expected
-left join supabase_migrations.schema_migrations migration
-  on migration.version = expected.version
-order by expected.version;
+  'Unexpected Supabase migration history for the handoff model.' as reason
+from actual_history
+where not exists (
+  select 1
+  from allowed_history allowed
+  where allowed.versions = actual_history.versions
+);
 
 -- 17. Basic schema usage grants for protected schemas.
 select
