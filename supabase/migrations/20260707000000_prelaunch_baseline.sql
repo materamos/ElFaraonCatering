@@ -5311,6 +5311,8 @@ values
   ('22', '16', '/uploads/menu/ensalada-caesar.webp', 0),
   ('23', '17', '/uploads/menu/ensalada-completa.webp', 0),
   ('26', '19', '/uploads/menu/ensalada-el-faraon.webp', 0),
+  ('32', '58', '/uploads/menu/chips-papa.webp', 0),
+  ('33', '58', '/uploads/menu/chips-batata.webp', 1),
   ('7', '75', '/uploads/menu/omelette.webp', 0);
 
 insert into menu_content."menu_catalog_item_options" (

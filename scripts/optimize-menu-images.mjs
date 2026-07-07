@@ -88,6 +88,17 @@ const NAME_MAP = {
     outputSlug: "pechuga-grill",
     role: "primary",
   },
+  "chips-papa": {
+    itemId: "chips",
+    outputSlug: "chips-papa",
+    role: "primary",
+  },
+  "chips-batata": {
+    itemId: "chips",
+    outputSlug: "chips-batata",
+    role: "additional",
+    orderIndex: 1,
+  },
   "pure-batata": {
     itemId: "pure",
     outputSlug: "pure-batata",
