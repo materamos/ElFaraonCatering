@@ -6,7 +6,6 @@ import type {
   CatalogSectionState,
   GrillFamilyState,
   GrillItemState,
-  GrillProfileGroup,
 } from "./types";
 
 export function getTargetKey(target: {
@@ -160,35 +159,4 @@ function normalizeAvailabilityTarget(target: AvailabilityTargetState): Availabil
 
 function normalizeNonnegativeInteger(value: unknown): number {
   return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : 0;
-}
-
-export function groupGrillTargets(targets: AvailabilityTargetState[]): GrillProfileGroup[] {
-  const profiles: GrillProfileGroup[] = [];
-  const profileMap = new Map<string, GrillProfileGroup>();
-
-  for (const target of targets) {
-    let profileGroup = profileMap.get(target.menu_id);
-
-    if (!profileGroup) {
-      profileGroup = {
-        menuId: target.menu_id,
-        profileTitle: target.profile_title,
-        families: [],
-      };
-      profileMap.set(target.menu_id, profileGroup);
-      profiles.push(profileGroup);
-    }
-
-    const familyTitle = target.group_title ?? "Sin familia";
-    let family = profileGroup.families.find((entry) => entry.title === familyTitle);
-
-    if (!family) {
-      family = { title: familyTitle, targets: [] };
-      profileGroup.families.push(family);
-    }
-
-    family.targets.push(target);
-  }
-
-  return profiles;
 }

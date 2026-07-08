@@ -192,17 +192,6 @@ export interface RenderOptions {
   revealStatus?: boolean;
 }
 
-export interface GrillProfileGroup {
-  menuId: string;
-  profileTitle: string;
-  families: GrillFamilyGroup[];
-}
-
-export interface GrillFamilyGroup {
-  title: string;
-  targets: AvailabilityTargetState[];
-}
-
 export interface PricingLabel {
   title: string;
   tags: string[];

@@ -84,11 +84,20 @@ test("availability grouping collapses grill and keeps catalog groups", () => {
 
 test("invalid availability filters fall back to first editable profile and group", () => {
   const state = createState();
-  const targets = selectors.getFilteredAvailabilityTargets(state, {
-    profileFilter: "missing-profile",
-    groupFilter: "missing-group",
-  });
+  const effectiveProfileFilter = selectors.getEffectiveAvailabilityProfileFilter(state, "missing-profile");
+  const profileTargets = selectors.getVisibleAvailabilityTargets(state).filter((target) =>
+    target.menu_id === effectiveProfileFilter
+  );
+  const effectiveGroupFilter = selectors.getEffectiveAvailabilityGroupFilter(
+    selectors.getAvailabilityGroupOptions(profileTargets),
+    "missing-group",
+  );
+  const targets = profileTargets.filter((target) =>
+    selectors.getAvailabilityGroupKey(target) === effectiveGroupFilter
+  );
 
+  assert.equal(effectiveProfileFilter, "corpo");
+  assert.equal(effectiveGroupFilter, "section:menu-del-dia");
   assert.deepEqual(targets.map((target) => adminState.getTargetKey(target)), [
     "corpo/menu-del-dia/main",
   ]);
@@ -101,11 +110,20 @@ test("availability profile filter falls back to staff default profile", () => {
       default_availability_profile_id: "teleinde",
     },
   });
-  const targets = selectors.getFilteredAvailabilityTargets(state, {
-    profileFilter: "",
-    groupFilter: "",
-  });
+  const effectiveProfileFilter = selectors.getEffectiveAvailabilityProfileFilter(state, "");
+  const profileTargets = selectors.getVisibleAvailabilityTargets(state).filter((target) =>
+    target.menu_id === effectiveProfileFilter
+  );
+  const effectiveGroupFilter = selectors.getEffectiveAvailabilityGroupFilter(
+    selectors.getAvailabilityGroupOptions(profileTargets),
+    "",
+  );
+  const targets = profileTargets.filter((target) =>
+    selectors.getAvailabilityGroupKey(target) === effectiveGroupFilter
+  );
 
+  assert.equal(effectiveProfileFilter, "teleinde");
+  assert.equal(effectiveGroupFilter, "section:parrilla");
   assert.deepEqual(targets.map((target) => adminState.getTargetKey(target)), [
     "teleinde/parrilla/vacio",
     "teleinde/parrilla/entrana",

@@ -117,24 +117,6 @@ export function getEffectiveAvailabilityGroupFilter(
   return groupOptions[0]?.key ?? "";
 }
 
-export function getFilteredAvailabilityTargets(
-  state: AdminOperationalState,
-  filters: { profileFilter: string; groupFilter: string },
-): AvailabilityTargetState[] {
-  const effectiveProfileFilter = getEffectiveAvailabilityProfileFilter(state, filters.profileFilter);
-  const profileTargets = getVisibleAvailabilityTargets(state).filter((target) =>
-    target.menu_id === effectiveProfileFilter
-  );
-  const effectiveGroupFilter = getEffectiveAvailabilityGroupFilter(
-    getAvailabilityGroupOptions(profileTargets),
-    filters.groupFilter,
-  );
-
-  return profileTargets.filter((target) =>
-    !effectiveGroupFilter || getAvailabilityGroupKey(target) === effectiveGroupFilter
-  );
-}
-
 export function getAvailabilityFamilyKey(target: AvailabilityTargetState): string {
   const familyId = target.group_title || target.item_id;
 

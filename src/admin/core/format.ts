@@ -16,12 +16,6 @@ export function formatAmount(amount: number): string {
   return `$${new Intl.NumberFormat("es-AR").format(amount)}`;
 }
 
-export function formatOptionalAmount(amount: number | null): string {
-  return typeof amount === "number" && Number.isSafeInteger(amount) && amount >= 0
-    ? formatAmount(amount)
-    : "";
-}
-
 export function formatCatalogItemPrice(item: CatalogItemState): string {
   if (typeof item.price_amount === "number" && Number.isSafeInteger(item.price_amount) && item.price_amount >= 0) {
     return formatAmount(item.price_amount);

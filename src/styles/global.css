@@ -809,8 +809,7 @@
   .menu-whatsapp-button:focus-visible,
   .photo-sheet__close:focus-visible,
   .photo-sheet__nav:focus-visible,
-  .menu-page__fact-link:focus-visible,
-  .menu-info-panel__link:focus-visible {
+  .menu-page__fact-link:focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 3px;
   }
@@ -1103,42 +1102,6 @@
     color: var(--color-accent);
     background: var(--color-page);
     border-color: var(--color-accent);
-  }
-
-  .menu-info-panel {
-    display: grid;
-    gap: 1rem;
-  }
-
-  .menu-info-panel__facts {
-    display: grid;
-    gap: 0.75rem 1.25rem;
-    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  }
-
-  .menu-info-panel__fact {
-    display: grid;
-    gap: 0.25rem;
-  }
-
-  .menu-info-panel__label {
-    color: var(--color-muted);
-    font-size: 0.76rem;
-    font-weight: 700;
-    line-height: 1.35;
-    text-transform: uppercase;
-  }
-
-  .menu-info-panel__value {
-    color: var(--color-ink);
-    font-size: 0.98rem;
-    font-weight: 600;
-    line-height: 1.5;
-  }
-
-  .menu-info-panel__link {
-    text-decoration: underline;
-    text-underline-offset: 0.18em;
   }
 
   .menu-section {

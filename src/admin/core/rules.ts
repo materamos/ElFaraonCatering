@@ -50,10 +50,6 @@ export interface FixedMenuLocation extends CatalogSectionState {
   item_ids: readonly string[] | null;
 }
 
-export function getFixedOptionsOnlyRule(filterId: string): FixedOptionsOnlySectionRule | undefined {
-  return fixedOptionsOnlySectionRules.find((rule) => rule.filterId === filterId);
-}
-
 export function getFixedMenuLocations(sections: readonly CatalogSectionState[]): FixedMenuLocation[] {
   return sections.flatMap((section): FixedMenuLocation[] => {
     const optionOnlyRules = fixedOptionsOnlySectionRules.filter((rule) =>

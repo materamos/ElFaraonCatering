@@ -209,7 +209,6 @@ src/
   components/
     CompactMenuItem.astro
     DishCard.astro
-    MenuInfoPanel.astro
     MenuPage.astro
     MenuSection.astro
   layouts/
@@ -218,7 +217,6 @@ src/
     admin/index.astro
     index.astro
     menu/
-      index.astro
       corpo/index.astro
       teleinde/index.astro
   styles/
