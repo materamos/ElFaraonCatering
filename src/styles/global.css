@@ -328,12 +328,22 @@
     line-height: 1.6;
   }
 
-  .landing-about__image {
+  .landing-about__placeholder {
     display: block;
     width: 100%;
     height: 18.75rem;
-    object-fit: cover;
-    object-position: center 56%;
+    background-color: var(--landing-placeholder-a);
+    background-image:
+      linear-gradient(45deg, var(--landing-placeholder-b) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--landing-placeholder-b) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--landing-placeholder-b) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--landing-placeholder-b) 75%);
+    background-position:
+      0 0,
+      0 1rem,
+      1rem -1rem,
+      -1rem 0;
+    background-size: 2rem 2rem;
     border: 1px solid var(--brand-charcoal);
   }
 
@@ -367,6 +377,15 @@
       1rem -1rem,
       -1rem 0;
     background-size: 2rem 2rem;
+  }
+
+  .landing-card__media {
+    display: block;
+    width: 100%;
+    height: 15rem;
+    min-height: 15rem;
+    object-fit: cover;
+    object-position: center 56%;
   }
 
   .landing-card__body {
@@ -511,7 +530,7 @@
       grid-template-columns: 1fr;
     }
 
-    .landing-about__image {
+    .landing-about__placeholder {
       max-width: 34rem;
     }
 
@@ -693,11 +712,10 @@
       line-height: 1.5;
     }
 
-    .landing-about__image {
+    .landing-about__placeholder {
       width: 100%;
       max-width: none;
       height: 14.8125rem;
-      object-position: center 58%;
     }
 
     .landing-section--service {
@@ -722,14 +740,17 @@
       grid-template-columns: 10.125rem minmax(0, 1fr);
       min-height: 13.0625rem;
       height: 13.0625rem;
-      padding-top: 0.625rem;
       box-sizing: border-box;
     }
 
-    .landing-card__placeholder {
+    .landing-card__placeholder,
+    .landing-card__media {
       width: 10.125rem;
       min-height: 0;
-      height: 12.4375rem;
+      height: 13.0625rem;
+    }
+
+    .landing-card__placeholder {
       background-size: 1.5rem 1.5rem;
       background-position:
         0 0,

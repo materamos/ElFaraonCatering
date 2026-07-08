@@ -73,15 +73,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           </p>
         </div>
 
-        <img
-          class="landing-about__image"
-          src="/landing/about-buffet.webp"
-          alt="Plato casero servido por El Faraón Catering"
-          width="1085"
-          height="1450"
-          loading="lazy"
-          decoding="async"
-        />
+        <div class="landing-about__placeholder" aria-hidden="true"></div>
       </div>
     </section>
 
@@ -106,7 +98,15 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           </article>
 
           <article class="landing-card">
-            <div class="landing-card__placeholder" aria-hidden="true"></div>
+            <img
+              class="landing-card__media"
+              src="/landing/platos-telefe.webp"
+              alt="Plato casero servido por El Faraón Catering"
+              width="1085"
+              height="1450"
+              loading="lazy"
+              decoding="async"
+            />
             <div class="landing-card__body">
               <h3>Lorem ipsum</h3>
               <p>
