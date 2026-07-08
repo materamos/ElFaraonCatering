@@ -16,7 +16,9 @@ import type {
   AdminOperationalState,
   CatalogItemOptionState,
   CatalogItemState,
+  FixedPriceState,
   FixedMenuEditMode,
+  VariantPriceState,
 } from "../core/types";
 import type { AdminViewState } from "../core/viewState";
 import { escapeHtml, formatCatalogItemPrice } from "../core/format";
@@ -153,7 +155,9 @@ function renderCatalogItemRow(
   editMode: FixedMenuEditMode,
   isBusy: boolean,
 ): string {
-  const showPriceChip = !catalogItemShowsCurrentPriceRows(state, item, editMode);
+  const editablePrices = getCatalogItemEditablePrices(state, item);
+  const includedSideOptionItem = isIncludedSideOptionItem(item);
+  const showPriceChip = shouldShowCatalogItemPriceChip(editMode, includedSideOptionItem, editablePrices);
   const priceText = showPriceChip ? formatCatalogItemPrice(item) : "";
   const tags = [
     ...(showPriceChip ? [priceText] : []),
@@ -184,7 +188,7 @@ function renderCatalogItemRow(
             <span class="admin-label">Nombre</span>
             <input class="admin-input" name="name" value="${escapeHtml(item.name)}" required />
           </label>
-          ${isIncludedSideOptionItem(item) ? "" : renderCatalogItemIntegratedPriceFields(state, item)}
+          ${includedSideOptionItem ? "" : renderCatalogItemIntegratedPriceFields(editablePrices)}
             ${editDescriptionField}
             <div class="admin-row__actions admin-fixed-edit-actions">
               <button class="admin-button" type="submit" ${disabledAttr(isBusy)}>
@@ -192,7 +196,7 @@ function renderCatalogItemRow(
               </button>
             </div>
         </form>` : ""}
-        ${editMode === "items" || isIncludedSideOptionItem(item) ? "" : renderCatalogItemPriceEditor(state, item, isBusy)}
+        ${editMode === "items" || includedSideOptionItem ? "" : renderCatalogItemPriceEditor(editablePrices, isBusy)}
         ${renderCatalogItemOptions(item, isBusy)}
       </div>
       ${editMode === "items" ? `<div class="admin-row__actions">
@@ -212,17 +216,43 @@ function renderCatalogItemRow(
   `;
 }
 
-function catalogItemShowsCurrentPriceRows(
+interface CatalogItemEditablePrices {
+  pricingKey: string | null;
+  fixedRows: FixedPriceState[];
+  variantRows: VariantPriceState[];
+  hasEditablePrices: boolean;
+}
+
+function getCatalogItemEditablePrices(
   state: AdminOperationalState,
   item: CatalogItemState,
-  editMode: FixedMenuEditMode,
-): boolean {
-  if (editMode === "items" || isIncludedSideOptionItem(item) || !item.pricing_key) {
-    return false;
+): CatalogItemEditablePrices {
+  if (!item.pricing_key) {
+    return {
+      pricingKey: null,
+      fixedRows: [],
+      variantRows: [],
+      hasEditablePrices: false,
+    };
   }
 
-  return state.prices.fixed.some((price) => price.pricing_key === item.pricing_key)
-    || state.prices.variants.some((variant) => variant.pricing_key === item.pricing_key);
+  const fixedRows = state.prices.fixed.filter((price) => price.pricing_key === item.pricing_key);
+  const variantRows = state.prices.variants.filter((variant) => variant.pricing_key === item.pricing_key);
+
+  return {
+    pricingKey: item.pricing_key,
+    fixedRows,
+    variantRows,
+    hasEditablePrices: fixedRows.length > 0 || variantRows.length > 0,
+  };
+}
+
+function shouldShowCatalogItemPriceChip(
+  editMode: FixedMenuEditMode,
+  includedSideOptionItem: boolean,
+  editablePrices: CatalogItemEditablePrices,
+): boolean {
+  return editMode === "items" || includedSideOptionItem || !editablePrices.hasEditablePrices;
 }
 
 function renderCatalogDescriptionField(input: {
@@ -258,8 +288,8 @@ function renderCatalogDescriptionField(input: {
   `;
 }
 
-function renderCatalogItemIntegratedPriceFields(state: AdminOperationalState, item: CatalogItemState): string {
-  if (!item.pricing_key) {
+function renderCatalogItemIntegratedPriceFields(editablePrices: CatalogItemEditablePrices): string {
+  if (!editablePrices.pricingKey || !editablePrices.hasEditablePrices) {
     return `
       <div class="admin-fixed-form__note">
         <span class="admin-label">Precio</span>
@@ -268,20 +298,8 @@ function renderCatalogItemIntegratedPriceFields(state: AdminOperationalState, it
     `;
   }
 
-  const fixedRows = state.prices.fixed.filter((price) => price.pricing_key === item.pricing_key);
-  const variantRows = state.prices.variants.filter((variant) => variant.pricing_key === item.pricing_key);
-
-  if (fixedRows.length === 0 && variantRows.length === 0) {
-    return `
-      <div class="admin-fixed-form__note">
-        <span class="admin-label">Precio</span>
-        <p>No hay precio editable para este item.</p>
-      </div>
-    `;
-  }
-
-  if (fixedRows.length > 0) {
-    const price = fixedRows[0];
+  if (editablePrices.fixedRows.length > 0) {
+    const price = editablePrices.fixedRows[0];
 
     return `
       <label class="admin-field">
@@ -295,8 +313,8 @@ function renderCatalogItemIntegratedPriceFields(state: AdminOperationalState, it
   return `
     <fieldset class="admin-card admin-catalog-variant-prices">
       <legend class="admin-card__legend">Precios</legend>
-      ${hiddenInput("variant_pricing_key", item.pricing_key)}
-      ${variantRows.map((variant) => `
+      ${hiddenInput("variant_pricing_key", editablePrices.pricingKey)}
+      ${editablePrices.variantRows.map((variant) => `
         <label class="admin-field">
           <span class="admin-label">${escapeHtml(variant.name)}</span>
           ${hiddenInput("variant_id", variant.variant_id)}
@@ -308,23 +326,10 @@ function renderCatalogItemIntegratedPriceFields(state: AdminOperationalState, it
 }
 
 function renderCatalogItemPriceEditor(
-  state: AdminOperationalState,
-  item: CatalogItemState,
+  editablePrices: CatalogItemEditablePrices,
   isBusy: boolean,
 ): string {
-  if (!item.pricing_key) {
-    return `
-      <div class="admin-inline-price-panel">
-        <p class="admin-label">Precio</p>
-        <p class="admin-row__meta">No hay precio editable para este item.</p>
-      </div>
-    `;
-  }
-
-  const fixedRows = state.prices.fixed.filter((price) => price.pricing_key === item.pricing_key);
-  const variantRows = state.prices.variants.filter((variant) => variant.pricing_key === item.pricing_key);
-
-  if (fixedRows.length === 0 && variantRows.length === 0) {
+  if (!editablePrices.hasEditablePrices) {
     return `
       <div class="admin-inline-price-panel">
         <p class="admin-label">Precio</p>
@@ -339,8 +344,8 @@ function renderCatalogItemPriceEditor(
         <p class="admin-label">Precio</p>
         <span class="admin-row__state-note">Guardar requiere publicación.</span>
       </div>
-      ${fixedRows.map((row) => renderFixedPriceRow(row, isBusy, { showTags: false })).join("")}
-      ${variantRows.map((row) => renderVariantPriceRow(row, isBusy, { showTags: false })).join("")}
+      ${editablePrices.fixedRows.map((row) => renderFixedPriceRow(row, isBusy, { showTags: false })).join("")}
+      ${editablePrices.variantRows.map((row) => renderVariantPriceRow(row, isBusy, { showTags: false })).join("")}
     </section>
   `;
 }
