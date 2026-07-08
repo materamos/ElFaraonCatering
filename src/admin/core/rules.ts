@@ -74,10 +74,6 @@ export function getFixedMenuEditMode(section: FixedMenuLocation): FixedMenuEditM
   return section.item_ids ? "options-only" : "items";
 }
 
-export function getFixedSectionAdminTitle(section: FixedMenuLocation): string {
-  return section.title;
-}
-
 export function catalogItemFormRequiresPrice(section: CatalogSectionState): boolean {
   return section.section_id !== "guarniciones";
 }

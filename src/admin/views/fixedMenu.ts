@@ -4,7 +4,6 @@ import {
   catalogItemFormRequiresPrice,
   getFixedMenuEditMode,
   getFixedMenuLocations,
-  getFixedSectionAdminTitle,
   isIncludedSideOptionItem,
   type FixedMenuLocation,
 } from "../core/rules";
@@ -78,7 +77,7 @@ export function renderFixedMenuTab(
           <span class="admin-label">Sección</span>
           <select class="admin-select" data-admin-filter="fixed-section">
             ${fixedLocations
-              .map((entry) => `<option value="${escapeHtml(entry.filter_id)}" ${entry.filter_id === section.filter_id ? "selected" : ""}>${escapeHtml(getFixedSectionAdminTitle(entry))}</option>`)
+              .map((entry) => `<option value="${escapeHtml(entry.filter_id)}" ${entry.filter_id === section.filter_id ? "selected" : ""}>${escapeHtml(entry.title)}</option>`)
               .join("")}
           </select>
         </label>
