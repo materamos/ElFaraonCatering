@@ -7,9 +7,10 @@ import type {
   ServiceKind,
   ServiceSectionId,
 } from "./types";
+import { catalogItems, dailyMenuItems, menuSections } from "../../menu/menuRules";
 
-export const regularDailyId = "menu-del-dia";
-export const vegetarianDailyId = "menu-vegetariano-del-dia";
+export const regularDailyId = dailyMenuItems.regular;
+export const vegetarianDailyId = dailyMenuItems.vegetarian;
 
 export interface FixedOptionsOnlySectionRule {
   filterId: string;
@@ -21,27 +22,27 @@ export interface FixedOptionsOnlySectionRule {
 export const fixedOptionsOnlySectionRules: readonly FixedOptionsOnlySectionRule[] = [
   {
     filterId: "tartas",
-    sectionId: "tartas-tortillas-omelettes",
+    sectionId: menuSections.piesTortillasOmelettes,
     title: "Tartas",
-    itemIds: ["tartas"],
+    itemIds: [catalogItems.tartas],
   },
   {
     filterId: "tortillas",
-    sectionId: "tartas-tortillas-omelettes",
+    sectionId: menuSections.piesTortillasOmelettes,
     title: "Tortillas",
-    itemIds: ["tortilla"],
+    itemIds: [catalogItems.tortilla],
   },
   {
     filterId: "omelettes",
-    sectionId: "tartas-tortillas-omelettes",
+    sectionId: menuSections.piesTortillasOmelettes,
     title: "Omelettes",
-    itemIds: ["omelette-espinaca-muzzarella", "omelette-jamon-queso"],
+    itemIds: [catalogItems.omeletteSpinach, catalogItems.omeletteHam],
   },
   {
     filterId: "empanadas",
-    sectionId: "empanadas",
+    sectionId: menuSections.empanadas,
     title: "Empanadas",
-    itemIds: ["empanadas"],
+    itemIds: [catalogItems.empanadas],
   },
 ];
 
@@ -75,11 +76,11 @@ export function getFixedMenuEditMode(section: FixedMenuLocation): FixedMenuEditM
 }
 
 export function catalogItemFormRequiresPrice(section: CatalogSectionState): boolean {
-  return section.section_id !== "guarniciones";
+  return section.section_id !== menuSections.sides;
 }
 
 export function isIncludedSideOptionItem(item: CatalogItemState): boolean {
-  if (item.section_id === "guarniciones" && item.item_id !== "guarnicion-sola") {
+  if (item.section_id === menuSections.sides && item.item_id !== catalogItems.sideOnly) {
     return true;
   }
 

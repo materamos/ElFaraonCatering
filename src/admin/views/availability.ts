@@ -23,6 +23,7 @@ import {
 } from "../core/selectors";
 import { getTargetKey } from "../core/adminState";
 import { escapeHtml } from "../core/format";
+import { getAvailabilitySummaryGroupLabel } from "../../menu/menuRules";
 
 export function renderAvailabilityTab(
   state: AdminOperationalState,
@@ -408,50 +409,15 @@ function getHiddenAvailabilityGroupLabel(
   target: AvailabilityTargetState,
   optionDisplay?: { itemName: string; optionName: string },
 ): string {
-  if (target.target_kind === "daily-menu") {
-    return "Menu del dia";
-  }
-
-  if (target.target_kind === "grill") {
-    return "Parrilla";
-  }
-
-  if (target.section_id === "platos-principales") {
-    return "Principales";
-  }
-
-  if (target.section_id === "promociones") {
-    return "Promos cafeteria";
-  }
-
-  if (target.section_id === "tartas-tortillas-omelettes") {
-    const itemName = optionDisplay?.itemName ?? target.name;
-
-    if (itemName === "Tartas") {
-      return optionDisplay ? "Tarta" : "";
-    }
-
-    if (
-      itemName === "Tortilla"
-      || target.item_id === "omelette-espinaca-muzzarella"
-      || target.item_id === "omelette-jamon-queso"
-    ) {
-      return "";
-    }
-  }
-
-  if (target.section_id === "empanadas") {
-    return optionDisplay ? "Empanada" : "";
-  }
-
-  const catalogLabels: Record<string, string> = {
-    guarniciones: "Guarniciones",
-    ensaladas: "Ensaladas",
-    cafeteria: "Cafeteria",
-    bebidas: "Bebidas",
-  };
-
-  return catalogLabels[target.section_id] ?? target.section_title;
+  return getAvailabilitySummaryGroupLabel({
+    targetKind: target.target_kind,
+    sectionId: target.section_id,
+    sectionTitle: target.section_title,
+    itemId: target.item_id,
+    itemName: target.name,
+    optionItemName: optionDisplay?.itemName,
+    hasOptionDisplay: Boolean(optionDisplay),
+  });
 }
 
 function renderAvailabilityRow(

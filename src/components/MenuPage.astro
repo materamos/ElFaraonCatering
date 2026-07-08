@@ -2,6 +2,7 @@
 import type { MenuProfileData, MenuSectionData } from "../types/menu";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MenuSection from "./MenuSection.astro";
+import { getMenuNavSectionLabel } from "../menu/menuRules";
 
 interface Props {
   menuId: string;
@@ -23,12 +24,7 @@ const paymentMethodRows =
   paymentMethods && paymentMethods.length > 3
     ? [paymentMethods.slice(0, 2), paymentMethods.slice(2)]
     : [paymentMethods ?? []];
-const getSectionNavLabel = (section: MenuSectionData) =>
-  section.sectionId === "platos-principales"
-    ? "Principales"
-    : section.sectionId === "promociones"
-      ? "Promos cafetería"
-      : section.title;
+const getSectionNavLabel = (section: MenuSectionData) => getMenuNavSectionLabel(section.sectionId, section.title);
 ---
 
 <BaseLayout

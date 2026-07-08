@@ -1,5 +1,9 @@
 ---
 import type { MenuItem, MenuOption, MenuPricing, MenuPricingVariant } from "../types/menu";
+import {
+  shouldHideIncludedPricing as shouldHideIncludedMenuPricing,
+  shouldHideUnavailableOptions as shouldHideUnavailableMenuOptions,
+} from "../menu/menuRules";
 import { getSafeMenuImagePath } from "../utils/menuImagePath.mjs";
 import { getPricingText, getVariantPricingText } from "../utils/menuPricing";
 
@@ -42,10 +46,8 @@ const hasOperationalVariants = variants.some((variant) => variant.availabilityIt
 const displayOptions = options ?? [];
 const hasOptions = displayOptions.length > 0;
 const getOptionAvailabilityItemId = (option: MenuOption) => `${itemId}-${option.id}`;
-const shouldHideIncludedPricing = sectionId === "guarniciones" && effectivePricing?.kind === "included";
-const shouldHideUnavailableOptions =
-  (sectionId === "empanadas" && itemId === "empanadas") ||
-  (sectionId === "tartas-tortillas-omelettes" && itemId === "tartas");
+const shouldHideIncludedPricing = shouldHideIncludedMenuPricing(sectionId, effectivePricing?.kind);
+const shouldHideUnavailableOptions = shouldHideUnavailableMenuOptions(sectionId, itemId);
 
 const directPricingText =
   effectivePricing && effectivePricing.kind !== "variants" && !shouldHideIncludedPricing

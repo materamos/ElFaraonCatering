@@ -3,6 +3,7 @@ import type {
   MenuItem,
   MenuSectionData,
 } from "../types/menu";
+import { menuSections } from "../menu/menuRules";
 import { loadSupabaseMenuContentSnapshot } from "./menuSupabaseContent";
 
 let supabaseMenuContentSnapshot: Promise<MenuContentSnapshot> | undefined;
@@ -52,7 +53,7 @@ const getDailyServiceSection = (
   }
 
   return {
-    sectionId: "menu-del-dia",
+    sectionId: menuSections.dailyMenu,
     title: "Menú del día",
     order: 10,
     items: dailyMenu.items,
@@ -78,7 +79,7 @@ const validateMenuContentIntegrity = ({
   assertUniqueIds(profileServiceMenuIds, "profile service settings entry");
 
   validateSectionIds("daily menu service", {
-    sectionId: "menu-del-dia",
+    sectionId: menuSections.dailyMenu,
     title: "Menú del día",
     order: 10,
     items: dailyMenu.items,
