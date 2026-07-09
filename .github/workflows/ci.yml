@@ -34,6 +34,9 @@ jobs:
       - name: Check JavaScript syntax
         run: npm run check:js
 
+      - name: Lint
+        run: npm run lint
+
       - name: Test admin rules
         run: npm run test:admin
 
