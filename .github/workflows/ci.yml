@@ -40,6 +40,9 @@ jobs:
       - name: Test admin rules
         run: npm run test:admin
 
+      - name: Test menu availability overlay
+        run: npm run test:menu
+
       - name: Validate menu content
         if: github.actor != 'dependabot[bot]'
         env:
