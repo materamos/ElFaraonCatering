@@ -5,7 +5,37 @@ import type {
 import { getSafeMenuImagePaths } from "./menuImagePath.mjs";
 import { createSnapshot, loadRows } from "./menuSupabaseSnapshot.mjs";
 
-export const loadSupabaseMenuContentSnapshot = async (): Promise<MenuContentSnapshot> => {
+type MenuDb = ReturnType<typeof postgres>;
+
+export const loadSupabaseMenuContentSnapshot = (): Promise<MenuContentSnapshot> =>
+  withMenuDb(async (sql) => {
+    const rows = await loadRows(sql);
+    const snapshot = createSnapshot(rows, {
+      transformImages: getSafeMenuImagePaths,
+    });
+
+    assertMenuContentSnapshot(snapshot);
+
+    return snapshot;
+  });
+
+export const loadSupabaseMenuPublicationContentHash = (): Promise<string> =>
+  withMenuDb(async (sql) => {
+    const rows = await sql`
+      select app_private.get_menu_publication_content_hash() as menu_content_hash
+    `;
+    const hash = rows[0]?.menu_content_hash;
+
+    if (typeof hash !== "string" || !/^[a-f0-9]{32}$/.test(hash)) {
+      throw new Error("Build-time menu content hash is invalid.");
+    }
+
+    return hash;
+  });
+
+const withMenuDb = async <T>(query: (sql: MenuDb) => Promise<T>): Promise<T> => {
+  // El nombre de la variable se arma por partes para que el literal no quede en
+  // ningún bundle: verify-dist-secrets lo trata como marcador sensible en dist/.
   const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
   const databaseUrl = getPrivateEnvironmentValue(privateDatabaseUrlEnvName);
 
@@ -21,45 +51,7 @@ export const loadSupabaseMenuContentSnapshot = async (): Promise<MenuContentSnap
   });
 
   try {
-    const rows = await loadRows(sql);
-    const snapshot = createSnapshot(rows, {
-      transformImages: getSafeMenuImagePaths,
-    });
-
-    assertMenuContentSnapshot(snapshot);
-
-    return snapshot;
-  } finally {
-    await sql.end();
-  }
-};
-
-export const loadSupabaseMenuPublicationContentHash = async (): Promise<string> => {
-  const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
-  const databaseUrl = getPrivateEnvironmentValue(privateDatabaseUrlEnvName);
-
-  if (!databaseUrl) {
-    throw new Error(
-      "Private Supabase database URL is required for build-time publication state.",
-    );
-  }
-
-  const sql = postgres(databaseUrl, {
-    max: 1,
-    prepare: false,
-  });
-
-  try {
-    const rows = await sql`
-      select app_private.get_menu_publication_content_hash() as menu_content_hash
-    `;
-    const hash = rows[0]?.menu_content_hash;
-
-    if (typeof hash !== "string" || !/^[a-f0-9]{32}$/.test(hash)) {
-      throw new Error("Build-time menu content hash is invalid.");
-    }
-
-    return hash;
+    return await query(sql);
   } finally {
     await sql.end();
   }

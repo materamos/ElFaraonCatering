@@ -1,4 +1,4 @@
-import { adminActions, adminForms } from "../core/contracts";
+import { adminActions, adminFilters, adminForms } from "../core/contracts";
 import {
   canDeleteFromList,
   catalogItemFormRequiresPrice,
@@ -77,7 +77,7 @@ export function renderFixedMenuTab(
       <div class="admin-toolbar admin-fixed-toolbar">
         <label class="admin-field">
           <span class="admin-label">Sección</span>
-          <select class="admin-select" data-admin-filter="fixed-section">
+          <select class="admin-select" data-admin-filter="${adminFilters.fixedSection}">
             ${fixedLocations
               .map((entry) => `<option value="${escapeHtml(entry.filter_id)}" ${entry.filter_id === section.filter_id ? "selected" : ""}>${escapeHtml(entry.title)}</option>`)
               .join("")}

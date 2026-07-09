@@ -13,7 +13,7 @@ import {
 } from "./deleteActionHandlers";
 import { handlePublishAction } from "./publishActionHandlers";
 import type { createAdminOperations } from "../operations";
-import { adminActions } from "../core/contracts";
+import { adminActions, adminFilters } from "../core/contracts";
 import { isServiceSectionAvailable } from "../core/rules";
 import type {
   AdminOperationalState,
@@ -126,7 +126,7 @@ export function createAdminActionHandlers(context: AdminActionHandlerContext) {
           return;
         }
 
-        setAdminFilter("hidden-availability-profile", profileId);
+        setAdminFilter(adminFilters.hiddenAvailabilityProfile, profileId);
         context.renderCurrentView();
       }
 
@@ -247,7 +247,7 @@ export function createAdminActionHandlers(context: AdminActionHandlerContext) {
     const shouldShow = input.type === "password";
 
     input.type = shouldShow ? "text" : "password";
-    button.setAttribute("aria-label", shouldShow ? "Ocultar contrasena" : "Mostrar contrasena");
+    button.setAttribute("aria-label", shouldShow ? "Ocultar contraseña" : "Mostrar contraseña");
     button.setAttribute("aria-pressed", shouldShow ? "true" : "false");
   }
 

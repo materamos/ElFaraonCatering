@@ -88,7 +88,7 @@ export function createAdminSessionController(context: AdminSessionContext) {
     const password = getFormString(form, "password");
 
     if (!email || !password) {
-      context.setStatus("Completa email y contraseña.", "danger");
+      context.setStatus("Completá email y contraseña.", "danger");
       return;
     }
 
@@ -104,7 +104,7 @@ export function createAdminSessionController(context: AdminSessionContext) {
     const email = getFormString(form, "email");
 
     if (!email) {
-      context.setStatus("Ingresa tu email.", "danger");
+      context.setStatus("Ingresá tu email.", "danger");
       return;
     }
 
@@ -217,7 +217,7 @@ export function createAdminSessionController(context: AdminSessionContext) {
 
   function isValidNewPassword(password: string, passwordConfirmation: string): boolean {
     if (!password || !passwordConfirmation) {
-      context.setStatus("Completa la nueva contraseña y su confirmación.", "danger");
+      context.setStatus("Completá la nueva contraseña y su confirmación.", "danger");
       return false;
     }
 

@@ -1,4 +1,4 @@
-import { adminActions } from "../core/contracts";
+import { adminActions, adminFilters } from "../core/contracts";
 import { disabledAttr, renderEmpty } from "./html";
 import type {
   AdminOperationalState,
@@ -81,7 +81,7 @@ function renderHiddenAvailabilitySummary(
       <div class="admin-availability-chip-list">
         ${selectedGroup && selectedGroup.targets.length > 0
           ? renderHiddenAvailabilityProfileChips(state, selectedGroup, isBusy)
-          : renderEmpty("No hay items ocultos para este menu.")}
+          : renderEmpty("No hay items ocultos para este menú.")}
       </div>
     </section>
   `;
@@ -194,7 +194,7 @@ function renderAvailabilityFilters(state: AdminOperationalState, viewState: Admi
     <div class="admin-toolbar">
       <label class="admin-field">
         <span class="admin-label">Local</span>
-        <select class="admin-select" data-admin-filter="availability-profile">
+        <select class="admin-select" data-admin-filter="${adminFilters.availabilityProfile}">
           ${profileOptions
             .map((profile) => `<option value="${escapeHtml(profile.id)}" ${profileFilter === profile.id ? "selected" : ""}>${escapeHtml(profile.title)}</option>`)
             .join("")}
@@ -202,7 +202,7 @@ function renderAvailabilityFilters(state: AdminOperationalState, viewState: Admi
       </label>
       <label class="admin-field">
         <span class="admin-label">Familia / grupo</span>
-        <select class="admin-select" data-admin-filter="availability-group">
+        <select class="admin-select" data-admin-filter="${adminFilters.availabilityGroup}">
           ${groupOptions
             .map((option) => `<option value="${escapeHtml(option.key)}" ${groupFilter === option.key ? "selected" : ""}>${escapeHtml(option.label)}</option>`)
             .join("")}
@@ -262,7 +262,7 @@ function renderAvailabilityTargetSection(
     <section class="admin-availability-group">
       <div class="admin-list-header">
         <span>${escapeHtml(title)}</span>
-        <span>${rows.length} items &middot; cambios instantaneos</span>
+        <span>${rows.length} items · cambios instantáneos</span>
       </div>
       <div class="admin-grid">${rows.join("")}</div>
     </section>

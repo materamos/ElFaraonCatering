@@ -1,3 +1,4 @@
+import { adminFilters } from "./contracts";
 import type { AdminTabId, ServiceSectionId } from "./types";
 
 export interface AdminViewState {
@@ -36,26 +37,26 @@ export function setAdminServiceSection(section: ServiceSectionId): void {
 }
 
 export function setAdminFilter(name: string, value: string): void {
-  if (name === "hidden-availability-profile") {
+  if (name === adminFilters.hiddenAvailabilityProfile) {
     hiddenAvailabilityProfileFilter = value;
     availabilityProfileFilter = value;
     availabilityGroupFilter = "";
     return;
   }
 
-  if (name === "availability-profile") {
+  if (name === adminFilters.availabilityProfile) {
     availabilityProfileFilter = value;
     hiddenAvailabilityProfileFilter = value;
     availabilityGroupFilter = "";
     return;
   }
 
-  if (name === "availability-group") {
+  if (name === adminFilters.availabilityGroup) {
     availabilityGroupFilter = value;
     return;
   }
 
-  if (name === "fixed-section") {
+  if (name === adminFilters.fixedSection) {
     fixedSectionFilter = value;
   }
 }
