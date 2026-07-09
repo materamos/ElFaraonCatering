@@ -80,18 +80,7 @@ export function catalogItemFormRequiresPrice(section: CatalogSectionState): bool
 }
 
 export function isIncludedSideOptionItem(item: CatalogItemState): boolean {
-  if (item.section_id === menuSections.sides && item.item_id !== catalogItems.sideOnly) {
-    return true;
-  }
-
-  const searchableValues = [item.item_id, item.name].map((value) =>
-    value
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase(),
-  );
-
-  return searchableValues.some((value) => value === "guarnicion" || value === "guarniciones");
+  return item.section_id === menuSections.sides && item.item_id !== catalogItems.sideOnly;
 }
 
 export function canDeleteFromList(itemCount: number): boolean {

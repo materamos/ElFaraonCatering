@@ -10,7 +10,8 @@ export function createGrillOperations(context: AdminOperationContext) {
       return context.runBusy(async () => {
         const result = await context.callMutation("add_grill_item", {
           family_id: getFormString(form, "family_id"),
-          item_id: getFormString(form, "item_id"),
+          // La firma del RPC exige item_id, pero el servidor lo ignora y genera el id.
+          item_id: "",
           name: getFormString(form, "variant_name"),
           variant_name: getFormString(form, "variant_name"),
           amount: getFormInteger(form, "amount"),
@@ -34,9 +35,10 @@ export function createGrillOperations(context: AdminOperationContext) {
     saveGrillProduct(form: HTMLFormElement): Promise<void> {
       return context.runBusy(async () => {
         const result = await context.callMutation("add_grill_product", {
-          family_id: getFormString(form, "family_id"),
+          // La firma del RPC exige family_id e item_id, pero el servidor los ignora y genera los ids.
+          family_id: "",
           title: getFormString(form, "title"),
-          item_id: getFormString(form, "item_id"),
+          item_id: "",
           variant_name: getFormString(form, "variant_name"),
           amount: getFormInteger(form, "amount"),
         });

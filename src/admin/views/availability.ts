@@ -407,15 +407,14 @@ function renderAvailabilityChipName(name: string, metaLabel: string): string {
 
 function getHiddenAvailabilityGroupLabel(
   target: AvailabilityTargetState,
-  optionDisplay?: { itemName: string; optionName: string },
+  optionDisplay?: { itemId: string },
 ): string {
   return getAvailabilitySummaryGroupLabel({
     targetKind: target.target_kind,
     sectionId: target.section_id,
     sectionTitle: target.section_title,
     itemId: target.item_id,
-    itemName: target.name,
-    optionItemName: optionDisplay?.itemName,
+    optionItemId: optionDisplay?.itemId,
     hasOptionDisplay: Boolean(optionDisplay),
   });
 }

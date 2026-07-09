@@ -252,7 +252,7 @@ export function buildCatalogAvailabilityCascade(
   const optionTargets = findCatalogOptionAvailabilityTargets(state, target);
 
   if (optionTargets.length > 0) {
-    return available ? [target, ...optionTargets] : [target, ...optionTargets];
+    return [target, ...optionTargets];
   }
 
   return [target];

@@ -52,8 +52,7 @@ export function getAvailabilitySummaryGroupLabel(input: {
   sectionId: string;
   sectionTitle: string;
   itemId: string;
-  itemName: string;
-  optionItemName?: string;
+  optionItemId?: string;
   hasOptionDisplay: boolean;
 }): string {
   if (input.targetKind === "daily-menu") {
@@ -73,16 +72,16 @@ export function getAvailabilitySummaryGroupLabel(input: {
   }
 
   if (input.sectionId === menuSections.piesTortillasOmelettes) {
-    const itemName = input.optionItemName ?? input.itemName;
+    const itemId = input.optionItemId ?? input.itemId;
 
-    if (itemName === "Tartas") {
+    if (itemId === catalogItems.tartas) {
       return input.hasOptionDisplay ? "Tarta" : "";
     }
 
     if (
-      itemName === "Tortilla" ||
-      input.itemId === catalogItems.omeletteSpinach ||
-      input.itemId === catalogItems.omeletteHam
+      itemId === catalogItems.tortilla ||
+      itemId === catalogItems.omeletteSpinach ||
+      itemId === catalogItems.omeletteHam
     ) {
       return "";
     }

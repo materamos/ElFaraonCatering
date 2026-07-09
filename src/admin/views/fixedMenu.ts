@@ -100,10 +100,9 @@ function renderCatalogItemForm(section: FixedMenuLocation, isBusy: boolean): str
         <p class="admin-row__meta">Se agrega al final de ${escapeHtml(section.title)}. Para cambiar el orden, avisale a quien administra el sitio.</p>
       </div>
       ${hiddenInput("section_id", section.section_id)}
-      <input type="hidden" name="item_id" data-catalog-id />
       <label class="admin-field">
         <span class="admin-label">Nombre visible</span>
-        <input class="admin-input" name="name" data-catalog-name required />
+        <input class="admin-input" name="name" required />
         <span class="admin-help">Es el nombre que va a leer el cliente en el menú.</span>
       </label>
       ${requiresPrice ? `
@@ -369,10 +368,9 @@ function renderCatalogItemOptions(item: CatalogItemState, isBusy: boolean): stri
       <form class="admin-fixed-option-row" data-admin-form="${adminForms.catalogOption}">
         ${hiddenInput("section_id", item.section_id)}
         ${hiddenInput("item_id", item.item_id)}
-        <input type="hidden" name="option_id" data-catalog-option-id />
         <label class="admin-field">
           <span class="admin-label">Nuevo sabor</span>
-          <input class="admin-input" name="name" data-catalog-option-name required />
+          <input class="admin-input" name="name" required />
         </label>
         <div class="admin-row__actions">
           <button class="admin-button" type="submit" ${disabledAttr(isBusy)}>Agregar sabor</button>

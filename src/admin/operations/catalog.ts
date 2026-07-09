@@ -15,7 +15,8 @@ export function createCatalogOperations(context: AdminOperationContext) {
         const amountValue = getNullableFormString(form, "amount");
         const result = await context.callMutation("add_catalog_item", {
           section_id: getFormString(form, "section_id"),
-          item_id: getFormString(form, "item_id"),
+          // La firma del RPC exige item_id, pero el servidor lo ignora y genera el id.
+          item_id: "",
           name: getFormString(form, "name"),
           description: getNullableFormString(form, "description"),
           amount: amountValue ? getFormInteger(form, "amount") : null,
@@ -147,7 +148,8 @@ export function createCatalogOperations(context: AdminOperationContext) {
         const result = await context.callMutation("add_catalog_item_option", {
           section_id: getFormString(form, "section_id"),
           item_id: getFormString(form, "item_id"),
-          option_id: getFormString(form, "option_id"),
+          // La firma del RPC exige option_id, pero el servidor lo ignora y genera el id.
+          option_id: "",
           name: getFormString(form, "name"),
         });
 

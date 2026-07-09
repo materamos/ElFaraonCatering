@@ -144,15 +144,13 @@ function renderGrillProductForm(isBusy: boolean): string {
         <h4 class="admin-card__legend">Agregar producto de parrilla</h4>
         <p class="admin-row__meta">Creá un producto nuevo con su primera opción y precio.</p>
       </div>
-      <input type="hidden" name="family_id" data-grill-product-id />
-      <input type="hidden" name="item_id" data-grill-id />
       <label class="admin-field">
         <span class="admin-label">Producto</span>
-        <input class="admin-input" name="title" data-grill-product-name required />
+        <input class="admin-input" name="title" required />
       </label>
       <label class="admin-field">
         <span class="admin-label">Primera opción</span>
-        <input class="admin-input" name="variant_name" data-grill-name required />
+        <input class="admin-input" name="variant_name" required />
       </label>
       <label class="admin-field">
         <span class="admin-label">Precio</span>
@@ -214,11 +212,9 @@ function renderGrillOptionForm(family: GrillFamilyState, isBusy: boolean): strin
         <p class="admin-row__meta">Se agrega al final de ${escapeHtml(family.title)}.</p>
       </div>
       ${hiddenInput("family_id", family.family_id)}
-      ${hiddenInput("product_name", family.title)}
-      <input type="hidden" name="item_id" data-grill-id />
       <label class="admin-field">
         <span class="admin-label">Opción</span>
-        <input class="admin-input" name="variant_name" data-grill-name required />
+        <input class="admin-input" name="variant_name" required />
       </label>
       <label class="admin-field">
         <span class="admin-label">Precio</span>
