@@ -166,13 +166,20 @@ async function runBusy(action: () => Promise<void>, busyText = "Procesando..."):
 }
 
 function handleUnexpectedError(error: unknown): void {
-  const message = error instanceof TypeError && error.message === "Failed to fetch"
+  const message = isNetworkFetchError(error)
     ? "No se pudo conectar. Revisá la conexión e intentá de nuevo."
     : error instanceof Error
       ? toOperationalErrorMessage(error.message)
       : "Ocurrió un error inesperado.";
   currentStatus = { text: message, tone: "danger" };
   renderCurrentView({ revealStatus: true });
+}
+
+// El TypeError de red de fetch no tiene mensaje estándar: Chrome usa "Failed to
+// fetch", Firefox "NetworkError when attempting to fetch resource." y Safari
+// "Load failed".
+function isNetworkFetchError(error: unknown): boolean {
+  return error instanceof TypeError && /fetch|network|load failed/i.test(error.message);
 }
 
 function renderCurrentView(options: RenderOptions = {}): void {

@@ -2,7 +2,6 @@ import { adminActions } from "../core/contracts";
 import { disabledAttr, renderEmpty } from "./html";
 import type {
   AdminOperationalState,
-  AvailabilityOverlayState,
   AvailabilityTargetState,
 } from "../core/types";
 import type { AdminViewState } from "../core/viewState";
@@ -408,7 +407,7 @@ function renderAvailabilityRow(
           ${renderAvailabilityStatus(effectiveAvailable)}
         </div>
       </div>
-      ${renderAvailabilityActions(key, effectiveAvailable, overlay, isBusy)}
+      ${renderAvailabilityActions(key, effectiveAvailable, Boolean(overlay), isBusy)}
     </div>
   `;
 }
@@ -449,12 +448,11 @@ function renderAvailabilityStatus(effectiveAvailable: boolean): string {
 function renderAvailabilityActions(
   key: string,
   effectiveAvailable: boolean,
-  overlay: AvailabilityOverlayState | boolean | undefined,
+  hasOverlay: boolean,
   isBusy: boolean,
   keyKind: "target" | "family" = "target",
 ): string {
   const keyAttribute = keyKind === "family" ? "data-family-key" : "data-target-key";
-  const hasOverlay = Boolean(overlay);
   const mainButton = effectiveAvailable
     ? `
       <button class="admin-button admin-button--danger" type="button" data-admin-action="${adminActions.setOverlay}" ${keyAttribute}="${escapeHtml(key)}" data-available="false" ${disabledAttr(isBusy)}>

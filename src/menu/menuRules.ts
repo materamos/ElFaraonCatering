@@ -35,16 +35,26 @@ export function shouldHideUnavailableOptions(sectionId: string, itemId: string):
   );
 }
 
+// Abreviaciones deliberadas para el índice sticky del menú público: los títulos
+// completos de la DB (p. ej. "Platos principales con guarnición") no entran bien
+// en desktop. El resto de las secciones usa el título tal como viene de la DB.
+const navSectionLabels: Record<string, string> = {
+  [menuSections.mainDishes]: "Principales",
+  [menuSections.promos]: "Promos cafeteria",
+};
+
+// Etiquetas de grupo para los chips de "items ocultos" del panel operativo:
+// reusa las abreviaciones del índice y fija etiquetas cortas para el resto.
+const availabilityGroupChipLabels: Record<string, string> = {
+  ...navSectionLabels,
+  [menuSections.sides]: "Guarniciones",
+  [menuSections.salads]: "Ensaladas",
+  [menuSections.cafeteria]: "Cafeteria",
+  [menuSections.drinks]: "Bebidas",
+};
+
 export function getMenuNavSectionLabel(sectionId: string, fallback: string): string {
-  if (sectionId === menuSections.mainDishes) {
-    return "Principales";
-  }
-
-  if (sectionId === menuSections.promos) {
-    return "Promos cafeteria";
-  }
-
-  return fallback;
+  return navSectionLabels[sectionId] ?? fallback;
 }
 
 export function getAvailabilitySummaryGroupLabel(input: {
@@ -61,14 +71,6 @@ export function getAvailabilitySummaryGroupLabel(input: {
 
   if (input.targetKind === "grill") {
     return "Parrilla";
-  }
-
-  if (input.sectionId === menuSections.mainDishes) {
-    return "Principales";
-  }
-
-  if (input.sectionId === menuSections.promos) {
-    return "Promos cafeteria";
   }
 
   if (input.sectionId === menuSections.piesTortillasOmelettes) {
@@ -91,12 +93,5 @@ export function getAvailabilitySummaryGroupLabel(input: {
     return input.hasOptionDisplay ? "Empanada" : "";
   }
 
-  const catalogLabels: Record<string, string> = {
-    [menuSections.sides]: "Guarniciones",
-    [menuSections.salads]: "Ensaladas",
-    [menuSections.cafeteria]: "Cafeteria",
-    [menuSections.drinks]: "Bebidas",
-  };
-
-  return catalogLabels[input.sectionId] ?? input.sectionTitle;
+  return availabilityGroupChipLabels[input.sectionId] ?? input.sectionTitle;
 }
