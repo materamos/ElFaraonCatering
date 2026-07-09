@@ -267,6 +267,25 @@ export function findAvailabilityFamilyTargets(
   );
 }
 
+export function groupGrillTargetsByFamily(
+  targets: AvailabilityTargetState[],
+): Map<string, AvailabilityTargetState[]> {
+  const familyMap = new Map<string, AvailabilityTargetState[]>();
+
+  for (const target of targets) {
+    if (target.target_kind !== "grill") {
+      continue;
+    }
+
+    const familyKey = getAvailabilityFamilyKey(target);
+    const familyTargets = familyMap.get(familyKey) ?? [];
+    familyTargets.push(target);
+    familyMap.set(familyKey, familyTargets);
+  }
+
+  return familyMap;
+}
+
 export function findCatalogItem(
   state: AdminOperationalState,
   sectionId: string,

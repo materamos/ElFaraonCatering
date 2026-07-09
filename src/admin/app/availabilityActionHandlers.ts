@@ -1,4 +1,5 @@
 import type { AdminActionHandlerContext } from "./actionHandlers";
+import type { AdminOperationalState, AvailabilityTargetState } from "../core/types";
 import {
   buildCatalogAvailabilityCascade,
   findAvailabilityFamilyTargets,
@@ -14,58 +15,39 @@ export async function handleSetOverlayAction(
     return;
   }
 
-  const familyKey = target.dataset.familyKey;
-  const targetKey = target.dataset.targetKey;
   const available = target.dataset.available === "true";
   const currentState = context.getCurrentState();
+  const familyTargets = resolveFamilyTargets(context, currentState, target.dataset.familyKey);
 
-  if (familyKey) {
-    const familyTargets = currentState ? findAvailabilityFamilyTargets(currentState, familyKey) : [];
-
-    if (familyTargets.length === 0) {
-      context.setStatus("No se encontró la familia seleccionada.", "danger");
-      return;
-    }
-
-    if (available) {
-      await context.adminOperations.clearAvailabilityOverlayBatch(familyTargets);
-    } else {
-      await context.adminOperations.saveAvailabilityOverlayBatch(familyTargets, false);
+  if (familyTargets !== undefined) {
+    if (familyTargets.length > 0) {
+      await applyFamilyAvailability(context, familyTargets, available);
     }
 
     return;
   }
 
-  const availabilityTarget = currentState && targetKey
-    ? findAvailabilityTarget(currentState, targetKey)
-    : undefined;
+  const availabilityTarget = findTargetOrReport(context, currentState, target.dataset.targetKey);
 
   if (!availabilityTarget || !currentState) {
-    context.setStatus("No se encontró el item seleccionado.", "danger");
     return;
   }
 
   if (availabilityTarget.target_kind === "grill") {
-    const familyTargets = findAvailabilityFamilyTargets(
+    const grillFamilyTargets = resolveFamilyTargets(
+      context,
       currentState,
       getAvailabilityFamilyKey(availabilityTarget),
     );
 
-    if (familyTargets.length === 0) {
-      context.setStatus("No se encontró la familia seleccionada.", "danger");
-      return;
-    }
-
-    if (available) {
-      await context.adminOperations.clearAvailabilityOverlayBatch(familyTargets);
-    } else {
-      await context.adminOperations.saveAvailabilityOverlayBatch(familyTargets, false);
+    if (grillFamilyTargets && grillFamilyTargets.length > 0) {
+      await applyFamilyAvailability(context, grillFamilyTargets, available);
     }
 
     return;
   }
 
-  const cascadeTargets = availabilityTarget.target_kind === "catalog" && currentState
+  const cascadeTargets = availabilityTarget.target_kind === "catalog"
     ? buildCatalogAvailabilityCascade(currentState, availabilityTarget, available)
     : [availabilityTarget];
 
@@ -90,45 +72,85 @@ export async function handleClearOverlayAction(
     return;
   }
 
-  const familyKey = target.dataset.familyKey;
-  const targetKey = target.dataset.targetKey;
   const currentState = context.getCurrentState();
+  const familyTargets = resolveFamilyTargets(context, currentState, target.dataset.familyKey);
 
-  if (familyKey) {
-    const familyTargets = currentState ? findAvailabilityFamilyTargets(currentState, familyKey) : [];
-
-    if (familyTargets.length === 0) {
-      context.setStatus("No se encontró la familia seleccionada.", "danger");
-      return;
+  if (familyTargets !== undefined) {
+    if (familyTargets.length > 0) {
+      await context.adminOperations.clearAvailabilityOverlayBatch(familyTargets);
     }
 
-    await context.adminOperations.clearAvailabilityOverlayBatch(familyTargets);
     return;
   }
 
-  const availabilityTarget = currentState && targetKey
-    ? findAvailabilityTarget(currentState, targetKey)
-    : undefined;
+  const availabilityTarget = findTargetOrReport(context, currentState, target.dataset.targetKey);
 
   if (!availabilityTarget || !currentState) {
-    context.setStatus("No se encontró el item seleccionado.", "danger");
     return;
   }
 
   if (availabilityTarget.target_kind === "grill") {
-    const familyTargets = findAvailabilityFamilyTargets(
+    const grillFamilyTargets = resolveFamilyTargets(
+      context,
       currentState,
       getAvailabilityFamilyKey(availabilityTarget),
     );
 
-    if (familyTargets.length === 0) {
-      context.setStatus("No se encontró la familia seleccionada.", "danger");
-      return;
+    if (grillFamilyTargets && grillFamilyTargets.length > 0) {
+      await context.adminOperations.clearAvailabilityOverlayBatch(grillFamilyTargets);
     }
 
-    await context.adminOperations.clearAvailabilityOverlayBatch(familyTargets);
     return;
   }
 
   await context.adminOperations.clearAvailabilityOverlay(availabilityTarget);
+}
+
+// Devuelve undefined cuando no hay familyKey (el flujo sigue por target individual);
+// devuelve [] cuando la familia no se encontró y ya se reportó el error.
+function resolveFamilyTargets(
+  context: AdminActionHandlerContext,
+  currentState: AdminOperationalState | null,
+  familyKey: string | undefined,
+): AvailabilityTargetState[] | undefined {
+  if (!familyKey) {
+    return undefined;
+  }
+
+  const familyTargets = currentState ? findAvailabilityFamilyTargets(currentState, familyKey) : [];
+
+  if (familyTargets.length === 0) {
+    context.setStatus("No se encontró la familia seleccionada.", "danger");
+    return [];
+  }
+
+  return familyTargets;
+}
+
+function findTargetOrReport(
+  context: AdminActionHandlerContext,
+  currentState: AdminOperationalState | null,
+  targetKey: string | undefined,
+): AvailabilityTargetState | undefined {
+  const availabilityTarget = currentState && targetKey
+    ? findAvailabilityTarget(currentState, targetKey)
+    : undefined;
+
+  if (!availabilityTarget) {
+    context.setStatus("No se encontró el item seleccionado.", "danger");
+  }
+
+  return availabilityTarget;
+}
+
+async function applyFamilyAvailability(
+  context: AdminActionHandlerContext,
+  familyTargets: AvailabilityTargetState[],
+  available: boolean,
+): Promise<void> {
+  if (available) {
+    await context.adminOperations.clearAvailabilityOverlayBatch(familyTargets);
+  } else {
+    await context.adminOperations.saveAvailabilityOverlayBatch(familyTargets, false);
+  }
 }

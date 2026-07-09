@@ -1,56 +1,34 @@
 import { getFormInteger, getFormString } from "../core/forms";
-import { resultMessage } from "../core/responses";
-import { publicationStatus } from "./helpers";
+import { createMutationRunner } from "./helpers";
 import type { AdminOperationContext } from "./types";
 
 export function createPriceOperations(context: AdminOperationContext) {
+  const { runPublicationMutation } = createMutationRunner(context);
+
   return {
     saveFixedPrice(form: HTMLFormElement): Promise<void> {
-      return context.runBusy(async () => {
-        const result = await context.callMutation("set_global_fixed_price", {
+      return runPublicationMutation({
+        mutation: "set_global_fixed_price",
+        body: {
           pricing_key: getFormString(form, "pricing_key"),
           amount: getFormInteger(form, "amount"),
-        });
-
-        if (!result.ok) {
-          throw new Error(resultMessage(result));
-        }
-
-        await context.loadAdminState(
-          publicationStatus(
-            result.changed,
-            "Precio guardado. Falta publicar los cambios.",
-            "Precio guardado. No hay cambios pendientes de publicación.",
-          ),
-          "success",
-        );
-      }, "Guardando precio...");
+        },
+        busyText: "Guardando precio...",
+        successPrefix: "Precio guardado.",
+      });
     },
 
     saveVariantPrice(form: HTMLFormElement): Promise<void> {
-      return context.runBusy(async () => {
-        const pricingKey = getFormString(form, "pricing_key");
-        const variantId = getFormString(form, "variant_id");
-
-        const result = await context.callMutation("set_global_price_variant", {
-          pricing_key: pricingKey,
-          variant_id: variantId,
+      return runPublicationMutation({
+        mutation: "set_global_price_variant",
+        body: {
+          pricing_key: getFormString(form, "pricing_key"),
+          variant_id: getFormString(form, "variant_id"),
           amount: getFormInteger(form, "amount"),
-        });
-
-        if (!result.ok) {
-          throw new Error(resultMessage(result));
-        }
-
-        await context.loadAdminState(
-          publicationStatus(
-            result.changed,
-            "Variante guardada. Falta publicar los cambios.",
-            "Variante guardada. No hay cambios pendientes de publicación.",
-          ),
-          "success",
-        );
-      }, "Guardando variante...");
+        },
+        busyText: "Guardando variante...",
+        successPrefix: "Variante guardada.",
+      });
     },
   };
 }

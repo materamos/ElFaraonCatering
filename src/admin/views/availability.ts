@@ -19,6 +19,7 @@ import {
   getEditableAvailabilityProfiles,
   getHiddenAvailabilityTargets,
   getVisibleAvailabilityTargets,
+  groupGrillTargetsByFamily,
   shouldCatalogParentAppearAvailable,
 } from "../core/selectors";
 import { getTargetKey } from "../core/adminState";
@@ -135,19 +136,9 @@ function groupAvailabilityTargetsByProfile(
 }
 
 function countHiddenAvailabilitySummaryItems(targets: AvailabilityTargetState[]): number {
-  const grillFamilies = new Set<string>();
-  let count = 0;
+  const directTargets = targets.filter((target) => target.target_kind !== "grill");
 
-  for (const target of targets) {
-    if (target.target_kind === "grill") {
-      grillFamilies.add(getAvailabilityFamilyKey(target));
-      continue;
-    }
-
-    count += 1;
-  }
-
-  return count + grillFamilies.size;
+  return directTargets.length + groupGrillTargetsByFamily(targets).size;
 }
 
 function renderHiddenAvailabilityProfileChips(
@@ -174,21 +165,10 @@ function buildHiddenServiceChips(
   hiddenTargets: AvailabilityTargetState[],
   isBusy: boolean,
 ): string[] {
-  const chips: string[] = [];
-  const grillFamilyMap = new Map<string, AvailabilityTargetState[]>();
-
-  for (const target of hiddenTargets) {
-    if (target.target_kind !== "grill") {
-      chips.push(renderAvailabilityChip(target, isBusy));
-      continue;
-    }
-
-    const familyKey = getAvailabilityFamilyKey(target);
-    const familyTargets = grillFamilyMap.get(familyKey) ?? [];
-    familyTargets.push(target);
-    grillFamilyMap.set(familyKey, familyTargets);
-  }
-
+  const chips = hiddenTargets
+    .filter((target) => target.target_kind !== "grill")
+    .map((target) => renderAvailabilityChip(target, isBusy));
+  const grillFamilyMap = groupGrillTargetsByFamily(hiddenTargets);
   const visibleTargets = getVisibleAvailabilityTargets(state);
 
   for (const familyKey of grillFamilyMap.keys()) {
@@ -295,22 +275,11 @@ function buildAvailabilityRows(
   targets: AvailabilityTargetState[],
   isBusy: boolean,
 ): string[] {
-  const rows: string[] = [];
-  const grillFamilyMap = new Map<string, AvailabilityTargetState[]>();
+  const rows = targets
+    .filter((target) => target.target_kind !== "grill")
+    .map((target) => renderAvailabilityRow(state, target, isBusy));
 
-  for (const target of targets) {
-    if (target.target_kind !== "grill") {
-      rows.push(renderAvailabilityRow(state, target, isBusy));
-      continue;
-    }
-
-    const familyKey = getAvailabilityFamilyKey(target);
-    const familyTargets = grillFamilyMap.get(familyKey) ?? [];
-    familyTargets.push(target);
-    grillFamilyMap.set(familyKey, familyTargets);
-  }
-
-  for (const familyTargets of grillFamilyMap.values()) {
+  for (const familyTargets of groupGrillTargetsByFamily(targets).values()) {
     rows.push(renderAvailabilityFamilyRow(state, familyTargets, isBusy));
   }
 

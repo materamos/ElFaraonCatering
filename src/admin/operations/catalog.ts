@@ -4,59 +4,46 @@ import {
   getFormString,
   getNullableFormString,
 } from "../core/forms";
-import { resultMessage } from "../core/responses";
-import { partialMutationError, publicationStatus } from "./helpers";
+import {
+  createMutationRunner,
+  partialMutationError,
+  publicationSaveStatus,
+  requireOk,
+} from "./helpers";
 import type { AdminOperationContext } from "./types";
 
 export function createCatalogOperations(context: AdminOperationContext) {
+  const { runPublicationMutation } = createMutationRunner(context);
+
   return {
     saveCatalogItem(form: HTMLFormElement): Promise<void> {
-      return context.runBusy(async () => {
-        const amountValue = getNullableFormString(form, "amount");
-        const result = await context.callMutation("add_catalog_item", {
+      const amountValue = getNullableFormString(form, "amount");
+
+      return runPublicationMutation({
+        mutation: "add_catalog_item",
+        body: {
           section_id: getFormString(form, "section_id"),
           // La firma del RPC exige item_id, pero el servidor lo ignora y genera el id.
           item_id: "",
           name: getFormString(form, "name"),
           description: getNullableFormString(form, "description"),
           amount: amountValue ? getFormInteger(form, "amount") : null,
-        });
-
-        if (!result.ok) {
-          throw new Error(resultMessage(result));
-        }
-
-        await context.loadAdminState(
-          publicationStatus(
-            result.changed,
-            "Item agregado. Falta publicar los cambios.",
-            "Item agregado. No hay cambios pendientes de publicación.",
-          ),
-          "success",
-        );
-      }, "Agregando item...");
+        },
+        busyText: "Agregando item...",
+        successPrefix: "Item agregado.",
+      });
     },
 
     deleteCatalogItem(item: CatalogItemState): Promise<void> {
-      return context.runBusy(async () => {
-        const result = await context.callMutation("delete_catalog_item", {
+      return runPublicationMutation({
+        mutation: "delete_catalog_item",
+        body: {
           section_id: item.section_id,
           item_id: item.item_id,
-        });
-
-        if (!result.ok) {
-          throw new Error(resultMessage(result));
-        }
-
-        await context.loadAdminState(
-          publicationStatus(
-            result.changed,
-            "Item eliminado. Falta publicar los cambios.",
-            "Item eliminado. No hay cambios pendientes de publicación.",
-          ),
-          "success",
-        );
-      }, "Eliminando item...");
+        },
+        busyText: "Eliminando item...",
+        successPrefix: "Item eliminado.",
+      });
     },
 
     saveCatalogItemEdit(form: HTMLFormElement): Promise<void> {
@@ -64,30 +51,22 @@ export function createCatalogOperations(context: AdminOperationContext) {
         const results: RpcResult[] = [];
 
         try {
-          const itemResult = await context.callMutation("update_catalog_item", {
+          const itemResult = requireOk(await context.callMutation("update_catalog_item", {
             section_id: getFormString(form, "section_id"),
             item_id: getFormString(form, "item_id"),
             name: getFormString(form, "name"),
             description: getNullableFormString(form, "description"),
-          });
-
-          if (!itemResult.ok) {
-            throw new Error(resultMessage(itemResult));
-          }
+          }));
 
           results.push(itemResult);
 
           const fixedPricingKey = getFormString(form, "fixed_pricing_key");
 
           if (fixedPricingKey) {
-            const priceResult = await context.callMutation("set_global_fixed_price", {
+            const priceResult = requireOk(await context.callMutation("set_global_fixed_price", {
               pricing_key: fixedPricingKey,
               amount: getFormInteger(form, "fixed_price_amount"),
-            });
-
-            if (!priceResult.ok) {
-              throw new Error(resultMessage(priceResult));
-            }
+            }));
 
             results.push(priceResult);
           }
@@ -113,15 +92,11 @@ export function createCatalogOperations(context: AdminOperationContext) {
                 throw new Error("El importe no es válido.");
               }
 
-              const priceResult = await context.callMutation("set_global_price_variant", {
+              const priceResult = requireOk(await context.callMutation("set_global_price_variant", {
                 pricing_key: variantPricingKey,
                 variant_id: variantId,
                 amount,
-              });
-
-              if (!priceResult.ok) {
-                throw new Error(resultMessage(priceResult));
-              }
+              }));
 
               results.push(priceResult);
             }
@@ -130,11 +105,7 @@ export function createCatalogOperations(context: AdminOperationContext) {
           const changed = results.some((result) => result.changed);
 
           await context.loadAdminState(
-            publicationStatus(
-              changed,
-              "Item actualizado. Falta publicar los cambios.",
-              "Item actualizado. No hay cambios pendientes de publicación.",
-            ),
+            publicationSaveStatus("Item actualizado.", changed),
             "success",
           );
         } catch (error) {
@@ -144,75 +115,45 @@ export function createCatalogOperations(context: AdminOperationContext) {
     },
 
     saveCatalogOption(form: HTMLFormElement): Promise<void> {
-      return context.runBusy(async () => {
-        const result = await context.callMutation("add_catalog_item_option", {
+      return runPublicationMutation({
+        mutation: "add_catalog_item_option",
+        body: {
           section_id: getFormString(form, "section_id"),
           item_id: getFormString(form, "item_id"),
           // La firma del RPC exige option_id, pero el servidor lo ignora y genera el id.
           option_id: "",
           name: getFormString(form, "name"),
-        });
-
-        if (!result.ok) {
-          throw new Error(resultMessage(result));
-        }
-
-        await context.loadAdminState(
-          publicationStatus(
-            result.changed,
-            "Opción agregada. Falta publicar los cambios.",
-            "Opción agregada. No hay cambios pendientes de publicación.",
-          ),
-          "success",
-        );
-      }, "Agregando opción...");
+        },
+        busyText: "Agregando opción...",
+        successPrefix: "Opción agregada.",
+      });
     },
 
     saveCatalogOptionEdit(form: HTMLFormElement): Promise<void> {
-      return context.runBusy(async () => {
-        const result = await context.callMutation("update_catalog_item_option", {
+      return runPublicationMutation({
+        mutation: "update_catalog_item_option",
+        body: {
           section_id: getFormString(form, "section_id"),
           item_id: getFormString(form, "item_id"),
           option_id: getFormString(form, "option_id"),
           name: getFormString(form, "name"),
-        });
-
-        if (!result.ok) {
-          throw new Error(resultMessage(result));
-        }
-
-        await context.loadAdminState(
-          publicationStatus(
-            result.changed,
-            "Opción actualizada. Falta publicar los cambios.",
-            "Opción actualizada. No hay cambios pendientes de publicación.",
-          ),
-          "success",
-        );
-      }, "Guardando opción...");
+        },
+        busyText: "Guardando opción...",
+        successPrefix: "Opción actualizada.",
+      });
     },
 
     deleteCatalogOption(option: CatalogItemOptionState): Promise<void> {
-      return context.runBusy(async () => {
-        const result = await context.callMutation("delete_catalog_item_option", {
+      return runPublicationMutation({
+        mutation: "delete_catalog_item_option",
+        body: {
           section_id: option.section_id,
           item_id: option.item_id,
           option_id: option.option_id,
-        });
-
-        if (!result.ok) {
-          throw new Error(resultMessage(result));
-        }
-
-        await context.loadAdminState(
-          publicationStatus(
-            result.changed,
-            "Opción eliminada. Falta publicar los cambios.",
-            "Opción eliminada. No hay cambios pendientes de publicación.",
-          ),
-          "success",
-        );
-      }, "Eliminando opción...");
+        },
+        busyText: "Eliminando opción...",
+        successPrefix: "Opción eliminada.",
+      });
     },
   };
 }

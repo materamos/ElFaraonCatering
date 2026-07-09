@@ -1,83 +1,59 @@
 import type { GrillFamilyState, GrillItemState, RpcResult } from "../core/types";
 import { getFormInteger, getFormString } from "../core/forms";
-import { resultMessage } from "../core/responses";
-import { partialMutationError, publicationStatus } from "./helpers";
+import {
+  createMutationRunner,
+  partialMutationError,
+  publicationSaveStatus,
+  requireOk,
+} from "./helpers";
 import type { AdminOperationContext } from "./types";
 
 export function createGrillOperations(context: AdminOperationContext) {
+  const { runPublicationMutation } = createMutationRunner(context);
+
   return {
     saveGrillItem(form: HTMLFormElement): Promise<void> {
-      return context.runBusy(async () => {
-        const result = await context.callMutation("add_grill_item", {
+      return runPublicationMutation({
+        mutation: "add_grill_item",
+        body: {
           family_id: getFormString(form, "family_id"),
           // La firma del RPC exige item_id, pero el servidor lo ignora y genera el id.
           item_id: "",
           name: getFormString(form, "variant_name"),
           variant_name: getFormString(form, "variant_name"),
           amount: getFormInteger(form, "amount"),
-        });
-
-        if (!result.ok) {
-          throw new Error(resultMessage(result));
-        }
-
-        await context.loadAdminState(
-          publicationStatus(
-            result.changed,
-            "Opción de parrilla agregada. Falta publicar los cambios.",
-            "Opción de parrilla agregada. No hay cambios pendientes de publicación.",
-          ),
-          "success",
-        );
-      }, "Agregando opción de parrilla...");
+        },
+        busyText: "Agregando opción de parrilla...",
+        successPrefix: "Opción de parrilla agregada.",
+      });
     },
 
     saveGrillProduct(form: HTMLFormElement): Promise<void> {
-      return context.runBusy(async () => {
-        const result = await context.callMutation("add_grill_product", {
+      return runPublicationMutation({
+        mutation: "add_grill_product",
+        body: {
           // La firma del RPC exige family_id e item_id, pero el servidor los ignora y genera los ids.
           family_id: "",
           title: getFormString(form, "title"),
           item_id: "",
           variant_name: getFormString(form, "variant_name"),
           amount: getFormInteger(form, "amount"),
-        });
-
-        if (!result.ok) {
-          throw new Error(resultMessage(result));
-        }
-
-        await context.loadAdminState(
-          publicationStatus(
-            result.changed,
-            "Producto de parrilla agregado. Falta publicar los cambios.",
-            "Producto de parrilla agregado. No hay cambios pendientes de publicación.",
-          ),
-          "success",
-        );
-      }, "Agregando producto de parrilla...");
+        },
+        busyText: "Agregando producto de parrilla...",
+        successPrefix: "Producto de parrilla agregado.",
+      });
     },
 
     saveGrillProductEdit(form: HTMLFormElement): Promise<void> {
-      return context.runBusy(async () => {
-        const result = await context.callMutation("update_grill_product", {
+      return runPublicationMutation({
+        mutation: "update_grill_product",
+        body: {
           family_id: getFormString(form, "family_id"),
           title: getFormString(form, "title"),
-        });
-
-        if (!result.ok) {
-          throw new Error(resultMessage(result));
-        }
-
-        await context.loadAdminState(
-          publicationStatus(
-            result.changed,
-            "Producto de parrilla actualizado. Falta publicar los cambios.",
-            "Producto de parrilla actualizado. No hay cambios pendientes de publicación.",
-          ),
-          "success",
-        );
-      }, "Guardando producto de parrilla...");
+        },
+        busyText: "Guardando producto de parrilla...",
+        successPrefix: "Producto de parrilla actualizado.",
+      });
     },
 
     saveGrillItemEdit(form: HTMLFormElement): Promise<void> {
@@ -86,29 +62,21 @@ export function createGrillOperations(context: AdminOperationContext) {
 
         try {
           const optionName = getFormString(form, "variant_name");
-          const result = await context.callMutation("update_grill_item", {
+          const result = requireOk(await context.callMutation("update_grill_item", {
             item_id: getFormString(form, "item_id"),
             name: optionName,
             variant_name: optionName,
-          });
-
-          if (!result.ok) {
-            throw new Error(resultMessage(result));
-          }
+          }));
 
           results.push(result);
 
           const fixedPricingKey = getFormString(form, "fixed_pricing_key");
 
           if (fixedPricingKey) {
-            const priceResult = await context.callMutation("set_global_fixed_price", {
+            const priceResult = requireOk(await context.callMutation("set_global_fixed_price", {
               pricing_key: fixedPricingKey,
               amount: getFormInteger(form, "fixed_price_amount"),
-            });
-
-            if (!priceResult.ok) {
-              throw new Error(resultMessage(priceResult));
-            }
+            }));
 
             results.push(priceResult);
           }
@@ -116,11 +84,7 @@ export function createGrillOperations(context: AdminOperationContext) {
           const changed = results.some((entry) => entry.changed);
 
           await context.loadAdminState(
-            publicationStatus(
-              changed,
-              "Opción de parrilla actualizada. Falta publicar los cambios.",
-              "Opción de parrilla actualizada. No hay cambios pendientes de publicación.",
-            ),
+            publicationSaveStatus("Opción de parrilla actualizada.", changed),
             "success",
           );
         } catch (error) {
@@ -130,45 +94,25 @@ export function createGrillOperations(context: AdminOperationContext) {
     },
 
     deleteGrillItem(item: GrillItemState): Promise<void> {
-      return context.runBusy(async () => {
-        const result = await context.callMutation("delete_grill_item", {
+      return runPublicationMutation({
+        mutation: "delete_grill_item",
+        body: {
           item_id: item.item_id,
-        });
-
-        if (!result.ok) {
-          throw new Error(resultMessage(result));
-        }
-
-        await context.loadAdminState(
-          publicationStatus(
-            result.changed,
-            "Opción de parrilla eliminada. Falta publicar los cambios.",
-            "Opción de parrilla eliminada. No hay cambios pendientes de publicación.",
-          ),
-          "success",
-        );
-      }, "Eliminando opción de parrilla...");
+        },
+        busyText: "Eliminando opción de parrilla...",
+        successPrefix: "Opción de parrilla eliminada.",
+      });
     },
 
     deleteGrillProduct(family: GrillFamilyState): Promise<void> {
-      return context.runBusy(async () => {
-        const result = await context.callMutation("delete_grill_product", {
+      return runPublicationMutation({
+        mutation: "delete_grill_product",
+        body: {
           family_id: family.family_id,
-        });
-
-        if (!result.ok) {
-          throw new Error(resultMessage(result));
-        }
-
-        await context.loadAdminState(
-          publicationStatus(
-            result.changed,
-            "Producto de parrilla eliminado. Falta publicar los cambios.",
-            "Producto de parrilla eliminado. No hay cambios pendientes de publicación.",
-          ),
-          "success",
-        );
-      }, "Eliminando producto de parrilla...");
+        },
+        busyText: "Eliminando producto de parrilla...",
+        successPrefix: "Producto de parrilla eliminado.",
+      });
     },
   };
 }

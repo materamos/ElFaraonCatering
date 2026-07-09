@@ -1,6 +1,67 @@
 import type { AdminOperationalState, RpcResult } from "../core/types";
+import { resultMessage } from "../core/responses";
+import type { AdminOperationContext } from "./types";
 
-export function publicationStatus(
+interface MutationInput {
+  mutation: string;
+  body: Record<string, unknown>;
+  busyText: string;
+}
+
+export interface PublicationMutationInput extends MutationInput {
+  successPrefix: string;
+}
+
+export interface InstantMutationInput extends MutationInput {
+  changedMessage: string;
+}
+
+export function createMutationRunner(context: AdminOperationContext) {
+  return {
+    runPublicationMutation(input: PublicationMutationInput): Promise<void> {
+      return context.runBusy(async () => {
+        const result = requireOk(await context.callMutation(input.mutation, input.body));
+
+        await context.loadAdminState(
+          publicationSaveStatus(input.successPrefix, result.changed),
+          "success",
+        );
+      }, input.busyText);
+    },
+
+    runInstantMutation(input: InstantMutationInput): Promise<void> {
+      return context.runBusy(async () => {
+        const result = requireOk(await context.callMutation(input.mutation, input.body));
+
+        await context.loadAdminState(
+          result.changed ? input.changedMessage : "Sin cambios.",
+          "success",
+        );
+      }, input.busyText);
+    },
+  };
+}
+
+export function requireOk(result: RpcResult): RpcResult {
+  if (!result.ok) {
+    throw new Error(resultMessage(result));
+  }
+
+  return result;
+}
+
+export function publicationSaveStatus(
+  successPrefix: string,
+  changed: boolean,
+): (state: AdminOperationalState) => string {
+  return publicationStatus(
+    changed,
+    `${successPrefix} Falta publicar los cambios.`,
+    `${successPrefix} No hay cambios pendientes de publicación.`,
+  );
+}
+
+function publicationStatus(
   changed: boolean,
   pendingMessage: string,
   cleanMessage: string,
