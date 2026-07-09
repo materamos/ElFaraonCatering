@@ -176,7 +176,7 @@ export function createAdminActionHandlers(context: AdminActionHandlerContext) {
       return;
     }
 
-    let nextIndex = currentIndex;
+    let nextIndex: number;
 
     if (event.key === "ArrowRight") {
       nextIndex = (currentIndex + 1) % tabs.length;
