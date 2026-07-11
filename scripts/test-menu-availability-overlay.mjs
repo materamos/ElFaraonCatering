@@ -8,8 +8,8 @@ const scriptUrl = pathToFileURL(
   path.join(process.cwd(), "public/scripts/menu-availability-overlay.js"),
 ).href;
 
-// El script corre una vez al cargarse; el sufijo de query fuerza una instancia
-// nueva del módulo por caso de test.
+// The script runs once when loaded. A query suffix creates a fresh module
+// instance for each test case.
 let importCounter = 0;
 
 async function runOverlayScript({ html, rows = [], fetchOk = true }) {
@@ -72,7 +72,7 @@ function overlayRow(itemId, available, extra = {}) {
   };
 }
 
-test("consulta los overlays del menú con la API key pública", async () => {
+test("queries menu overlays with the public API key", async () => {
   const { fetchCalls } = await runOverlayScript({
     html: menuRoot(dishRow({ itemId: "pure", available: true })),
     rows: [],
@@ -86,7 +86,7 @@ test("consulta los overlays del menú con la API key pública", async () => {
   assert.equal(fetchCalls[0].options.credentials, "omit");
 });
 
-test("un overlay en false oculta el item y muestra el pill de no disponible", async () => {
+test("a false overlay marks the item unavailable and shows its status", async () => {
   const { document } = await runOverlayScript({
     html: menuRoot(dishRow({ itemId: "pure", available: true })),
     rows: [overlayRow("pure", false)],
@@ -102,7 +102,7 @@ test("un overlay en false oculta el item y muestra el pill de no disponible", as
   assert.equal(status.textContent, "No disponible");
 });
 
-test("un overlay en true vuelve a mostrar un item oculto en el build", async () => {
+test("a true overlay restores an item hidden at build time", async () => {
   const { document } = await runOverlayScript({
     html: menuRoot(dishRow({ itemId: "pure", available: false })),
     rows: [overlayRow("pure", true)],
@@ -116,7 +116,7 @@ test("un overlay en true vuelve a mostrar un item oculto en el build", async () 
   assert.equal(status.getAttribute("aria-hidden"), "true");
 });
 
-test("las opciones con hide-when-unavailable se ocultan por completo", async () => {
+test("hide-when-unavailable options are hidden completely", async () => {
   const optionHtml = `
     <article class="dish-row">
       <ul>
@@ -137,9 +137,9 @@ test("las opciones con hide-when-unavailable se ocultan por completo", async () 
   assert.equal(option.dataset.available, "false");
 });
 
-// El padre está disponible solo si TODAS sus variantes lo están: espeja el
-// criterio del admin para familias de parrilla, que se ocultan completas.
-test("el padre refleja la disponibilidad conjunta de sus variantes", async () => {
+// A parent is available only when all its variants are available, matching the
+// admin behavior that hides complete grill families.
+test("the parent reflects the combined availability of its variants", async () => {
   const variantsHtml = (first, second) => `
     <article class="dish-row">
       <div class="dish-card__header">
@@ -171,7 +171,7 @@ test("el padre refleja la disponibilidad conjunta de sus variantes", async () =>
   assert.equal(restoredParent.dataset.available, "true");
 });
 
-test("ignora filas con ids inválidos o de otro menú", async () => {
+test("ignores rows with invalid ids or a different menu id", async () => {
   const { document } = await runOverlayScript({
     html: menuRoot(dishRow({ itemId: "pure", available: true })),
     rows: [
@@ -187,7 +187,7 @@ test("ignora filas con ids inválidos o de otro menú", async () => {
   assert.equal(item.querySelector("[data-availability-status]").dataset.state, "available");
 });
 
-test("una respuesta con error deja el menú del build intacto", async () => {
+test("an error response leaves build-time menu state unchanged", async () => {
   const { document } = await runOverlayScript({
     html: menuRoot(dishRow({ itemId: "pure", available: true })),
     rows: [overlayRow("pure", false)],
@@ -197,7 +197,7 @@ test("una respuesta con error deja el menú del build intacto", async () => {
   assert.equal(document.querySelector(".dish-row").dataset.available, "true");
 });
 
-test("no consulta la API cuando falta la configuración del menú", async () => {
+test("does not query the API when menu configuration is missing", async () => {
   const { fetchCalls } = await runOverlayScript({
     html: `<main data-menu-id="corpo">${dishRow({ itemId: "pure", available: true })}</main>`,
     rows: [],

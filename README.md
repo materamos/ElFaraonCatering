@@ -117,7 +117,9 @@ npm run preview
 | `npm run build` | Genera el sitio estatico en `dist/` leyendo `menu_content` en build-time. |
 | `npm run check` | Ejecuta `astro check` con limite de memoria ampliado. |
 | `npm run check:js` | Ejecuta `node --check` sobre JS/MJS fuera del typecheck de Astro. |
+| `npm run lint` | Ejecuta ESLint sobre TypeScript, scripts y la Edge Function aprobada. |
 | `npm run test:admin` | Ejecuta tests puntuales de reglas, selectores, contratos de render y operaciones del admin. |
+| `npm run test:menu` | Ejecuta tests del overlay publico de disponibilidad. |
 | `npm run preview` | Sirve el build localmente para revision. |
 | `npm run menu:validate` | Valida contenido estructural y hardening esperado en Supabase. Requiere `SUPABASE_DB_URL`. |
 | `npm run verify:dist-secrets` | Revisa `dist/` para detectar marcadores de secretos despues del build. |
@@ -130,8 +132,10 @@ npm run preview
 Validacion recomendada:
 
 - `npm run test:admin` para cambios en admin UI, reglas, selectores u operaciones.
+- `npm run test:menu` para cambios en el overlay publico de disponibilidad.
 - `npm run check` para cambios TypeScript/Astro.
 - `npm run check:js` para cambios en `public/scripts/`, `scripts/` o utilidades `.mjs`.
+- `npm run lint` para TypeScript, scripts publicos, utilidades y Supabase Edge Functions.
 - `npm run build` y luego `npm run verify:dist-secrets` antes de entregar cambios de app.
 - `npm run supabase:audit` y `npm run menu:validate` cuando cambie Supabase, el shape del menu o contenido build-time.
 
@@ -141,14 +145,16 @@ Secuencia completa para cambios que tocan app y contenido build-time:
 npm run supabase:audit
 npm run menu:validate
 npm run test:admin
+npm run test:menu
 npm run check:js
+npm run lint
 npm run build
 npm run verify:dist-secrets
 npm run check
 ```
 
 En CI, los PRs de Dependabot ejecutan solo las gates que no requieren secrets:
-`check`, `check:js` y `test:admin`. Las gates que dependen de Supabase remoto
+`check`, `check:js`, `lint`, `test:admin` y `test:menu`. Las gates que dependen de Supabase remoto
 (`menu:validate`, `supabase:audit`, `build` y `verify:dist-secrets`) se omiten
 para Dependabot porque `build` necesita `SUPABASE_DB_URL` para prerenderizar el
 hash de publicacion de `/admin/`.
@@ -249,6 +255,7 @@ scripts/
   test-admin-operations.mjs
   test-admin-render-contracts.mjs
   test-admin-rules-selectors.mjs
+  test-menu-availability-overlay.mjs
   validate-menu-supabase.mjs
   verify-dist-secrets.mjs
 supabase/

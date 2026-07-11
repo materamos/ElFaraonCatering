@@ -23,7 +23,7 @@ export function createCatalogOperations(context: AdminOperationContext) {
         mutation: "add_catalog_item",
         body: {
           section_id: getFormString(form, "section_id"),
-          // La firma del RPC exige item_id, pero el servidor lo ignora y genera el id.
+          // The RPC signature requires item_id, but the server ignores it and generates the id.
           item_id: "",
           name: getFormString(form, "name"),
           description: getNullableFormString(form, "description"),
@@ -120,7 +120,7 @@ export function createCatalogOperations(context: AdminOperationContext) {
         body: {
           section_id: getFormString(form, "section_id"),
           item_id: getFormString(form, "item_id"),
-          // La firma del RPC exige option_id, pero el servidor lo ignora y genera el id.
+          // The RPC signature requires option_id, but the server ignores it and generates the id.
           option_id: "",
           name: getFormString(form, "name"),
         },

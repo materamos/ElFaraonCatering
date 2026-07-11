@@ -175,9 +175,7 @@ function handleUnexpectedError(error: unknown): void {
   renderCurrentView({ revealStatus: true });
 }
 
-// El TypeError de red de fetch no tiene mensaje estándar: Chrome usa "Failed to
-// fetch", Firefox "NetworkError when attempting to fetch resource." y Safari
-// "Load failed".
+// Fetch network TypeError messages differ across Chrome, Firefox, and Safari.
 function isNetworkFetchError(error: unknown): boolean {
   return error instanceof TypeError && /fetch|network|load failed/i.test(error.message);
 }

@@ -17,7 +17,7 @@ export function createGrillOperations(context: AdminOperationContext) {
         mutation: "add_grill_item",
         body: {
           family_id: getFormString(form, "family_id"),
-          // La firma del RPC exige item_id, pero el servidor lo ignora y genera el id.
+          // The RPC signature requires item_id, but the server ignores it and generates the id.
           item_id: "",
           name: getFormString(form, "variant_name"),
           variant_name: getFormString(form, "variant_name"),
@@ -32,7 +32,7 @@ export function createGrillOperations(context: AdminOperationContext) {
       return runPublicationMutation({
         mutation: "add_grill_product",
         body: {
-          // La firma del RPC exige family_id e item_id, pero el servidor los ignora y genera los ids.
+          // The RPC signature requires family_id and item_id, but the server generates both ids.
           family_id: "",
           title: getFormString(form, "title"),
           item_id: "",

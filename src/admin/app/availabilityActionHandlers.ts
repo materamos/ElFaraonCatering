@@ -106,8 +106,8 @@ export async function handleClearOverlayAction(
   await context.adminOperations.clearAvailabilityOverlay(availabilityTarget);
 }
 
-// Devuelve undefined cuando no hay familyKey (el flujo sigue por target individual);
-// devuelve [] cuando la familia no se encontró y ya se reportó el error.
+// Returns undefined when familyKey is absent so the individual target flow can
+// continue, or an empty list after reporting that the family was not found.
 function resolveFamilyTargets(
   context: AdminActionHandlerContext,
   currentState: AdminOperationalState | null,

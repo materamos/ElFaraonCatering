@@ -1,15 +1,15 @@
-// Optimiza fotos full de platos a webp para el menu build-time.
+// Optimizes full-size dish photos to WebP for the build-time menu.
 //
-// Flujo:
-// - Lee originales desde "assets/source-images/menu/pending/".
-// - Escribe webp optimizados en "public/uploads/menu/" (versionados en git).
-// - Mueve cada original ya procesado a "assets/source-images/menu/used/".
+// Flow:
+// - Reads originals from "assets/source-images/menu/pending/".
+// - Writes optimized WebP files to versioned "public/uploads/menu/".
+// - Moves each processed original to "assets/source-images/menu/used/".
 //
-// Las fotos se ven en un modal a pantalla, no como thumbnail: se redimensionan
-// a 1400px de lado largo, webp calidad 80, sin metadata EXIF.
+// Photos open in a full-screen modal rather than a thumbnail, so they are
+// resized to 1400px on the long side at WebP quality 80 without EXIF metadata.
 //
-// El nombre de salida se define via NAME_MAP. Cada entrada declara el item_id,
-// el slug del archivo webp y si la foto es principal o adicional.
+// NAME_MAP defines each output name, item_id, WebP slug, and whether the photo
+// is primary or additional.
 
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -30,7 +30,7 @@ const SOURCE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png"]);
 const ITEM_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const IMAGE_ROLES = new Set(["primary", "additional"]);
 
-// basename del original (sin extension, en minusculas) -> metadata de imagen
+// Lowercase original basename without extension -> image metadata.
 const NAME_MAP = {
   "cuarto-pollo": {
     itemId: "cuarto-pollo",

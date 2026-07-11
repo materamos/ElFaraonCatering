@@ -35,16 +35,15 @@ export function shouldHideUnavailableOptions(sectionId: string, itemId: string):
   );
 }
 
-// Abreviaciones deliberadas para el índice sticky del menú público: los títulos
-// completos de la DB (p. ej. "Platos principales con guarnición") no entran bien
-// en desktop. El resto de las secciones usa el título tal como viene de la DB.
+// Deliberate abbreviations for the public menu sticky index. Full database
+// titles do not fit well on desktop; other sections keep their database title.
 const navSectionLabels: Record<string, string> = {
   [menuSections.mainDishes]: "Principales",
   [menuSections.promos]: "Promos cafeteria",
 };
 
-// Etiquetas de grupo para los chips de "items ocultos" del panel operativo:
-// reusa las abreviaciones del índice y fija etiquetas cortas para el resto.
+// Operational panel group labels reuse the index abbreviations and keep the
+// remaining hidden-item chip labels short.
 const availabilityGroupChipLabels: Record<string, string> = {
   ...navSectionLabels,
   [menuSections.sides]: "Guarniciones",

@@ -34,8 +34,8 @@ export const loadSupabaseMenuPublicationContentHash = (): Promise<string> =>
   });
 
 const withMenuDb = async <T>(query: (sql: MenuDb) => Promise<T>): Promise<T> => {
-  // El nombre de la variable se arma por partes para que el literal no quede en
-  // ningún bundle: verify-dist-secrets lo trata como marcador sensible en dist/.
+  // Build the environment variable name in parts so its sensitive marker does
+  // not appear in bundles checked by verify-dist-secrets.
   const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
   const databaseUrl = getPrivateEnvironmentValue(privateDatabaseUrlEnvName);
 

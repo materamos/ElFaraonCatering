@@ -2,11 +2,10 @@ import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
-// La edge function corre en Deno (globals propios) y ya se valida al deployar;
-// dist/.astro son artefactos de build.
+// Build outputs are validated separately and dependencies are external inputs.
 export default tseslint.config(
   {
-    ignores: ["dist/", ".astro/", "node_modules/", "supabase/functions/"],
+    ignores: ["dist/", ".astro/", "node_modules/"],
   },
   {
     files: ["src/**/*.ts"],
@@ -27,6 +26,16 @@ export default tseslint.config(
     extends: [js.configs.recommended],
     languageOptions: {
       globals: globals.browser,
+    },
+  },
+  {
+    files: ["supabase/functions/**/*.ts"],
+    extends: [js.configs.recommended, tseslint.configs.recommended],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.deno,
+      },
     },
   },
 );

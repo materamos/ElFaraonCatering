@@ -121,6 +121,9 @@ Use npm only. Do not switch to pnpm, yarn, bun, or another runtime/package manag
 - Code, file names, component names, variables, types, schemas, comments, and internal identifiers must be in English.
 - User-facing content must be in Spanish unless multilingual support is explicitly requested.
 - Use ASCII-only code-facing text.
+- The ASCII-only rule applies to code-facing content, not to user-facing string literals.
+- User-facing content on the landing page, public menus, and operational admin must use correct Spanish spelling and punctuation, including accents, `ñ`, and opening question or exclamation marks when appropriate.
+- Treat visible errors, confirmations, status messages, help text, accessibility labels, and public metadata as user-facing content. Do not strip valid Spanish characters from them.
 - Do not use accents, the letter n with tilde, emojis, or unnecessary unicode in code, IDs, logs, config keys, file names, or machine-parsed strings.
 - Keep technical IDs ASCII/kebab-case and stable. Do not derive IDs from visible names at runtime.
 - Avoid repeating the parent folder context in file names. For example, use `admin/views/service.ts` and `admin/operations/catalog.ts`; use `index.ts` for a folder facade when that keeps imports clean.
@@ -331,8 +334,10 @@ npm run check
 Additional checks:
 
 - Run `npm run test:admin` when working with admin UI, rules, selectors, render contracts, operations, fixed-menu edit policy, or availability grouping.
+- Run `npm run test:menu` when working with the public availability overlay.
 - Run `npm run check` for TypeScript/Astro changes.
 - Run `npm run check:js` when working with public scripts, Node `.mjs` scripts, or shared `.mjs` utilities.
+- Run `npm run lint` after changing TypeScript, public scripts, Node utilities, or Supabase Edge Functions.
 - Run `npm run build` and then `npm run verify:dist-secrets` before delivering app changes.
 - Run `npm run supabase:audit` when working with Supabase schema, grants, policies, RPC exposure, or read-only audit expectations.
 - Run `npm run menu:validate` only when working with menu content loading, Supabase schema expectations, menu data shape, or build-time menu content.
