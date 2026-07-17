@@ -63,3 +63,44 @@
     }
   }
 })();
+
+(function () {
+  var serviceImages = document.querySelector(".landing-services");
+  var imageDialog = document.querySelector(".landing-image-dialog");
+
+  if (!serviceImages || !(imageDialog instanceof HTMLDialogElement)) {
+    return;
+  }
+
+  var imageDialogImage = imageDialog.querySelector(".landing-image-dialog__image");
+  var imageDialogClose = imageDialog.querySelector(".landing-image-dialog__close");
+
+  if (!(imageDialogImage instanceof HTMLImageElement)) {
+    return;
+  }
+
+  serviceImages.addEventListener("click", function (event) {
+    var target = event.target;
+    var button = target instanceof Element ? target.closest(".landing-card__media-button") : null;
+
+    if (!(button instanceof HTMLElement) || !serviceImages.contains(button)) {
+      return;
+    }
+
+    imageDialogImage.src = button.dataset.fullImageSrc || "";
+    imageDialogImage.alt = button.dataset.fullImageAlt || "";
+    imageDialog.showModal();
+  });
+
+  if (imageDialogClose) {
+    imageDialogClose.addEventListener("click", function () {
+      imageDialog.close();
+    });
+  }
+
+  imageDialog.addEventListener("click", function (event) {
+    if (event.target === imageDialog) {
+      imageDialog.close();
+    }
+  });
+})();

@@ -264,33 +264,4 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   </main>
 
   <script is:inline src="/scripts/landing-menu.js" defer></script>
-  <script is:inline>
-    const imageDialog = document.querySelector(".landing-image-dialog");
-    const imageDialogImage = imageDialog?.querySelector(".landing-image-dialog__image");
-    const imageDialogClose = imageDialog?.querySelector(".landing-image-dialog__close");
-
-    document.querySelectorAll(".landing-card__media-button").forEach((button) => {
-      button.addEventListener("click", () => {
-        if (!(imageDialog instanceof HTMLDialogElement) || !(imageDialogImage instanceof HTMLImageElement)) {
-          return;
-        }
-
-        imageDialogImage.src = button.dataset.fullImageSrc ?? "";
-        imageDialogImage.alt = button.dataset.fullImageAlt ?? "";
-        imageDialog.showModal();
-      });
-    });
-
-    imageDialogClose?.addEventListener("click", () => {
-      if (imageDialog instanceof HTMLDialogElement) {
-        imageDialog.close();
-      }
-    });
-
-    imageDialog?.addEventListener("click", (event) => {
-      if (event.target === imageDialog && imageDialog instanceof HTMLDialogElement) {
-        imageDialog.close();
-      }
-    });
-  </script>
 </BaseLayout>
