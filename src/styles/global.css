@@ -347,6 +347,15 @@
     border: 1px solid var(--brand-charcoal);
   }
 
+  .landing-about__media {
+    display: block;
+    width: 100%;
+    height: 18.75rem;
+    border: 1px solid var(--brand-charcoal);
+    object-fit: cover;
+    object-position: center 48%;
+  }
+
   .landing-services {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -392,6 +401,11 @@
   .landing-card__media--buffet {
     --landing-card-media-focal-x: 54%;
     --landing-card-media-focal-y: 64%;
+  }
+
+  .landing-card__media--private-catering {
+    --landing-card-media-focal-x: 52%;
+    --landing-card-media-focal-y: 72%;
   }
 
   .landing-card__body {
@@ -536,7 +550,8 @@
       grid-template-columns: 1fr;
     }
 
-    .landing-about__placeholder {
+    .landing-about__placeholder,
+    .landing-about__media {
       max-width: 34rem;
     }
 
@@ -718,7 +733,8 @@
       line-height: 1.5;
     }
 
-    .landing-about__placeholder {
+    .landing-about__placeholder,
+    .landing-about__media {
       width: 100%;
       max-width: none;
       height: 14.8125rem;
