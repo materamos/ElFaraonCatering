@@ -580,8 +580,14 @@
     }
 
     .landing-about {
-      grid-template-columns: minmax(0, 44rem) 27.5rem;
+      width: min(100%, 88rem);
+      grid-template-columns: minmax(25rem, 0.95fr) minmax(31rem, 1.05fr);
       align-items: center;
+      gap: clamp(3rem, 6vw, 6rem);
+    }
+
+    .landing-about__media {
+      height: clamp(20rem, 24vw, 27rem);
     }
 
     .landing-section--service {
@@ -620,6 +626,18 @@
       background-image:
         linear-gradient(rgb(0 0 0 / 46%), rgb(0 0 0 / 46%)),
         url("/landing/fondo-landing-mobile.webp");
+    }
+  }
+
+  @media (min-width: 821px) and (max-width: 1180px) {
+    .landing-about {
+      grid-template-columns: 1fr;
+      gap: 2.25rem;
+    }
+
+    .landing-about__media {
+      width: min(100%, 40rem);
+      height: auto;
     }
   }
 
