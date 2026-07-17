@@ -492,6 +492,10 @@
     align-items: start;
   }
 
+  .landing-section--contact .landing-copy {
+    max-width: 52rem;
+  }
+
   .landing-contact__list {
     display: grid;
     gap: 0;
@@ -861,10 +865,18 @@
     }
 
     .landing-section--contact {
-      height: 12.5rem;
+      min-height: 21rem;
       padding-top: 1.75rem;
       padding-bottom: 1.5rem;
-      overflow: hidden;
+    }
+
+    .landing-section--contact .landing-copy {
+      gap: 0.875rem;
+    }
+
+    .landing-section--contact .landing-copy h2 {
+      font-size: 1.375rem;
+      line-height: 1.28;
     }
 
     .landing-contact__list {
