@@ -520,7 +520,7 @@
 
     .landing-about {
       grid-template-columns: minmax(0, 44rem) 27.5rem;
-      height: 18.75rem;
+      align-items: center;
     }
 
     .landing-section--service {
@@ -532,7 +532,7 @@
     }
 
     .landing-card {
-      min-height: 24.875rem;
+      min-height: 28.75rem;
     }
 
     .landing-section--contact {
@@ -700,8 +700,7 @@
     }
 
     .landing-section--about {
-      height: 32rem;
-      overflow: hidden;
+      min-height: 32rem;
     }
 
     .landing-about {
@@ -741,7 +740,7 @@
     }
 
     .landing-section--service {
-      height: 48.5625rem;
+      min-height: 48.5625rem;
       padding-top: 1.75rem;
       padding-bottom: 1.75rem;
     }
@@ -761,7 +760,6 @@
       grid-template-rows: none;
       grid-template-columns: 10.125rem minmax(0, 1fr);
       min-height: 13.0625rem;
-      height: 13.0625rem;
       box-sizing: border-box;
     }
 
@@ -783,7 +781,7 @@
 
     .landing-card__body {
       gap: 0.625rem;
-      padding: 0.75rem 0.5rem 0 0.75rem;
+      padding: 0.75rem 0.5rem 0.75rem 0.75rem;
     }
 
     .landing-card h3 {
