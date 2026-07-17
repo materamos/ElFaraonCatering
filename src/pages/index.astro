@@ -104,15 +104,23 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <div class="landing-services" aria-label="Servicios de catering">
           <article class="landing-card">
             <div class="landing-card__media-frame">
-              <img
-                class="landing-card__media landing-card__media--private-catering"
-                src="/landing/catering-privado.webp"
-                alt="Vasos servidos para un servicio de catering privado"
-                width="1600"
-                height="2844"
-                loading="lazy"
-                decoding="async"
-              />
+              <button
+                class="landing-card__media-button"
+                type="button"
+                data-full-image-src="/landing/catering-privado.webp"
+                data-full-image-alt="Vasos servidos para un servicio de catering privado"
+                aria-label="Ver foto de catering privado en tamaño completo"
+              >
+                <img
+                  class="landing-card__media landing-card__media--private-catering"
+                  src="/landing/catering-privado.webp"
+                  alt="Vasos servidos para un servicio de catering privado"
+                  width="1600"
+                  height="2844"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </button>
             </div>
             <div class="landing-card__body">
               <h3>Catering privado</h3>
@@ -131,15 +139,23 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
           <article class="landing-card">
             <div class="landing-card__media-frame">
-              <img
-                class="landing-card__media landing-card__media--buffet"
-                src="/landing/platos-telefe.webp"
-                alt="Plato casero servido por El Faraón Catering"
-                width="1085"
-                height="1450"
-                loading="lazy"
-                decoding="async"
-              />
+              <button
+                class="landing-card__media-button"
+                type="button"
+                data-full-image-src="/landing/platos-telefe.webp"
+                data-full-image-alt="Plato casero servido por El Faraón Catering"
+                aria-label="Ver foto de buffet corporativo en tamaño completo"
+              >
+                <img
+                  class="landing-card__media landing-card__media--buffet"
+                  src="/landing/platos-telefe.webp"
+                  alt="Plato casero servido por El Faraón Catering"
+                  width="1085"
+                  height="1450"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </button>
             </div>
             <div class="landing-card__body">
               <h3>Buffet corporativo</h3>
@@ -160,6 +176,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         </div>
       </div>
     </section>
+
+    <dialog class="landing-image-dialog" aria-label="Foto en tamaño completo">
+      <button class="landing-image-dialog__close" type="button" aria-label="Cerrar foto">
+        Cerrar
+      </button>
+      <img class="landing-image-dialog__image" alt="" />
+    </dialog>
 
     <section id="contacto" class="landing-section landing-section--texture landing-section--contact">
       <div class="landing-section__inner">
@@ -241,4 +264,33 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   </main>
 
   <script is:inline src="/scripts/landing-menu.js" defer></script>
+  <script is:inline>
+    const imageDialog = document.querySelector(".landing-image-dialog");
+    const imageDialogImage = imageDialog?.querySelector(".landing-image-dialog__image");
+    const imageDialogClose = imageDialog?.querySelector(".landing-image-dialog__close");
+
+    document.querySelectorAll(".landing-card__media-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (!(imageDialog instanceof HTMLDialogElement) || !(imageDialogImage instanceof HTMLImageElement)) {
+          return;
+        }
+
+        imageDialogImage.src = button.dataset.fullImageSrc ?? "";
+        imageDialogImage.alt = button.dataset.fullImageAlt ?? "";
+        imageDialog.showModal();
+      });
+    });
+
+    imageDialogClose?.addEventListener("click", () => {
+      if (imageDialog instanceof HTMLDialogElement) {
+        imageDialog.close();
+      }
+    });
+
+    imageDialog?.addEventListener("click", (event) => {
+      if (event.target === imageDialog && imageDialog instanceof HTMLDialogElement) {
+        imageDialog.close();
+      }
+    });
+  </script>
 </BaseLayout>

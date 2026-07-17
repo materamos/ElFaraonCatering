@@ -359,7 +359,7 @@
   .landing-services {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
+    align-items: stretch;
     gap: 1.25rem;
   }
 
@@ -396,6 +396,21 @@
     overflow: hidden;
   }
 
+  .landing-card__media-button {
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-in;
+  }
+
+  .landing-card__media-button:focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: -3px;
+  }
+
   .landing-card__media {
     display: block;
     width: 100%;
@@ -420,6 +435,41 @@
     align-content: start;
     gap: 0.75rem;
     padding: 0.75rem 1.125rem 0.75rem;
+  }
+
+  .landing-image-dialog {
+    width: min(92vw, 72rem);
+    max-width: none;
+    max-height: 88vh;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .landing-image-dialog::backdrop {
+    background: rgb(0 0 0 / 84%);
+  }
+
+  .landing-image-dialog__image {
+    display: block;
+    max-width: 100%;
+    max-height: 88vh;
+    margin: auto;
+    object-fit: contain;
+  }
+
+  .landing-image-dialog__close {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid rgb(255 255 255 / 36%);
+    background: rgb(0 0 0 / 52%);
+    color: var(--color-ink);
+    font: inherit;
+    font-size: 0.875rem;
+    cursor: pointer;
   }
 
   .landing-card h3 {
