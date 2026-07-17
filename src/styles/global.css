@@ -385,7 +385,13 @@
     height: 15rem;
     min-height: 15rem;
     object-fit: cover;
-    object-position: center 58%;
+    object-position: var(--landing-card-media-focal-x, center)
+      var(--landing-card-media-focal-y, 58%);
+  }
+
+  .landing-card__media--buffet {
+    --landing-card-media-focal-x: 54%;
+    --landing-card-media-focal-y: 64%;
   }
 
   .landing-card__body {
