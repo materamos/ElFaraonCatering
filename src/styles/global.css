@@ -359,6 +359,7 @@
   .landing-services {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
     gap: 1.25rem;
   }
 
@@ -388,11 +389,17 @@
     background-size: 2rem 2rem;
   }
 
-  .landing-card__media {
-    display: block;
+  .landing-card__media-frame {
     width: 100%;
     height: 15rem;
     min-height: 15rem;
+    overflow: hidden;
+  }
+
+  .landing-card__media {
+    display: block;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     object-position: var(--landing-card-media-focal-x, center)
       var(--landing-card-media-focal-y, 58%);
@@ -757,17 +764,26 @@
     }
 
     .landing-card {
-      grid-template-rows: none;
-      grid-template-columns: 10.125rem minmax(0, 1fr);
+      position: relative;
+      display: block;
+      padding-left: 10.125rem;
       min-height: 13.0625rem;
       box-sizing: border-box;
     }
 
     .landing-card__placeholder,
-    .landing-card__media {
+    .landing-card__media-frame {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
       width: 10.125rem;
       min-height: 0;
-      height: 13.0625rem;
+      height: auto;
+    }
+
+    .landing-card__media {
+      height: 100%;
     }
 
     .landing-card__placeholder {
