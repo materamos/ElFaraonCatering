@@ -794,13 +794,13 @@
     }
 
     .landing-section--about {
-      min-height: 32rem;
+      min-height: 38.8125rem;
     }
 
     .landing-about {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 2.25rem;
+      gap: 2.3125rem;
     }
 
     .landing-copy {
@@ -822,8 +822,9 @@
     .landing-copy p:not(.landing-eyebrow) {
       max-width: none;
       color: var(--color-ink);
-      font-size: 1rem;
-      line-height: 1.5;
+      font-size: 0.875rem;
+      font-weight: 400;
+      line-height: 1.45;
     }
 
     .landing-about__placeholder {
@@ -839,40 +840,35 @@
     }
 
     .landing-section--service {
-      min-height: 48.5625rem;
+      min-height: 69rem;
       padding-top: 1.75rem;
       padding-bottom: 1.75rem;
     }
 
     .landing-copy--compact {
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.625rem;
     }
 
     .landing-services {
       display: grid;
       grid-template-columns: 1fr;
-      grid-auto-rows: 1fr;
-      gap: 0.75rem;
+      grid-auto-rows: auto;
+      gap: 0.625rem;
       padding-top: 0;
     }
 
     .landing-card {
-      position: relative;
-      display: block;
-      padding-left: 10.125rem;
-      min-height: 22.5rem;
+      display: grid;
+      grid-template-rows: 16.3125rem auto;
+      min-height: 0;
       box-sizing: border-box;
     }
 
     .landing-card__placeholder,
     .landing-card__media-frame {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      width: 10.125rem;
-      min-height: 0;
-      height: auto;
+      width: 100%;
+      min-height: 16.3125rem;
+      height: 16.3125rem;
     }
 
     .landing-card__media {
@@ -889,20 +885,21 @@
     }
 
     .landing-card__body {
-      gap: 0.625rem;
-      min-height: 100%;
+      gap: 0.875rem;
+      min-height: 0;
       overflow-y: visible;
-      padding: 0.75rem 0.5rem 0.75rem 0.75rem;
+      padding: 0.8125rem 1.25rem 1rem;
     }
 
     .landing-card h3 {
-      font-size: 1.25rem;
-      line-height: 1.4;
+      font-size: 1.375rem;
+      line-height: 1.28;
     }
 
     .landing-card p {
-      font-size: 0.75rem;
-      line-height: 1.55;
+      font-size: 0.71875rem;
+      font-weight: 400;
+      line-height: 1.565;
     }
 
     .landing-section--contact {
