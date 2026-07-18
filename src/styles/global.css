@@ -280,6 +280,10 @@
     background: var(--color-surface);
   }
 
+  .landing-section--about {
+    padding-block: 5rem 5.625rem;
+  }
+
   .landing-section__inner {
     width: min(100%, 75rem);
     margin-inline: auto;
@@ -287,9 +291,10 @@
 
   .landing-about {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(17rem, 27.5rem);
+    grid-template-columns: minmax(0, 37.5rem) minmax(20rem, 29.8125rem);
     align-items: start;
-    gap: clamp(2rem, 3.889vw, 3.5rem);
+    justify-content: space-between;
+    gap: clamp(4rem, 8.125vw, 7.3125rem);
   }
 
   .landing-copy {
@@ -350,9 +355,8 @@
   .landing-about__media {
     display: block;
     width: 100%;
-    height: auto;
-    border: 1px solid var(--brand-charcoal);
-    object-fit: contain;
+    height: 20.375rem;
+    object-fit: cover;
   }
 
   .landing-services {
@@ -426,7 +430,7 @@
 
   .landing-card__media--private-catering {
     --landing-card-media-focal-x: 50%;
-    --landing-card-media-focal-y: 72%;
+    --landing-card-media-focal-y: 45%;
   }
 
   .landing-card__body {
@@ -589,10 +593,10 @@
     }
 
     .landing-about {
-      width: min(100%, 88rem);
-      grid-template-columns: minmax(25rem, 0.95fr) minmax(31rem, 1.05fr);
-      align-items: center;
-      gap: clamp(3rem, 6vw, 6rem);
+      width: min(100%, 75rem);
+      grid-template-columns: minmax(0, 37.5rem) minmax(20rem, 29.8125rem);
+      align-items: start;
+      gap: clamp(4rem, 8.125vw, 7.3125rem);
     }
 
     .landing-section--service {
