@@ -277,7 +277,7 @@
   }
 
   .landing-section--service {
-    background: var(--color-surface);
+    background: #28231f;
   }
 
   .landing-section--about {
@@ -304,7 +304,7 @@
   }
 
   .landing-copy--compact {
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.875rem;
   }
 
   .landing-eyebrow {
@@ -364,16 +364,15 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: stretch;
-    gap: 1.25rem;
+    gap: 1.6875rem;
   }
 
   .landing-card {
     display: grid;
-    grid-template-rows: 15rem minmax(0, 1fr);
+    grid-template-rows: 16.3125rem minmax(0, 1fr);
     min-width: 0;
     overflow: hidden;
-    background: var(--brand-bone);
-    border: 1px solid var(--brand-charcoal);
+    background: #070706;
   }
 
   .landing-card__placeholder {
@@ -395,8 +394,8 @@
 
   .landing-card__media-frame {
     width: 100%;
-    height: 15rem;
-    min-height: 15rem;
+    height: 16.3125rem;
+    min-height: 16.3125rem;
     overflow: hidden;
   }
 
@@ -437,8 +436,8 @@
   .landing-card__body {
     display: grid;
     align-content: start;
-    gap: 0.75rem;
-    padding: 0.75rem 1.125rem 0.75rem;
+    gap: 1.25rem;
+    padding: 1.5rem 1.625rem 2.25rem;
   }
 
   .landing-image-dialog {
@@ -495,10 +494,10 @@
   }
 
   .landing-card p {
-    color: var(--brand-charcoal);
+    color: #f5f1ec;
     font-size: 0.875rem;
     font-weight: 400;
-    line-height: 1.6;
+    line-height: 1.55;
   }
 
   .landing-section--contact {
@@ -601,15 +600,15 @@
     }
 
     .landing-section--service {
-      min-height: 43.6875rem;
+      min-height: 48.6875rem;
     }
 
     .landing-services {
-      padding-top: 0.625rem;
+      padding-top: 0;
     }
 
     .landing-card {
-      min-height: 28.75rem;
+      min-height: 32.875rem;
     }
 
     .landing-section--contact {
