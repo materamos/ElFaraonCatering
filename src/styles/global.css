@@ -762,7 +762,6 @@
       flex-direction: column;
       background: var(--color-page);
       color: var(--color-ink);
-      animation: landing-mobile-nav-enter 200ms ease-out;
     }
 
     .landing-mobile-nav:not([hidden]) {
@@ -773,18 +772,23 @@
       animation: landing-mobile-nav-brand-enter 200ms 40ms ease-out both;
     }
 
-    .landing-mobile-nav[data-closing] {
-      animation: landing-mobile-nav-exit 200ms ease-in both;
+    .landing-mobile-nav:not([hidden]) .landing-mobile-nav__content {
+      animation: landing-mobile-nav-content-enter 200ms ease-out both;
     }
 
     .landing-mobile-nav[data-closing] .landing-mobile-nav__brand {
       animation: landing-mobile-nav-brand-exit 200ms ease-in both;
     }
 
+    .landing-mobile-nav[data-closing] .landing-mobile-nav__content {
+      animation: landing-mobile-nav-content-exit 200ms ease-in both;
+    }
+
     @media (prefers-reduced-motion: reduce) {
-      .landing-mobile-nav,
       .landing-mobile-nav:not([hidden]) .landing-mobile-nav__brand,
-      .landing-mobile-nav[data-closing] .landing-mobile-nav__brand {
+      .landing-mobile-nav:not([hidden]) .landing-mobile-nav__content,
+      .landing-mobile-nav[data-closing] .landing-mobile-nav__brand,
+      .landing-mobile-nav[data-closing] .landing-mobile-nav__content {
         animation: none;
       }
     }
@@ -927,7 +931,7 @@
       object-fit: contain;
     }
 
-    @keyframes landing-mobile-nav-enter {
+    @keyframes landing-mobile-nav-content-enter {
       from {
         opacity: 0;
       }
@@ -937,7 +941,7 @@
       }
     }
 
-    @keyframes landing-mobile-nav-exit {
+    @keyframes landing-mobile-nav-content-exit {
       from {
         opacity: 1;
       }
