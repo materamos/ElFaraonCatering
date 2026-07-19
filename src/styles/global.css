@@ -930,13 +930,11 @@
 
     @keyframes landing-mobile-nav-brand-enter {
       from {
-        opacity: 0;
-        transform: translateY(-0.375rem);
+        transform: translateX(calc(50vw - 2.75rem));
       }
 
       to {
-        opacity: 1;
-        transform: none;
+        transform: translateX(0);
       }
     }
 
