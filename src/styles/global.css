@@ -840,11 +840,18 @@
 
     .landing-mobile-nav__eyebrow,
     .landing-mobile-nav__detail {
+      color: var(--color-muted);
       font-size: 0.6875rem;
       font-weight: 500;
       letter-spacing: 0.14em;
       line-height: 1.4;
       text-transform: uppercase;
+    }
+
+    .landing-eyebrow {
+      font-size: 0.6875rem;
+      line-height: 1.4;
+      letter-spacing: 0.14em;
     }
 
     .landing-mobile-nav__links {
@@ -887,8 +894,21 @@
     }
 
     .landing-mobile-nav__detail {
+      align-self: center;
       margin-top: 2rem;
       color: var(--color-muted);
+      text-align: center;
+    }
+
+    .landing-footer {
+      min-height: 7.25rem;
+      padding: 1.5rem 1.25rem;
+    }
+
+    .landing-footer img {
+      width: 10.875rem;
+      height: 4.25rem;
+      object-fit: contain;
     }
 
     @keyframes landing-mobile-nav-enter {
@@ -933,8 +953,8 @@
     }
 
     .landing-eyebrow {
-      font-size: 0.75rem;
-      line-height: 1.25;
+      font-size: 0.6875rem;
+      line-height: 1.4;
       letter-spacing: 0.14em;
     }
 
@@ -1048,13 +1068,15 @@
     }
 
     .landing-footer {
-      height: 6.25rem;
-      min-height: 6.25rem;
-      padding: 1.125rem 1.25rem;
+      height: 7.25rem;
+      min-height: 7.25rem;
+      padding: 1.5rem 1.25rem;
     }
 
     .landing-footer img {
       width: 10.875rem;
+      height: 4.25rem;
+      object-fit: contain;
     }
   }
   .page-shell {
