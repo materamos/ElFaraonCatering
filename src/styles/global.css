@@ -775,18 +775,16 @@
       height: 4.8125rem;
       flex: 0 0 auto;
       align-items: center;
-      justify-content: center;
-      padding: 0;
+      justify-content: space-between;
+      padding: 0 1.5rem;
     }
 
     .landing-mobile-nav__brand {
-      position: absolute;
-      top: 1.15625rem;
-      left: 50%;
+      position: static;
       display: grid;
       width: 2.5rem;
       place-items: center;
-      transform: translateX(-50%);
+      transform: none;
     }
 
     .landing-mobile-nav__brand img {
@@ -796,9 +794,7 @@
     }
 
     .landing-mobile-nav__close {
-      position: absolute;
-      top: 1rem;
-      right: 1.5rem;
+      position: static;
       display: grid;
       width: 2.75rem;
       height: 2.75rem;
