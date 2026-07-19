@@ -2,45 +2,58 @@
   var landingHeader = document.querySelector("[data-landing-header]");
   var landingMenuToggle = document.querySelector("[data-landing-menu-toggle]");
   var landingMobileNav = document.querySelector("[data-landing-mobile-nav]");
+  var landingMenuClose = document.querySelector("[data-landing-menu-close]");
   var landingMenuLabel = document.querySelector("[data-landing-menu-label]");
+  var lastFocusedElement = null;
 
   if (!landingHeader || !landingMenuToggle || !landingMobileNav) {
     return;
   }
 
-  var setLandingMenuOpen = function (open) {
+  var setLandingMenuOpen = function (open, shouldRestoreFocus) {
     var isOpen = Boolean(open);
     landingMenuToggle.setAttribute("aria-expanded", String(isOpen));
     landingMobileNav.hidden = !isOpen;
+    document.documentElement.classList.toggle("landing-menu-lock", isOpen);
 
     if (landingMenuLabel) {
-      landingMenuLabel.textContent = isOpen ? "Cerrar menu" : "Abrir menu";
+      landingMenuLabel.textContent = isOpen ? "Cerrar menú" : "Abrir menú";
+    }
+
+    if (isOpen) {
+      lastFocusedElement = document.activeElement;
+      if (landingMenuClose) {
+        landingMenuClose.focus();
+      }
+    } else if (shouldRestoreFocus && lastFocusedElement instanceof HTMLElement) {
+      lastFocusedElement.focus();
+      lastFocusedElement = null;
     }
   };
 
   landingMenuToggle.addEventListener("click", function () {
     var isOpen = landingMenuToggle.getAttribute("aria-expanded") === "true";
-    setLandingMenuOpen(!isOpen);
+    setLandingMenuOpen(!isOpen, isOpen);
   });
 
+  if (landingMenuClose) {
+    landingMenuClose.addEventListener("click", function () {
+      setLandingMenuOpen(false, true);
+    });
+  }
+
   landingMobileNav.addEventListener("click", function (event) {
-    if (event.target && event.target.tagName === "A") {
+    var target = event.target;
+    var link = target instanceof Element ? target.closest("a") : null;
+
+    if (link && landingMobileNav.contains(link)) {
       setLandingMenuOpen(false);
     }
   });
 
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
-      setLandingMenuOpen(false);
-    }
-  });
-
-  document.addEventListener("click", function (event) {
-    var isOpen = landingMenuToggle.getAttribute("aria-expanded") === "true";
-    var target = event.target;
-
-    if (isOpen && target && !landingHeader.contains(target)) {
-      setLandingMenuOpen(false);
+      setLandingMenuOpen(false, true);
     }
   });
 

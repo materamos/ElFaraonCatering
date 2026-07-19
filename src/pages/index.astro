@@ -31,7 +31,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         data-landing-menu-toggle
       >
         <span class="landing-menu-icon" aria-hidden="true"></span>
-        <span class="landing-sr-only" data-landing-menu-label>Abrir menu</span>
+        <span class="landing-sr-only" data-landing-menu-label>Abrir menú</span>
       </button>
       <nav
         id="landing-mobile-nav"
@@ -40,9 +40,30 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         data-landing-mobile-nav
         hidden
       >
-        <a href="#nosotros">Nosotros</a>
-        <a href="#servicio">Servicio</a>
-        <a href="#contacto">Contacto</a>
+        <div class="landing-mobile-nav__header">
+          <a class="landing-mobile-nav__brand" href="/" aria-label="El Faraón Catering, inicio">
+            <img
+              src="/brand/el-faraon-logo-icon-orange-transparent.png"
+              alt=""
+              width="1800"
+              height="1800"
+            />
+          </a>
+          <button class="landing-mobile-nav__close" type="button" data-landing-menu-close>
+            <span class="landing-sr-only">Cerrar menú</span>
+            <span class="landing-mobile-nav__close-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+        <div class="landing-mobile-nav__content">
+          <p class="landing-mobile-nav__eyebrow">Menú</p>
+          <ul class="landing-mobile-nav__links">
+            <li><a href="#nosotros">Nosotros</a></li>
+            <li><a href="#servicio">Servicio</a></li>
+            <li><a href="#contacto">Contacto</a></li>
+          </ul>
+          <a class="landing-mobile-nav__button" href="#contacto">Contáctanos</a>
+          <p class="landing-mobile-nav__detail">El Faraón Catering · Buenos Aires</p>
+        </div>
       </nav>
     </header>
 
