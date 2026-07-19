@@ -5,15 +5,34 @@
   var landingMenuClose = document.querySelector("[data-landing-menu-close]");
   var landingMenuLabel = document.querySelector("[data-landing-menu-label]");
   var lastFocusedElement = null;
+  var landingMenuCloseTimeout = null;
+  var landingMenuTransitionDuration = 200;
 
   if (!landingHeader || !landingMenuToggle || !landingMobileNav) {
     return;
   }
 
+  var finishLandingMenuClose = function () {
+    landingMenuCloseTimeout = null;
+    landingMobileNav.hidden = true;
+    landingMobileNav.removeAttribute("aria-hidden");
+    landingMobileNav.removeAttribute("inert");
+    landingMobileNav.removeAttribute("data-closing");
+  };
+
+  var shouldReduceLandingMenuMotion = function () {
+    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  };
+
   var setLandingMenuOpen = function (open, shouldRestoreFocus) {
     var isOpen = Boolean(open);
+
+    if (landingMenuCloseTimeout !== null) {
+      window.clearTimeout(landingMenuCloseTimeout);
+      landingMenuCloseTimeout = null;
+    }
+
     landingMenuToggle.setAttribute("aria-expanded", String(isOpen));
-    landingMobileNav.hidden = !isOpen;
     document.documentElement.classList.toggle("landing-menu-lock", isOpen);
 
     if (landingMenuLabel) {
@@ -21,14 +40,31 @@
     }
 
     if (isOpen) {
+      landingMobileNav.hidden = false;
+      landingMobileNav.removeAttribute("aria-hidden");
+      landingMobileNav.removeAttribute("inert");
+      landingMobileNav.removeAttribute("data-closing");
       lastFocusedElement = document.activeElement;
       if (landingMenuClose) {
         landingMenuClose.focus();
       }
-    } else if (shouldRestoreFocus && lastFocusedElement instanceof HTMLElement) {
+      return;
+    }
+
+    if (shouldRestoreFocus && lastFocusedElement instanceof HTMLElement) {
       lastFocusedElement.focus();
       lastFocusedElement = null;
     }
+
+    if (landingMobileNav.hidden || shouldReduceLandingMenuMotion()) {
+      finishLandingMenuClose();
+      return;
+    }
+
+    landingMobileNav.setAttribute("aria-hidden", "true");
+    landingMobileNav.setAttribute("inert", "");
+    landingMobileNav.setAttribute("data-closing", "");
+    landingMenuCloseTimeout = window.setTimeout(finishLandingMenuClose, landingMenuTransitionDuration);
   };
 
   landingMenuToggle.addEventListener("click", function () {

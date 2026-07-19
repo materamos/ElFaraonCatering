@@ -773,9 +773,18 @@
       animation: landing-mobile-nav-brand-enter 200ms 40ms ease-out both;
     }
 
+    .landing-mobile-nav[data-closing] {
+      animation: landing-mobile-nav-exit 200ms ease-in both;
+    }
+
+    .landing-mobile-nav[data-closing] .landing-mobile-nav__brand {
+      animation: landing-mobile-nav-brand-exit 200ms ease-in both;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .landing-mobile-nav,
-      .landing-mobile-nav:not([hidden]) .landing-mobile-nav__brand {
+      .landing-mobile-nav:not([hidden]) .landing-mobile-nav__brand,
+      .landing-mobile-nav[data-closing] .landing-mobile-nav__brand {
         animation: none;
       }
     }
@@ -928,6 +937,16 @@
       }
     }
 
+    @keyframes landing-mobile-nav-exit {
+      from {
+        opacity: 1;
+      }
+
+      to {
+        opacity: 0;
+      }
+    }
+
     @keyframes landing-mobile-nav-brand-enter {
       from {
         transform: translateX(calc(50vw - 2.75rem));
@@ -935,6 +954,16 @@
 
       to {
         transform: translateX(0);
+      }
+    }
+
+    @keyframes landing-mobile-nav-brand-exit {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(calc(50vw - 2.75rem));
       }
     }
 
