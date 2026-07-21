@@ -71,3 +71,6 @@ admin-auth-state.json
 .codex/
 .codex-doc-review/
 .claude/
+
+# Agent scratch space
+/.agent-tmp/
