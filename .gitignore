@@ -44,6 +44,9 @@ public/uploads/*.svg
 # Branding (material de trabajo de diseno, no versionar)
 docs/branding/
 
+# Machine-local project context
+/docs/project-context.local.md
+
 # Originales full de imagenes del menu (material fuente, no versionar; al repo solo van los webp optimizados)
 assets/source-images/
 

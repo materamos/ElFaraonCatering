@@ -94,6 +94,10 @@ Las variables `PUBLIC_*` son intencionalmente visibles para el cliente. `SUPABAS
 | `npm run verify:dist-secrets` | Revisa un `dist/` ya generado en busca de marcadores de secretos. |
 | `npm run supabase:audit` | Ejecuta auditorias SQL read-only. Requiere `SUPABASE_DB_URL`. |
 
+### Imagenes fuente del menu
+
+Los originales viven fuera del repositorio. `node scripts/optimize-menu-images.mjs <source-images-dir>` procesa la carpeta `pending/`, escribe los WebP versionados en `public/uploads/menu/` y mueve los originales procesados a `used/`. Sin argumento, conserva `assets/source-images/menu/` como staging local compatible.
+
 ### Supabase CLI
 
 | Script | Uso |

@@ -1,9 +1,9 @@
 // Optimizes full-size dish photos to WebP for the build-time menu.
 //
 // Flow:
-// - Reads originals from "assets/source-images/menu/pending/".
+// - Reads originals from "<source-images-dir>/pending/".
 // - Writes optimized WebP files to versioned "public/uploads/menu/".
-// - Moves each processed original to "assets/source-images/menu/used/".
+// - Moves each processed original to "<source-images-dir>/used/".
 //
 // Photos open in a full-screen modal rather than a thumbnail, so they are
 // resized to 1400px on the long side at WebP quality 80 without EXIF metadata.
@@ -18,7 +18,9 @@ import sharp from "sharp";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-const sourceImagesDir = path.join(projectRoot, "assets", "source-images", "menu");
+const sourceImagesDir = process.argv[2]
+  ? path.resolve(process.argv[2])
+  : path.join(projectRoot, "assets", "source-images", "menu");
 const pendingDir = path.join(sourceImagesDir, "pending");
 const processedDir = path.join(sourceImagesDir, "used");
 const outputDir = path.join(projectRoot, "public", "uploads", "menu");
@@ -319,7 +321,7 @@ const main = async () => {
       `- ${r.fileName} -> item_id=${r.itemId} ${roleText} /uploads/menu/${r.slug}.webp  (${formatKb(r.sourceBytes)} -> ${formatKb(r.outputBytes)})${replaceText}`,
     );
   }
-  console.log("\nOriginales movidos a 'assets/source-images/menu/used/'.");
+  console.log(`\nOriginales movidos a '${processedDir}'.`);
 };
 
 main().catch((error) => {
