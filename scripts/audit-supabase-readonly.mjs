@@ -3,7 +3,7 @@ import path from "node:path";
 import postgres from "postgres";
 import { loadLocalEnv } from "./load-local-env.mjs";
 
-const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
+const privateAuditDatabaseUrlEnvName = ["SUPABASE", "AUDIT", "DB", "URL"].join("_");
 const auditFiles = [
   "docs/supabase/audits/menu-schema-audit.sql",
   "docs/supabase/audits/database-audit.sql",
@@ -12,10 +12,10 @@ const successStatuses = new Set(["keep", "present"]);
 
 loadLocalEnv();
 
-const databaseUrl = process.env[privateDatabaseUrlEnvName];
+const databaseUrl = process.env[privateAuditDatabaseUrlEnvName];
 
 if (!databaseUrl) {
-  console.error("Private Supabase database URL is required for Supabase audits.");
+  console.error("Private Supabase audit database URL is required for Supabase audits.");
   process.exit(1);
 }
 

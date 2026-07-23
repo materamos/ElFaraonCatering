@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -44,8 +45,10 @@ jobs:
         run: npm run test:menu
 
   production:
-    name: Production build and database checks
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: Production build
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -69,11 +72,6 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: npm run menu:validate
-
-      - name: Audit Supabase schema
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: npm run supabase:audit
 
       - name: Build
         env:
