@@ -141,6 +141,8 @@ Login con un usuario staff existente no necesita crear cuentas temporales. Los f
 
 Si una prueba de email fue autorizada, usar una casilla controlada y no versionar su direccion. Eliminar un usuario temporal al finalizar revoca el acceso, pero no deshace emails ya enviados ni sus posibles rebotes. La proteccion contra passwords filtradas se habilita en Supabase Auth settings si el plan la soporta; no se configura mediante migracion SQL.
 
+El proyecto opera en Supabase Free para mantener costo cero. El warning `auth_leaked_password_protection` se acepta como una limitacion conocida del plan y solo debe reevaluarse si se migra a un plan pago.
+
 ### Edge Function y secretos
 
 El CLI esta fijado como dependencia de desarrollo del repo:
