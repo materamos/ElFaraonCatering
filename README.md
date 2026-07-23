@@ -42,6 +42,7 @@ Para el modelo de datos, baseline, permisos, auditorias y procedimientos remotos
 - Node `22.x`
 - npm `>=10`
 - `SUPABASE_DB_URL` para builds y validaciones que leen contenido de Supabase
+- `SUPABASE_AUDIT_DB_URL` para auditorias locales privilegiadas
 
 ### Instalacion y servidor
 
@@ -72,9 +73,10 @@ Usar [.env.example](./.env.example) como referencia y guardar valores locales en
 PUBLIC_SUPABASE_URL=
 PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_DB_URL=
+SUPABASE_AUDIT_DB_URL=
 ```
 
-Las variables `PUBLIC_*` son intencionalmente visibles para el cliente. `SUPABASE_DB_URL` es privada y no debe llevar ese prefijo. Los tokens del CLI y los secretos de `publish-menu-changes` se configuran por separado; sus nombres y procedimiento estan documentados en el [runbook de Supabase](./docs/supabase/README.md#variables).
+Las variables `PUBLIC_*` son intencionalmente visibles para el cliente. `SUPABASE_DB_URL` y `SUPABASE_AUDIT_DB_URL` son privadas y no deben llevar ese prefijo. La primera usa el rol de lectura minimo para build; la segunda se reserva para auditorias locales. Los tokens del CLI y los secretos de `publish-menu-changes` se configuran por separado; sus nombres y procedimiento estan documentados en el [runbook de Supabase](./docs/supabase/README.md#variables).
 
 ## Scripts npm
 
@@ -92,7 +94,7 @@ Las variables `PUBLIC_*` son intencionalmente visibles para el cliente. `SUPABAS
 | `npm run test:menu` | Prueba el overlay publico de disponibilidad. |
 | `npm run menu:validate` | Valida contenido y hardening esperado en Supabase. Requiere `SUPABASE_DB_URL`. |
 | `npm run verify:dist-secrets` | Revisa un `dist/` ya generado en busca de marcadores de secretos. |
-| `npm run supabase:audit` | Ejecuta auditorias SQL read-only. Requiere `SUPABASE_DB_URL`. |
+| `npm run supabase:audit` | Ejecuta auditorias SQL read-only. Requiere `SUPABASE_AUDIT_DB_URL`. |
 
 ### Imagenes fuente del menu
 

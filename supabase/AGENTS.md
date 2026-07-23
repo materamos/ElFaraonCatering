@@ -35,7 +35,7 @@
 
 ## Sensitive/generated artifacts
 
-- `SUPABASE_DB_URL` is private build/audit access; never make it `PUBLIC_*` or client-visible.
+- `SUPABASE_DB_URL` is private least-privilege build access. `SUPABASE_AUDIT_DB_URL` is private privileged local audit access. Never make either `PUBLIC_*` or client-visible.
 - Intended browser variables are only `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`.
 - Service-role keys, deploy hooks, and access tokens are secrets: never commit/log/expose them. Function variables are documented in `docs/supabase/README.md`.
 - Bootstrap the first `admin` only through privileged SQL. `service_role` has no direct `staff_users` access; browser RLS is not a bootstrap path.

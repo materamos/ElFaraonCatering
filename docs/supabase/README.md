@@ -36,6 +36,7 @@ La migracion activa para bases nuevas es:
 | Migracion | Proposito |
 | --- | --- |
 | `20260707000000_prelaunch_baseline.sql` | Crea schemas, tablas, contenido build-time, RPCs, fingerprint, auditoria privada, publicacion, RLS, policies, grants y hardening del estado prelanzamiento. |
+| `20260723230712_add_menu_build_ci_role.sql` | Crea el rol de build sin login y limita sus grants al contenido, overlay y fingerprint requeridos. |
 
 El tag anotado `supabase-prelaunch-history-2026-07-07` conserva la historia incremental inmediatamente anterior al squash actual. `supabase-prelaunch-history-2026-06-06` es un corte historico anterior; no es el tag de la baseline vigente. `yaml-rollback-2026-05-02` conserva el ultimo estado file-backed, pero YAML ya no es fuente activa.
 
@@ -56,7 +57,8 @@ El baseline es solo para bases nuevas. No debe aplicarse sobre una base existent
 
 - `PUBLIC_SUPABASE_URL`: URL publica para overlay, Auth y RPCs controladas.
 - `PUBLIC_SUPABASE_ANON_KEY`: anon key publica para el navegador.
-- `SUPABASE_DB_URL`: conexion Postgres privada para build, validacion y auditorias.
+- `SUPABASE_DB_URL`: conexion Postgres privada con el rol minimo `menu_build_ci` para build y validacion.
+- `SUPABASE_AUDIT_DB_URL`: conexion Postgres privada y privilegiada solo para auditorias locales.
 - `SUPABASE_ACCESS_TOKEN`: token local opcional para Management API/CLI; no pertenece al sitio ni a Functions.
 
 ### Runtime de `publish-menu-changes`
@@ -68,11 +70,13 @@ El baseline es solo para bases nuevas. No debe aplicarse sobre una base existent
 - `PUBLISH_ALLOWED_ORIGINS`
 - `PUBLISH_COOLDOWN_SECONDS` (default recomendado: `60`)
 
-`SUPABASE_DB_URL`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY` y `VERCEL_DEPLOY_HOOK_URL` son privados. No deben exponerse como `PUBLIC_*`, registrarse en logs ni versionarse. `../../.env.example` enumera las variables locales sin valores reales.
+`SUPABASE_DB_URL`, `SUPABASE_AUDIT_DB_URL`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY` y `VERCEL_DEPLOY_HOOK_URL` son privados. No deben exponerse como `PUBLIC_*`, registrarse en logs ni versionarse. `../../.env.example` enumera las variables locales sin valores reales.
+
+`menu_build_ci` se crea sin login mediante migracion. Su contraseña se provisiona fuera del repositorio. Solo recibe lectura de las tablas build-time, las columnas de identificacion del overlay y la funcion privada de fingerprint. No recibe acceso a `staff_users`, tablas de `app_private`, Auth ni historial de migraciones. Las tablas build-time nuevas requieren un grant explicito en su migracion.
 
 ## Validacion local y read-only
 
-Antes de considerar una mutacion remota, ejecutar las auditorias y validaciones aplicables contra la base apuntada por `SUPABASE_DB_URL`:
+Antes de considerar una mutacion remota, ejecutar las auditorias contra `SUPABASE_AUDIT_DB_URL` y las validaciones/builds contra `SUPABASE_DB_URL`:
 
 ```bash
 npm run supabase:audit
@@ -88,8 +92,8 @@ npm run check
 Para una auditoria de plataforma mas amplia:
 
 ```bash
-npm run supabase -- db advisors --db-url "$SUPABASE_DB_URL"
-npm run supabase -- db lint --db-url "$SUPABASE_DB_URL" --schema public,menu_content,app_private --fail-on none
+npm run supabase -- db advisors --db-url "$SUPABASE_AUDIT_DB_URL"
+npm run supabase -- db lint --db-url "$SUPABASE_AUDIT_DB_URL" --schema public,menu_content,app_private --fail-on none
 ```
 
 Estado esperado:

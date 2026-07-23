@@ -4,20 +4,23 @@ import { loadLocalEnv } from "./load-local-env.mjs";
 
 const rootDir = process.cwd();
 const distDir = path.join(rootDir, "dist");
-const privateDatabaseUrlEnvName = ["SUPABASE", "DB", "URL"].join("_");
+const privateDatabaseUrlEnvNames = [
+  ["SUPABASE", "DB", "URL"].join("_"),
+  ["SUPABASE", "AUDIT", "DB", "URL"].join("_"),
+];
 
 loadLocalEnv(rootDir);
 
 const sensitiveNamePattern = new RegExp(
-  `(?:${privateDatabaseUrlEnvName}|DATABASE_URL|POSTGRES|SERVICE_ROLE|SECRET|TOKEN|PASSWORD|PRIVATE|CREDENTIAL|API_KEY|AUTH)`,
+  `(?:${privateDatabaseUrlEnvNames.join("|")}|DATABASE_URL|POSTGRES|SERVICE_ROLE|SECRET|TOKEN|PASSWORD|PRIVATE|CREDENTIAL|API_KEY|AUTH)`,
   "i",
 );
 
 const markers = [
-  {
+  ...privateDatabaseUrlEnvNames.map((value) => ({
     label: "private database URL marker",
-    value: privateDatabaseUrlEnvName,
-  },
+    value,
+  })),
   ...Object.entries(process.env)
     .filter(([name, value]) => {
       if (name.startsWith("PUBLIC_")) {

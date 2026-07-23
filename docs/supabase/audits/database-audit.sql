@@ -791,13 +791,15 @@ allowed_history(label, versions) as (
         '20260701151758',
         '20260706113430',
         '20260706114205',
-        '20260706162000'
+        '20260706162000',
+        '20260723230712'
       ]::text[]
     ),
     (
       'handoff_baseline',
       array[
-        '20260707000000'
+        '20260707000000',
+        '20260723230712'
       ]::text[]
     )
 )
@@ -847,3 +849,119 @@ where object_schema = 'app_private'
   and object_name in ('menu_publish_requests_id_seq', 'menu_change_events_id_seq')
   and lower(grantee) in ('anon', 'authenticated', 'public')
 order by grantee, privilege_type;
+
+-- 19. The build login role must retain its exact least-privilege boundary.
+with role_state as (
+  select
+    rolname,
+    rolsuper,
+    rolinherit,
+    rolcreaterole,
+    rolcreatedb,
+    rolreplication,
+    rolbypassrls,
+    rolconnlimit
+  from pg_roles
+  where rolname = 'menu_build_ci'
+)
+select
+  'menu_build_ci_role_attributes' as diagnostic,
+  role_state.*,
+  'risk' as suggested_status,
+  'Build role is missing or has an unexpected capability.' as reason
+from (values (1)) expected(singleton)
+left join role_state on true
+where role_state.rolname is null
+   or role_state.rolsuper
+   or role_state.rolinherit
+   or role_state.rolcreaterole
+   or role_state.rolcreatedb
+   or role_state.rolreplication
+   or role_state.rolbypassrls
+   or role_state.rolconnlimit <> 3;
+
+with expected_tables (table_name) as (
+  values
+    ('menu_profiles'),
+    ('menu_profile_facts'),
+    ('menu_prices'),
+    ('menu_price_variants'),
+    ('menu_daily_items'),
+    ('menu_profile_service_settings'),
+    ('menu_catalog_sections'),
+    ('menu_catalog_items'),
+    ('menu_catalog_item_images'),
+    ('menu_catalog_item_options'),
+    ('menu_grill_families'),
+    ('menu_grill_catalog_items')
+)
+select
+  'menu_build_ci_missing_select' as diagnostic,
+  expected.table_name,
+  'risk' as suggested_status,
+  'Build role is missing required menu table SELECT.' as reason
+from expected_tables expected
+where not has_table_privilege(
+  'menu_build_ci',
+  format('menu_content.%I', expected.table_name),
+  'select'
+)
+order by expected.table_name;
+
+select
+  'menu_build_ci_excess_privilege' as diagnostic,
+  capability,
+  'risk' as suggested_status,
+  'Build role exceeds its documented read-only boundary.' as reason
+from (
+  values
+    (
+      'menu_profiles_insert',
+      has_table_privilege('menu_build_ci', 'menu_content.menu_profiles', 'insert')
+    ),
+    (
+      'menu_profiles_update',
+      has_table_privilege('menu_build_ci', 'menu_content.menu_profiles', 'update')
+    ),
+    (
+      'menu_profiles_delete',
+      has_table_privilege('menu_build_ci', 'menu_content.menu_profiles', 'delete')
+    ),
+    (
+      'staff_users_select',
+      has_table_privilege('menu_build_ci', 'public.staff_users', 'select')
+    ),
+    (
+      'auth_users_select',
+      has_table_privilege('menu_build_ci', 'auth.users', 'select')
+    ),
+    (
+      'private_publish_requests_select',
+      has_table_privilege('menu_build_ci', 'app_private.menu_publish_requests', 'select')
+    ),
+    (
+      'menu_content_create',
+      has_schema_privilege('menu_build_ci', 'menu_content', 'create')
+    ),
+    (
+      'public_create',
+      has_schema_privilege('menu_build_ci', 'public', 'create')
+    ),
+    (
+      'app_private_create',
+      has_schema_privilege('menu_build_ci', 'app_private', 'create')
+    )
+) checks(capability, is_granted)
+where is_granted
+union all
+select
+  'menu_build_ci_missing_fingerprint_execute',
+  'publication_hash_execute',
+  'risk',
+  'Build role cannot execute the required publication hash function.'
+where not has_function_privilege(
+  'menu_build_ci',
+  'app_private.get_menu_publication_content_hash()',
+  'execute'
+)
+order by capability;
